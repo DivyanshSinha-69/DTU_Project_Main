@@ -13,13 +13,9 @@ const MovieDataSchema = mongoose.Schema({
     required: true,
     type: Number,
   },
-  Language: {
+  Citation: {
     required: true,
-    type: String,
-  },
-  Quality: {
-    required: true,
-    type: String,
+    type: Number,
   },
   ScreenShots: {
     required: true,
