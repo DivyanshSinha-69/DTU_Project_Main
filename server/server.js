@@ -14,7 +14,9 @@ const corsOptions = {
   preflightContinue: false,
 };
 
-//Routes
+//import routes
+const Professor_data = require("./routes/professor_data");
+const Admin = require("./routes/admin");
 
 app.use(cors(corsOptions));
 app.use((req, res, next) => {
