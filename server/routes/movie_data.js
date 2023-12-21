@@ -104,7 +104,7 @@ Router.delete("/delete/:id", async (req, res) => {
   }
 });
 
-Router.post("/fetch", async (req, res) => {
+Router.get("/fetch", async (req, res) => {
   try {
     const data = await MovieData.find();
     // console.log(data);
@@ -115,7 +115,7 @@ Router.post("/fetch", async (req, res) => {
   }
 });
 
-Router.post("/fetch/:id", async (req, res) => {
+Router.get("/fetch/:id", async (req, res) => {
   try {
     const id = req.params.id;
 
