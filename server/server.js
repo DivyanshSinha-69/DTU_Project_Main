@@ -1,37 +1,11 @@
+// import { connectDB } from "./data/database.js";
 
-const express = require("express");
-const cors = require("cors");
-const BodyParser = require("body-parser");
-require("dotenv/config");
+import { app } from "./app.js";
+// const app=require("./app.js")
+// connectDB();
 
-const Port = process.env.PORT;
-const app = express();
-
-const corsOptions = {
-  origin: "*",
-  credentials: true, //access-control-allow-credentials:true
-  optionSuccessStatus: 200,
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  preflightContinue: false,
-};
-
-//import routes
-const Professor_data = require("./routes/professor_data");
-const Admin = require("./routes/admin");
-
-app.use(cors(corsOptions));
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept",
-    "Content-Type': 'application/json"
+app.listen(process.env.PORT, () => {
+  console.log(
+    `Server is working on port:${process.env.PORT} in ${process.env.NODE_ENV} Mode`
   );
-  next();
 });
-app.use(BodyParser.json());
-
-app.listen(Port,() => {
-  console.log(`server running at ${Port}`);
-});
-
