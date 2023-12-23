@@ -1,8 +1,8 @@
-// import { connectDB } from "./data/database.js";
+import { connectDB } from "./data/database.js";
 
 import { app } from "./app.js";
 // const app=require("./app.js")
-// connectDB();
+connectDB;
 
 app.listen(process.env.PORT, () => {
   console.log(
