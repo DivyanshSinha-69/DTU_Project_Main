@@ -8,7 +8,7 @@ import { connectDB } from "./data/database.js";
 export const app = express();
 
 config({
-  path: "./config.env",
+  path: "./essentials.env",
 });
 
 // Using Middlewares
