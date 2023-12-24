@@ -1,10 +1,11 @@
 import express from "express";
-import { login } from "../controllers/student.js";
+import { getall, login } from "../controllers/student.js";
 // import { isAuthenticated } from "../middlewares/auth.js";
 
 const router = express.Router();
 
 router.post("/login", login);
+router.get("/getall", getall);
 
 // router.get("/logout", logout);
 

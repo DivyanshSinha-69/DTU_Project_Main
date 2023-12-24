@@ -1,4 +1,5 @@
 import { connectDB } from "../data/database.js";
+import { sendCookie } from "../utils/featues.js";
 
 export const login = (req, res) => {
     const { email, password } = req.body;
@@ -15,6 +16,7 @@ export const login = (req, res) => {
   
       // Check if the user with the given credentials exists
       if (results.length > 0) {
+        sendCookie(results[0], res, `Welcome back, ${results[0].name}`, 200);
         res.status(200).json({ success: "Login successful" });
       } else {
         res.status(401).json({ error: "Invalid login credentials" });
@@ -24,5 +26,16 @@ export const login = (req, res) => {
   
   
   export const logout = (req, res) => {};
+
+  export const getall=(req,res)=>{
+    connectDB.query('SELECT * FROM admin_data', (error, results) => {
+      if (error) {
+        console.error('Error querying database: ' + error.stack);
+        res.status(500).json({ error: 'Internal Server Error' });
+      } else {
+        res.status(200).json(results);
+      }
+    });
+  }
   
   
