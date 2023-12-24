@@ -30,9 +30,9 @@ app.use("/ece/admin",adminRouter)
 app.use("/ece/professor",professorRouter)
 app.use("/ece/student",studentRouter)
 
-app.get("/", (req, res) => {
-  res.send("Nice working");
-});
+// app.get("/", (req, res) => {
+//   res.send("Nice working");
+// });
 
 
 // Using Error Middleware
