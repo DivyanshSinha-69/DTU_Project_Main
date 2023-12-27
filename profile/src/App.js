@@ -4,9 +4,8 @@ import Header from './components/Header';
 function App() {
   return ( 
     <Router>
-      <Header/>
+      <div className=" font-extralight">arpan</div>
       <Routes>
-        
       </Routes>
     </Router>
   );
