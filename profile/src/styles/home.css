@@ -1,0 +1,10 @@
+.home{
+    justify-content: center;
+    align-items: center;
+}
+
+.home img{
+    border-radius: 50%;
+    height:300px;
+    width:300px;
+}

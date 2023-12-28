@@ -1,10 +1,26 @@
 import './App.css';
 import {BrowserRouter as Router,Route,Routes} from 'react-router-dom'
-import Header from './components/Header';
+import StickyNavbar from './components/Header';
 import Dashboard from './components/Dashboard';
+import Footer from './components/Footer';
+import Home from './components/Home';
+
 function App() {
-  return ( 
-    <Dashboard/>
+  return (
+    <>
+    
+    <Router>
+    
+    <StickyNavbar />
+      
+      <Routes>
+        <Route path='/' element={<Home />}/>
+      </Routes>
+
+    <Footer />
+
+    </Router>
+    </>
   );
 }
 
