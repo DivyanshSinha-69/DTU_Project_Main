@@ -8,22 +8,21 @@ import { Carousel } from "react-responsive-carousel";
 
 const Carousal = () => {
   return (
-    <Carousel
-    showThumbs={false}
-    autoPlay
-    interval={1000}
-    >
+    <Carousel 
+    autoPlay 
+    infiniteLoop 
+    interval={3000} 
+    showStatus={false}
+    showThumbs={false} 
+    showArrows={false}>
       <div>
         <img src={homebg1} />
-        <p className="legend">Legend 1</p>
       </div>
       <div>
         <img src={homebg2} />
-        <p className="legend">Legend 2</p>
       </div>
       <div>
         <img src={homebg} />
-        <p className="legend">Legend 3</p>
       </div>
     </Carousel>
   );
