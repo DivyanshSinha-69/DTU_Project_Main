@@ -1,10 +1,10 @@
 import React from "react";
-import backgroundImage from "../assets/dtu.jpg";
+import backgroundImage from "../assets/dtu.png";
 
 const Login = () => {
   return (
     <>
-      <div class="flex min-h-full h-screen flex-col justify-center px-6 py-12 lg:px-8 " style={{
+      <div class="flex min-h-full h-screen justify-center flex-col  px-6 py-12 lg:px-8 " style={{
         backgroundImage: `url(${backgroundImage})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
@@ -16,7 +16,7 @@ const Login = () => {
             src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600"
             alt="Your Company"
           /> */}
-          <h2 class="mt-2 text-center text-4xl tracking-wide font-bold leading-9 text-white ">
+          <h2 class="text-center text-4xl tracking-wide font-bold leading-9 text-white ">
             LOGIN
           </h2>
         </div>
