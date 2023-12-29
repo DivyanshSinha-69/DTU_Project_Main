@@ -12,7 +12,8 @@ import img2 from "../assets/student.svg";
 import img3 from "../assets/employer.svg";
 import img4 from "../assets/parent.svg";
 import img5 from "../assets/alumini.svg";
-import dtulogo from "../assets/dtulogo.png";
+// import dtulogo from "../assets/dtulogo.png";
+import dtulogo from "../assets/dtuSVG.svg";
 
 import "../styles/header.css"
 
@@ -108,10 +109,17 @@ export default function StickyNavbar() {
             <Typography
               as={HashLink}
               to="/"
-              className="mr-4 cursor-pointer py-0 font-medium"
+              className="mr-4 cursor-pointer py-0 font-medium "
+
             >
+              <div className='flex justify-center text-align' >
               <img src={dtulogo} alt="dtulogo" className="h-20 w-30"/>
+              <p className='flex justify-center items-center text-xl p-3 text-blue-600 font-bold'>Delhi Technological University</p>
+
+              </div>
             </Typography>
+            
+            
             <div className="flex items-center gap-4">
               <div className=" mr-4 hidden lg:block text-black">{navList}</div>
               <IconButton

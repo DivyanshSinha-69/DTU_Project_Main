@@ -1,12 +1,17 @@
 import { Typography } from "@material-tailwind/react";
-import dtulogo from "../assets/dtulogo.png";
+import dtulogo from "../assets/dtuSVG.svg";
+
 
  
 export default function Footer() {
   return (
     <footer className="w-full bg-black text-white pl-4 pr-4 pt-2 pb-2">
       <div className="flex flex-row flex-wrap items-center justify-center gap-y-6 gap-x-12 text-white  bg-black  text-center md:justify-between">
-      <img src={dtulogo} alt="dtulogo" className="h-20 w-30"/>
+      <div className='flex justify-center text-align' >
+              <img src={dtulogo} alt="dtulogo" className="h-20 w-30"/>
+              <p className='flex justify-center items-center text-xl p-3 text-white-600 font-bold'>Delhi Technological University</p>
+
+              </div>
         <ul className="flex flex-wrap items-center gap-y-2 gap-x-8">
           <li>
             <Typography
