@@ -1,5 +1,6 @@
 import { Typography } from "@material-tailwind/react";
-import dtulogo from "../assets/dtulogo.png";
+import dtulogo from "../assets/dtuSVG.svg";
+
 
  
 export default function Footer() {
