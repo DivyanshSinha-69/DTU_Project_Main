@@ -16,8 +16,8 @@ const Login = () => {
             src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600"
             alt="Your Company"
           /> */}
-          <h2 class="mt-10 text-center text-3xl tracking-wide font-bold leading-9 text-white">
-            Login Portal
+          <h2 class="mt-2 text-center text-4xl tracking-wide font-bold leading-9 text-white ">
+            LOGIN
           </h2>
         </div>
 
@@ -28,7 +28,7 @@ const Login = () => {
             <div>
               <label
                 for="email"
-                class="block text-sm font-medium leading-6 text-white"
+                class="block text-sm font-large leading-6 text-white"
               >
                 Email address
               </label>
@@ -48,7 +48,7 @@ const Login = () => {
               <div class="flex items-center justify-between">
                 <label
                   for="password"
-                  class="block text-sm font-medium leading-6 text-white pd"
+                  class="block text-sm font-large leading-6 text-white pd"
                 >
                   Password
                 </label>

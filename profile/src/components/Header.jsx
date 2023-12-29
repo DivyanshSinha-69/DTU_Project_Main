@@ -103,8 +103,8 @@ export default function StickyNavbar() {
     );
     return (<>
       <div className="bg-inherit	border-0 max-h-[768px] w-[calc(100% + 48px)]">
-        <Navbar className="bg-inherit border-0 fixed top-0 z-10 h-max max-w-full rounded-none p-0 lg:p-0 ">
-          <div className="flex bg-inherit border-0 items-center justify-between text-blue-gray-900">
+        <Navbar className="bg-yellow-200 border-0 fixed top-0 z-10 h-max max-w-full rounded-nonep-0 lg:p-0 ">
+          <div className="flex  bg-inherit border-0 items-center justify-between rounded-none text-blue-gray-900">
             <Typography
               as={HashLink}
               to="/"
