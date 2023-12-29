@@ -17,7 +17,7 @@ export const login = (req, res) => {
     // Check if the user with the given credentials exists
     if (results.length > 0) {
       sendCookie(results[0], res, `Welcome back, ${results[0].name}`, 200);
-      res.status(200).json({ success: "Login successful" });
+      // res.status(200).json({ success: "Login successful" });
     } else {
       res.status(401).json({ error: "Invalid login credentials" });
     }

@@ -8,7 +8,11 @@ export default function Footer() {
   return (
     <footer className="w-full bg-[#EAEAEA] text-black pl-4 pr-4 pt-2 pb-2 ">
       <div className="flex flex-row flex-wrap items-center justify-center gap-y-6 gap-x-12 text-black  bg-[#EAEAEA] text-center md:justify-between backdrop-filter backdrop-blur-md">
-      <img src={dtulogo} alt="dtulogo" className="h-20 w-30"/>
+      <div className='flex flex-col justify-center text-align  lg:pl-28' >
+              <img src={dtulogo} alt="dtulogo" className="h-20 w-30 "/>
+              <p className='flex justify-center items-center text-sm lg:text-sm p-0 text-blue-400 font-bold'>DTU</p>
+
+      </div>
         <ul className="flex flex-wrap items-center gap-y-2 gap-x-8">
           <li>
             <Typography
@@ -45,7 +49,7 @@ export default function Footer() {
               as="a"
               href="#"
               color="blue-gray"
-              className="font-lg transition-colors hover:text-blue-500 focus:text-blue-500"
+              className="font-lg transition-colors hover:text-blue-500 focus:text-blue-500 pr-28"
             >
               Contact Us
             </Typography>

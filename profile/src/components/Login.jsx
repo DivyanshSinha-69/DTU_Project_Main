@@ -16,7 +16,7 @@ const Login = () => {
             src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600"
             alt="Your Company"
           /> */}
-          <h2 class="text-center text-4xl tracking-wide font-bold leading-9 text-white ">
+          <h2 class="text-center text-4xl tracking-wide font-bold leading-9 text-black " >
             LOGIN
           </h2>
         </div>
@@ -76,7 +76,7 @@ const Login = () => {
             <div>
               <button
                 type="submit"
-                class="flex w-full justify-center rounded-md bg-indigo-600 text-white px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                class="flex w-full justify-center rounded-md bg-indigo-600 text-white pr-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
               >
                 Sign in
               </button>
