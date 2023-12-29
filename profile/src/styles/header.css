@@ -4,9 +4,3 @@
     transition: transform 0.3s ease; 
 }
 
-
-.borderClass{
-    border-bottom: solid rgba(0, 0, 0, 0.159) 2px;
-    width: 90%;
-    margin: auto;
-}
