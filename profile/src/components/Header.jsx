@@ -114,7 +114,7 @@ export default function StickyNavbar() {
             >
               <div className='flex justify-center text-align' >
               <img src={dtulogo} alt="dtulogo" className="h-20 w-30"/>
-              <p className='flex justify-center items-center text-xl p-3 text-blue-600 font-bold'>Delhi Technological University</p>
+              <p className='flex justify-center items-center text-sm lg:text-xl p-3 text-blue-600 font-bold'>Delhi Technological University</p>
 
               </div>
             </Typography>
