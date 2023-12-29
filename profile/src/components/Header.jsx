@@ -50,10 +50,10 @@ export default function StickyNavbar() {
           color="blue-gray"
           className="p-1 font-normal"
         >
-          <a href="#" className="flex flex-row items-center logtype lg:flex-col" >
+          <HashLink to="/teacher" className="flex flex-row items-center logtype lg:flex-col" >
             <img src={img1} alt="teacher" height={30} width={30}/>
             <p className='lg:ml-0 ml-4'>Teacher/techStaff</p>
-          </a>
+          </HashLink>
         </Typography>
         <Typography
           as="li"
