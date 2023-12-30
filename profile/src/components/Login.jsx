@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import backgroundImage from "../assets/dtu.png";
 import { useNavigate } from "react-router-dom";
-
+import { useDispatch } from "react-redux";
+import {login} from "../redux/reducers/AuthSlice"
+import {Setrole} from "../redux/reducers/UserSlice"
 const Login = () => {
   const navigate=useNavigate();
   const [email, setEmail] = useState("");
@@ -14,6 +16,8 @@ const Login = () => {
     const isAuthenticated = true;
 
     if (isAuthenticated) {
+      // dispatch(login(user));
+      // dispatch(Setrole(user.role));
       navigate("/teacherdetail");
     }
   };
