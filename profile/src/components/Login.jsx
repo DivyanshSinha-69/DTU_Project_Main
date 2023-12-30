@@ -1,7 +1,22 @@
-import React from "react";
+import React, { useState } from "react";
 import backgroundImage from "../assets/dtu.png";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
+  const navigate=useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    //authentication for testing phase
+    const isAuthenticated = true;
+
+    if (isAuthenticated) {
+      navigate("/teacherdetail");
+    }
+  };
   return (
     <>
       <div class="flex min-h-full h-screen justify-center flex-col  px-6 py-12 lg:px-8 " style={{
@@ -24,7 +39,7 @@ const Login = () => {
         <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
           <form class="space-y-6" action="#
           
-          " method="POST">
+          " method="POST" onSubmit={handleSubmit}>
             <div>
               <label
                 for="email"
@@ -78,7 +93,7 @@ const Login = () => {
                 type="submit"
                 class="flex w-full justify-center rounded-md bg-indigo-600 text-white pr-3 py-1.5 text-sm font-semibold leading-6  shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
               >
-                Sign in
+                Submit
               </button>
             </div>
           </form>

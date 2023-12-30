@@ -50,7 +50,7 @@ export default function StickyNavbar() {
           color="blue-gray"
           className="p-1 font-normal"
         >
-          <HashLink to="/teacher" className="flex flex-row items-center logtype lg:flex-col" >
+          <HashLink to="/login" className="flex flex-row items-center logtype lg:flex-col" >
             <img src={img1} alt="teacher" height={30} width={30}/>
             <p className='lg:ml-0 ml-4'>Teacher/techStaff</p>
           </HashLink>
@@ -61,10 +61,10 @@ export default function StickyNavbar() {
           color="blue-gray"
           className="p-1 font-normal"
         >
-          <a href="#" className="flex flex-row items-center logtype lg:flex-col" style={{":hover":{cursor:"pointer"}}}>
+          <HashLink to="/login" className="flex flex-row items-center logtype lg:flex-col" style={{":hover":{cursor:"pointer"}}}>
             <img src={img3} alt="employer" height={30} width={30}/>
             <p className='lg:ml-0 ml-4'>Employer</p>
-          </a>
+          </HashLink>
         </Typography>
         <Typography
           as="li"
@@ -72,10 +72,10 @@ export default function StickyNavbar() {
           color="blue-gray"
           className="p-1 font-normal"
         >
-          <a href="#" className="flex flex-row items-center logtype lg:flex-col" style={{":hover":{cursor:"pointer"}}}>
+          <HashLink to="/parents" className="flex flex-row items-center logtype lg:flex-col" style={{":hover":{cursor:"pointer"}}}>
             <img src={img4} alt="parents" height={30} width={30}/>
             <p className='lg:ml-0 ml-4'>Parents</p>
-          </a>
+          </HashLink>
         </Typography>
         <Typography
           as="li"
@@ -83,10 +83,10 @@ export default function StickyNavbar() {
           color="blue-gray"
           className="p-1 font-normal"
         >
-          <a href="#" className="flex flex-row items-center logtype lg:flex-col " style={{":hover":{cursor:"pointer"}}}>
+          <HashLink to="/alumini" className="flex flex-row items-center logtype lg:flex-col " style={{":hover":{cursor:"pointer"}}}>
             <img src={img5} alt="alumni" height={30} width={30}/>
             <p className='lg:ml-0 ml-4'>Alumni</p>
-          </a>
+          </HashLink>
         </Typography>
         <Typography
           as="li"
