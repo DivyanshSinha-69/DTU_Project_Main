@@ -83,7 +83,7 @@ export default function StickyNavbar() {
           color="blue-gray"
           className="p-1 font-normal"
         >
-          <HashLink to="/alumini" className="flex flex-row items-center logtype lg:flex-col " style={{":hover":{cursor:"pointer"}}}>
+          <HashLink to="/dash" className="flex flex-row items-center logtype lg:flex-col " style={{":hover":{cursor:"pointer"}}}>
             <img src={img5} alt="alumni" height={30} width={30}/>
             <p className='lg:ml-0 ml-4'>Alumni</p>
           </HashLink>

@@ -9,6 +9,9 @@ import Student from "./components/Student";
 import Dashboard from "./components/Dashboard";
 import DashCards from "./components/DashCards";
 import PrivateRoute from "./Auth/Privateroute";
+import Unaithorized from "./components/Unaithorized";
+
+
 function App() {
   return (
     <>
@@ -18,7 +21,17 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/dash" element={<Dashboard />} />
-          {/* <PrivateRoute path="/dash" element={<Dashboard />} allowedRoles={["admin", "teacher"]} /> */}
+          {/* <Route
+          path="/dash"
+          element={
+            <PrivateRoute
+              element={<Dashboard />}
+              allowedRoles={["admin", "teacher"]}
+            />
+          }
+        /> */}
+          <Route path="/unauthorized" element={<Unaithorized />} />
+          <Route path="*" element={<div> Page Not Found 404</div>} />
         </Routes>
         <Footer />
       </Router>

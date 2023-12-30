@@ -8,7 +8,7 @@ import {
    
   export default function DashCards() {
     return (
-      <Card className="mt-6 w-96">
+      <Card className="mt-6 w-96 bg-[#0284c7] h-96 mr-10">
         <CardBody>
           <Typography variant="h5" color="blue-gray" className="mb-2">
             UI/UX Review Check

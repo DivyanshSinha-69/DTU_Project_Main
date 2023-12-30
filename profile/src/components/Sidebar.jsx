@@ -44,14 +44,16 @@ export default function SidebarWithBurgerMenu() {
  
   return (
     <> 
-      <IconButton variant="text" size="lg" onClick={openDrawer} >
-        {isDrawerOpen ? (
-          <XMarkIcon className="h-8 w-8 stroke-2" />
-        ) : (
-          <Bars3Icon className="h-8 w-8 stroke-2" />
-        )}
-      </IconButton>
-      <Drawer open={isDrawerOpen} onClose={closeDrawer} className="bg-blue-900 rounded-tr-2xl rounded-br-2xl">
+        {/* <IconButton variant="text" size="lg" onClick={openDrawer} >
+          {isDrawerOpen ? (
+            <XMarkIcon className="h-8 w-8 stroke-2" />
+          ) : (
+            <Bars3Icon className="h-8 w-8 stroke-2" />
+          )}
+        </IconButton> */}
+      
+      
+      <Drawer open={true} className="bg-blue-900 rounded-tr-2xl rounded-br-2xl">
         <Card
           color="transparent"
           shadow={false}

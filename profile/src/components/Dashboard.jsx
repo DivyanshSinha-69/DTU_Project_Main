@@ -4,17 +4,13 @@ import DashCards  from './DashCards'
 
 const Dashboard = () => {
   return (
-    <>
-    
-    <div className='flex flex-row flex-wrap w-full max-w-screen'>
-    <div >
-    <Sidebar/>
+    <div>
+      <Sidebar/>
+      <DashCards />
+      <DashCards />
+      <DashCards />
     </div>
-    <DashCards />
-    <DashCards />
-    <DashCards />
-    </div>
-    </>
+
   )
 }
 

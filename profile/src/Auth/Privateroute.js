@@ -10,10 +10,9 @@ const PrivateRoute = ({ element, allowedRoles }) => {
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
   }
-
   if (!allowedRoles.includes(userRole)) {
     // Redirect to unauthorized page or show an error message
-    return <Navigate to="/unauthorized" />;
+    return <Navigate to="/unauthorized" />;       
   }
 
   return <Route element={element} />;

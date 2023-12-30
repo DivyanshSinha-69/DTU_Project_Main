@@ -3,9 +3,10 @@ import backgroundImage from "../assets/dtu.png";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import {login} from "../redux/reducers/AuthSlice"
-import {Setrole} from "../redux/reducers/UserSlice"
+import {setRole} from "../redux/reducers/UserSlice"
 const Login = () => {
   const navigate=useNavigate();
+  const dispatch=useDispatch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -14,10 +15,13 @@ const Login = () => {
 
     //authentication for testing phase
     const isAuthenticated = true;
-
+    const user={
+      role:"student",
+      email:"arpangoyal2002@gmail.com"
+    }
     if (isAuthenticated) {
-      // dispatch(login(user));
-      // dispatch(Setrole(user.role));
+      dispatch(login(user));
+      dispatch(setRole(user.role));
       navigate("/teacherdetail");
     }
   };
