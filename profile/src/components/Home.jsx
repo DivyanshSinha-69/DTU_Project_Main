@@ -13,8 +13,7 @@ const Home = () => {
         }}
       >
           <p className="sm:text-sm md:text-xl lg:text-3xl text-white font-bold">
-           amarnath ab bhi nhi dikh raha kya????<br/>
-           ans- na bhai 
+            DTU ECE PORTAL 
           </p>
       </div>
       <div className="flex items-center justify-center h-80 md:h-96 lg:h-screen ">
