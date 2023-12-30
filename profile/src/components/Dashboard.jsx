@@ -5,10 +5,6 @@ import DashCards  from './DashCards'
 const Dashboard = () => {
   return (
     <div>
-      <Sidebar/>
-      <DashCards />
-      <DashCards />
-      <DashCards />
     </div>
 
   )
