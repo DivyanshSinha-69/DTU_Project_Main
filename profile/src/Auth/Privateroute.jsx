@@ -1,16 +1,22 @@
 // PrivateRoute.js
-import React from 'react';
-import { Navigate, Route } from 'react-router-dom';
-import { useAuth } from './AuthContext';
+import React from "react";
+import { useSelector } from "react-redux";
+import { Navigate, Route } from "react-router-dom";
 
-const PrivateRoute = ({ element, ...rest }) => {
-  const { isAuthenticated } = useAuth();
+const PrivateRoute = ({ element, allowedRoles }) => {
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  const userRole = useSelector((state) => state.user.role);
 
-  return isAuthenticated ? (
-    <Route {...rest} element={element} />
-  ) : (
-    <Navigate to="/login" replace />
-  );
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+
+  if (!allowedRoles.includes(userRole)) {
+    // Redirect to unauthorized page or show an error message
+    return <Navigate to="/unauthorized" />;
+  }
+
+  return <Route element={element} />;
 };
 
 export default PrivateRoute;
