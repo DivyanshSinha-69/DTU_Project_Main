@@ -4,3 +4,7 @@
     transition: transform 0.3s ease; 
 }
 
+.customclass{
+    height: 100% !important;
+}
+

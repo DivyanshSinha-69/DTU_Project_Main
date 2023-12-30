@@ -6,6 +6,8 @@ import Home from "./components/Home";
 import Login from "./components/Login";
 import Teacher from "./components/Teacher";
 import Student from "./components/Student";
+import Dashboard from "./components/Dashboard";
+import DashCards from "./components/DashCards";
 
 function App() {
   return (
@@ -16,6 +18,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/dash" element={<Dashboard />} />
         </Routes>
         <Footer />
       </Router>

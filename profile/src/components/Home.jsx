@@ -17,7 +17,7 @@ const Home = () => {
            ans- na bhai 
           </p>
       </div>
-      <div className="flex items-center justify-center h-80 md:h-96 lg:h-screen  w-screen">
+      <div className="flex items-center justify-center h-80 md:h-96 lg:h-screen ">
         
         <div className="w-4/5 rounded-lg">
         <Carousal/>

@@ -103,7 +103,7 @@ export default function StickyNavbar() {
       </ul>
     );
     return (<>
-      <div className="bg-inherit	border-0 max-h-[768px] w-[calc(100% + 48px)] shadow-none">
+      <div className="bg-inherit border-0 max-h-[768px] w-[calc(100% + 48px)] shadow-none">
         <Navbar className="bg-white border-0 top-0 z-10 h-max max-w-full rounded-nonep-0 lg:p-0 shadow-none">
           <div className="flex  bg-inherit border-0 items-center justify-between rounded-none text-blue-gray-900">
             <Typography
@@ -161,12 +161,17 @@ export default function StickyNavbar() {
               </IconButton>
             </div>
           </div>
-          <MobileNav 
-          className='text-black'
-          open={openNav}>
-            {navList}
-          
-          </MobileNav>
+
+          {openNav===true &&(
+            <MobileNav 
+            className='text-black bg-white customclass'
+            style={{ zIndex: 15}}
+            open={openNav}>
+              {navList}
+            
+            </MobileNav>
+          )}
+      
         </Navbar>
         
       </div>
