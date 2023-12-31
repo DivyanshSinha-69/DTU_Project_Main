@@ -31,7 +31,7 @@ function App() {
           }
         /> */}
           <Route path="/unauthorized" element={<Unaithorized />} />
-          <Route path="*" element={<div> Page Not Found 404</div>} />
+          <Route path="*" element={<Home/>} />
         </Routes>
         <Footer />
       </Router>
