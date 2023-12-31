@@ -28,7 +28,9 @@ export default function StickyNavbar() {
       );
     }, []);
     
-
+    const closeMobileNav = () => {
+      setOpenNav(!openNav);
+    };
 
     const navList = (
       <ul className="mt-2  mb-4 flex flex-col gap-4 lg:mb-0 lg:mt-0 lg:flex-row lg:items-center lg:gap-6">
@@ -164,9 +166,10 @@ export default function StickyNavbar() {
 
           {openNav===true &&(
             <MobileNav 
-            className='text-black bg-white customclass'
+            className='text-black bg-white customclass '
             style={{ zIndex: 15}}
-            open={openNav}>
+            open={openNav}
+            onClick={closeMobileNav}>
               {navList}
             
             </MobileNav>
