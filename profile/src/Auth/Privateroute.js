@@ -2,6 +2,7 @@
 import React from "react";
 import { useSelector } from "react-redux";
 import { Navigate, Route } from "react-router-dom";
+import Dashboard from "../components/Dashboard";
 
 const PrivateRoute = ({ element, allowedRoles }) => {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
@@ -14,8 +15,8 @@ const PrivateRoute = ({ element, allowedRoles }) => {
     // Redirect to unauthorized page or show an error message
     return <Navigate to="/unauthorized" />;       
   }
-
-  return <Route element={element} />;
+  
+  return <Dashboard/>;
 };
 
 export default PrivateRoute;

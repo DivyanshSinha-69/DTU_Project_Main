@@ -11,7 +11,6 @@ import DashCards from "./components/DashCards";
 import PrivateRoute from "./Auth/Privateroute";
 import Unaithorized from "./components/Unaithorized";
 
-
 function App() {
   return (
     <>
@@ -20,18 +19,19 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/dash" element={<Dashboard />} />
-          {/* <Route
-          path="/dash"
-          element={
-            <PrivateRoute
-              element={<Dashboard />}
-              allowedRoles={["admin", "teacher"]}
-            />
-          }
-        /> */}
+          {/* <Route path="/dash" element={<Dashboard />} /> */}
+          <Route
+            path="/dash"
+            element={
+              <PrivateRoute
+                // element={<Dashboard />}
+                allowedRoles={["admin", "teacher"]}
+              />
+            }
+          />
+          <Route path="/student/myportal" element={<Teacher />} />
           <Route path="/unauthorized" element={<Unaithorized />} />
-          <Route path="*" element={<Home/>} />
+          <Route path="*" element={<Home />} />
         </Routes>
         <Footer />
       </Router>

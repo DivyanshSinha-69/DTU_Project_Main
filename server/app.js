@@ -15,24 +15,22 @@ config({
 });
 
 // Using Middlewares
-app.use(express.json());
-app.use(cookieParser());
 app.use(
   cors({
-    origin: [process.env.FRONTEND_URL],
+    origin: "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
-);
+  );
+  app.options("*", cors());
+  app.use(express.json());
+  app.use(cookieParser());
 
 // Using routes
 app.use("/ece/admin",adminRouter)
 app.use("/ece/professor",professorRouter)
 app.use("/ece/student",studentRouter)
 
-// app.get("/", (req, res) => {
-//   res.send("Nice working");
-// });
 
 
 // Using Error Middleware
