@@ -24,7 +24,6 @@ import { Navigate } from "react-router-dom";
 
 export default function StickyNavbar() {
   const { isAuthenticated } = useSelector((state) => state.auth);
-  console.log(isAuthenticated);
   
   const navigate=Navigate;
   const dispatch = useDispatch();
@@ -60,9 +59,6 @@ export default function StickyNavbar() {
     }
   };
 
-
-
-  
 
   const navList = (
     <ul className="mt-2  mb-4 flex flex-col gap-4 lg:mb-0 lg:mt-0 lg:flex-row lg:items-center lg:gap-6">
@@ -113,7 +109,7 @@ export default function StickyNavbar() {
             style={{ ":hover": { cursor: "pointer" } }}
           >
             <img src={img3} alt="employer" height={30} width={30} />
-            <p className="lg:ml-0 ml-4">Employer</p>
+            <p className="lg:ml-0 ml-4">Admin</p>
           </HashLink>
         </Typography>
       )}
@@ -172,11 +168,11 @@ export default function StickyNavbar() {
         >
           <HashLink
             to="/"
-            className="flex flex-row items-center logtype lg:flex-col "
+            className="flex flex-row items-center lg:flex-col "
             style={{ ":hover": { cursor: "pointer" } }}
           >
             {/* <img src={img5} alt="alumni" height={30} width={30} /> */}
-            <button onClick={handleLogout} type="button" class="text-white bg-gray-800  focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">Logout</button>
+            <button onClick={handleLogout} type="button" className="text-white bg-gray-800  focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">Logout</button>
             {/* <button onClick={handleLogout} className="lg:ml-0 ml-4">Logout</button> */}
           </HashLink>
         </Typography>
