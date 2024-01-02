@@ -6,6 +6,7 @@ import professorRouter from "./routes/professor.js"
 import studentRouter from "./routes/student.js"
 // import { errorMiddleware } from "./middlewares/error.js";
 import cors from "cors";
+import { logout } from "./controllers/admin.js";
 
 
 export const app = express();
@@ -30,7 +31,7 @@ app.use(
 app.use("/ece/admin",adminRouter)
 app.use("/ece/professor",professorRouter)
 app.use("/ece/student",studentRouter)
-
+app.get("/logout",logout);
 
 
 // Using Error Middleware

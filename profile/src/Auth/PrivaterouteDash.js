@@ -2,7 +2,7 @@
 import React from "react";
 import { useSelector } from "react-redux";
 import { Navigate, Route } from "react-router-dom";
-import Dashboard from "../components/Dashboard";
+import Dashboard from "../components/AdminDashboard";
 
 const PrivateRoute = ({ element, allowedRoles }) => {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import backgroundImage from "../assets/dtu.png";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch} from "react-redux";
 import axios from "axios";
 import {login} from "../redux/reducers/AuthSlice"
 import {setRole} from "../redux/reducers/UserSlice"
@@ -12,7 +12,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
     try {
@@ -37,6 +37,10 @@ const Login = () => {
       // Redirect to the desired page after successful login
       if(userDetails.user.role=="student"){
       navigate("/student/myportal");
+      }else if(userDetails.user.role=="teacher"){
+        navigate("/teacher/myportal");
+      }else if(userDetails.user.role=="admin"){
+        navigate("/admin/dash");
       }else{
         navigate("/unauthorized");
       }
@@ -64,7 +68,7 @@ const Login = () => {
         </div>
 
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-6" onSubmit={handleLogin}>
             <div>
               <label
                 htmlFor="email"

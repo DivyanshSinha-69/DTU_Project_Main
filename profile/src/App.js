@@ -6,12 +6,15 @@ import Home from "./components/Home";
 import Login from "./components/Login";
 import Teacher from "./components/Teacher";
 import Student from "./components/Student";
-import Dashboard from "./components/Dashboard";
+import Dashboard from "./components/AdminDashboard";
 import DashCards from "./components/DashCards";
-import PrivateRoute from "./Auth/Privateroute";
-import Unaithorized from "./components/Unaithorized";
+import PrivateRoute from "./Auth/PrivaterouteDash";
+import Unaithorized from "./components/Unauthorized";
+import { useSelector } from "react-redux";
 
 function App() {
+  const { role } = useSelector((state) => state.user);
+
   return (
     <>
       <Router>
@@ -21,15 +24,22 @@ function App() {
           <Route path="/login" element={<Login />} />
           {/* <Route path="/dash" element={<Dashboard />} /> */}
           <Route
-            path="/dash"
+            path="/admin/dash"
             element={
               <PrivateRoute
                 // element={<Dashboard />}
-                allowedRoles={["admin", "teacher"]}
+                allowedRoles={["admin"]}
               />
             }
           />
-          <Route path="/student/myportal" element={<Teacher />} />
+          {role === "student" ? (
+            <Route path="/student/myportal" element={<Student />} />
+          ) : role === "teacher" ? (
+            <Route path="/teacher/myportal" element={<Teacher />} />
+          ) : (
+            <Route path="/login" element={<Login />} />
+          )}
+
           <Route path="/unauthorized" element={<Unaithorized />} />
           <Route path="*" element={<Home />} />
         </Routes>
