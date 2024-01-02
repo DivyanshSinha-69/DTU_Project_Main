@@ -7,45 +7,35 @@ import Login from "./components/Login";
 import Teacher from "./components/Teacher";
 import Student from "./components/Student";
 import Dashboard from "./components/AdminDashboard";
-import DashCards from "./components/DashCards";
-import PrivateRoute from "./Auth/PrivaterouteDash";
 import Unaithorized from "./components/Unauthorized";
 import { useSelector } from "react-redux";
 import Parents from "./components/Parents";
 import Alumini from "./components/Alumini";
+import Allstudent from "./components/Allstudent";
 
 function App() {
   const { role } = useSelector((state) => state.user);
 
   return (
     <>
+      
       <Router>
         <StickyNavbar />
         <Routes>
-          <Route path="/home" element={<Home />} />
+          <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
-          {/* <Route path="/dash" element={<Dashboard />} /> */}
-          <Route
-            path="/admin/dash"
-            element={
-              <PrivateRoute
-                // element={<Dashboard />}
-                allowedRoles={["admin"]}
-              />
-            }
-          />
           {role === "student" ? (
-            <Route path="/student/myportal" element={<Student />} />
+            <Route path="/student/portal" element={<Student />} />
           ) : role === "teacher" ? (
-            <Route path="/teacher/myportal" element={<Teacher />} />
+            <Route path="/teacher/portal" element={<Teacher />} />
           ) : (
             <Route path="/login" element={<Login />} />
           )}
-
           <Route path="/parents" element={<Parents />} />
           <Route path="/alumini" element={<Alumini />} />
-          <Route path="/unauthorized" element={<Unaithorized />} />
-          <Route path="*" element={<Home />} />
+          {role==="admin"?<Route path="/admin/portal" element={<Dashboard />} />:<Route path="/login" element={<Login />} />}
+          {role==="admin"?<Route path="/admin/allstudents" element={<Allstudent/>} />:<Route path="/login" element={<Login />} />}
+          <Route path="*" element={<Unaithorized />} />
         </Routes>
         <Footer />
       </Router>

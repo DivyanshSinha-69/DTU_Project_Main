@@ -14,18 +14,20 @@ import img3 from "../assets/employer.svg";
 import img4 from "../assets/parent.svg";
 import img5 from "../assets/alumini.svg";
 import dtulogo from "../assets/dtuSVG.svg";
+import homeimg from "../assets/homepage.svg";
+import portalimg from "../assets/portal.svg"
 
 import "../styles/header.css";
 import { logout } from "../redux/reducers/AuthSlice";
 import axios from "axios";
 import { setRole } from "../redux/reducers/UserSlice";
-import { Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 
 export default function StickyNavbar() {
   const { isAuthenticated } = useSelector((state) => state.auth);
-  
-  const navigate=Navigate;
+  const {role}=useSelector((state)=>state.user);
+  const navigate=useNavigate();
   const dispatch = useDispatch();
   const [openNav, setOpenNav] = React.useState(false);
 
@@ -69,6 +71,7 @@ export default function StickyNavbar() {
           color="blue-gray"
           className="p-1 font-normal"
         >
+          
           <HashLink
             to="/login"
             className="flex flex-row items-center logtype lg:flex-col"
@@ -151,15 +154,31 @@ export default function StickyNavbar() {
         className="p-1 font-normal"
       >
         <HashLink
-          to="/home"
+          to="/"
           className="flex flex-row items-center logtype lg:flex-col "
           style={{ ":hover": { cursor: "pointer" } }}
         >
-          <img src={img5} alt="alumni" height={30} width={30} />
+          <img src={homeimg} alt="alumni" height={30} width={30} />
           <p className="lg:ml-0 ml-4">Home</p>
         </HashLink>
       </Typography>
       {isAuthenticated === true && (
+        <>
+        <Typography
+        as="li"
+        variant="small"
+        color="blue-gray"
+        className="p-1 font-normal"
+      >
+        <HashLink
+          to={`${role}/portal`}
+          className="flex flex-row items-center logtype lg:flex-col "
+          style={{ ":hover": { cursor: "pointer" } }}
+        >
+          <img src={portalimg} alt="alumni" height={30} width={30} />
+          <p className="lg:ml-0 ml-4">Myportal</p>
+        </HashLink>
+      </Typography>
         <Typography
           as="li"
           variant="small"
@@ -176,7 +195,11 @@ export default function StickyNavbar() {
             {/* <button onClick={handleLogout} className="lg:ml-0 ml-4">Logout</button> */}
           </HashLink>
         </Typography>
+        </>
+        
       )}
+      
+
     </ul>
   );
       
@@ -184,7 +207,7 @@ export default function StickyNavbar() {
 
   return (
     <>
-      <div className="bg-inherit border-0 max-h-[768px] w-[calc(100% + 48px)] shadow-none">
+      <div className="font1 bg-inherit border-0 max-h-[768px] w-[calc(100% + 48px)] shadow-none">
         <Navbar className="bg-white border-0 top-0 z-10 h-max max-w-full rounded-nonep-0 lg:p-0 shadow-none">
           <div className="flex  bg-inherit border-0 items-center justify-between rounded-none text-blue-gray-900">
             <Typography
@@ -194,7 +217,7 @@ export default function StickyNavbar() {
             >
               <div className="flex justify-center text-align">
                 <img src={dtulogo} alt="dtulogo" className="h-20 w-30" />
-                <p className="flex justify-center items-center text-sm lg:text-xl p-3 text-blue-600 font-bold">
+                <p className="flex tracking-wide justify-center items-center text-sm lg:text-2xl p-3 text-gray-700 font-bold">
                   Delhi Technological University
                 </p>
               </div>

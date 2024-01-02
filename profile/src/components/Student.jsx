@@ -6,8 +6,8 @@ const Student = () => {
       <div className=" h-auto w-full mt-10">
         <div className="h-[30%] w-[70%] flex flex-wrap justify-around mx-auto">
           <div className="h-100% flex flex-col content-center justify-center items-center m-2">
-            <h1 className="font-extrabold text-3xl text-center">Arpan Goyal</h1>
-            <h2 className="font-bold text-1xl text-center">2K20/EC/46</h2>
+            <h1 className="font-extrabold text-3xl text-center">XXXXX XXXXX</h1>
+            <h2 className="font-bold text-1xl text-center">2K20/EC/XX</h2>
             <h2 className="text-lg text-center">
               Electronics and communication engineering
             </h2>

@@ -36,11 +36,11 @@ const Login = () => {
 
       // Redirect to the desired page after successful login
       if(userDetails.user.role=="student"){
-      navigate("/student/myportal");
+      navigate("/student/portal");
       }else if(userDetails.user.role=="teacher"){
-        navigate("/teacher/myportal");
+        navigate("/teacher/portal");
       }else if(userDetails.user.role=="admin"){
-        navigate("/admin/dash");
+        navigate("/admin/portal");
       }else{
         navigate("/unauthorized");
       }
@@ -54,7 +54,7 @@ const Login = () => {
   return (
     <>
       <div
-        className="flex min-h-full h-screen justify-center flex-col  px-6 py-12 lg:px-8 "
+        className="flex font1 min-h-full h-screen justify-center flex-col  px-6 py-12 lg:px-8 "
         style={{
           backgroundImage: `url(${backgroundImage})`,
           backgroundSize: "cover",
@@ -62,7 +62,7 @@ const Login = () => {
         }}
       >
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          <h2 className="text-center text-4xl tracking-wide font-bold leading-9 text-black ">
+          <h2 className="text-center text-4xl tracking-widest font-bold leading-9 text-gray-800 ">
             LOGIN
           </h2>
         </div>
@@ -72,9 +72,9 @@ const Login = () => {
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-large leading-6 text-white"
+                className="block font-bold text-lg font-large leading-6 text-white"
               >
-                Email address
+                Email Address
               </label>
               <div className="mt-2">
                 <input
@@ -94,14 +94,14 @@ const Login = () => {
               <div className="flex items-center justify-between">
                 <label
                   htmlFor="password"
-                  className="block text-sm font-large leading-6 text-white pd"
+                  className="block font-bold text-lg font-large leading-6 text-white pd"
                 >
                   Password
                 </label>
                 <div className="text-sm">
                   <a
                     href="#"
-                    className="font-semibold text-white hover:text-indigo-500"
+                    className="font-semibold text-md text-gray-800 hover:text-indigo-500"
                   >
                     Forgot password?
                   </a>
@@ -124,7 +124,7 @@ const Login = () => {
             <div>
               <button
                 type="submit"
-                className="flex w-full justify-center rounded-md bg-indigo-600 text-white pr-3 py-1.5 text-sm font-semibold leading-6  shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                className="flex text-lg w-full justify-center rounded-md bg-gray-800 text-white pr-3 py-1.5 font-semibold leading-6  shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
               >
                 Submit
               </button>

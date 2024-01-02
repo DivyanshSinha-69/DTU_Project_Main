@@ -16,13 +16,13 @@ const Carousal = () => {
     showThumbs={false} 
     showArrows={false}>
       <div>
-        <img src={homebg1} />
+        <img src={homebg1} className='rounded-xl'/>
       </div>
       <div>
-        <img src={homebg2} />
+        <img src={homebg2} className='rounded-xl'/>
       </div>
       <div>
-        <img src={homebg} />
+        <img src={homebg} className='rounded-xl'/>
       </div>
     </Carousel>
   );
