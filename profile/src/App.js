@@ -11,6 +11,8 @@ import DashCards from "./components/DashCards";
 import PrivateRoute from "./Auth/PrivaterouteDash";
 import Unaithorized from "./components/Unauthorized";
 import { useSelector } from "react-redux";
+import Parents from "./components/Parents";
+import Alumini from "./components/Alumini";
 
 function App() {
   const { role } = useSelector((state) => state.user);
@@ -20,7 +22,7 @@ function App() {
       <Router>
         <StickyNavbar />
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/home" element={<Home />} />
           <Route path="/login" element={<Login />} />
           {/* <Route path="/dash" element={<Dashboard />} /> */}
           <Route
@@ -40,6 +42,8 @@ function App() {
             <Route path="/login" element={<Login />} />
           )}
 
+          <Route path="/parents" element={<Parents />} />
+          <Route path="/alumini" element={<Alumini />} />
           <Route path="/unauthorized" element={<Unaithorized />} />
           <Route path="*" element={<Home />} />
         </Routes>

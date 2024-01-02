@@ -136,7 +136,7 @@ export default function StickyNavbar() {
         className="p-1 font-normal"
       >
         <HashLink
-          to="/alumni"
+          to="/alumini"
           className="flex flex-row items-center logtype lg:flex-col "
           style={{ ":hover": { cursor: "pointer" } }}
         >
@@ -151,7 +151,7 @@ export default function StickyNavbar() {
         className="p-1 font-normal"
       >
         <HashLink
-          to="/"
+          to="/home"
           className="flex flex-row items-center logtype lg:flex-col "
           style={{ ":hover": { cursor: "pointer" } }}
         >
