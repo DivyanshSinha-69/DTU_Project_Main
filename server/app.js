@@ -28,10 +28,10 @@ app.use(
   app.use(cookieParser());
 
 // Using routes
-app.use("/",commonRouter);
 app.use("/ece/admin",adminRouter)
 app.use("/ece/professor",professorRouter)
 app.use("/ece/student",studentRouter)
+app.use("/",commonRouter);
 
 
 // Using Error Middleware
