@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import ProfessionalSkills from "./studentportaltables/ProfessionalSkills";
 import axios from "axios";
 import { Button } from "@material-tailwind/react";
-import Placement from "./studentportaltables/Placement";
+// import Placement from "./studentportaltables/Placement";
 
 const Student = () => {
   const [use, setUser] = useState([]);
