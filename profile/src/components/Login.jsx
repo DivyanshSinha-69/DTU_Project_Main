@@ -17,7 +17,7 @@ const Login = () => {
 
     try {
       // Make a POST request to your server with login credentials
-      const response = await axios.post("http://localhost:3001/ece/student/login", {
+      const response = await axios.post("http://localhost:3001/login", {
         email: email,
         password: password,
       },{

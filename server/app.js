@@ -4,9 +4,9 @@ import cookieParser from "cookie-parser";
 import adminRouter from "./routes/admin.js"
 import professorRouter from "./routes/professor.js"
 import studentRouter from "./routes/student.js"
+import commonRouter from "./routes/common.js"
 // import { errorMiddleware } from "./middlewares/error.js";
 import cors from "cors";
-import { logout } from "./controllers/admin.js";
 
 
 export const app = express();
@@ -28,10 +28,10 @@ app.use(
   app.use(cookieParser());
 
 // Using routes
+app.use("/",commonRouter);
 app.use("/ece/admin",adminRouter)
 app.use("/ece/professor",professorRouter)
 app.use("/ece/student",studentRouter)
-app.get("/logout",logout);
 
 
 // Using Error Middleware
