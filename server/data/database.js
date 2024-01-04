@@ -13,9 +13,8 @@ export const connectDB = mysql.createConnection({
 
 // Connect to the database
 connectDB.connect((err)=>{
-    console.log("passowrd "+process.env.PASSWORD);
   if(err){
       throw err;
   }
-  console.log('Mysql connected ...');
+  console.log('Database connected ...');
 });

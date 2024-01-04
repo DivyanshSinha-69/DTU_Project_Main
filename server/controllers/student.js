@@ -16,7 +16,6 @@ export const getall = (req, res) => {
 };
 export const getProfessionalSKills = (req, res) => {
   const {rollno}=req.body;
-  console.log(rollno);
   const sql = "SELECT * FROM EventDetails where RollNo = ?";
   connectDB.query(sql,[rollno],(err, results) => {
     if (err) {
