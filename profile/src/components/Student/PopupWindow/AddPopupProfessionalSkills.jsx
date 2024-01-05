@@ -2,18 +2,18 @@ import axios from "axios";
 import React, { useState } from "react";
 import { Card, Input, Button, Typography } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
-import { addProfessionalSkill, updateProfessionalSkill } from "../../../redux/reducers/UserProfessionalSkills";
+import { addProfessionalSkill } from "../../../redux/reducers/UserProfessionalSkills";
 
 export default function AddPopupProfessionalSkills(props) {
-  const { closeModal ,name} =props;
-  const{RollNo} = useSelector(state=>state.auth.user)
+  const { closeModal, name } = props;
+  const { RollNo } = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     organisation: "",
     position: "",
     eventname: "",
     date: "",
-    roll: ""
+    roll: "",
   });
 
   const handleChange = (e) => {

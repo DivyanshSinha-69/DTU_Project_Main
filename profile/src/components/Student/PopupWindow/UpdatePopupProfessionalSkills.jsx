@@ -1,8 +1,7 @@
 import axios from "axios";
 import React, { useState } from "react";
-import { Alert } from "@material-tailwind/react";
 import { Card, Input, Button, Typography } from "@material-tailwind/react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { updateProfessionalSkill } from "../../../redux/reducers/UserProfessionalSkills";
 
 export default function PopupProfessionalSkills(props) {
