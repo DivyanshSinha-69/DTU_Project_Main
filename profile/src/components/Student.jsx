@@ -1,19 +1,21 @@
-import React, { useEffect, useState } from "react";
-import ProfessionalSkills from "./studentportaltables/ProfessionalSkills";
+import React, { useEffect } from "react";
+import StudentProfessionalSkills from "./studentportaltables/ProfessionalSkills";
 import axios from "axios";
-import { Button } from "@material-tailwind/react";
+import { setProfessionalSkills } from "../redux/reducers/UserProfessionalSkills";
+import { useDispatch, useSelector } from "react-redux";
+
 // import Placement from "./studentportaltables/Placement";
 
 const Student = () => {
-  const [use, setUser] = useState([]);
-
+  const dispatch=useDispatch();
+  const ProfessionalSkills=useSelector((state)=>state.professionalSkills);
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await axios.post(
           "http://localhost:3001/ece/student/profskills",
           {
-            rollno: "123",
+            rollno: "A123",
             email: "arpangoyal@gmail.com",
           },
           {
@@ -22,8 +24,8 @@ const Student = () => {
         );
 
         // Now you can access the data, for example:
-        setUser(response.data.user); // Assuming your response has a 'user' property
-        console.log(response.data.user); // Move console.log here
+        dispatch(setProfessionalSkills(response.data.user));
+         // Move console.log here
       } catch (error) {
         // Handle the error
         console.error("Error fetching data:", error);
@@ -38,7 +40,7 @@ const Student = () => {
       const response = await axios.post(
         "http://localhost:3001/ece/student/profskills",
         {
-          rollno: "123",
+          rollno: "A123",
           email: "arpangoyal@gmail.com",
         },
         {
@@ -47,8 +49,8 @@ const Student = () => {
       );
 
       // Now you can access the data, for example:
-      setUser(response.data.user); // Assuming your response has a 'user' property
-      console.log(response.data.user); // Move console.log here
+      dispatch(setProfessionalSkills(response.data.user));
+      // console.log(ProfessionalSkills.ProfessionalSkills);
     } catch (error) {
       // Handle the error
       console.error("Error fetching data:", error);
@@ -86,7 +88,7 @@ const Student = () => {
       </button>
 
       <div className="pt-10">
-        <ProfessionalSkills user={use} />
+        <StudentProfessionalSkills />
         
       </div>
     </div>

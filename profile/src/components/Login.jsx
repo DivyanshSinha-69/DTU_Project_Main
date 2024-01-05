@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import backgroundImage from "../assets/dtu.png";
 import { useNavigate } from "react-router-dom";
-import { useDispatch} from "react-redux";
+import { useDispatch, useSelector} from "react-redux";
 import axios from "axios";
 import {login} from "../redux/reducers/AuthSlice"
 import {setRole} from "../redux/reducers/UserSlice"
 
 const Login = () => {
+  
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [email, setEmail] = useState("");

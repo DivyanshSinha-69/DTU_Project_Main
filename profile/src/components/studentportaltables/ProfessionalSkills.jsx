@@ -1,16 +1,16 @@
 import React from "react";
 import { Card, Typography } from "@material-tailwind/react";
-import Placement from "./Placement.jsx";
 import Popup from "reactjs-popup";
-const ProfessionalSkills = (props) => {
-  let popisactive = false;
-  const TABLE_HEAD = ["Organisation ", "Role", "Event Name", "Date", ""];
-  console.log(props.user);
-  const TABLE_ROWS = props.user;
+import { useSelector } from "react-redux";
+import PopupProfessionalSkills from "./PopupWindow/PopupProfessionalSkills.jsx";
 
-  const openform = () => {
-    popisactive = !popisactive;
-  };
+
+
+const StudentProfessionalSkills = () => {
+  const ProfessionalSkills=useSelector((state)=>state.professionalSkills);
+  const TABLE_HEAD = ["Organisation ", "Role", "Event Name", "Date", ""];
+  const TABLE_ROWS = ProfessionalSkills.ProfessionalSkills||[];
+
 
   return (
     <div>
@@ -40,7 +40,7 @@ const ProfessionalSkills = (props) => {
             </thead>
             <tbody>
               {TABLE_ROWS.map(
-                ({ EventName, position, Organisation, EventDate }, index) => {
+                ({ ID,EventName, Position, Organisation, EventDate ,RollNo}, index) => {
                   const isLast = index === TABLE_ROWS.length - 1;
                   const classes = isLast
                     ? "p-4"
@@ -63,7 +63,7 @@ const ProfessionalSkills = (props) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {position}
+                          {Position}
                         </Typography>
                       </td>
                       <td className={classes}>
@@ -91,14 +91,13 @@ const ProfessionalSkills = (props) => {
                           variant="small"
                           color="blue-gray"
                           className="font-medium text-blue-600"
-                          onClick={openform}
                         >
                           <Popup
                             trigger={<button> Edit </button>}
                             className="mx-auto my-auto"
                           >
                             <div className="h-auto  w-[auto] bg-gray-300 rounded-md top-10 fixed inset-20 flex items-center justify-center">
-                              <Placement />
+                              <PopupProfessionalSkills roll={RollNo} id={ID} eventname={EventName} position={Position} organisation={Organisation} date={EventDate}/>
                             </div>
                           </Popup>
                         </Typography>
@@ -110,21 +109,9 @@ const ProfessionalSkills = (props) => {
             </tbody>
           </table>
         </Card>
-        {/* <Placement /> */}
       </div>
-      {/* <div>
-        <h4>Popup - GeeksforGeeks</h4>
-        <Popup
-          trigger={<button> Click to open popup </button>}
-          className='mx-auto my-auto'
-        >
-          <div className="h-auto  w-auto bg-gray-300 rounded-md top-10 fixed inset-20 flex items-center justify-center">
-                <Placement />
-          </div>
-        </Popup>
-      </div> */}
     </div>
   );
 };
 
-export default ProfessionalSkills;
+export default StudentProfessionalSkills;
