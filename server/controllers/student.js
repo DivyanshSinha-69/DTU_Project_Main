@@ -89,13 +89,14 @@ export const deleteProfessionalSkills = (req, res) => {
 };
 
 export const addProfessionalSkills = (req, res) => {
-  const { organisation, position, eventname, date, roll } = req.body;
+  const { organisation, position, eventname, date, roll ,ID } = req.body;
+  console.log(ID);
   const sql =
-    "INSERT INTO EventDetails (Organisation, Position, EventName, EventDate, RollNo) VALUES (?, ?, ?, ?, ?)";
+    "INSERT INTO EventDetails (Organisation, Position, EventName, EventDate, RollNo ,ID) VALUES (?, ?, ?, ?, ? ,?)";
 
   connectDB.query(
     sql,
-    [organisation, position, eventname, date, roll],
+    [organisation, position, eventname, date, roll, ID],
     (err, result) => {
       if (err) {
         console.error("Error executing insert query:", err);

@@ -24,7 +24,14 @@ export default function AddPopupProfessionalSkills(props) {
     }));
   };
 
+
   const handlepopup = async () => {
+
+    if (!formData.organisation || !formData.position || !formData.eventname || !formData.date) {
+      alert("Please fill in all required fields");
+      return;
+    }
+    const id = RollNo+Date.now();
     try {
       const response = await axios.post(
         "http://localhost:3001/ece/student/addprofessionalskills",
@@ -34,19 +41,20 @@ export default function AddPopupProfessionalSkills(props) {
           eventname: formData.eventname,
           date: formData.date,
           roll: RollNo,
+          ID: id,
         },
         {
           withCredentials: true,
         }
       );
-
       // Handle success, e.g., show a success message or update state
       const updateddata = {
         Organisation: formData.organisation,
         Position: formData.position,
         EventName: formData.eventname,
         EventDate: formData.date,
-        RollNo: formData.roll,
+        RollNo: RollNo,
+        ID:id,
       };
       dispatch(addProfessionalSkill(updateddata));
       if (response.status == 201) {
@@ -128,7 +136,6 @@ export default function AddPopupProfessionalSkills(props) {
         <Button
           className="mt-6 bg-gray-700 w-auto ml-auto mr-auto p-2 font1 text-gray-200 pl-2 pr-2"
           fullWidth
-          type="submit"
           onClick={handlepopup}
         >
           {name}

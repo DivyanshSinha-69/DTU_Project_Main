@@ -25,6 +25,10 @@ export default function PopupProfessionalSkills(props) {
   };
 
   const handlepopup = async () => {
+    if (!formData.organisation || !formData.position || !formData.eventname || !formData.date) {
+      alert("Please fill in all required fields");
+      return;
+    }
     try {
       const response = await axios.put(
         "http://localhost:3001/ece/student/updateprofessionalskills",
@@ -131,7 +135,6 @@ export default function PopupProfessionalSkills(props) {
         <Button
           className="mt-6 bg-gray-700 w-auto ml-auto mr-auto p-2 font1 text-gray-200 pl-2 pr-2"
           fullWidth
-          type="submit"
           onClick={handlepopup}
         >
           {name}
