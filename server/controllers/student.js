@@ -66,7 +66,6 @@ export const updateProfessionalSkills = (req, res) => {
 
 export const deleteProfessionalSkills = (req, res) => {
   const { ID } = req.body;
-  console.log(ID);
   const sql = "DELETE FROM EventDetails WHERE ID = ?";
 
   connectDB.query(sql, [ID], (err, result) => {
