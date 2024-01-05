@@ -8,21 +8,21 @@ import {
 } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
 
-import img1 from "../assets/teacher.svg";
-import img2 from "../assets/student.svg";
-import img3 from "../assets/employer.svg";
-import img4 from "../assets/parent.svg";
-import img5 from "../assets/alumini.svg";
-import dtulogo from "../assets/dtuSVG.svg";
-import homeimg from "../assets/homepage.svg";
-import portalimg from "../assets/portal.svg"
+import img1 from "../../assets/teacher.svg";
+import img2 from "../../assets/student.svg";
+import img3 from "../../assets/employer.svg";
+import img4 from "../../assets/parent.svg";
+import img5 from "../../assets/alumini.svg";
+import dtulogo from "../../assets/dtuSVG.svg";
+import homeimg from "../../assets/homepage.svg";
+import portalimg from "../../assets/portal.svg"
 
-import "../styles/header.css";
-import { logout } from "../redux/reducers/AuthSlice";
+import "../../styles/header.css";
+import { logout } from "../../redux/reducers/AuthSlice";
 import axios from "axios";
-import { setRole } from "../redux/reducers/UserSlice";
+import { setRole } from "../../redux/reducers/UserSlice";
 import { useNavigate } from "react-router-dom";
-import { removeProfessionalSkills } from "../redux/reducers/UserProfessionalSkills";
+import { removeProfessionalSkills } from "../../redux/reducers/UserProfessionalSkills";
 
 
 export default function StickyNavbar() {

@@ -1,11 +1,11 @@
 import "./App.css";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import StickyNavbar from "./components/Header";
-import Footer from "./components/Footer";
+import StickyNavbar from "./components/Website/Header";
+import Footer from "./components/Website/Footer";
 import Home from "./components/Homepage/Home";
 import Login from "./components/Login";
 import Teacher from "./components/Teacher";
-import Student from "./components/Student";
+import Student from "./components/Student/Student";
 import Dashboard from "./components/AdminDashboard";
 import Unaithorized from "./components/Unauthorized";
 import { useSelector } from "react-redux";

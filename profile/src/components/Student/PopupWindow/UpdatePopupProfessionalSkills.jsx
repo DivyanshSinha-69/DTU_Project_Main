@@ -71,6 +71,7 @@ export default function PopupProfessionalSkills(props) {
             Organisation Name
           </Typography>
           <Input
+            required
             size="lg"
             placeholder="Organisation Name"
             value={formData.organisation}
@@ -85,6 +86,7 @@ export default function PopupProfessionalSkills(props) {
             Role
           </Typography>
           <Input
+            required
             size="lg"
             placeholder="Role"
             value={formData.position}
@@ -99,6 +101,7 @@ export default function PopupProfessionalSkills(props) {
             Event
           </Typography>
           <Input
+            required
             size="lg"
             placeholder="Event"
             value={formData.eventname}
@@ -113,6 +116,7 @@ export default function PopupProfessionalSkills(props) {
             Date
           </Typography>
           <Input
+            required
             size="lg"
             placeholder="YYYY-MM-DD"
             value={formData.date}
@@ -128,6 +132,7 @@ export default function PopupProfessionalSkills(props) {
         <Button
           className="mt-6 bg-gray-700 w-auto ml-auto mr-auto p-2 font1 text-gray-200 pl-2 pr-2"
           fullWidth
+          type="submit"
           onClick={handlepopup}
         >
           {name}

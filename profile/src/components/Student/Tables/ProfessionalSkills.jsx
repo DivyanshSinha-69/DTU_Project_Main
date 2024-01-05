@@ -1,12 +1,12 @@
-import React, { useState } from "react";
+import React from "react";
 import { Card, Typography } from "@material-tailwind/react";
 import Popup from "reactjs-popup";
 import { useDispatch, useSelector } from "react-redux";
-import PopupProfessionalSkills from "./PopupWindow/UpdatePopupProfessionalSkills.jsx";
-import AddPopupProfessionalSkills from "./PopupWindow/AddPopupProfessionalSkills.jsx"
-import img from "../../assets/delete.svg";
+import PopupProfessionalSkills from "../PopupWindow/UpdatePopupProfessionalSkills.jsx";
+import AddPopupProfessionalSkills from "../PopupWindow/AddPopupProfessionalSkills.jsx"
+import img from "../../../assets/delete.svg";
 import axios from "axios";
-import { deleteProfessionalSkill } from "../../redux/reducers/UserProfessionalSkills.jsx";
+import { deleteProfessionalSkill } from "../../../redux/reducers/UserProfessionalSkills.jsx";
 
 const StudentProfessionalSkills = () => {
   const ProfessionalSkills = useSelector((state) => state.professionalSkills);

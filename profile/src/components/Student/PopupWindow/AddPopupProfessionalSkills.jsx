@@ -1,6 +1,5 @@
 import axios from "axios";
 import React, { useState } from "react";
-import { Alert } from "@material-tailwind/react";
 import { Card, Input, Button, Typography } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
 import { addProfessionalSkill, updateProfessionalSkill } from "../../../redux/reducers/UserProfessionalSkills";
@@ -68,6 +67,7 @@ export default function AddPopupProfessionalSkills(props) {
             Organisation Name
           </Typography>
           <Input
+            required
             size="lg"
             placeholder="Organisation Name"
             value={formData.organisation}
@@ -82,6 +82,7 @@ export default function AddPopupProfessionalSkills(props) {
             Role
           </Typography>
           <Input
+            required
             size="lg"
             placeholder="Role"
             value={formData.position}
@@ -96,6 +97,7 @@ export default function AddPopupProfessionalSkills(props) {
             Event
           </Typography>
           <Input
+            required
             size="lg"
             placeholder="Event"
             value={formData.eventname}
@@ -110,6 +112,7 @@ export default function AddPopupProfessionalSkills(props) {
             Date
           </Typography>
           <Input
+            required
             size="lg"
             placeholder="YYYY-MM-DD"
             value={formData.date}
@@ -125,6 +128,7 @@ export default function AddPopupProfessionalSkills(props) {
         <Button
           className="mt-6 bg-gray-700 w-auto ml-auto mr-auto p-2 font1 text-gray-200 pl-2 pr-2"
           fullWidth
+          type="submit"
           onClick={handlepopup}
         >
           {name}
