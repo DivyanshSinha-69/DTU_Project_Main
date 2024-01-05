@@ -1,19 +1,20 @@
-import React, { useState } from "react";
-import { Card, Input, Button, Typography } from "@material-tailwind/react";
 import axios from "axios";
+import React, { useState } from "react";
+import { Alert } from "@material-tailwind/react";
+import { Card, Input, Button, Typography } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
-import { updateProfessionalSkill } from "../../../redux/reducers/UserProfessionalSkills";
+import { addProfessionalSkill, updateProfessionalSkill } from "../../../redux/reducers/UserProfessionalSkills";
 
-export default function PopupProfessionalSkills(props) {
-  const { id, eventname, position, organisation, date, roll } = props;
+export default function AddPopupProfessionalSkills(props) {
+  const { closeModal ,name} =props;
+  const{RollNo} = useSelector(state=>state.auth.user)
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
-    organisation: organisation,
-    position: position,
-    eventname: eventname,
-    date: date,
-    roll: roll,
-    id: id,
+    organisation: "",
+    position: "",
+    eventname: "",
+    date: "",
+    roll: ""
   });
 
   const handleChange = (e) => {
@@ -24,17 +25,16 @@ export default function PopupProfessionalSkills(props) {
     }));
   };
 
-  const handleUpdate = async () => {
+  const handlepopup = async () => {
     try {
-      const response = await axios.put(
-        "http://localhost:3001/ece/student/updateprofessionalskills",
+      const response = await axios.post(
+        "http://localhost:3001/ece/student/addprofessionalskills",
         {
-          id: formData.id,
           organisation: formData.organisation,
           position: formData.position,
           eventname: formData.eventname,
           date: formData.date,
-          roll: formData.roll,
+          roll: RollNo,
         },
         {
           withCredentials: true,
@@ -43,15 +43,17 @@ export default function PopupProfessionalSkills(props) {
 
       // Handle success, e.g., show a success message or update state
       const updateddata = {
-        ID: formData.id,
         Organisation: formData.organisation,
         Position: formData.position,
         EventName: formData.eventname,
         EventDate: formData.date,
         RollNo: formData.roll,
       };
-      console.log(response.data);
-      dispatch(updateProfessionalSkill({ id, updateddata }));
+      dispatch(addProfessionalSkill(updateddata));
+      if (response.status == 201) {
+        alert(response.data.message);
+        closeModal();
+      }
     } catch (error) {
       // Handle error, e.g., show an error message
       console.error(error);
@@ -71,7 +73,7 @@ export default function PopupProfessionalSkills(props) {
             value={formData.organisation}
             onChange={handleChange}
             name="organisation"
-            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2"
+            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 h-10"
             labelProps={{
               className: "before:content-none after:content-none",
             }}
@@ -85,7 +87,7 @@ export default function PopupProfessionalSkills(props) {
             value={formData.position}
             onChange={handleChange}
             name="position"
-            className=" !border-t-gray-200 focus:!border-t-gray-900 pl-2"
+            className=" !border-t-gray-200 focus:!border-t-gray-900 pl-2 h-10"
             labelProps={{
               className: "before:content-none after:content-none",
             }}
@@ -99,7 +101,7 @@ export default function PopupProfessionalSkills(props) {
             value={formData.eventname}
             onChange={handleChange}
             name="eventname"
-            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2"
+            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 h-10"
             labelProps={{
               className: "before:content-none after:content-none",
             }}
@@ -109,11 +111,11 @@ export default function PopupProfessionalSkills(props) {
           </Typography>
           <Input
             size="lg"
-            placeholder="Date"
+            placeholder="YYYY-MM-DD"
             value={formData.date}
             onChange={handleChange}
             name="date"
-            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2"
+            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 h-10"
             labelProps={{
               className: "before:content-none after:content-none",
             }}
@@ -123,9 +125,9 @@ export default function PopupProfessionalSkills(props) {
         <Button
           className="mt-6 bg-gray-700 w-auto ml-auto mr-auto p-2 font1 text-gray-200 pl-2 pr-2"
           fullWidth
-          onClick={handleUpdate}
+          onClick={handlepopup}
         >
-          Update
+          {name}
         </Button>
       </form>
     </Card>

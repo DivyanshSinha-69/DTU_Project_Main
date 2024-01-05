@@ -2,7 +2,7 @@ import "./App.css";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import StickyNavbar from "./components/Header";
 import Footer from "./components/Footer";
-import Home from "./components/Home";
+import Home from "./components/Homepage/Home";
 import Login from "./components/Login";
 import Teacher from "./components/Teacher";
 import Student from "./components/Student";
@@ -11,7 +11,6 @@ import Unaithorized from "./components/Unauthorized";
 import { useSelector } from "react-redux";
 import Parents from "./components/Parents";
 import Alumini from "./components/Alumini";
-import Allstudent from "./components/Allstudent";
 
 function App() {
   const { role } = useSelector((state) => state.user);
@@ -34,7 +33,7 @@ function App() {
           <Route path="/parents" element={<Parents />} />
           <Route path="/alumini" element={<Alumini />} />
           {role==="admin"?<Route path="/admin/portal" element={<Dashboard />} />:<Route path="/login" element={<Login />} />}
-          {role==="admin"?<Route path="/admin/allstudents" element={<Allstudent/>} />:<Route path="/login" element={<Login />} />}
+         
           <Route path="*" element={<Unaithorized />} />
         </Routes>
         <Footer />

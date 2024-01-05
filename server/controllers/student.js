@@ -11,6 +11,7 @@ export const getall = (req, res) => {
     }
   });
 };
+
 export const getProfessionalSKills = (req, res) => {
   const { rollno } = req.body;
   const sql = "SELECT * FROM EventDetails where RollNo = ?";
@@ -61,3 +62,57 @@ export const updateProfessionalSkills = (req, res) => {
     }
   );
 };
+
+
+export const deleteProfessionalSkills = (req, res) => {
+  const { ID } = req.body;
+  console.log(ID);
+  const sql = "DELETE FROM EventDetails WHERE ID = ?";
+
+  connectDB.query(sql, [ID], (err, result) => {
+    if (err) {
+      console.error("Error executing delete query:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+
+    // Check if any row is affected (indicating a successful delete)
+    if (result.affectedRows > 0) {
+      res.status(200).json({
+        success: true,
+        message: "Record deleted successfully",
+      });
+    } else {
+      res.status(404).json({ error: "Record not found" });
+    }
+  });
+};
+
+export const addProfessionalSkills = (req, res) => {
+  const { organisation, position, eventname, date, roll } = req.body;
+  const sql =
+    "INSERT INTO EventDetails (Organisation, Position, EventName, EventDate, RollNo) VALUES (?, ?, ?, ?, ?)";
+
+  connectDB.query(
+    sql,
+    [organisation, position, eventname, date, roll],
+    (err, result) => {
+      if (err) {
+        console.error("Error executing insert query:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+        return;
+      }
+
+      // Check if a new row is inserted (indicating a successful add)
+      if (result.affectedRows > 0) {
+        res.status(201).json({
+          success: true,
+          message: "Record added successfully",
+        });
+      } else {
+        res.status(400).json({ error: "Failed to add record" });
+      }
+    }
+  );
+};
+

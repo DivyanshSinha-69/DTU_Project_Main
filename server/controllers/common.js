@@ -4,12 +4,10 @@ import { sendCookie } from "../utils/featues.js";
 export const login = (req, res) => {
     console.log("received a login");
     const { email, password } = req.body;
-    console.log(email+" "+password);
     // Query to check login credentials
-    const sql = "SELECT * FROM student_data WHERE email = ? AND pass = ?";
+    const sql = "SELECT * FROM Student_data WHERE RollNo = ? AND Pass = ?";
     // Execute the query
     connectDB.query(sql, [email, password], (err, results) => {
-      console.log(results);
       if (err) {
         console.error("Error executing login query:", err);
         res.status(500).json({ error: "Internal Server Error" });

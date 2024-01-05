@@ -33,14 +33,14 @@ const Login = () => {
       // console.log(userDetails.role);
       // Example: Dispatching an action with user details
       dispatch(login(userDetails.user));
-      dispatch(setRole(userDetails.user.role));
+      dispatch(setRole(userDetails.user.Position));
 
       // Redirect to the desired page after successful login
-      if(userDetails.user.role=="student"){
+      if(userDetails.user.Position=="student"){
       navigate("/student/portal");
-      }else if(userDetails.user.role=="teacher"){
+      }else if(userDetails.user.Position=="teacher"){
         navigate("/teacher/portal");
-      }else if(userDetails.user.role=="admin"){
+      }else if(userDetails.user.Position=="admin"){
         navigate("/admin/portal");
       }else{
         navigate("/unauthorized");
@@ -75,13 +75,13 @@ const Login = () => {
                 htmlFor="email"
                 className="block font-bold text-lg font-large leading-6 text-white"
               >
-                Email Address
+                Roll Number
               </label>
               <div className="mt-2">
                 <input
                   id="email"
                   name="email"
-                  type="email"
+                  type=""
                   autoComplete="email"
                   required
                   className="block w-full p-2 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"

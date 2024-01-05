@@ -1,6 +1,4 @@
 import React from "react";
-import Sidebar from "./Sidebar";
-import DashCards from "./DashCards";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
