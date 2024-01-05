@@ -90,7 +90,6 @@ export const deleteProfessionalSkills = (req, res) => {
 
 export const addProfessionalSkills = (req, res) => {
   const { organisation, position, eventname, date, roll ,ID } = req.body;
-  console.log(ID);
   const sql =
     "INSERT INTO EventDetails (Organisation, Position, EventName, EventDate, RollNo ,ID) VALUES (?, ?, ?, ?, ? ,?)";
 
