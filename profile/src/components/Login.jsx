@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import backgroundImage from "../assets/dtu.png";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector} from "react-redux";
@@ -12,6 +12,36 @@ const Login = () => {
   const dispatch = useDispatch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  useEffect(() => {
+    const checkExistingToken = async () => {
+      try {
+        const response = await axios.get("http://localhost:3001/cookiescheck", {
+          withCredentials: true,
+        });
+
+        const tokenData = response.data.user;
+        // console.log("hello")/;
+        if (tokenData) {
+          const { Position } = tokenData.user;
+          if (Position === "student") {
+            navigate("/student/portal");
+          } else if (Position === "teacher") {
+            navigate("/teacher/portal");
+          } else if (Position === "admin") {
+            navigate("/admin/portal");
+          } else {
+            navigate("/unauthorized");
+          }
+        }
+      } catch (error) {
+        console.error("Error checking existing token:", error.message);
+      }
+    };
+
+    checkExistingToken();
+  }, [navigate]);
+
 
   const handleLogin = async (e) => {
     e.preventDefault();
