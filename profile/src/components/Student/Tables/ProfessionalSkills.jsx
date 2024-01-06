@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, Typography } from "@material-tailwind/react";
 import Popup from "reactjs-popup";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,12 +8,22 @@ import img from "../../../assets/delete.svg";
 import axios from "axios";
 import { deleteProfessionalSkill } from "../../../redux/reducers/UserProfessionalSkills.jsx";
 
-const StudentProfessionalSkills = () => {
+const StudentProfessionalSkills = ({ setBlurActive }) => {
   const ProfessionalSkills = useSelector((state) => state.professionalSkills);
   const dispatch = useDispatch();
   const TABLE_HEAD = ["Organisation ", "Role", "Event Name", "Date", ""];
   const TABLE_ROWS = ProfessionalSkills.ProfessionalSkills || [];
 
+  const [isPopupOpen, setPopupOpen] = useState(false);
+  const openPopup = () => {
+    setPopupOpen(true);
+    setBlurActive(true); // Activate blur when opening the popup
+  };
+
+  const closePopup = () => {
+    setPopupOpen(false);
+    setBlurActive(false); // Deactivate blur when closing the popup
+  };
   
 
   const handledelete = async (ID) => {
@@ -45,17 +55,18 @@ const StudentProfessionalSkills = () => {
           <p className="p-3 text-2xl font1 border-top my-auto">
             Professional Skills
           </p>
-          <Popup
-            trigger={
-              <button className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full">
+          <button onClick={openPopup} className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full">
                 Add+
               </button>
-            }
+          <Popup
+            trigger={null}
+            // open={isPopupOpen}
+            // onClose={closePopup}
             className="mx-auto my-auto p-2"
             closeOnDocumentClick
           >
             {(close) => (
-              <div className="h-[550px]  w-[auto] md:w-[500px] md:mx-auto bg-gray-800 rounded-[12%] top-10 fixed inset-10 md:inset-20 flex items-center justify-center">
+              <div className="h-[550px]  w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.9] rounded-[12%] top-10 fixed inset-10 md:inset-20 flex items-center justify-center">
                 <AddPopupProfessionalSkills
                   closeModal={close}
                   name={"ADD"}
@@ -142,13 +153,16 @@ const StudentProfessionalSkills = () => {
                           color="blue-gray"
                           className="font-medium text-blue-600 flex flex-row"
                         >
+                          <button onClick={openPopup}> Edit </button>
                           <Popup
-                            trigger={<button> Edit </button>}
+                            trigger={null}
+                            open={isPopupOpen}
+                            onClose={closePopup}
                             className="mx-auto my-auto p-2"
                             closeOnDocumentClick
                           >
                             {(close) => (
-                              <div className="h-[550px]  w-[auto] md:w-[500px] md:mx-auto bg-gray-800 rounded-[12%] top-10 fixed  inset-5 md:inset-20 flex items-center justify-center">
+                              <div className="h-[550px]  w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.9] rounded-[12%] top-10 fixed  inset-5 md:inset-20 flex items-center justify-center">
                                 <PopupProfessionalSkills
                                   closeModal={close}
                                   roll={RollNo}

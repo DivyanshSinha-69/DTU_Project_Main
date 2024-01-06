@@ -4,22 +4,24 @@ import Popup from "reactjs-popup";
 import PersonalDetailPopup from "../PopupWindow/PersonalDetailPopup";
 import '../../../styles/popup.css'
 
-const PersonalDetails = () => {
-    const [isPopupOpen, setPopupOpen] = useState(false);
+const PersonalDetails = ({  setBlurActive }) => {
 
-  const TABLE_HEAD = ["Mother's Name", "Father's Name", "Phone No.", "Personal Mail", "College Mail", "Parent's Contact No."];
-  const TABLE_ROWS = [];
-
+  const [isPopupOpen, setPopupOpen] = useState(false);
   const openPopup = () => {
     setPopupOpen(true);
+    setBlurActive(true); // Activate blur when opening the popup
   };
 
   const closePopup = () => {
     setPopupOpen(false);
+    setBlurActive(false); // Deactivate blur when closing the popup
   };
 
+  const TABLE_HEAD = ["Mother's Name", "Father's Name", "Phone No.", "Personal Mail", "College Mail", "Parent's Contact No."];
+  const TABLE_ROWS = [];
+
   return (
-    <div className={`personal-details ${isPopupOpen ? 'popup-open' : ''}`}>
+    <div>
       <div className="h-auto p-10">
         <div className="flex flex-row justify-between pr-5 pl-5">
           <p className="p-3 text-2xl font1 border-top my-auto">
@@ -36,7 +38,7 @@ const PersonalDetails = () => {
             className="mx-auto my-auto p-2"
             closeOnDocumentClick
           >
-            <div className="h-[550px] w-[auto] md:w-[500px] md:mx-auto bg-gray-800 rounded-[12%] top-10 fixed inset-5 md:inset-20 flex items-center justify-center">
+            <div className="h-[550px] w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.9] rounded-[12%] top-10 fixed inset-5 md:inset-20 flex items-center justify-center">
               <PersonalDetailPopup closeModal={closePopup} name={"ADD"} />
             </div>
           </Popup>

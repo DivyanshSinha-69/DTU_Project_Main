@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect,useState } from "react";
 import StudentProfessionalSkills from "./Tables/ProfessionalSkills";
 import axios from "axios";
 import { setProfessionalSkills } from "../../redux/reducers/UserProfessionalSkills";
@@ -7,11 +7,14 @@ import uploadImg from "../../assets/upload.svg"
 import PersonalDetails from "./Tables/PersonalDetails";
 import Enterprenur from "./Tables/Enterprenur";
 import Placement from "./Tables/Placement";
+import '../../styles/popup.css';
+
 
 // import Placement from "./studentportaltables/Placement";
 
 const Student = () => {
   const { studentName, RollNo , Course, CourseName } = useSelector((state) => state.auth.user);
+  const [isBlurActive, setBlurActive] = useState(false);
 
   const dispatch = useDispatch();
   useEffect(() => {
@@ -71,7 +74,7 @@ const Student = () => {
         Refresh
       </button>
 
-      <div className=" h-auto w-full mt-10">
+      <div  className={`h-auto w-full mt-10 ${isBlurActive ? 'blur-effect' : ''}`}>
         <div className="h-[30%] w-[70%] flex flex-wrap justify-around mx-auto">
           <div className="h-100% flex flex-col content-center justify-center items-center m-2">
             <h1 className="font-extrabold text-3xl text-center">
@@ -96,20 +99,20 @@ const Student = () => {
         </div>
       </div>
 
-      <div className="pt-10 overflow-x-scroll	md:overflow-x-hidden">
-        <PersonalDetails />
+      <div className={`pt-10 overflow-x-scroll md:overflow-x-hidden ${isBlurActive ? 'blur-effect' : ''}`}>
+        <PersonalDetails  setBlurActive={setBlurActive} />
       </div>
 
-      <div className="pt-10 overflow-x-scroll	md:overflow-x-hidden">
-        <StudentProfessionalSkills />
+      <div  className={`pt-10 overflow-x-scroll	md:overflow-x-hidden ${isBlurActive ? 'blur-effect' : ''}`}>
+        <StudentProfessionalSkills setBlurActive={setBlurActive} />
       </div>
 
-      <div>
-        <Placement />
+      <div className={`pt-10 overflow-x-scroll	md:overflow-x-hidden ${isBlurActive ? 'blur-effect' : ''}`}>
+        <Placement setBlurActive={setBlurActive}/>
       </div>
 
-      <div>
-        <Enterprenur />
+      <div className={`pt-10 overflow-x-scroll	md:overflow-x-hidden ${isBlurActive ? 'blur-effect' : ''}`}>
+        <Enterprenur setBlurActive={setBlurActive}/>
       </div>
 
     </div>

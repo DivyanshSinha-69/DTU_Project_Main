@@ -6,7 +6,7 @@ import { updateProfessionalSkill } from "../../../redux/reducers/UserProfessiona
 
 export default function PersonalDetailPopup() {
 
-
+    
   return (
     <Card color="transparent" shadow={false}>
         <form class="max-w-md mx-auto">
