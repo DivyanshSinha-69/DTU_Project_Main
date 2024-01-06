@@ -33,11 +33,11 @@ function App() {
         dispatch(login(userDetails.user));
         dispatch(setRole(userDetails.user.Position));
         // console.log("hello")/;
-        if (userDetails.user.Position == "student") {
+        if (userDetails.user.Position === "student") {
           navigate("/student/portal");
-        } else if (userDetails.user.Position == "teacher") {
+        } else if (userDetails.user.Position === "teacher") {
           navigate("/teacher/portal");
-        } else if (userDetails.user.Position == "admin") {
+        } else if (userDetails.user.Position === "admin") {
           navigate("/admin/portal");
         } else {
           navigate("/unauthorized");
