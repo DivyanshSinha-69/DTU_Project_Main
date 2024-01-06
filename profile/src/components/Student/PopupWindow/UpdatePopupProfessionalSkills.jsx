@@ -70,11 +70,10 @@ export default function PopupProfessionalSkills(props) {
     <Card color="transparent" shadow={false}>
       <form className="mt-8 mb-2 w-80 max-w-screen-lg sm:w-96">
         <div className="mb-1 flex flex-col gap-6">
-          <Typography variant="h6" color="blue-gray" className="-mb-3">
-            Organisation Name
+          <Typography variant="h6" color="blue-gray" className="-mb-3 flex">
+            Organisation Name<p className="pl-1 text-red-600">*</p>
           </Typography>
           <Input
-            required
             size="lg"
             placeholder="Organisation Name"
             value={formData.organisation}
@@ -85,11 +84,10 @@ export default function PopupProfessionalSkills(props) {
               className: "before:content-none after:content-none",
             }}
           />
-          <Typography variant="h6" color="blue-gray" className="-mb-3">
-            Role
+          <Typography variant="h6" color="blue-gray" className="-mb-3 flex">
+            Role<p className="pl-1 text-red-600">*</p>
           </Typography>
           <Input
-            required
             size="lg"
             placeholder="Role"
             value={formData.position}
@@ -100,11 +98,10 @@ export default function PopupProfessionalSkills(props) {
               className: "before:content-none after:content-none",
             }}
           />
-          <Typography variant="h6" color="blue-gray" className="-mb-3">
-            Event
+          <Typography variant="h6" color="blue-gray" className="-mb-3 flex">
+            Event<p className="pl-1 text-red-600">*</p>
           </Typography>
           <Input
-            required
             size="lg"
             placeholder="Event"
             value={formData.eventname}
@@ -115,11 +112,10 @@ export default function PopupProfessionalSkills(props) {
               className: "before:content-none after:content-none",
             }}
           />
-          <Typography variant="h6" color="blue-gray" className="-mb-3">
-            Date
+          <Typography variant="h6" color="blue-gray" className="-mb-3 flex">
+            Date<p className="pl-1 text-red-600">*</p>
           </Typography>
           <Input
-            required
             size="lg"
             placeholder="YYYY-MM-DD"
             value={formData.date}
