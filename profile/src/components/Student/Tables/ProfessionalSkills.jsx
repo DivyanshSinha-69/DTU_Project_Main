@@ -15,6 +15,8 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
   const TABLE_ROWS = ProfessionalSkills.ProfessionalSkills || [];
 
   const [isPopupOpen, setPopupOpen] = useState(false);
+  const [isPopup2Open,setPopup2Open] = useState(false);
+
   const openPopup = () => {
     setPopupOpen(true);
     setBlurActive(true); // Activate blur when opening the popup
@@ -23,6 +25,16 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
   const closePopup = () => {
     setPopupOpen(false);
     setBlurActive(false); // Deactivate blur when closing the popup
+  };
+
+  const openPopup2 = () =>{
+    setPopup2Open(true);
+    setBlurActive(true);
+  }
+
+  const closePopup2 = () => {
+    setPopup2Open(false);
+    setBlurActive(false); 
   };
   
 
@@ -60,8 +72,8 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
               </button>
           <Popup
             trigger={null}
-            // open={isPopupOpen}
-            // onClose={closePopup}
+            open={isPopupOpen}
+            onClose={closePopup}
             className="mx-auto my-auto p-2"
             closeOnDocumentClick
           >
@@ -153,11 +165,11 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-medium text-blue-600 flex flex-row"
                         >
-                          <button onClick={openPopup}> Edit </button>
+                          <button onClick={openPopup2}> Edit </button>
                           <Popup
                             trigger={null}
-                            open={isPopupOpen}
-                            onClose={closePopup}
+                            open={isPopup2Open}
+                            onClose={closePopup2}
                             className="mx-auto my-auto p-2"
                             closeOnDocumentClick
                           >
