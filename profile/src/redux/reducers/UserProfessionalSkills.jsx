@@ -2,7 +2,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  ProfessionalSkills: null,
+  ProfessionalSkills: [],
 };
 
 export const UserProfessionalSkills = createSlice({
@@ -34,7 +34,7 @@ export const UserProfessionalSkills = createSlice({
       state.ProfessionalSkills = updatedSkills;
     },
     removeProfessionalSkills: (state, action) => {
-      state.ProfessionalSkills = null;
+      state.ProfessionalSkills = [];
     },
   },
 });
