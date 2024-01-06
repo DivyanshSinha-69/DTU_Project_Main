@@ -55,7 +55,7 @@ const StudentProfessionalSkills = () => {
             closeOnDocumentClick
           >
             {(close) => (
-              <div className="h-auto  w-[auto] bg-gray-300 rounded-md top-10 fixed inset-20 flex items-center justify-center">
+              <div className="h-[550px]  w-[auto] md:w-[500px] md:mx-auto bg-gray-800 rounded-[12%] top-10 fixed inset-10 md:inset-20 flex items-center justify-center">
                 <AddPopupProfessionalSkills
                   closeModal={close}
                   name={"ADD"}
@@ -148,7 +148,7 @@ const StudentProfessionalSkills = () => {
                             closeOnDocumentClick
                           >
                             {(close) => (
-                              <div className="h-auto  w-[auto] bg-gray-300 rounded-md top-10 fixed inset-20 flex items-center justify-center">
+                              <div className="h-[550px]  w-[auto] md:w-[500px] md:mx-auto bg-gray-800 rounded-[12%] top-10 fixed  inset-5 md:inset-20 flex items-center justify-center">
                                 <PopupProfessionalSkills
                                   closeModal={close}
                                   roll={RollNo}

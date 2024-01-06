@@ -3,11 +3,15 @@ import StudentProfessionalSkills from "./Tables/ProfessionalSkills";
 import axios from "axios";
 import { setProfessionalSkills } from "../../redux/reducers/UserProfessionalSkills";
 import { useDispatch, useSelector } from "react-redux";
+import uploadImg from "../../assets/upload.svg"
+import PersonalDetails from "./Tables/PersonalDetails";
+import Enterprenur from "./Tables/Enterprenur";
+import Placement from "./Tables/Placement";
 
 // import Placement from "./studentportaltables/Placement";
 
 const Student = () => {
-  const { studentName, RollNo } = useSelector((state) => state.auth.user);
+  const { studentName, RollNo , Course, CourseName } = useSelector((state) => state.auth.user);
 
   const dispatch = useDispatch();
   useEffect(() => {
@@ -75,22 +79,39 @@ const Student = () => {
             </h1>
             <h2 className="font-bold text-1xl text-center">{RollNo}</h2>
             <h2 className="text-lg text-center">
-              Electronics and communication engineering
+              {CourseName}
             </h2>
-            <h2>DTU</h2>
+            <h2>{Course}, DTU</h2>
           </div>
           <div>
             <img
               className="rounded-xl mt-2 mb-2 h-[175px] w-[175px]"
               src="https://demos.creative-tim.com/nextjs-tailwind-resume-page/image/avatar3.jpg"
             />
+            <div className="translate-y-[-30px] translate-x-[150px] w-[100px]">
+          <label for="files" class="btn"><img src={uploadImg} alt='+' className="p-2 h-10 w-10 bg-gray-800 rounded-full cursor-pointer hover:bg-gray-600 "/></label>
+          <input id="files"  accept="image/png, image/jpeg" style={{visibility:"hidden"}} type="file" className="w-[100px]"/>
+          </div>
           </div>
         </div>
       </div>
 
       <div className="pt-10 overflow-x-scroll	md:overflow-x-hidden">
+        <PersonalDetails />
+      </div>
+
+      <div className="pt-10 overflow-x-scroll	md:overflow-x-hidden">
         <StudentProfessionalSkills />
       </div>
+
+      <div>
+        <Placement />
+      </div>
+
+      <div>
+        <Enterprenur />
+      </div>
+
     </div>
   );
 };

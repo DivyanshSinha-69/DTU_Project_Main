@@ -1,46 +1,16 @@
 import React, { useEffect, useState } from "react";
 import backgroundImage from "../assets/dtu.png";
 import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector} from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
-import {login} from "../redux/reducers/AuthSlice"
-import {setRole} from "../redux/reducers/UserSlice"
+import { login } from "../redux/reducers/AuthSlice";
+import { setRole } from "../redux/reducers/UserSlice";
 
 const Login = () => {
-  
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  useEffect(() => {
-    const checkExistingToken = async () => {
-      try {
-        const response = await axios.get("http://localhost:3001/cookiescheck", {
-          withCredentials: true,
-        });
-
-        const tokenData = response.data.user;
-        // console.log("hello")/;
-        if (tokenData) {
-          const { Position } = tokenData.user;
-          if (Position === "student") {
-            navigate("/student/portal");
-          } else if (Position === "teacher") {
-            navigate("/teacher/portal");
-          } else if (Position === "admin") {
-            navigate("/admin/portal");
-          } else {
-            navigate("/unauthorized");
-          }
-        }
-      } catch (error) {
-        console.error("Error checking existing token:", error.message);
-      }
-    };
-
-    checkExistingToken();
-  }, [navigate]);
 
 
   const handleLogin = async (e) => {
@@ -48,12 +18,16 @@ const Login = () => {
 
     try {
       // Make a POST request to your server with login credentials
-      const response = await axios.post("http://localhost:3001/login", {
-        email: email,
-        password: password,
-      },{
-        withCredentials: true,
-      });
+      const response = await axios.post(
+        "http://localhost:3001/login",
+        {
+          email: email,
+          password: password,
+        },
+        {
+          withCredentials: true,
+        }
+      );
 
       // Assuming the server returns user details upon successful login
       const userDetails = response.data;
@@ -66,16 +40,15 @@ const Login = () => {
       dispatch(setRole(userDetails.user.Position));
 
       // Redirect to the desired page after successful login
-      if(userDetails.user.Position=="student"){
-      navigate("/student/portal");
-      }else if(userDetails.user.Position=="teacher"){
+      if (userDetails.user.Position == "student") {
+        navigate("/student/portal");
+      } else if (userDetails.user.Position == "teacher") {
         navigate("/teacher/portal");
-      }else if(userDetails.user.Position=="admin"){
+      } else if (userDetails.user.Position == "admin") {
         navigate("/admin/portal");
-      }else{
+      } else {
         navigate("/unauthorized");
       }
-      
     } catch (error) {
       // Handle login error
       console.error("Login failed:", error.message);

@@ -69,7 +69,7 @@ export default function AddPopupProfessionalSkills(props) {
 
   return (
     <Card color="transparent" shadow={false}>
-      <form className="mt-8 mb-2 w-80 max-w-screen-lg sm:w-96">
+      <form className="mt-8 mb-2 w-80 max-w-screen-lg sm:w-96 text-white">
         <div className="mb-1 flex flex-col gap-6">
           <Typography variant="h6" color="blue-gray" className="-mb-3 flex">
             Organisation Name<p className="pl-1 text-red-600">*</p>

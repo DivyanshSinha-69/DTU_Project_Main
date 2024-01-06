@@ -27,7 +27,7 @@ export const getDataFromToken = (req,res) => {
   try {
     // Get the token from the cookie
     const token = req.cookies.token;
-
+    console.log(token);
     if (!token) {
       // Handle case where token is not present
       return null;
@@ -35,6 +35,7 @@ export const getDataFromToken = (req,res) => {
 
     // Verify and decode the token
     const decoded = jwt.verify(token,  "dtuece");
+    console.log(decoded);
     res.status(200).json({ user: decoded.user });
   } catch (error) {
     // Handle token verification errors
