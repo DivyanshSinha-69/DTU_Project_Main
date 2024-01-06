@@ -28,7 +28,7 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
   };
 
   const openPopup2 = () =>{
-    setPopup2Open(true);
+    setPopup2Open(true); //for second popup
     setBlurActive(true);
   }
 
