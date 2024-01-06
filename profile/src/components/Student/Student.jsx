@@ -65,7 +65,7 @@ const Student = () => {
   };
 
   return (
-    <div>
+    <div className="bg-[#FAFAFA]">
       <button
         type="button"
         onClick={refresh}
