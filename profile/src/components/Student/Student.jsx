@@ -22,6 +22,21 @@ const Student = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Fetch personal details
+
+        const personalDetailsResponse = await axios.post(
+          "http://localhost:3001/ece/student/personaldetails",
+          {
+            rollno: RollNo,
+          },
+          {
+            withCredentials: true,
+          }
+        );
+
+        dispatch(setPersonalDetails(personalDetailsResponse.data.user));
+
+
         const response = await axios.post(
           "http://localhost:3001/ece/student/profskills",
           {
@@ -32,24 +47,10 @@ const Student = () => {
           }
         );
 
-        // Now you can access the data, for example:
         dispatch(setProfessionalSkills(response.data.user));
-        // Move console.log here
-
-        // Fetch personal details
-        const personalDetailsResponse = await axios.post(
-          "http://localhost:3001/ece/student/personaldetails",
-          {
-            rollno: RollNo,
-          },
-          {
-            withCredentials: true,
-          }
-        );
-        dispatch(setPersonalDetails(personalDetailsResponse.data.user));
-
+        
       } catch (error) {
-        // Handle the error
+
         console.error("Error fetching data:", error);
       }
     };
@@ -128,7 +129,7 @@ const Student = () => {
       </div>
 
       <div
-        className={`pt-10 overflow-x-scroll md:overflow-x-hidden ${
+        className={`pt-10 ${
           isBlurActive ? "blur-effect" : ""
         }`}
       >
@@ -136,7 +137,7 @@ const Student = () => {
       </div>
 
       <div
-        className={`pt-10 overflow-x-scroll	md:overflow-x-hidden ${
+        className={`pt-10 ${
           isBlurActive ? "blur-effect" : ""
         }`}
       >
@@ -144,7 +145,7 @@ const Student = () => {
       </div>
 
       <div
-        className={`pt-10 overflow-x-scroll	md:overflow-x-hidden ${
+        className={`pt-10  ${
           isBlurActive ? "blur-effect" : ""
         }`}
       >
@@ -152,7 +153,7 @@ const Student = () => {
       </div>
 
       <div
-        className={`pt-10 overflow-x-scroll	md:overflow-x-hidden ${
+        className={`pt-10  ${
           isBlurActive ? "blur-effect" : ""
         }`}
       >

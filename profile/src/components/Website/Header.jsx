@@ -1,3 +1,4 @@
+
 import React from "react";
 import { HashLink } from "react-router-hash-link";
 import {
@@ -231,7 +232,7 @@ export default function StickyNavbar() {
               <div className=" mr-4 hidden lg:block text-black">{navList}</div>
               <IconButton
                 variant="text"
-                className="ml-auto h-6 w-6 text-black hover:bg-transparent focus:bg-transparent active:bg-transparent lg:hidden"
+                className="ml-auto h-6 w-6 text-black hover:bg-transparent focus:bg-transparent active:bg-transparent lg:hidden translate-x-[-30px] translate-y-[-10px]"
                 ripple={false}
                 onClick={() => setOpenNav(!openNav)}
               >

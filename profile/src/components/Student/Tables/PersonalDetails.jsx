@@ -62,7 +62,7 @@ const PersonalDetails = ({  setBlurActive }) => {
 
         {/* table */}
         <div className="">
-        <Card className="h-auto w-full pl-10 pr-10">
+        <Card className="h-auto w-full pl-10 pr-10 overflow-x-scroll md:overflow-hidden">
           <table className="w-full min-w-auto lg:min-w-max table-auto text-left">
             <thead>
               <tr>

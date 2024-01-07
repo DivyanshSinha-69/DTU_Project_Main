@@ -30,6 +30,7 @@ export default function PopupProfessionalSkills(props) {
       return;
     }
     try {
+      
       const response = await axios.put(
         "http://localhost:3001/ece/student/updateprofessionalskills",
         {
@@ -44,8 +45,7 @@ export default function PopupProfessionalSkills(props) {
           withCredentials: true,
         }
       );
-
-      // Handle success, e.g., show a success message or update state
+  
       const updateddata = {
         ID: formData.id,
         Organisation: formData.organisation,

@@ -32,7 +32,6 @@ function App() {
         const userDetails = response.data;
         dispatch(login(userDetails.user));
         dispatch(setRole(userDetails.user.Position));
-        // console.log("hello")/;
         if (userDetails.user.Position === "student") {
           navigate("/student/portal");
         } else if (userDetails.user.Position === "teacher") {

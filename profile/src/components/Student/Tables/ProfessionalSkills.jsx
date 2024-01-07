@@ -3,7 +3,7 @@ import { Card, Typography } from "@material-tailwind/react";
 import Popup from "reactjs-popup";
 import { useDispatch, useSelector } from "react-redux";
 import PopupProfessionalSkills from "../PopupWindow/UpdatePopupProfessionalSkills.jsx";
-import AddPopupProfessionalSkills from "../PopupWindow/AddPopupProfessionalSkills.jsx"
+import AddPopupProfessionalSkills from "../PopupWindow/AddPopupProfessionalSkills.jsx";
 import img from "../../../assets/delete.svg";
 import addImg from "../../../assets/add.svg";
 import axios from "axios";
@@ -16,7 +16,7 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
   const TABLE_ROWS = ProfessionalSkills.ProfessionalSkills || [];
 
   const [isPopupOpen, setPopupOpen] = useState(false);
-  const [isPopup2Open,setPopup2Open] = useState(false);
+  const [selectedRowIndex, setSelectedRowIndex] = useState(null);
 
   const openPopup = () => {
     setPopupOpen(true);
@@ -28,16 +28,15 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
     setBlurActive(false); // Deactivate blur when closing the popup
   };
 
-  const openPopup2 = () =>{
-    setPopup2Open(true); //for second popup
+  const openPopup2 = (index) => {
+    setSelectedRowIndex(index);
     setBlurActive(true);
-  }
+  };
 
   const closePopup2 = () => {
-    setPopup2Open(false);
-    setBlurActive(false); 
+    setSelectedRowIndex(null);
+    setBlurActive(false);
   };
-  
 
   const handledelete = async (ID) => {
     try {
@@ -51,26 +50,28 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
         }
       );
 
-      // Handle success, e.g., show a success message or update state
-      // console.log(response.data.message);
+  
       alert(response.data.message);
       dispatch(deleteProfessionalSkill({ ID }));
     } catch (error) {
-      // Handle error, e.g., show an error message
+   
       console.error(error);
     }
   };
 
   return (
     <div>
-      <div className="h-auto p-10">
+      <div className="h-auto p-10 ">
         <div className="flex flex-row justify-between pr-5 pl-5">
           <p className="p-3 text-2xl font1 border-top my-auto">
             Professional Skills
           </p>
-          <button onClick={openPopup} className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full hover:invert hover:scale-[130%] transition-transform ease-in">
-          <img src={addImg} alt="hello" className="h-5 w-5"/>
-              </button>
+          <button
+            onClick={openPopup}
+            className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full hover:invert hover:scale-[130%] transition-transform ease-in"
+          >
+            <img src={addImg} alt="hello" className="h-5 w-5" />
+          </button>
           <Popup
             trigger={null}
             open={isPopupOpen}
@@ -80,10 +81,7 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
           >
             {(close) => (
               <div className="h-[550px]  w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.8] rounded-[12%] top-10 fixed inset-10 md:inset-20 flex items-center justify-center">
-                <AddPopupProfessionalSkills
-                  closeModal={close}
-                  name={"ADD"}
-                />
+                <AddPopupProfessionalSkills closeModal={close} name={"ADD"} />
               </div>
             )}
           </Popup>
@@ -91,7 +89,7 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
 
         <hr className="mb-7"></hr>
 
-        <Card className="h-auto w-full pl-10 pr-10">
+        <Card className="h-auto w-full pl-10 pr-10 overflow-x-scroll md:overflow-hidden">
           <table className="w-full min-w-auto lg:min-w-max table-auto text-left">
             <thead>
               <tr>
@@ -166,10 +164,16 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-medium text-blue-600 flex flex-row justify-center"
                         >
-                          <button onClick={openPopup2} className="hover:invert hover:scale-[130%] transition-transform ease-in"> Edit </button>
+                          <button
+                            onClick={() => openPopup2(index)}
+                            className="hover:invert hover:scale-[130%] transition-transform ease-in"
+                          >
+                            {" "}
+                            Edit{" "}
+                          </button>
                           <Popup
                             trigger={null}
-                            open={isPopup2Open}
+                            open={selectedRowIndex === index}
                             onClose={closePopup2}
                             className="mx-auto my-auto p-2"
                             closeOnDocumentClick
@@ -193,7 +197,7 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
                             className="ml-6 text-red-600 h-5 w-6 flex flex-col justify-center items-center hover:scale-[130%] transition-transform ease-in"
                             onClick={() => handledelete(ID)}
                           >
-                            <img src={img} alt="delete"/>
+                            <img src={img} alt="delete" />
                           </button>
                         </Typography>
                       </td>
