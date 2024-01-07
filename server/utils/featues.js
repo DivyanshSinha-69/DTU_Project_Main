@@ -27,7 +27,7 @@ export const getDataFromToken = (req,res) => {
   try {
     // Get the token from the cookie
     const token = req.cookies.token;
-    console.log(token);
+    // console.log(token);
     if (!token) {
       // Handle case where token is not present
       return null;

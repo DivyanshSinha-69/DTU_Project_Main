@@ -115,3 +115,56 @@ export const addProfessionalSkills = (req, res) => {
   );
 };
 
+export const getPersonalDetails = (req, res) => {
+  const { rollno } = req.body;
+  const sql = "SELECT * FROM studentPersonalDetails where RollNo = ?";
+  connectDB.query(sql, [rollno], (err, results) => {
+    if (err) {
+      console.error("Error executing fetch query:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+
+    // Check if the user with the given credentials exists
+    if (results.length > 0) {
+      res.status(200).json({
+        user: results,
+        success: true,
+      });
+    } else {
+      res.status(401).json({ error: "No data Exist" });
+      return;
+    }
+  });
+
+};
+
+export const updatePersonalDetails = (req, res) => {
+
+  const { id, motherName, fatherName, personalContactNo, parentContactNo , personalEmail, dtuEmail } = req.body;
+  const sql =
+    "UPDATE studentPersonalDetails SET motherName = ?, fatherName = ?, personalContactNo = ?, parentContactNo = ? ,personalEmail = ?,dtuEmail = ? WHERE RollNo = ?";
+
+  connectDB.query(
+    sql,
+    [motherName,fatherName,personalContactNo,parentContactNo,personalEmail,dtuEmail,id],
+    (err, result) => {
+      if (err) {
+        console.error("Error executing update query:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+        return;
+      }
+
+      // Check if any row is affected (indicating a successful update)
+      if (result.affectedRows > 0) {
+        res.status(200).json({
+          success: true,
+          message: "Record updated successfully",
+        });
+      } else {
+        res.status(404).json({ error: "Record not found" });
+      }
+    }
+  );
+};
+

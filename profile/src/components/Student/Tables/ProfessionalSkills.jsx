@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import PopupProfessionalSkills from "../PopupWindow/UpdatePopupProfessionalSkills.jsx";
 import AddPopupProfessionalSkills from "../PopupWindow/AddPopupProfessionalSkills.jsx"
 import img from "../../../assets/delete.svg";
+import addImg from "../../../assets/add.svg";
 import axios from "axios";
 import { deleteProfessionalSkill } from "../../../redux/reducers/UserProfessionalSkills.jsx";
 
@@ -67,8 +68,8 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
           <p className="p-3 text-2xl font1 border-top my-auto">
             Professional Skills
           </p>
-          <button onClick={openPopup} className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full">
-                Add+
+          <button onClick={openPopup} className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full hover:invert hover:scale-[130%] transition-transform ease-in">
+          <img src={addImg} alt="hello" className="h-5 w-5"/>
               </button>
           <Popup
             trigger={null}
@@ -78,7 +79,7 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
             closeOnDocumentClick
           >
             {(close) => (
-              <div className="h-[550px]  w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.9] rounded-[12%] top-10 fixed inset-10 md:inset-20 flex items-center justify-center">
+              <div className="h-[550px]  w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.8] rounded-[12%] top-10 fixed inset-10 md:inset-20 flex items-center justify-center">
                 <AddPopupProfessionalSkills
                   closeModal={close}
                   name={"ADD"}
@@ -163,9 +164,9 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
                         <Typography
                           variant="small"
                           color="blue-gray"
-                          className="font-medium text-blue-600 flex flex-row"
+                          className="font-medium text-blue-600 flex flex-row justify-center"
                         >
-                          <button onClick={openPopup2}> Edit </button>
+                          <button onClick={openPopup2} className="hover:invert hover:scale-[130%] transition-transform ease-in"> Edit </button>
                           <Popup
                             trigger={null}
                             open={isPopup2Open}
@@ -174,7 +175,7 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
                             closeOnDocumentClick
                           >
                             {(close) => (
-                              <div className="h-[550px]  w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.9] rounded-[12%] top-10 fixed  inset-5 md:inset-20 flex items-center justify-center">
+                              <div className="h-[550px]  w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.8] rounded-[12%] top-10 fixed  inset-5 md:inset-20 flex items-center justify-center">
                                 <PopupProfessionalSkills
                                   closeModal={close}
                                   roll={RollNo}
@@ -189,10 +190,10 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
                             )}
                           </Popup>
                           <button
-                            className="ml-6 text-red-600 h-6 w-6 flex flex-col justify-center items-center"
+                            className="ml-6 text-red-600 h-5 w-6 flex flex-col justify-center items-center hover:scale-[130%] transition-transform ease-in"
                             onClick={() => handledelete(ID)}
                           >
-                            <img src={img} />
+                            <img src={img} alt="delete"/>
                           </button>
                         </Typography>
                       </td>

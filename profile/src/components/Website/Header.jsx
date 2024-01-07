@@ -23,6 +23,7 @@ import axios from "axios";
 import { setRole } from "../../redux/reducers/UserSlice";
 import { useNavigate } from "react-router-dom";
 import { removeProfessionalSkills } from "../../redux/reducers/UserProfessionalSkills";
+import { removePersonalDetails } from "../../redux/reducers/UserPersonalDetails";
 
 
 export default function StickyNavbar() {
@@ -54,7 +55,8 @@ export default function StickyNavbar() {
       const userDetails = response.data;
       dispatch(logout(userDetails.user));
       dispatch(setRole("null"));
-      dispatch(removeProfessionalSkills("null"));
+      dispatch(removeProfessionalSkills());
+      dispatch(removePersonalDetails());
       // dispatch(setRole("null"));
       navigate("/");
     } catch (error) {

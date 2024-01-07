@@ -33,6 +33,5 @@ app.use("/ece/professor",professorRouter)
 app.use("/ece/student",studentRouter)
 app.use("/",commonRouter);
 
-
 // Using Error Middleware
 // app.use(errorMiddleware);

@@ -3,9 +3,13 @@ import { Card, Typography } from "@material-tailwind/react";
 import Popup from "reactjs-popup";
 import PersonalDetailPopup from "../PopupWindow/PersonalDetailPopup";
 import '../../../styles/popup.css'
+import { useSelector } from "react-redux";
+import editImg from "../../../assets/edit.svg"
 
 const PersonalDetails = ({  setBlurActive }) => {
 
+  const PersonalDetails = useSelector(state=>state.personalDetails);
+  // console.log(PersonalDetails);
   const [isPopupOpen, setPopupOpen] = useState(false);
   const openPopup = () => {
     setPopupOpen(true);
@@ -17,8 +21,9 @@ const PersonalDetails = ({  setBlurActive }) => {
     setBlurActive(false); // Deactivate blur when closing the popup
   };
 
-  const TABLE_HEAD = ["Mother's Name", "Father's Name", "Phone No.", "Personal Mail", "College Mail", "Parent's Contact No."];
-  const TABLE_ROWS = [];
+  const TABLE_HEAD = ["Mother's Name", "Father's Name", "Phone No.", "Parent's Contact No.", "Personal Mail", "College Mail"];
+  const TABLE_ROWS = PersonalDetails.PersonalDetails;
+
 
   return (
     <div>
@@ -27,8 +32,8 @@ const PersonalDetails = ({  setBlurActive }) => {
           <p className="p-3 text-2xl font1 border-top my-auto">
             Personal Details
           </p>
-          <button onClick={openPopup} className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full">
-            Edit
+          <button onClick={openPopup} className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full  hover:invert hover:scale-[130%] transition-transform ease-in">
+            <img src={editImg} alt="hello" className="h-5 w-5"/>
           </button>
 
           <Popup
@@ -38,8 +43,18 @@ const PersonalDetails = ({  setBlurActive }) => {
             className="mx-auto my-auto p-2"
             closeOnDocumentClick
           >
-            <div className="h-[550px] w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.9] rounded-[12%] top-10 fixed inset-5 md:inset-20 flex items-center justify-center">
-              <PersonalDetailPopup closeModal={closePopup} name={"ADD"} />
+            <div className="h-[550px] w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.8] rounded-[12%] top-10 fixed inset-5 md:inset-20 flex items-center justify-center">
+              <PersonalDetailPopup
+              motherName={TABLE_ROWS.length > 0 ? TABLE_ROWS[0].motherName : ""}
+              fatherName={TABLE_ROWS.length > 0 ? TABLE_ROWS[0].fatherName : ""}
+              personalContactNo={TABLE_ROWS.length > 0 ? TABLE_ROWS[0].personalContactNo : ""}
+              parentContactNo={TABLE_ROWS.length > 0 ? TABLE_ROWS[0].parentContactNo : ""}
+              personalEmail={TABLE_ROWS.length > 0 ? TABLE_ROWS[0].personalEmail : ""}
+              dtuEmail={TABLE_ROWS.length > 0 ? TABLE_ROWS[0].dtuEmail : ""}
+              rollNo={TABLE_ROWS.length > 0 ? TABLE_ROWS[0].RollNo : ""}
+              studentimage={TABLE_ROWS.length > 0 ? TABLE_ROWS[0].studentImage : ""}
+              closeModal={closePopup} 
+              name={"ADD"} />
             </div>
           </Popup>
         </div>
@@ -70,7 +85,7 @@ const PersonalDetails = ({  setBlurActive }) => {
             <tbody>
               {TABLE_ROWS.map(
                 (
-                  { ID, EventName, Position, Organisation, EventDate, RollNo },
+                  {RollNo,motherName, fatherName, personalContactNo, parentContactNo , personalEmail, dtuEmail},
                   index
                 ) => {
                   const isLast = index === TABLE_ROWS.length - 1;
@@ -79,14 +94,14 @@ const PersonalDetails = ({  setBlurActive }) => {
                     : "p-4 border-b border-blue-gray-50";
 
                   return (
-                    <tr key={ID}>
+                    <tr key={RollNo}>
                       <td className={classes}>
                         <Typography
                           variant="small"
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {Organisation}
+                          {motherName}
                         </Typography>
                       </td>
                       <td className={classes}>
@@ -95,7 +110,43 @@ const PersonalDetails = ({  setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {Position}
+                          {fatherName}
+                        </Typography>
+                      </td>
+                      <td className={classes}>
+                        <Typography
+                          variant="small"
+                          color="blue-gray"
+                          className="font-normal"
+                        >
+                          {personalContactNo}
+                        </Typography>
+                      </td>
+                      <td className={classes}>
+                        <Typography
+                          variant="small"
+                          color="blue-gray"
+                          className="font-normal"
+                        >
+                          {parentContactNo}
+                        </Typography>
+                      </td>
+                      <td className={classes}>
+                        <Typography
+                          variant="small"
+                          color="blue-gray"
+                          className="font-normal"
+                        >
+                          {personalEmail}
+                        </Typography>
+                      </td>
+                      <td className={classes}>
+                        <Typography
+                          variant="small"
+                          color="blue-gray"
+                          className="font-normal"
+                        >
+                          {dtuEmail}
                         </Typography>
                       </td>
                     </tr>
