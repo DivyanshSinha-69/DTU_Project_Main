@@ -109,13 +109,13 @@ const Student = () => {
             <h2 className="text-lg text-center">{CourseName}</h2>
             <h2>{Course}, DTU</h2>
           </div>
-          <div className="mt-[80px]">
+          <div className="h-[175px] w-[175px] justify-center items-center m-2">
             <img
-              className="rounded-xl h-[175px] w-[175px]"
+              className="my-auto rounded-xl h-[175px] w-[175px]"
               src={image||studImg}
               alt="profile img"
             />
-            {console.log(imgSrc)}
+
             <div className="translate-y-[-30px] translate-x-[150px] w-[100px]">
               {/* <label for="files" class="btn"> */}
                 <Test  setImgSrc={setImgSrc}/>
