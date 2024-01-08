@@ -10,7 +10,7 @@ import Enterprenur from "./Tables/Enterprenur";
 import Placement from "./Tables/Placement";
 import "../../styles/popup.css";
 import { setPersonalDetails } from "../../redux/reducers/UserPersonalDetails";
-import Test from "../test";
+import Test from "./ImageUpload";
 import { setUserImage } from '../../redux/reducers/UserImage';
 // import Placement from "./studentportaltables/Placement";
 

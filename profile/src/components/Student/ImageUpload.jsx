@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { setUserImage } from "../redux/reducers/UserImage";
-import uploadImg from "../assets/upload.svg";
+import { setUserImage } from "../../redux/reducers/UserImage";
+import uploadImg from "../../assets/upload.svg";
 const Test = ({ setImgSrc }) => {
 
   const { RollNo } = useSelector((state) => state.auth.user);

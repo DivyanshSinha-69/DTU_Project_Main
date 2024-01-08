@@ -26,7 +26,7 @@ export const uploadImage = (req, res) => {
         console.error('Error inserting into database: ' + dbErr.stack);
         res.status(500).send('Internal Server Error');
       } else {
-        console.log('Image uploaded and saved to database');
+        // console.log('Image uploaded and saved to database');
         res.status(200).send('Image uploaded and saved to database');
       }
     });

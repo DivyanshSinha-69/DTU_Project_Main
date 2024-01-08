@@ -11,7 +11,6 @@ import Unaithorized from "./components/Unauthorized";
 import { useDispatch, useSelector } from "react-redux";
 import Parents from "./components/Parents";
 import Alumini from "./components/Alumini";
-import Test from './components/test';
 import { useEffect } from "react";
 import axios from "axios";
 import { login } from "./redux/reducers/AuthSlice";
@@ -73,7 +72,6 @@ function App() {
          
           
           <Route path="*" element={<Unaithorized />} />
-          <Route path="/upload" element={<Test />} />
         </Routes>
         <Footer />
       </Router>
