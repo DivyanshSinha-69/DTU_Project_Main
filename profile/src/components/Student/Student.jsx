@@ -3,13 +3,15 @@ import StudentProfessionalSkills from "./Tables/ProfessionalSkills";
 import axios from "axios";
 import { setProfessionalSkills } from "../../redux/reducers/UserProfessionalSkills";
 import { useDispatch, useSelector } from "react-redux";
-import uploadImg from "../../assets/upload.svg";
+
+import studImg from "../../assets/studImg.png";
 import PersonalDetails from "./Tables/PersonalDetails";
 import Enterprenur from "./Tables/Enterprenur";
 import Placement from "./Tables/Placement";
 import "../../styles/popup.css";
 import { setPersonalDetails } from "../../redux/reducers/UserPersonalDetails";
-
+import Test from "../test";
+import { setUserImage } from '../../redux/reducers/UserImage';
 // import Placement from "./studentportaltables/Placement";
 
 const Student = () => {
@@ -17,13 +19,18 @@ const Student = () => {
     (state) => state.auth.user
   );
   const [isBlurActive, setBlurActive] = useState(false);
-
+  const [imgSrc, setImgSrc] = useState(null);
+  
+  const {image} = useSelector(
+    (state) => state.userImage
+  )
   const dispatch = useDispatch();
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetch personal details
 
+      
         const personalDetailsResponse = await axios.post(
           "http://localhost:3001/ece/student/personaldetails",
           {
@@ -94,7 +101,7 @@ const Student = () => {
         className={`h-auto w-full mt-10 ${isBlurActive ? "blur-effect" : ""}`}
       >
         <div className="h-[30%] w-[70%] flex flex-wrap justify-around mx-auto">
-          <div className="h-100% flex flex-col content-center justify-center items-center m-2">
+          <div className="h-100% flex flex-col justify-center items-center m-2">
             <h1 className="font-extrabold text-3xl text-center">
               {studentName}
             </h1>
@@ -102,27 +109,29 @@ const Student = () => {
             <h2 className="text-lg text-center">{CourseName}</h2>
             <h2>{Course}, DTU</h2>
           </div>
-          <div>
+          <div className="mt-[80px]">
             <img
-              className="rounded-xl mt-2 mb-2 h-[175px] w-[175px]"
-              src="https://demos.creative-tim.com/nextjs-tailwind-resume-page/image/avatar3.jpg"
+              className="rounded-xl h-[175px] w-[175px]"
+              src={image||studImg}
               alt="profile img"
             />
+            {console.log(imgSrc)}
             <div className="translate-y-[-30px] translate-x-[150px] w-[100px]">
-              <label for="files" class="btn">
-                <img
+              {/* <label for="files" class="btn"> */}
+                <Test  setImgSrc={setImgSrc}/>
+                {/* <img
                   src={uploadImg}
                   alt="+"
                   className="p-2 h-10 w-10 bg-gray-800 rounded-full cursor-pointer hover:invert hover:scale-[130%] transition-transform ease-in "
-                />
-              </label>
-              <input
+                /> */}
+              {/* </label> */}
+              {/* <input
                 id="files"
                 accept="image/png, image/jpeg"
                 style={{ visibility: "hidden" }}
                 type="file"
                 className="w-[100px]"
-              />
+              /> */}
             </div>
           </div>
         </div>
@@ -162,5 +171,6 @@ const Student = () => {
     </div>
   );
 };
+
 
 export default Student;

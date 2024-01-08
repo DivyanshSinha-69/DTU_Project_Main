@@ -1,5 +1,68 @@
 import { connectDB } from "../data/database.js";
-import { sendCookie } from "../utils/featues.js";
+import multer from "multer";
+
+const storage = multer.memoryStorage(); // Store the file in memory as Buffer
+const upload = multer({ storage: storage });
+
+export const uploadImage = (req, res) => {
+  upload.single('image')(req, res, async (err) => {
+    if (err) {
+      console.error('Error uploading image: ' + err.stack);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    // console.log(req);
+    // Access the uploaded file information
+    const {originalname, buffer } = req.file;
+    const {rollNo} = req.body;
+    
+    // Convert the image buffer to base64 for storing in the database
+    const base64Image = buffer.toString('base64');
+
+    // Save image information to the database
+    const query = 'UPDATE images SET originalname = ?, image_data = ? WHERE rollNo = ?';
+    connectDB.query(query, [originalname, base64Image,rollNo], (dbErr, result) => {
+      if (dbErr) {
+        console.error('Error inserting into database: ' + dbErr.stack);
+        res.status(500).send('Internal Server Error');
+      } else {
+        console.log('Image uploaded and saved to database');
+        res.status(200).send('Image uploaded and saved to database');
+      }
+    });
+  });
+};
+
+export const getImage = (req, res) => {
+  const { rollNo } = req.body; // Assuming you send the 'id' in the request body
+  // Retrieve image data from the database based on the provided 'id'
+  const query = 'SELECT image_data, originalname FROM images WHERE rollNo = ?';
+  connectDB.query(query, [rollNo], (err, result) => {
+    if (err) {
+      console.error('Error querying database: ' + err.stack);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+
+    if (result.length > 0) {
+      const { image_data, originalname } = result[0];
+
+      // Convert the base64-encoded image data back to a Buffer
+      if(image_data){
+      const imageBuffer = Buffer.from(image_data, 'base64');
+
+      // Set the appropriate headers for the image response
+      res.setHeader('Content-Type', 'image/*');
+      res.setHeader('Content-Disposition', `inline; filename=${originalname}`);
+      // Send the image data as the response
+      res.end(imageBuffer);
+      }
+    } else {
+      res.status(404).send('Image not found');
+    }
+  });
+};
+
 
 export const getall = (req, res) => {
   connectDB.query("SELECT * FROM student_data", (error, results) => {
@@ -167,4 +230,3 @@ export const updatePersonalDetails = (req, res) => {
     }
   );
 };
-
