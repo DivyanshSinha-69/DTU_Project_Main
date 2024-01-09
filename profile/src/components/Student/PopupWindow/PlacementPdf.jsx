@@ -79,7 +79,7 @@ const PlacementPdf = ({ setPdfSrc,setId }) => {
         .then((response) => {
           const base64PDF = arrayBufferToBase64(response.data);
           // console.log(`data:application/pdf;base64,${base64PDF}`)
-          setPdfSrc(`data:application/pdf;base64,${base64PDF}`);
+          setPdfSrc(base64PDF);
         })
         .catch((error) => {
           console.error("Error fetching PDF: ", error);
