@@ -26,6 +26,7 @@ import { useNavigate } from "react-router-dom";
 import { removeProfessionalSkills } from "../../redux/reducers/UserProfessionalSkills";
 import { removePersonalDetails } from "../../redux/reducers/UserPersonalDetails";
 import {removeUserImage} from "../../redux/reducers/UserImage";
+import { removePlacement } from "../../redux/reducers/UserPlacementDetail";
 
 
 export default function StickyNavbar() {
@@ -60,6 +61,7 @@ export default function StickyNavbar() {
       dispatch(removeProfessionalSkills());
       dispatch(removePersonalDetails());
       dispatch(removeUserImage());
+      dispatch(removePlacement());
       // dispatch(setRole("null"));
       navigate("/");
     } catch (error) {

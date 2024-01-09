@@ -8,7 +8,12 @@ import {
   updateProfessionalSkills,
   updatePersonalDetails,
   uploadImage,
-  getImage
+  getImage,
+  getPlacement,
+  deletePlacement,
+  addPlacement,
+  getPdf,
+  uploadPdf
 } from "../controllers/student.js";
 // import { isAuthenticated } from "../middlewares/auth.js";
 
@@ -23,6 +28,14 @@ router.post("/personaldetails", getPersonalDetails);
 router.put("/updatepersonaldetails", updatePersonalDetails);
 router.post("/upload", uploadImage);
 router.post("/getimage",getImage);
+
+router.post("/placement", getPlacement);
+router.delete("/deleteplacement", deletePlacement);
+router.post("/addplacement", addPlacement);
+
+router.post("/getpdf",getPdf);
+router.post("/uploadpdf",uploadPdf);
+
 // router.get("/me", isAuthenticated, getMyProfile);
 
 export default router;

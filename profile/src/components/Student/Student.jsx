@@ -11,7 +11,7 @@ import Placement from "./Tables/Placement";
 import "../../styles/popup.css";
 import { setPersonalDetails } from "../../redux/reducers/UserPersonalDetails";
 import Test from "./ImageUpload";
-import { setUserImage } from '../../redux/reducers/UserImage';
+import { setPlacement } from "../../redux/reducers/UserPlacementDetail";
 // import Placement from "./studentportaltables/Placement";
 
 const Student = () => {
@@ -20,17 +20,15 @@ const Student = () => {
   );
   const [isBlurActive, setBlurActive] = useState(false);
   const [imgSrc, setImgSrc] = useState(null);
-  
-  const {image} = useSelector(
-    (state) => state.userImage
-  )
+
+
+  const { image } = useSelector((state) => state.userImage);
   const dispatch = useDispatch();
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetch personal details
 
-      
         const personalDetailsResponse = await axios.post(
           "http://localhost:3001/ece/student/personaldetails",
           {
@@ -43,7 +41,6 @@ const Student = () => {
 
         dispatch(setPersonalDetails(personalDetailsResponse.data.user));
 
-
         const response = await axios.post(
           "http://localhost:3001/ece/student/profskills",
           {
@@ -53,11 +50,19 @@ const Student = () => {
             withCredentials: true,
           }
         );
-
         dispatch(setProfessionalSkills(response.data.user));
-        
-      } catch (error) {
 
+        const placementresponse = await axios.post(
+          "http://localhost:3001/ece/student/placement",
+          {
+            rollno: RollNo,
+          },
+          {
+            withCredentials: true,
+          }
+        );
+        dispatch(setPlacement(placementresponse.data.user));
+      } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
@@ -112,65 +117,34 @@ const Student = () => {
           <div className="h-[175px] w-[175px] justify-center items-center m-2">
             <img
               className="my-auto rounded-xl h-[175px] w-[175px]"
-              src={image||studImg}
+              src={image || studImg}
               alt="profile img"
             />
 
             <div className="translate-y-[-30px] translate-x-[150px] w-[100px]">
-              {/* <label for="files" class="btn"> */}
-                <Test  setImgSrc={setImgSrc}/>
-                {/* <img
-                  src={uploadImg}
-                  alt="+"
-                  className="p-2 h-10 w-10 bg-gray-800 rounded-full cursor-pointer hover:invert hover:scale-[130%] transition-transform ease-in "
-                /> */}
-              {/* </label> */}
-              {/* <input
-                id="files"
-                accept="image/png, image/jpeg"
-                style={{ visibility: "hidden" }}
-                type="file"
-                className="w-[100px]"
-              /> */}
+              <Test setImgSrc={setImgSrc} />
             </div>
           </div>
         </div>
       </div>
 
-      <div
-        className={`pt-10 ${
-          isBlurActive ? "blur-effect" : ""
-        }`}
-      >
+      <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
         <PersonalDetails setBlurActive={setBlurActive} />
       </div>
 
-      <div
-        className={`pt-10 ${
-          isBlurActive ? "blur-effect" : ""
-        }`}
-      >
+      <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
         <StudentProfessionalSkills setBlurActive={setBlurActive} />
       </div>
 
-      <div
-        className={`pt-10  ${
-          isBlurActive ? "blur-effect" : ""
-        }`}
-      >
+      <div className={`pt-10  ${isBlurActive ? "blur-effect" : ""}`}>
         <Placement setBlurActive={setBlurActive} />
       </div>
 
-      <div
-        className={`pt-10  ${
-          isBlurActive ? "blur-effect" : ""
-        }`}
-      >
+      <div className={`pt-10  ${isBlurActive ? "blur-effect" : ""}`}>
         <Enterprenur setBlurActive={setBlurActive} />
       </div>
     </div>
   );
 };
-
 
 export default Student;
