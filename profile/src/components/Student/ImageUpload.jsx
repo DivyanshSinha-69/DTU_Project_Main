@@ -114,7 +114,6 @@ const Test = ({ setImgSrc }) => {
                 onChange={handleFileChange}
                 type="file"
                 className="w-[100px]"
-                onClick={handleUpload}
               />
               {isFileSelected && 
               <>
