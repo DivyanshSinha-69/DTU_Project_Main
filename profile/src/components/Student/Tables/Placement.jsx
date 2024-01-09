@@ -62,16 +62,7 @@ const Placement = ({ setBlurActive }) => {
     }
   };
 
-  const handleOpenPdf = (pdfSrc) => {
-    return () => {
-      if (pdfSrc) {
-        const blob = base64ToBlob(pdfSrc, "application/pdf");
-        const blobUrl = URL.createObjectURL(blob);
-        window.open(blobUrl, "_blank");
-      }
-    };
-  };
-
+  
   return (
     <div>
       <div className="h-auto p-10 ">
