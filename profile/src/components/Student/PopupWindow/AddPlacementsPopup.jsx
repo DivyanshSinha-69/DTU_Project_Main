@@ -6,9 +6,10 @@ import { addPlacement } from "../../../redux/reducers/UserPlacementDetail";
 import PlacementPdf from "./PlacementPdf";
 
 export default function AddPlacementsPopup(props) {
-  const { closeModal, name, setPdfSrc ,pdfSrc} = props;
+  const { closeModal, name} = props;
   const { RollNo } = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
+  const [pdfSrc, setPdfSrc] = useState("");
   const [formData, setFormData] = useState({
     companyName: "",
     placementType: "",
@@ -55,11 +56,11 @@ export default function AddPlacementsPopup(props) {
         companyName: formData.companyName,
         placementType: formData.placementType,
         joiningDate: formData.joiningDate,
-        RollNo: RollNo,
+        RollNo: RollNo,      
         appointmentLetter:pdfSrc,
         ID:id,
       };
-
+    //   {console.log(pdfSrc)}
       dispatch(addPlacement(updateddata));
 
       if (response.status == 201) {

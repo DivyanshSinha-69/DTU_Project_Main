@@ -16,7 +16,6 @@ const Placement = ({ setBlurActive }) => {
 
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [selectedRowIndex, setSelectedRowIndex] = useState(null);
-  const [pdfSrc, setPdfSrc] = useState(null);
 
   const openPopup = () => {
     setPopupOpen(true);
@@ -81,7 +80,7 @@ const Placement = ({ setBlurActive }) => {
           >
             {(close) => (
               <div className="h-[550px]  w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.8] rounded-[12%] top-10 fixed inset-10 md:inset-20 flex items-center justify-center">
-                <AddPlacementsPopup closeModal={close} name={"ADD"} pdfSrc setPdfSrc={setPdfSrc}/>
+                <AddPlacementsPopup closeModal={close} name={"ADD"}/>
               </div>
             )}
           </Popup>
