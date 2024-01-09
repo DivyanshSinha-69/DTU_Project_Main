@@ -1,16 +1,13 @@
-import React, { useEffect } from "react";
+import React from "react";
 import homebg from "../../assets/dtu3.png";
 import Carousal from "./Carousal";
-import { login } from "../../redux/reducers/AuthSlice";
-import { setRole } from "../../redux/reducers/UserSlice";
-import axios from "axios";
 const Home = () => {
  
   
   return (
     <div className="bg-gray-700">
       <div
-        className="p-4 mt-2 h-screen flex justify-center items-center text-center font-mono"
+        className="p-4 h-screen flex justify-center items-center text-center font-mono"
         style={{
           backgroundImage: `url(${homebg})`,
           backgroundSize: "cover",

@@ -76,12 +76,12 @@ export default function StickyNavbar() {
           as="li"
           variant="small"
           color="blue-gray"
-          className="p-1 font-normal"
+          className="p-1 font-normal hover:translate-y-[-5px] transition-transform ease-in"
         >
           
           <HashLink
             to="/login"
-            className="flex flex-row items-center logtype lg:flex-col"
+            className="flex flex-row items-center lg:flex-col"
           >
             <img src={img2} alt="student" height={30} width={30} />
             <p className="lg:ml-0 ml-4">Student</p>
@@ -94,11 +94,11 @@ export default function StickyNavbar() {
           as="li"
           variant="small"
           color="blue-gray"
-          className="p-1 font-normal"
+          className="p-1 font-normal hover:translate-y-[-5px] transition-transform ease-in"
         >
           <HashLink
             to="/login"
-            className="flex flex-row items-center logtype lg:flex-col"
+            className="flex flex-row items-center lg:flex-col"
           >
             <img src={img1} alt="teacher" height={30} width={30} />
             <p className="lg:ml-0 ml-4">Teacher/techStaff</p>
@@ -111,11 +111,11 @@ export default function StickyNavbar() {
           as="li"
           variant="small"
           color="blue-gray"
-          className="p-1 font-normal"
+          className="p-1 font-normal hover:translate-y-[-5px] transition-transform ease-in"
         >
           <HashLink
             to="/login"
-            className="flex flex-row items-center logtype lg:flex-col"
+            className="flex flex-row items-center lg:flex-col"
             style={{ ":hover": { cursor: "pointer" } }}
           >
             <img src={img3} alt="employer" height={30} width={30} />
@@ -128,11 +128,11 @@ export default function StickyNavbar() {
         as="li"
         variant="small"
         color="blue-gray"
-        className="p-1 font-normal"
+        className="p-1 font-normal hover:translate-y-[-5px] transition-transform ease-in"
       >
         <HashLink
           to="/parents"
-          className="flex flex-row items-center logtype lg:flex-col"
+          className="flex flex-row items-center lg:flex-col"
           style={{ ":hover": { cursor: "pointer" } }}
         >
           <img src={img4} alt="parents" height={30} width={30} />
@@ -143,11 +143,11 @@ export default function StickyNavbar() {
         as="li"
         variant="small"
         color="blue-gray"
-        className="p-1 font-normal"
+        className="p-1 font-normal hover:translate-y-[-5px] transition-transform ease-in"
       >
         <HashLink
           to="/alumini"
-          className="flex flex-row items-center logtype lg:flex-col "
+          className="flex flex-row items-center lg:flex-col "
           style={{ ":hover": { cursor: "pointer" } }}
         >
           <img src={img5} alt="alumni" height={30} width={30} />
@@ -158,11 +158,11 @@ export default function StickyNavbar() {
         as="li"
         variant="small"
         color="blue-gray"
-        className="p-1 font-normal"
+        className="p-1 font-normal hover:translate-y-[-5px] transition-transform ease-in"
       >
         <HashLink
           to="/"
-          className="flex flex-row items-center logtype lg:flex-col "
+          className="flex flex-row items-center lg:flex-col "
           style={{ ":hover": { cursor: "pointer" } }}
         >
           <img src={homeimg} alt="alumni" height={30} width={30} />
@@ -175,11 +175,11 @@ export default function StickyNavbar() {
         as="li"
         variant="small"
         color="blue-gray"
-        className="p-1 font-normal"
+        className="p-1 font-normal hover:translate-y-[-5px] transition-transform ease-in"
       >
         <HashLink
           to={`${role}/portal`}
-          className="flex flex-row items-center logtype lg:flex-col "
+          className="flex flex-row items-center lg:flex-col "
           style={{ ":hover": { cursor: "pointer" } }}
         >
           <img src={portalimg} alt="alumni" height={30} width={30} />
@@ -198,7 +198,7 @@ export default function StickyNavbar() {
             style={{ ":hover": { cursor: "pointer" } }}
           >
             {/* <img src={img5} alt="alumni" height={30} width={30} /> */}
-            <button onClick={handleLogout} type="button" className="text-white bg-gray-800  focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">Logout</button>
+            <button onClick={handleLogout} type="button" className="md:mt-[10px] text-white bg-gray-800  focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">Logout</button>
             {/* <button onClick={handleLogout} className="lg:ml-0 ml-4">Logout</button> */}
           </HashLink>
         </Typography>
