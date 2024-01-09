@@ -154,8 +154,40 @@ const Placement = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          
-                          <a href={`data:application/pdf;base64,${appointmentLetter}`} target={"blank"} className="font-bold text-blue-600">view</a>
+                          <a
+                            href="#"
+                            className="font-bold text-blue-600 hover:underline"
+                            rel="noopener noreferrer"
+                            onClick={(e) => {
+                              e.preventDefault();
+
+                              // Convert base64 to a Blob
+                              const byteCharacters = atob(appointmentLetter);
+                              const byteNumbers = new Array(
+                                byteCharacters.length
+                              );
+                              for (let i = 0; i < byteCharacters.length; i++) {
+                                byteNumbers[i] = byteCharacters.charCodeAt(i);
+                              }
+                              const byteArray = new Uint8Array(byteNumbers);
+                              const blob = new Blob([byteArray], {
+                                type: "application/pdf",
+                              });
+
+                              // Create an object URL for the Blob
+                              const objectURL = URL.createObjectURL(blob);
+
+                              // Open the PDF in a new tab
+                              const newTab = window.open(objectURL, "_blank");
+
+                              // Release the object URL when the tab is closed
+                              newTab.addEventListener("beforeunload", () => {
+                                URL.revokeObjectURL(objectURL);
+                              });
+                            }}
+                          >
+                            view
+                          </a>
                         </Typography>
                       </td>
                       <td className={classes}>
