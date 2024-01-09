@@ -61,7 +61,15 @@ const Placement = ({ setBlurActive }) => {
       console.error(error);
     }
   };
-
+  const handleOpenPdf = (pdfSrc) => {
+    return () => {
+      if (pdfSrc) {
+        const blob = base64ToBlob(pdfSrc, "application/pdf");
+        const blobUrl = URL.createObjectURL(blob);
+        window.open(blobUrl, "_blank");
+      }
+    };
+  };
   
   return (
     <div>
@@ -164,40 +172,12 @@ const Placement = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          <a
-                            href="#"
-                            className="font-bold text-blue-600 hover:underline"
-                            rel="noopener noreferrer"
-                            onClick={(e) => {
-                              e.preventDefault();
-
-                              // Convert base64 to a Blob
-                              const byteCharacters = atob(appointmentLetter);
-                              const byteNumbers = new Array(
-                                byteCharacters.length
-                              );
-                              for (let i = 0; i < byteCharacters.length; i++) {
-                                byteNumbers[i] = byteCharacters.charCodeAt(i);
-                              }
-                              const byteArray = new Uint8Array(byteNumbers);
-                              const blob = new Blob([byteArray], {
-                                type: "application/pdf",
-                              });
-
-                              // Create an object URL for the Blob
-                              const objectURL = URL.createObjectURL(blob);
-
-                              // Open the PDF in a new tab
-                              const newTab = window.open(objectURL, "_blank");
-
-                              // Release the object URL when the tab is closed
-                              newTab.addEventListener("beforeunload", () => {
-                                URL.revokeObjectURL(objectURL);
-                              });
-                            }}
+                          <button
+                            onClick={handleOpenPdf(appointmentLetter)}
+                            className=" text-blue-600 font-bold"
                           >
-                            view
-                          </a>
+                            View
+                          </button>
                         </Typography>
                       </td>
                       <td className={classes}>
