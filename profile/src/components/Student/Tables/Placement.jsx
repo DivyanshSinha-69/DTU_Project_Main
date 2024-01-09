@@ -11,7 +11,13 @@ import { deletePlacement } from "../../../redux/reducers/UserPlacementDetail.jsx
 const Placement = ({ setBlurActive }) => {
   const Placement = useSelector((state) => state.placement);
   const dispatch = useDispatch();
-  const TABLE_HEAD = ["Placement Type", "Company Name", "Joining Date", "Appointment Letter", ""];
+  const TABLE_HEAD = [
+    "Placement Type",
+    "Company Name",
+    "Joining Date",
+    "Appointment Letter",
+    "",
+  ];
   const TABLE_ROWS = Placement.Placement || [];
 
   const [isPopupOpen, setPopupOpen] = useState(false);
@@ -49,22 +55,28 @@ const Placement = ({ setBlurActive }) => {
         }
       );
 
-  
       alert(response.data.message);
       dispatch(deletePlacement({ ID }));
     } catch (error) {
-   
       console.error(error);
     }
+  };
+
+  const handleOpenPdf = (pdfSrc) => {
+    return () => {
+      if (pdfSrc) {
+        const blob = base64ToBlob(pdfSrc, "application/pdf");
+        const blobUrl = URL.createObjectURL(blob);
+        window.open(blobUrl, "_blank");
+      }
+    };
   };
 
   return (
     <div>
       <div className="h-auto p-10 ">
         <div className="flex flex-row justify-between pr-5 pl-5">
-          <p className="p-3 text-2xl font1 border-top my-auto">
-            Placements
-          </p>
+          <p className="p-3 text-2xl font1 border-top my-auto">Placements</p>
           <button
             onClick={openPopup}
             className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full hover:invert hover:scale-[130%] transition-transform ease-in"
@@ -80,7 +92,7 @@ const Placement = ({ setBlurActive }) => {
           >
             {(close) => (
               <div className="h-[550px]  w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.8] rounded-[12%] top-10 fixed inset-10 md:inset-20 flex items-center justify-center">
-                <AddPlacementsPopup closeModal={close} name={"ADD"}/>
+                <AddPlacementsPopup closeModal={close} name={"ADD"} />
               </div>
             )}
           </Popup>
@@ -111,8 +123,15 @@ const Placement = ({ setBlurActive }) => {
             <tbody>
               {TABLE_ROWS.map(
                 (
-                  { ID, RollNo, companyName, placementType, joiningDate, appointmentLetter},
-                  index 
+                  {
+                    ID,
+                    RollNo,
+                    companyName,
+                    placementType,
+                    joiningDate,
+                    appointmentLetter,
+                  },
+                  index
                 ) => {
                   const isLast = index === TABLE_ROWS.length - 1;
                   const classes = isLast
@@ -216,7 +235,23 @@ const Placement = ({ setBlurActive }) => {
   );
 };
 
-
-
-
 export default Placement;
+
+const base64ToBlob = (base64String, contentType) => {
+  const byteCharacters = atob(base64String);
+  const byteArrays = [];
+
+  for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+    const slice = byteCharacters.slice(offset, offset + 512);
+    const byteNumbers = new Array(slice.length);
+
+    for (let i = 0; i < slice.length; i++) {
+      byteNumbers[i] = slice.charCodeAt(i);
+    }
+
+    const byteArray = new Uint8Array(byteNumbers);
+    byteArrays.push(byteArray);
+  }
+
+  return new Blob(byteArrays, { type: contentType });
+};
