@@ -17,7 +17,11 @@ import {
   getMtechEducationDetails,
   updateMtechEducationDetails,
   uploadScoreCard,
-  getScoreCard
+  getScoreCard,
+  getEntrepreneurDetails,
+  updateEntrepreneurDetails,
+  uploadCompanyRegCert,
+  getCompanyRegCert
 } from "../controllers/student.js";
 // import { isAuthenticated } from "../middlewares/auth.js";
 
@@ -45,6 +49,12 @@ router.put("/updatemtecheducationdetails",updateMtechEducationDetails);
 
 router.post("/uploadscorecard",uploadScoreCard);
 router.post("/getscorecard",getScoreCard);
+
+router.post("/getentrepreneurdetails",getEntrepreneurDetails);
+router.put("/updateentrepreneurdetails",updateEntrepreneurDetails);
+
+router.post("/uploadcompanyregcert",uploadCompanyRegCert);
+router.post("/getcompanyregcert",getCompanyRegCert);
 
 // router.get("/me", isAuthenticated, getMyProfile);
 

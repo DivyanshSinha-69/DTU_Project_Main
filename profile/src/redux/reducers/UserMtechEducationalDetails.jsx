@@ -12,19 +12,7 @@ export const UserMtechEducationalDetails = createSlice({
     setMtechEducation: (state, action) => {
       state.MtechEducation = action.payload;
     },
-   
-    // addPlacement: (state, action) => {
-    //   const newPlacement = [...state.Placement, action.payload];
-    //   state.Placement = newPlacement;
-    // },
-    // deletePlacement: (state, action) => {
-    //   const updatedPlacement = state.Placement.filter((placement) => {
-    //     return placement.ID !== action.payload.ID;
-    //   });
-
-    //   state.Placement = updatedPlacement;
-    // },
-    
+  
     removeMtechEducation: (state, action) => {
       state.MtechEducation = [];
     },

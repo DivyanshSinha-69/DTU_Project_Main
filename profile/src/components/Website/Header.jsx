@@ -27,6 +27,8 @@ import { removeProfessionalSkills } from "../../redux/reducers/UserProfessionalS
 import { removePersonalDetails } from "../../redux/reducers/UserPersonalDetails";
 import {removeUserImage} from "../../redux/reducers/UserImage";
 import { removePlacement } from "../../redux/reducers/UserPlacementDetail";
+import { removeMtechEducation } from "../../redux/reducers/UserMtechEducationalDetails";
+import { removeEntrepreneurDetails } from "../../redux/reducers/UserEntrepreneurDetails";
 
 
 export default function StickyNavbar() {
@@ -62,6 +64,8 @@ export default function StickyNavbar() {
       dispatch(removePersonalDetails());
       dispatch(removeUserImage());
       dispatch(removePlacement());
+      dispatch(removeMtechEducation());
+      dispatch(removeEntrepreneurDetails());
       // dispatch(setRole("null"));
       navigate("/");
     } catch (error) {

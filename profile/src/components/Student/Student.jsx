@@ -15,6 +15,7 @@ import { setPlacement } from "../../redux/reducers/UserPlacementDetail";
 import MtechEducationDetails from "./Tables/MtechEducationDetails";
 import { Option, Select } from "@material-tailwind/react";
 import { setMtechEducation } from "../../redux/reducers/UserMtechEducationalDetails";
+import { setEntrepreneurDetails } from "../../redux/reducers/UserEntrepreneurDetails";
 // import Placement from "./studentportaltables/Placement";
 
 const Student = () => {
@@ -74,6 +75,17 @@ const Student = () => {
             console.error(error);
           }
         }
+
+        const entrepreneurDetails=await axios.post(
+          "http://localhost:3001/ece/student/getentrepreneurdetails",
+          {
+            rollno:RollNo,
+          },{
+            withCredentials:true,
+          }
+          
+        )
+        dispatch(setEntrepreneurDetails(entrepreneurDetails.data.user));
 
         const placementresponse = await axios.post(
           "http://localhost:3001/ece/student/placement",
@@ -157,25 +169,6 @@ const Student = () => {
 
       {Course === "Mtech" && (
         <>
-          {/* <div className="w-96">
-            <label
-              htmlFor="admissionMethod"
-              className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-700"
-            >
-              Admitted Through : 
-            </label>
-            <select
-              id="admissionMethod"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-            >
-              <option value="" disabled selected>
-                Select an option
-              </option>
-              <option value="GATE">GATE</option>
-              <option value="NoGATE">No GATE</option>
-            </select>
-          </div> */}
-
           <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
             <MtechEducationDetails setBlurActive={setBlurActive} />
           </div>
