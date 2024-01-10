@@ -370,3 +370,124 @@ export const getPdf = (req, res) => {
     }
   });
 };
+
+export const getMtechEducationDetails = (req,res) => {
+  const { rollno } = req.body;
+  const sql = "SELECT * FROM mtechEducationalDetails where RollNo = ?";
+  connectDB.query(sql, [rollno], (err, results) => {
+    if (err) {
+      console.error("Error executing fetch query:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+
+    // Check if the user with the given credentials exists
+    if (results.length > 0) {
+      res.status(200).json({
+        user: results,
+        success: true,
+      });
+    } else {
+      res.status(401).json({ error: "No data Exist" });
+      return;
+    }
+  });
+
+};
+
+export const updateMtechEducationDetails = (req,res) => {
+  const { admittedThrough, gateRollNo, gateAir, gateMarks, RollNo } = req.body;
+  let sql;
+  if(admittedThrough==='GATE'){
+    sql =
+    "UPDATE mtechEducationalDetails SET admittedThrough = ?, gateRollNo = ?, gateAir = ?, gateMarks = ? WHERE RollNo = ?";
+  }
+  else{
+    sql =
+    "UPDATE mtechEducationalDetails SET admittedThrough = ?, gateRollNo = ?, gateAir = ?, gateMarks = ?, gateScoreCard = null WHERE RollNo = ?";
+  }
+
+
+  connectDB.query(
+    sql,
+    [admittedThrough,gateRollNo,gateAir,gateMarks,RollNo],
+    (err, result) => {
+      if (err) {
+        console.error("Error executing update query:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+        return;
+      }
+
+      // Check if any row is affected (indicating a successful update)
+      if (result.affectedRows > 0) {
+        res.status(201).json({
+          success: true,
+          message: "Record updated successfully",
+        });
+      } else {
+        res.status(404).json({ error: "Record not found" });
+      }
+    }
+  );
+};
+
+export const uploadScoreCard=(req,res)=>{
+  upload.single('pdf')(req, res, async (err) => {
+    if (err) {
+      console.error('Error uploading PDF: ' + err.stack);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+
+    // Access the uploaded file information
+    // console.log(req.body);
+    const { buffer } = req.file;
+    const { rollNo } = req.body;
+    // Convert the PDF buffer to base64 for storing in the database
+    const base64PDF = buffer.toString('base64');
+
+    // Save PDF information to the database
+    const query = 'UPDATE mtechEducationalDetails SET gateScoreCard= ? WHERE RollNo =  ?';
+
+    connectDB.query(query, [base64PDF, rollNo], (dbErr, result) => {
+      if (dbErr) {
+        console.error('Error inserting into database: ' + dbErr.stack);
+        res.status(500).send('Internal Server Error');
+      } else {
+        // console.log('PDF uploaded and saved to database'); 
+        res.status(200).send('PDF uploaded and saved to database');
+      }
+    });
+  });
+}
+
+export const getScoreCard=(req,res)=>{
+  const { id } = req.body;
+  
+  // Retrieve PDF data from the database based on the provided 'id'
+  const query = 'SELECT gateScoreCard FROM mtechEducationalDetails WHERE RollNO = ?';
+  connectDB.query(query, [id], (err, result) => {
+    if (err) {
+      console.error('Error querying database: ' + err.stack);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+
+    if (result.length > 0) {
+      const { gateScoreCard } = result[0];
+
+      // Convert the base64-encoded PDF data back to a Buffer
+      if ( gateScoreCard) {
+        const pdfBuffer = Buffer.from(gateScoreCard, 'base64');
+
+        // Set the appropriate headers for the PDF response
+        res.setHeader('Content-Type', 'application/pdf');
+        // res.setHeader('Content-Disposition', `inline; filename=${originalname}`);
+        // Send the PDF data as the response
+        res.end(pdfBuffer);
+      }
+    } else {
+      res.status(404).send('PDF not found');
+    }
+  });
+}

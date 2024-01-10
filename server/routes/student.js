@@ -14,6 +14,10 @@ import {
   addPlacement,
   getPdf,
   uploadPdf,
+  getMtechEducationDetails,
+  updateMtechEducationDetails,
+  uploadScoreCard,
+  getScoreCard
 } from "../controllers/student.js";
 // import { isAuthenticated } from "../middlewares/auth.js";
 
@@ -35,6 +39,12 @@ router.post("/addplacement", addPlacement);
 
 router.post("/getpdf",getPdf);
 router.post("/uploadpdf",uploadPdf);
+
+router.post("/getmtecheducationdetails",getMtechEducationDetails);
+router.put("/updatemtecheducationdetails",updateMtechEducationDetails);
+
+router.post("/uploadscorecard",uploadScoreCard);
+router.post("/getscorecard",getScoreCard);
 
 // router.get("/me", isAuthenticated, getMyProfile);
 

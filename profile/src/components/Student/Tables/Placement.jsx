@@ -174,7 +174,7 @@ const Placement = ({ setBlurActive }) => {
                         >
                           <button
                             onClick={handleOpenPdf(appointmentLetter)}
-                            className=" text-blue-600 font-bold"
+                            className=" text-blue-600 font-bold hover:underline ml-[20px] md:ml-[40px]"
                           >
                             View
                           </button>
@@ -184,7 +184,7 @@ const Placement = ({ setBlurActive }) => {
                         <Typography
                           variant="small"
                           color="blue-gray"
-                          className="font-medium text-blue-600 flex flex-row justify-center"
+                          className="font-medium text-blue-600 flex flex-row"
                         >
                           <button
                             className="ml-6 text-red-600 h-5 w-6 flex flex-col justify-center items-center hover:scale-[130%] transition-transform ease-in"
