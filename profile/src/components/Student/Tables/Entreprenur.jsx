@@ -10,7 +10,7 @@ import linkImg from "../../../assets/hyperlink.svg"
 import EntrepreneurDetails from "../PopupWindow/EntrepreneurPopup";
 import EntrepreneurPopup from "../PopupWindow/EntrepreneurPopup";
 
-const Enterprenur = ({  setBlurActive }) => {
+const Entreprenur = ({  setBlurActive }) => {
 
   const entrepreneurDetails = useSelector(state=>state.entrepreneurDetails);
   // console.log(PersonalDetails);
@@ -25,7 +25,7 @@ const Enterprenur = ({  setBlurActive }) => {
     setBlurActive(false); // Deactivate blur when closing the popup
   };
 
-  const TABLE_HEAD = ["Company Name","CIN number", "Website/Linkedin", "Registration Certificate"];
+  const TABLE_HEAD = ["Company Name","CIN number", "Company Website/Linkedin", "Registration Certificate"];
   const TABLE_ROWS = entrepreneurDetails.EntrepreneurDetails||[];
 
 
@@ -129,7 +129,7 @@ const Enterprenur = ({  setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          <a href={companyLink} target="blank" className="hover:underline"><img className="h-5 w-10 hover:invert hover:scale-125 transition-transform ease-in " src={linkImg} alt="link"></img></a>
+                          <a href={companyLink} target="blank" className="hover:underline"><img className=" ml-[70px] h-5 w-10 hover:invert hover:scale-125 transition-transform ease-in " src={linkImg} alt="link"></img></a>
                         </Typography>
                       </td>
                    
@@ -141,7 +141,7 @@ const Enterprenur = ({  setBlurActive }) => {
                             >
                               <button
                                 onClick={handleOpenPdf(companyRegCertificate)}
-                                className=" text-blue-600 font-bold hover:underline ml-[15px] md:ml-[40px]"
+                                className=" text-blue-600 font-bold hover:underline ml-[15px] md:ml-[60px]"
                               >
                                 View
                               </button>
@@ -160,7 +160,7 @@ const Enterprenur = ({  setBlurActive }) => {
   );
 };
 
-export default Enterprenur;
+export default Entreprenur;
 
 
 const base64ToBlob = (base64String, contentType) => {
