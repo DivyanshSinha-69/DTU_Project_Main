@@ -61,7 +61,6 @@ const Placement = ({ setBlurActive }) => {
       console.error(error);
     }
   };
-
   const handleOpenPdf = (pdfSrc) => {
     return () => {
       if (pdfSrc) {
@@ -71,7 +70,7 @@ const Placement = ({ setBlurActive }) => {
       }
     };
   };
-
+  
   return (
     <div>
       <div className="h-auto p-10 ">
@@ -179,7 +178,6 @@ const Placement = ({ setBlurActive }) => {
                           >
                             View
                           </button>
-                          {/* <a href={`data:application/pdf;base64,${appointmentLetter}`} target={"blank"} className="font-bold text-blue-600">view</a> */}
                         </Typography>
                       </td>
                       <td className={classes}>
