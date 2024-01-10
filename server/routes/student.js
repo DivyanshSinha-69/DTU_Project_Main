@@ -3,7 +3,7 @@ import {
   addProfessionalSkills,
   deleteProfessionalSkills,
   getPersonalDetails,
-  getProfessionalSKills,
+  getProfessionalSkills,
   getall,
   updateProfessionalSkills,
   updatePersonalDetails,
@@ -13,14 +13,14 @@ import {
   deletePlacement,
   addPlacement,
   getPdf,
-  uploadPdf
+  uploadPdf,
 } from "../controllers/student.js";
 // import { isAuthenticated } from "../middlewares/auth.js";
 
 const router = express.Router();
 
 router.get("/getall", getall);
-router.post("/profskills", getProfessionalSKills);
+router.post("/profskills", getProfessionalSkills);
 router.put("/updateprofessionalskills", updateProfessionalSkills);
 router.delete("/deleteprofessionalskills", deleteProfessionalSkills);
 router.post("/addprofessionalskills", addProfessionalSkills);
