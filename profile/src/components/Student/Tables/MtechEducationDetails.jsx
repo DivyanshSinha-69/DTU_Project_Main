@@ -60,7 +60,7 @@ const MtechEducationDetails = ({  setBlurActive }) => {
               gateAir={TABLE_ROWS.length > 0 ? TABLE_ROWS[0].gateAir : ""}
               gateMarks={TABLE_ROWS.length > 0 ? TABLE_ROWS[0].gateMarks : ""}
               closeModal={closePopup} 
-              name={"ADD"} />
+              name={"UPDATE"} />
             </div>
           </Popup>
         </div>

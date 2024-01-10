@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import studImg from "../../assets/studImg.png";
 import PersonalDetails from "./Tables/PersonalDetails";
-import Enterprenur from "./Tables/Enterprenur";
+import Entreprenur from "./Tables/Entreprenur";
 import Placement from "./Tables/Placement";
 import "../../styles/popup.css";
 import { setPersonalDetails } from "../../redux/reducers/UserPersonalDetails";
@@ -184,7 +184,7 @@ const Student = () => {
       </div>
 
       <div className={`pt-10  ${isBlurActive ? "blur-effect" : ""}`}>
-        <Enterprenur setBlurActive={setBlurActive} />
+        <Entreprenur setBlurActive={setBlurActive} />
       </div>
     </div>
   );

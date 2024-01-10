@@ -54,7 +54,7 @@ export default function EntrepreneurPopup(props) {
         companyName: formData.companyName,
         cinNumber: formData.cinNumber,
         companyLink: formData.companyLink,
-        companyRegCert: pdfSrc,
+        companyRegCertificate: pdfSrc,
         RollNo: RollNo,
       };
 
