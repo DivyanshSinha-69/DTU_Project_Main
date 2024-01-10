@@ -259,7 +259,7 @@ export const addPlacement = (req, res) => {
   const { companyName, placementType, joiningDate, roll ,ID } = req.body;
   
   const sql ='UPDATE placementData SET companyName = ?, placementType = ?, joiningDate = ?, RollNo = ? WHERE ID = ?';
-  console.log(ID);
+  // console.log(ID);
 
   connectDB.query(
     sql,
@@ -332,7 +332,7 @@ export const uploadPdf = (req, res) => {
         console.error('Error inserting into database: ' + dbErr.stack);
         res.status(500).send('Internal Server Error');
       } else {
-        console.log('PDF uploaded and saved to database'); 
+        // console.log('PDF uploaded and saved to database'); 
         res.status(200).send('PDF uploaded and saved to database');
       }
     });
