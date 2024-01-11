@@ -2,9 +2,6 @@ import axios from "axios";
 import React, { useState } from "react";
 import { Card, Input, Button, Typography } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
-import MtechScoreCardPdf from "./MtechScoreCardPdf";
-import { setMtechEducation } from "../../../redux/reducers/UserMtechEducationalDetails";
-import { setEntrepreneurDetails } from "../../../redux/reducers/UserEntrepreneurDetails";
 import OfferLetterPdf from "./OfferLetterPdf";
 import { setHigherEducationDetails } from "../../../redux/reducers/UserHigherEducationDetails";
 

@@ -2,9 +2,9 @@
 
 // Install axios if not already installed: npm install axios
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import axios from "axios";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { Input } from "@material-tailwind/react";
 
 const CompanyRegCertPdf = ({ setPdfSrc }) => {

@@ -13,7 +13,6 @@ import { setPersonalDetails } from "../../redux/reducers/UserPersonalDetails";
 import Test from "./ImageUpload";
 import { setPlacement } from "../../redux/reducers/UserPlacementDetail";
 import MtechEducationDetails from "./Tables/MtechEducationDetails";
-import { Option, Select } from "@material-tailwind/react";
 import { setMtechEducation } from "../../redux/reducers/UserMtechEducationalDetails";
 import { setEntrepreneurDetails } from "../../redux/reducers/UserEntrepreneurDetails";
 import HigherEducation from "./Tables/HigherEducation";
