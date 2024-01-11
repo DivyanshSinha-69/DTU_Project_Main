@@ -641,7 +641,7 @@ export const getHigherEducationDetails=(req,res)=>{
 export const updateHigherEducationDetails=(req,res)=>{
   const { examName,instituteName, RollNo } = req.body;
   let sql =
-    "UPDATE higherEducationDetails SET examName = ?, instituteName = ?,   WHERE RollNo = ?";
+    "UPDATE higherEducationDetails SET examName = ?, instituteName = ? WHERE RollNo = ?";
 
   connectDB.query(
     sql,

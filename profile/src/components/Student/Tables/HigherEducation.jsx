@@ -64,7 +64,7 @@ const HigherEducation = ({ setBlurActive }) => {
             className="mx-auto my-auto p-2"
             closeOnDocumentClick
           >
-            <div className="h-[575px] w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.8] rounded-[12%] top-10 fixed inset-5 md:inset-20 flex items-center justify-center">
+            <div className="h-[500px] w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.8] rounded-[12%] top-10 fixed inset-5 md:inset-20 flex items-center justify-center">
               <HigherEducationPopup
                 examName={TABLE_ROWS.length > 0 ? TABLE_ROWS[0].examName : ""}
                 instituteName={
@@ -136,7 +136,7 @@ const HigherEducation = ({ setBlurActive }) => {
                           >
                             <button
                               onClick={handleOpenPdf(offerLetter)}
-                              className=" text-blue-600 font-bold hover:underline ml-[15px] md:ml-[60px]"
+                              className=" text-blue-600 font-bold hover:underline md:ml-[20px]"
                             >
                               View
                             </button>
