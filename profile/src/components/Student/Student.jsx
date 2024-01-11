@@ -8,6 +8,7 @@ import studImg from "../../assets/studImg.png";
 import PersonalDetails from "./Tables/PersonalDetails";
 import Entreprenur from "./Tables/Entreprenur";
 import Placement from "./Tables/Placement";
+import Publication from "./Tables/Publication"
 import "../../styles/popup.css";
 import { setPersonalDetails } from "../../redux/reducers/UserPersonalDetails";
 import Test from "./ImageUpload";
@@ -17,6 +18,7 @@ import { setMtechEducation } from "../../redux/reducers/UserMtechEducationalDeta
 import { setEntrepreneurDetails } from "../../redux/reducers/UserEntrepreneurDetails";
 import HigherEducation from "./Tables/HigherEducation";
 import { setHigherEducationDetails } from "../../redux/reducers/UserHigherEducationDetails";
+import { setPublicationDetails } from "../../redux/reducers/UserPublicationDetails"
 // import Placement from "./studentportaltables/Placement";
 
 const Student = () => {
@@ -97,6 +99,14 @@ const Student = () => {
         )
         dispatch(setHigherEducationDetails(higherEducationDetails.data.user))
 
+        const publicationDetails = await axios.post(
+        "http://localhost:3001/ece/student/publication",{
+          rollno:RollNo,
+        },{
+          withCredentials:true,
+        }
+        )
+        dispatch(setPublicationDetails(publicationDetails.data.user))
 
         const placementresponse = await axios.post(
           "http://localhost:3001/ece/student/placement",
@@ -116,40 +126,11 @@ const Student = () => {
     fetchData();
   }, []);
 
-  const refresh = async () => {
-    try {
-      const response = await axios.post(
-        "http://localhost:3001/ece/student/profskills",
-        {
-          rollno: RollNo,
-          email: "arpangoyal@gmail.com",
-        },
-        {
-          withCredentials: true,
-        }
-      );
-
-      // Now you can access the data, for example:
-      dispatch(setProfessionalSkills(response.data.user));
-      // console.log(ProfessionalSkills.ProfessionalSkills);
-    } catch (error) {
-      // Handle the error
-      console.error("Error fetching data:", error);
-    }
-  };
 
   return (
-    <div className="bg-[#FAFAFA]">
-      <button
-        type="button"
-        onClick={refresh}
-        className="py-2.5 px-5 mt-4 me-2 mb-2 text-sm font-medium text-white focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
-      >
-        Refresh
-      </button>
-
+    <div className="bg-[#FAFAFA] pt-10">
       <div
-        className={`h-auto w-full mt-10 ${isBlurActive ? "blur-effect" : ""}`}
+        className={`h-auto w-full ${isBlurActive ? "blur-effect" : ""}`}
       >
         <div className="h-[30%] w-[70%] flex flex-wrap justify-around mx-auto">
           <div className="h-100% flex flex-col justify-center items-center m-2">
@@ -191,16 +172,21 @@ const Student = () => {
       </div>
 
       <div className={`pt-10  ${isBlurActive ? "blur-effect" : ""}`}>
-        <Placement setBlurActive={setBlurActive} />
+        <Publication setBlurActive={setBlurActive} />
       </div>
 
       <div className={`pt-10  ${isBlurActive ? "blur-effect" : ""}`}>
-        <Entreprenur setBlurActive={setBlurActive} />
+        <Placement setBlurActive={setBlurActive} />
       </div>
 
       <div className={`pt-10  ${isBlurActive ? "blur-effect" : ""}`}>
         <HigherEducation setBlurActive={setBlurActive} />
       </div>
+      
+      <div className={`pt-10  ${isBlurActive ? "blur-effect" : ""}`}>
+        <Entreprenur setBlurActive={setBlurActive} />
+      </div>
+
     </div>
   );
 };

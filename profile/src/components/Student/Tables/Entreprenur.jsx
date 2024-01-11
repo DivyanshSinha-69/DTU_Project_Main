@@ -129,7 +129,7 @@ const Entreprenur = ({  setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          <a href={companyLink} target="blank" className="hover:underline"><img className=" ml-[70px] h-5 w-10 hover:invert hover:scale-125 transition-transform ease-in " src={linkImg} alt="link"></img></a>
+                          <a href={companyLink} target="blank" className="hover:underline"><img className="ml-[20px] md:ml-[70px] h-5 w-10 hover:invert hover:scale-125 transition-transform ease-in " src={linkImg} alt="link"></img></a>
                         </Typography>
                       </td>
                    

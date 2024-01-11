@@ -25,7 +25,12 @@ import {
   getHigherEducationDetails,
   updateHigherEducationDetails,
   uploadofferletter,
-  getOfferLetter
+  getOfferLetter,
+  uploadManuscript,
+  getManuscript,
+  addPublication,
+  deletePublication,
+  getPublication
 } from "../controllers/student.js";
 // import { isAuthenticated } from "../middlewares/auth.js";
 
@@ -66,6 +71,12 @@ router.put("/updatehighereducationdetails", updateHigherEducationDetails)
 router.post("/uploadofferletter",uploadofferletter);
 router.post("/getofferletter",getOfferLetter);
 
+router.post("/publication", getPublication);
+router.delete("/deletepublication", deletePublication);
+router.post("/addpublication", addPublication);
+
+router.post("/uploadmanuscript",uploadManuscript);
+router.post("/getmanuscript",getManuscript);
 // router.get("/me", isAuthenticated, getMyProfile);
 
 export default router;
