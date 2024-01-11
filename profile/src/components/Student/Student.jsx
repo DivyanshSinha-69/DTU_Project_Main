@@ -16,6 +16,8 @@ import MtechEducationDetails from "./Tables/MtechEducationDetails";
 import { Option, Select } from "@material-tailwind/react";
 import { setMtechEducation } from "../../redux/reducers/UserMtechEducationalDetails";
 import { setEntrepreneurDetails } from "../../redux/reducers/UserEntrepreneurDetails";
+import HigherEducation from "./Tables/HigherEducation";
+import { setHigherEducationDetails } from "../../redux/reducers/UserHigherEducationDetails";
 // import Placement from "./studentportaltables/Placement";
 
 const Student = () => {
@@ -86,6 +88,16 @@ const Student = () => {
           
         )
         dispatch(setEntrepreneurDetails(entrepreneurDetails.data.user));
+
+        const higherEducationDetails = await axios.post(
+        "http://localhost:3001/ece/student/gethighereducationdetails",{
+          rollno:RollNo,
+        },{
+          withCredentials:true,
+        }
+        )
+        dispatch(setHigherEducationDetails(higherEducationDetails.data.user))
+
 
         const placementresponse = await axios.post(
           "http://localhost:3001/ece/student/placement",
@@ -185,6 +197,10 @@ const Student = () => {
 
       <div className={`pt-10  ${isBlurActive ? "blur-effect" : ""}`}>
         <Entreprenur setBlurActive={setBlurActive} />
+      </div>
+
+      <div className={`pt-10  ${isBlurActive ? "blur-effect" : ""}`}>
+        <HigherEducation setBlurActive={setBlurActive} />
       </div>
     </div>
   );

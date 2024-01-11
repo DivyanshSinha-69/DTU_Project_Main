@@ -618,3 +618,130 @@ export const uploadCompanyRegCert = (req, res) => {
 };
 
 
+
+export const getHigherEducationDetails=(req,res)=>{
+  const { rollno } = req.body;
+  const sql = "SELECT * FROM higherEducationDetails WHERE RollNo = ?";
+  connectDB.query(sql, [rollno], (err, results) => {
+    if (err) {
+      console.error("Error executing fetch query:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+    // Always return an array, even if it's empty
+    const user = results || [];
+
+    res.status(200).json({
+      user,
+      success: true,
+    });
+  });
+}
+
+export const updateHigherEducationDetails=(req,res)=>{
+  const { examName,instituteName, RollNo } = req.body;
+  let sql =
+    "UPDATE higherEducationDetails SET examName = ?, instituteName = ?,   WHERE RollNo = ?";
+
+  connectDB.query(
+    sql,
+    [examName,instituteName,RollNo],
+    (err, result) => {
+      if (err) {
+        console.error("Error executing update query:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+        return;
+      }
+
+      // Check if any row is affected (indicating a successful update)
+      if (result.affectedRows > 0) {
+        res.status(201).json({
+          success: true,
+          message: "Record updated successfully",
+        });
+      } else {
+        res.status(404).json({ error: "Record not found" });
+      }
+    }
+  );
+}
+
+export const getOfferLetter=(req,res)=>{
+
+  const { id } = req.body;
+  
+  // Retrieve PDF data from the database based on the provided 'id'
+  const query = 'SELECT offerLetter FROM higherEducationDetails WHERE RollNO = ?';
+  connectDB.query(query, [id], (err, result) => {
+    if (err) {
+      console.error('Error querying database: ' + err.stack);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+
+    if (result.length > 0) {
+      const { offerLetter} = result[0];
+
+      // Convert the base64-encoded PDF data back to a Buffer
+      if ( offerLetter) {
+        const pdfBuffer = Buffer.from(offerLetter, 'base64');
+
+        // Set the appropriate headers for the PDF response
+        res.setHeader('Content-Type', 'application/pdf');
+        // res.setHeader('Content-Disposition', `inline; filename=${originalname}`);
+        // Send the PDF data as the response
+        res.end(pdfBuffer);
+      }
+    } else {
+      res.status(404).send('PDF not found');
+    }
+  });
+
+}
+export const uploadofferletter=(req,res)=>{
+  upload.single('pdf')(req, res, async (err) => {
+    if (err) {
+      console.error('Error uploading PDF: ' + err.stack);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+
+    const { buffer } = req.file;
+    const { rollNo } = req.body;
+    const base64PDF = buffer.toString('base64');
+
+    // Check if RollNo exists
+    const checkQuery = 'SELECT * FROM higherEducationDetails WHERE RollNo = ?';
+
+    connectDB.query(checkQuery, [rollNo], (checkErr, checkResult) => {
+      if (checkErr) {
+        console.error('Error checking RollNo existence: ' + checkErr.stack);
+        res.status(500).send('Internal Server Error');
+      } else {
+        if (checkResult.length === 0) {
+          // RollNo does not exist, insert
+          const insertQuery = 'INSERT INTO higherEducationDetails (RollNo, offerLetter) VALUES (?, ?)';
+          connectDB.query(insertQuery, [rollNo, base64PDF], (insertErr, insertResult) => {
+            if (insertErr) {
+              console.error('Error inserting into database: ' + insertErr.stack);
+              res.status(500).send('Internal Server Error');
+            } else {
+              res.status(200).send('PDF uploaded and saved to database');
+            }
+          });
+        } else {
+          // RollNo exists, update
+          const updateQuery = 'UPDATE higherEducationDetails SET offerLetter = ? WHERE RollNo = ?';
+          connectDB.query(updateQuery, [base64PDF, rollNo], (updateErr, updateResult) => {
+            if (updateErr) {
+              console.error('Error updating database: ' + updateErr.stack);
+              res.status(500).send('Internal Server Error');
+            } else {
+              res.status(200).send('PDF uploaded and saved to database');
+            }
+          });
+        }
+      }
+    });
+  });
+}

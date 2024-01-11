@@ -7,6 +7,7 @@ import UserImage from "./reducers/UserImage";
 import UserPlacement from "./reducers/UserPlacementDetail";
 import UserMtechEducationalDetails from "./reducers/UserMtechEducationalDetails";
 import UserEntrepreneurDetails from "./reducers/UserEntrepreneurDetails";
+import UserHigherEducationDetails from "./reducers/UserHigherEducationDetails";
 
 export const store=configureStore({
 
@@ -18,7 +19,8 @@ export const store=configureStore({
         personalDetails:UserPersonalDetails,
         placement:UserPlacement,
         mtechEducation:UserMtechEducationalDetails,
-        entrepreneurDetails:UserEntrepreneurDetails
+        entrepreneurDetails:UserEntrepreneurDetails,
+        higherEducationDetails:UserHigherEducationDetails
     },
 });
 

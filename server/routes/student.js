@@ -21,7 +21,11 @@ import {
   getEntrepreneurDetails,
   updateEntrepreneurDetails,
   uploadCompanyRegCert,
-  getCompanyRegCert
+  getCompanyRegCert,
+  getHigherEducationDetails,
+  updateHigherEducationDetails,
+  uploadofferletter,
+  getOfferLetter
 } from "../controllers/student.js";
 // import { isAuthenticated } from "../middlewares/auth.js";
 
@@ -55,6 +59,12 @@ router.put("/updateentrepreneurdetails",updateEntrepreneurDetails);
 
 router.post("/uploadcompanyregcert",uploadCompanyRegCert);
 router.post("/getcompanyregcert",getCompanyRegCert);
+
+router.post("/gethighereducationdetails",getHigherEducationDetails);
+router.put("/updatehighereducationdetails", updateHigherEducationDetails)
+
+router.post("/uploadofferletter",uploadofferletter);
+router.post("/getofferletter",getOfferLetter);
 
 // router.get("/me", isAuthenticated, getMyProfile);
 
