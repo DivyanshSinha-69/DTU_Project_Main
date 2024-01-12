@@ -86,7 +86,7 @@ export default function AddPlacementsPopup(props) {
           </Typography>
           <Input
             size="lg"
-            placeholder="On-campus / Off-campus"
+            placeholder="Enter The Publication"
             value={formData.publishedIn}
             onChange={handleChange}
             name="publishedIn"
@@ -100,7 +100,7 @@ export default function AddPlacementsPopup(props) {
           </Typography>
           <Input
             size="lg"
-            placeholder="Name of the Company"
+            placeholder="Enter the article title"
             value={formData.articleTitle}
             onChange={handleChange}
             name="articleTitle"
@@ -114,7 +114,7 @@ export default function AddPlacementsPopup(props) {
           </Typography>
           <Input
             size="lg"
-            placeholder="YYYY-MM-DD"
+            placeholder="Enter the DOI of the article"
             value={formData.publicationDoi}
             onChange={handleChange}
             name="publicationDoi"
@@ -128,7 +128,7 @@ export default function AddPlacementsPopup(props) {
           </Typography>
           <Input
             size="lg"
-            placeholder="YYYY-MM-DD"
+            placeholder="Enter the article link"
             value={formData.publishedArticleLink}
             onChange={handleChange}
             name="publishedArticleLink"
