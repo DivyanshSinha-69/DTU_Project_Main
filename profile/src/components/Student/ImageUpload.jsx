@@ -5,7 +5,7 @@ import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { setUserImage } from "../../redux/reducers/UserImage";
 import uploadImg from "../../assets/upload.svg";
-const Test = ({ setImgSrc }) => {
+const Test = () => {
 
   const { RollNo } = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
@@ -27,7 +27,6 @@ const Test = ({ setImgSrc }) => {
       .then((response) => {
         // Convert the array buffer to base64
         const base64Image = arrayBufferToBase64(response.data);
-        setImgSrc(`data:image/*;base64,${base64Image}`);
         dispatch(setUserImage(`data:image/*;base64,${base64Image}`));
       })
       .catch((error) => {
@@ -87,7 +86,6 @@ const Test = ({ setImgSrc }) => {
         .then((response) => {
           // Convert the array buffer to base64
           const base64Image = arrayBufferToBase64(response.data);
-          setImgSrc(`data:image/*;base64,${base64Image}`);
           dispatch(setUserImage(`data:image/*;base64,${base64Image}`));
         })
         .catch((error) => {

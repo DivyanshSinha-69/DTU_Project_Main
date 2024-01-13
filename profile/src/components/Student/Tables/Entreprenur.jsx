@@ -1,13 +1,10 @@
 import React, { useState } from "react";
 import { Card, Typography } from "@material-tailwind/react";
 import Popup from "reactjs-popup";
-import PersonalDetailPopup from "../PopupWindow/PersonalDetailPopup";
 import '../../../styles/popup.css'
 import { useSelector } from "react-redux";
 import editImg from "../../../assets/edit.svg"
-import MtechEducationDetailPopup from "../PopupWindow/MtechEducationDetailPopup";
 import linkImg from "../../../assets/hyperlink.svg"
-import EntrepreneurDetails from "../PopupWindow/EntrepreneurPopup";
 import EntrepreneurPopup from "../PopupWindow/EntrepreneurPopup";
 
 const Entreprenur = ({  setBlurActive }) => {

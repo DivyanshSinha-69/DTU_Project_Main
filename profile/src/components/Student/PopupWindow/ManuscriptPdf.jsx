@@ -1,13 +1,12 @@
 // Install axios if not already installed: npm install axios
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import axios from "axios";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { Input } from "@material-tailwind/react";
 
 const ManuscriptPdf = ({ setPdfSrc,setId }) => {
   const { RollNo } = useSelector((state) => state.auth.user);
-  const dispatch = useDispatch();
   const [file, setFile] = useState(null);
   const [isFileSelected, setIsFileSelected] = useState(false);
 

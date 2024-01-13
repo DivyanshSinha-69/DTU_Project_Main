@@ -21,7 +21,6 @@ const Placement = ({ setBlurActive }) => {
   const TABLE_ROWS = Placement.Placement || [];
 
   const [isPopupOpen, setPopupOpen] = useState(false);
-  const [selectedRowIndex, setSelectedRowIndex] = useState(null);
 
   const openPopup = () => {
     setPopupOpen(true);
@@ -31,16 +30,6 @@ const Placement = ({ setBlurActive }) => {
   const closePopup = () => {
     setPopupOpen(false);
     setBlurActive(false); // Deactivate blur when closing the popup
-  };
-
-  const openPopup2 = (index) => {
-    setSelectedRowIndex(index);
-    setBlurActive(true);
-  };
-
-  const closePopup2 = () => {
-    setSelectedRowIndex(null);
-    setBlurActive(false);
   };
 
   const handledelete = async (ID) => {

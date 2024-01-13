@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import backgroundImage from "../assets/dtu.png";
 import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import axios from "axios";
 import { login } from "../redux/reducers/AuthSlice";
 import { setRole } from "../redux/reducers/UserSlice";
@@ -40,11 +40,11 @@ const Login = () => {
       dispatch(setRole(userDetails.user.Position));
 
       // Redirect to the desired page after successful login
-      if (userDetails.user.Position == "student") {
+      if (userDetails.user.Position === "student") {
         navigate("/student/portal");
-      } else if (userDetails.user.Position == "teacher") {
+      } else if (userDetails.user.Position === "teacher") {
         navigate("/teacher/portal");
-      } else if (userDetails.user.Position == "admin") {
+      } else if (userDetails.user.Position === "admin") {
         navigate("/admin/portal");
       } else {
         navigate("/unauthorized");

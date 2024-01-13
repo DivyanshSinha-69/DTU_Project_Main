@@ -26,7 +26,6 @@ const Student = () => {
     (state) => state.auth.user
   );
   const [isBlurActive, setBlurActive] = useState(false);
-  const [imgSrc, setImgSrc] = useState(null);
 
   const { image } = useSelector((state) => state.userImage);
   const dispatch = useDispatch();
@@ -149,7 +148,7 @@ const Student = () => {
             />
 
             <div className="translate-y-[-30px] translate-x-[150px] w-[100px]">
-              <Test setImgSrc={setImgSrc} />
+              <Test />
             </div>
           </div>
         </div>
