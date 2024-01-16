@@ -65,7 +65,7 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
       <div className="h-auto p-10 ">
         <div className="flex flex-row justify-between pr-5 pl-5">
           <p className="p-3 text-2xl font1 border-top my-auto">
-            Professional Skills
+            Professional Activities
           </p>
           <button
             onClick={openPopup}

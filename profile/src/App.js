@@ -66,12 +66,13 @@ function App() {
             <Route path="/login" element={<Login />} />
           )}
           <Route path="/parents" element={<Parents />} />
-          
+          <Route path="/test" element={<Dashboard />} />
           <Route path="/alumini" element={<Alumini />} />
           {role==="admin"?<Route path="/admin/portal" element={<Dashboard />} />:<Route path="/login" element={<Login />} />}
          
           
           <Route path="*" element={<Unaithorized />} />
+          
         </Routes>
         <Footer />
       </Router>

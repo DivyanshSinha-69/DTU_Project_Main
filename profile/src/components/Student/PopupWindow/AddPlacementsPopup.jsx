@@ -88,7 +88,7 @@ export default function AddPlacementsPopup(props) {
             value={formData.organisation}
             onChange={handleChange}
             name="placementType"
-            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 h-10"
+            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 h-[40px]"
             labelProps={{
               className: "before:content-none after:content-none",
             }}
@@ -102,7 +102,7 @@ export default function AddPlacementsPopup(props) {
             value={formData.position}
             onChange={handleChange}
             name="companyName"
-            className=" !border-t-gray-200 focus:!border-t-gray-900 pl-2 h-10"
+            className=" !border-t-gray-200 focus:!border-t-gray-900 pl-2 h-[40px]"
             labelProps={{
               className: "before:content-none after:content-none",
             }}
@@ -116,7 +116,7 @@ export default function AddPlacementsPopup(props) {
             value={formData.eventname}
             onChange={handleChange}
             name="joiningDate"
-            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 h-10"
+            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 h-[40px]"
             labelProps={{
               className: "before:content-none after:content-none",
             }}
@@ -130,7 +130,7 @@ export default function AddPlacementsPopup(props) {
             onChange={handleChange}
             name="appointmentLetter"
             accept=".pdf"
-            className="border-none pl-2 h-10"
+            className="border-none pl-2 h-[40px]"
             labelProps={{
               className: "before:content-none after:content-none",
             }}

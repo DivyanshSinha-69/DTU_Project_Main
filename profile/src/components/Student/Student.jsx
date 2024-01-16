@@ -133,7 +133,7 @@ const Student = () => {
         className={`h-auto w-full ${isBlurActive ? "blur-effect" : ""}`}
       >
         <div className="h-[30%] w-[70%] flex flex-wrap justify-around mx-auto">
-          <div className="h-100% flex flex-col justify-center items-center m-2">
+          <div className="h-[40px]0% flex flex-col justify-center items-center m-2">
             <h1 className="font-extrabold text-3xl text-center">
               {studentName}
             </h1>
@@ -186,7 +186,16 @@ const Student = () => {
       <div className={`pt-10  ${isBlurActive ? "blur-effect" : ""}`}>
         <Entreprenur setBlurActive={setBlurActive} />
       </div>
-        <Toaster />
+        <Toaster 
+        toastOptions={{
+          // Define default options
+          className: '',
+          duration: 1000,
+          style: {
+            background: '#1f2937',
+            color: '#fff',
+          }
+        }}/>
     </div>
   );
 };

@@ -80,7 +80,7 @@ export default function EntrepreneurPopup(props) {
             value={formData.companyName}
             onChange={handleChange}
             name="companyName"
-            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 h-10"
+            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 h-[40px]"
             labelProps={{
               className: "before:content-none after:content-none",
             }}
@@ -94,7 +94,7 @@ export default function EntrepreneurPopup(props) {
             value={formData.cinNumber}
             onChange={handleChange}
             name="cinNumber"
-            className=" !border-t-gray-200 focus:!border-t-gray-900 pl-2 h-10"
+            className=" !border-t-gray-200 focus:!border-t-gray-900 pl-2 h-[40px]"
             labelProps={{
               className: "before:content-none after:content-none",
             }}
@@ -108,7 +108,7 @@ export default function EntrepreneurPopup(props) {
             value={formData.companyLink}
             onChange={handleChange}
             name="companyLink"
-            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 h-10"
+            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 h-[40px]"
             labelProps={{
               className: "before:content-none after:content-none",
             }}

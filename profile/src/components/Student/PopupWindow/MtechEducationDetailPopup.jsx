@@ -146,7 +146,7 @@ export default function MtechEducationDetailPopup(props) {
               value={formData.gateRollNo}
               onChange={handleChange}
               name="gateRollNo"
-              className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 h-10"
+              className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 h-[40px]"
               labelProps={{
                 className: "before:content-none after:content-none",
               }}
@@ -160,7 +160,7 @@ export default function MtechEducationDetailPopup(props) {
               value={formData.gateAir}
               onChange={handleChange}
               name="gateAir"
-              className=" !border-t-gray-200 focus:!border-t-gray-900 pl-2 h-10"
+              className=" !border-t-gray-200 focus:!border-t-gray-900 pl-2 h-[40px]"
               labelProps={{
                 className: "before:content-none after:content-none",
               }}
@@ -174,7 +174,7 @@ export default function MtechEducationDetailPopup(props) {
               value={formData.gateMarks}
               onChange={handleChange}
               name="gateMarks"
-              className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 h-10"
+              className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 h-[40px]"
               labelProps={{
                 className: "before:content-none after:content-none",
               }}
@@ -188,7 +188,7 @@ export default function MtechEducationDetailPopup(props) {
           onChange={handleChange}
           name="appointmentLetter"
           accept=".pdf"
-          className="border-none pl-2 h-10"
+          className="border-none pl-2 h-[40px]"
           labelProps={{
             className: "before:content-none after:content-none",
           }}

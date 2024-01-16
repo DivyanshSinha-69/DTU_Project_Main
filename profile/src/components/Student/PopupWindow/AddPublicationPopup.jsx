@@ -91,7 +91,7 @@ export default function AddPlacementsPopup(props) {
             value={formData.publishedIn}
             onChange={handleChange}
             name="publishedIn"
-            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 h-10"
+            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 h-[40px]"
             labelProps={{
               className: "before:content-none after:content-none",
             }}
@@ -105,7 +105,7 @@ export default function AddPlacementsPopup(props) {
             value={formData.articleTitle}
             onChange={handleChange}
             name="articleTitle"
-            className=" !border-t-gray-200 focus:!border-t-gray-900 pl-2 h-10"
+            className=" !border-t-gray-200 focus:!border-t-gray-900 pl-2 h-[40px]"
             labelProps={{
               className: "before:content-none after:content-none",
             }}
@@ -119,7 +119,7 @@ export default function AddPlacementsPopup(props) {
             value={formData.publicationDoi}
             onChange={handleChange}
             name="publicationDoi"
-            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 h-10"
+            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 h-[40px]"
             labelProps={{
               className: "before:content-none after:content-none",
             }}
@@ -133,7 +133,7 @@ export default function AddPlacementsPopup(props) {
             value={formData.publishedArticleLink}
             onChange={handleChange}
             name="publishedArticleLink"
-            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 h-10"
+            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 h-[40px]"
             labelProps={{
               className: "before:content-none after:content-none",
             }}
