@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Card,} from "@material-tailwind/react";
 import { useDispatch } from "react-redux";
 import { updatePersonalDetails } from "../../../redux/reducers/UserPersonalDetails";
-
+import toast from 'react-hot-toast';
 export default function PersonalDetailPopup(props) {
   const {
     closeModal,
@@ -43,7 +43,7 @@ export default function PersonalDetailPopup(props) {
       !formData.personalEmail ||
       !formData.dtuEmail
     ) {
-      alert("Please fill in all required fields");
+      toast.error("Please fill in all required fields");
       return;
     }
     try {
@@ -78,7 +78,7 @@ export default function PersonalDetailPopup(props) {
       dispatch(updatePersonalDetails([{ ...updateddata }]));
 
       if (response.status === 200) {
-        alert(response.data.message);
+        toast.success(response.data.message);
         closeModal();
       }
     } catch (error) {

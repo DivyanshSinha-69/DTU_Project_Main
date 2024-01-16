@@ -4,6 +4,7 @@ import { Card, Input, Button, Typography } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
 import { setEntrepreneurDetails } from "../../../redux/reducers/UserEntrepreneurDetails";
 import CompanyRegCertPdf from "./CompanyRegCertPdf";
+import toast from 'react-hot-toast';
 
 export default function EntrepreneurPopup(props) {
   const { closeModal,name, companyName, cinNumber, companyLink } = props;
@@ -31,7 +32,7 @@ export default function EntrepreneurPopup(props) {
         !formData.companyLink||
         !formData.cinNumber
       ) {
-        alert("Please fill in all required fields");
+        toast.error("Please fill in all required fields");
         return;
       }
 
@@ -58,7 +59,7 @@ export default function EntrepreneurPopup(props) {
 
       dispatch(setEntrepreneurDetails([{ ...updateddata }]));
       if (response.status === 201) {
-        alert(response.data.message);
+        toast.error(response.data.message);
         closeModal();
       }
     } catch (error) {

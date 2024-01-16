@@ -4,6 +4,7 @@ import { Card, Input, Button, Typography } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
 import OfferLetterPdf from "./OfferLetterPdf";
 import { setHigherEducationDetails } from "../../../redux/reducers/UserHigherEducationDetails";
+import toast from 'react-hot-toast';
 
 export default function HigherEducationPopup(props) {
   const { closeModal,name, examName, instituteName} = props;
@@ -29,7 +30,7 @@ export default function HigherEducationPopup(props) {
         !formData.examName ||
         !formData.instituteName
       ) {
-        alert("Please fill in all required fields");
+        toast.error("Please fill in all required fields");
         return;
       }
 
@@ -54,7 +55,7 @@ export default function HigherEducationPopup(props) {
 
       dispatch(setHigherEducationDetails([{ ...updateddata }]));
       if (response.status === 201) {
-        alert(response.data.message);
+        toast.success(response.data.message);
         closeModal();
       }
     } catch (error) {

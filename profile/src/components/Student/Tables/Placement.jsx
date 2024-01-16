@@ -7,6 +7,7 @@ import addImg from "../../../assets/add.svg";
 import axios from "axios";
 import AddPlacementsPopup from "../PopupWindow/AddPlacementsPopup.jsx";
 import { deletePlacement } from "../../../redux/reducers/UserPlacementDetail.jsx";
+import toast from 'react-hot-toast';
 
 const Placement = ({ setBlurActive }) => {
   const Placement = useSelector((state) => state.placement);
@@ -44,7 +45,7 @@ const Placement = ({ setBlurActive }) => {
         }
       );
 
-      alert(response.data.message);
+      toast.success(response.data.message);
       dispatch(deletePlacement({ ID }));
     } catch (error) {
       console.error(error);

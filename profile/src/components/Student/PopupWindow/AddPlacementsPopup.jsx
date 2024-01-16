@@ -4,6 +4,7 @@ import { Card, Input, Button, Typography } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
 import { addPlacement } from "../../../redux/reducers/UserPlacementDetail";
 import PlacementPdf from "./PlacementPdf";
+import toast from 'react-hot-toast';
 
 export default function AddPlacementsPopup(props) {
   const { closeModal, name} = props;
@@ -31,7 +32,7 @@ export default function AddPlacementsPopup(props) {
     
 
     if (!formData.companyName || !formData.placementType || !formData.joiningDate) {
-      alert("Please fill in all required fields");
+      toast.error("Please fill in all required fields");
       return;
     }
     
@@ -64,7 +65,7 @@ export default function AddPlacementsPopup(props) {
       dispatch(addPlacement(updateddata));
 
       if (response.status == 201) {
-        alert(response.data.message);
+        toast.success(response.data.message);
         closeModal();
       }
     } catch (error) {

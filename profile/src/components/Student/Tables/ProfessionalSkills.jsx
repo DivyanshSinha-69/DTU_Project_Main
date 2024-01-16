@@ -8,6 +8,7 @@ import img from "../../../assets/delete.svg";
 import addImg from "../../../assets/add.svg";
 import axios from "axios";
 import { deleteProfessionalSkill } from "../../../redux/reducers/UserProfessionalSkills.jsx";
+import toast from 'react-hot-toast';
 
 const StudentProfessionalSkills = ({ setBlurActive }) => {
   const ProfessionalSkills = useSelector((state) => state.professionalSkills);
@@ -51,7 +52,7 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
       );
 
   
-      alert(response.data.message);
+      toast.success(response.data.message);
       dispatch(deleteProfessionalSkill({ ID }));
     } catch (error) {
    

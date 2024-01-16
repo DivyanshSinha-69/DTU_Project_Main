@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Card, Input, Button, Typography } from "@material-tailwind/react";
 import { useDispatch } from "react-redux";
 import { updateProfessionalSkill } from "../../../redux/reducers/UserProfessionalSkills";
+import toast from 'react-hot-toast';
 
 export default function PopupProfessionalSkills(props) {
   const { closeModal,id, eventname, position, organisation, date, roll ,name} = props;
@@ -26,7 +27,7 @@ export default function PopupProfessionalSkills(props) {
 
   const handlepopup = async () => {
     if (!formData.organisation || !formData.position || !formData.eventname || !formData.date) {
-      alert("Please fill in all required fields");
+      toast.error("Please fill in all required fields");
       return;
     }
     try {
@@ -56,7 +57,7 @@ export default function PopupProfessionalSkills(props) {
       };
       dispatch(updateProfessionalSkill({ id, updateddata }));
       if(response.status==200){
-        alert(response.data.message);
+        toast.success(response.data.message);
         closeModal();
       }
       

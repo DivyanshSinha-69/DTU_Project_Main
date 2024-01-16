@@ -20,6 +20,7 @@ import HigherEducation from "./Tables/HigherEducation";
 import { setHigherEducationDetails } from "../../redux/reducers/UserHigherEducationDetails";
 import { setPublicationDetails } from "../../redux/reducers/UserPublicationDetails"
 // import Placement from "./studentportaltables/Placement";
+import { Toaster } from 'react-hot-toast';
 
 const Student = () => {
   const { studentName, RollNo, Course, CourseName } = useSelector(
@@ -185,7 +186,7 @@ const Student = () => {
       <div className={`pt-10  ${isBlurActive ? "blur-effect" : ""}`}>
         <Entreprenur setBlurActive={setBlurActive} />
       </div>
-
+        <Toaster />
     </div>
   );
 };

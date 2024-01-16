@@ -8,6 +8,7 @@ import axios from "axios";
 import AddPublicationPopup from "../PopupWindow/AddPublicationPopup.jsx";
 import { deletePublicationDetails } from "../../../redux/reducers/UserPublicationDetails.jsx";
 import linkImg from "../../../assets/hyperlink.svg"
+import toast from 'react-hot-toast';
 
 const Publication = ({ setBlurActive }) => {
   const PublicationDetails = useSelector((state) => state.publicationDetails);
@@ -46,7 +47,7 @@ const Publication = ({ setBlurActive }) => {
         }
       );
 
-      alert(response.data.message);
+      toast.success(response.data.message);
       dispatch(deletePublicationDetails({ ID }));
     } catch (error) {
       console.error(error);

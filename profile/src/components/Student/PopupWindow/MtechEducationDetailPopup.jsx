@@ -4,6 +4,7 @@ import { Card, Input, Button, Typography } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
 import MtechScoreCardPdf from "./MtechScoreCardPdf";
 import { setMtechEducation } from "../../../redux/reducers/UserMtechEducationalDetails";
+import toast from 'react-hot-toast';
 
 export default function MtechEducationDetailPopup(props) {
   const { closeModal, name, gateRollNo, gateAir, gateMarks, admittedThrough } =
@@ -43,7 +44,7 @@ export default function MtechEducationDetailPopup(props) {
           !formData.gateAir ||
           !formData.gateMarks
         ) {
-          alert("Please fill in all required fields");
+          toast.error("Please fill in all required fields");
           return;
         }
 
@@ -72,7 +73,7 @@ export default function MtechEducationDetailPopup(props) {
 
         dispatch(setMtechEducation([{ ...updateddata }]));
         if (response.status === 201) {
-          alert(response.data.message);
+          toast.success(response.data.message);
           closeModal();
         }
       } else {
@@ -101,7 +102,7 @@ export default function MtechEducationDetailPopup(props) {
 
         dispatch(setMtechEducation([{ ...updateddata }]));
         if (response.status === 201) {
-          alert(response.data.message);
+          toast.success(response.data.message);
           closeModal();
         }
       }
