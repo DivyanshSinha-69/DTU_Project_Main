@@ -59,7 +59,7 @@ export default function EntrepreneurPopup(props) {
 
       dispatch(setEntrepreneurDetails([{ ...updateddata }]));
       if (response.status === 201) {
-        toast.error(response.data.message);
+        toast.success(response.data.message);
         closeModal();
       }
     } catch (error) {

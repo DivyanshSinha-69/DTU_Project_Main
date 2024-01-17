@@ -11,23 +11,44 @@ export const uploadImage = (req, res) => {
       res.status(500).send('Internal Server Error');
       return;
     }
-    // console.log(req);
-    // Access the uploaded file information
-    const {originalname, buffer } = req.file;
-    const {rollNo} = req.body;
-    
-    // Convert the image buffer to base64 for storing in the database
+
+    const { originalname, buffer } = req.file;
+    const { rollNo } = req.body;
     const base64Image = buffer.toString('base64');
 
-    // Save image information to the database
-    const query = 'UPDATE images SET originalname = ?, image_data = ? WHERE rollNo = ?';
-    connectDB.query(query, [originalname, base64Image,rollNo], (dbErr, result) => {
-      if (dbErr) {
-        console.error('Error inserting into database: ' + dbErr.stack);
+    // Check if the rollNo already exists in the database
+    const checkQuery = 'SELECT * FROM images WHERE rollNo = ?';
+
+    connectDB.query(checkQuery, [rollNo], (checkErr, checkResult) => {
+      if (checkErr) {
+        console.error('Error checking database: ' + checkErr.stack);
         res.status(500).send('Internal Server Error');
       } else {
-        // console.log('Image uploaded and saved to database');
-        res.status(200).send('Image uploaded and saved to database');
+        if (checkResult && checkResult.length > 0) {
+          // RollNo exists, perform an update
+          const updateQuery = 'UPDATE images SET originalname = ?, image_data = ? WHERE rollNo = ?';
+
+          connectDB.query(updateQuery, [originalname, base64Image, rollNo], (updateErr, updateResult) => {
+            if (updateErr) {
+              console.error('Error updating database: ' + updateErr.stack);
+              res.status(500).send('Internal Server Error');
+            } else {
+              res.status(200).send('Image updated in the database');
+            }
+          });
+        } else {
+          // RollNo doesn't exist, perform an insert
+          const insertQuery = 'INSERT INTO images (rollNo, originalname, image_data) VALUES (?, ?, ?)';
+
+          connectDB.query(insertQuery, [rollNo, originalname, base64Image], (insertErr, insertResult) => {
+            if (insertErr) {
+              console.error('Error inserting into database: ' + insertErr.stack);
+              res.status(500).send('Internal Server Error');
+            } else {
+              res.status(200).send('Image uploaded and saved to database');
+            }
+          });
+        }
       }
     });
   });
@@ -200,33 +221,62 @@ export const getPersonalDetails = (req, res) => {
 };
 
 export const updatePersonalDetails = (req, res) => {
+  const { id, motherName, fatherName, personalContactNo, parentContactNo, personalEmail, dtuEmail } = req.body;
 
-  const { id, motherName, fatherName, personalContactNo, parentContactNo , personalEmail, dtuEmail } = req.body;
-  const sql =
-    "UPDATE studentPersonalDetails SET motherName = ?, fatherName = ?, personalContactNo = ?, parentContactNo = ? ,personalEmail = ?,dtuEmail = ? WHERE RollNo = ?";
+  // Check if the record exists in the database
+  const checkQuery = 'SELECT * FROM studentPersonalDetails WHERE RollNo = ?';
 
-  connectDB.query(
-    sql,
-    [motherName,fatherName,personalContactNo,parentContactNo,personalEmail,dtuEmail,id],
-    (err, result) => {
-      if (err) {
-        console.error("Error executing update query:", err);
-        res.status(500).json({ error: "Internal Server Error" });
-        return;
-      }
-
-      // Check if any row is affected (indicating a successful update)
-      if (result.affectedRows > 0) {
-        res.status(200).json({
-          success: true,
-          message: "Record updated successfully",
-        });
-      } else {
-        res.status(404).json({ error: "Record not found" });
-      }
+  connectDB.query(checkQuery, [id], (checkErr, checkResult) => {
+    if (checkErr) {
+      console.error('Error checking database:', checkErr);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
     }
-  );
+
+    if (checkResult && checkResult.length > 0) {
+      // Record exists, perform an update
+      const updateQuery =
+        'UPDATE studentPersonalDetails SET motherName = ?, fatherName = ?, personalContactNo = ?, parentContactNo = ?, personalEmail = ?, dtuEmail = ? WHERE RollNo = ?';
+
+      connectDB.query(
+        updateQuery,
+        [motherName, fatherName, personalContactNo, parentContactNo, personalEmail, dtuEmail, id],
+        (updateErr, updateResult) => {
+          if (updateErr) {
+            console.error('Error executing update query:', updateErr);
+            res.status(500).json({ error: 'Internal Server Error' });
+          } else {
+            res.status(200).json({
+              success: true,
+              message: 'Record updated successfully',
+            });
+          }
+        }
+      );
+    } else {
+      // Record doesn't exist, perform an insert
+      const insertQuery =
+        'INSERT INTO studentPersonalDetails (RollNo, motherName, fatherName, personalContactNo, parentContactNo, personalEmail, dtuEmail) VALUES (?, ?, ?, ?, ?, ?, ?)';
+
+      connectDB.query(
+        insertQuery,
+        [id, motherName, fatherName, personalContactNo, parentContactNo, personalEmail, dtuEmail],
+        (insertErr, insertResult) => {
+          if (insertErr) {
+            console.error('Error inserting into database:', insertErr);
+            res.status(500).json({ error: 'Internal Server Error' });
+          } else {
+            res.status(200).json({
+              success: true,
+              message: 'Record added successfully',
+            });
+          }
+        }
+      );
+    }
+  });
 };
+
 
 // placement table
 
