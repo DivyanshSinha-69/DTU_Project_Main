@@ -206,18 +206,14 @@ export const getPersonalDetails = (req, res) => {
       return;
     }
 
-    // Check if the user with the given credentials exists
-    if (results.length > 0) {
-      res.status(200).json({
-        user: results,
-        success: true,
-      });
-    } else {
-      res.status(401).json({ error: "No data Exist" });
-      return;
-    }
-  });
+     // Always return an array, even if it's empty
+     const user = results || [];
 
+     res.status(200).json({
+       user,
+       success: true,
+     });
+    });
 };
 
 export const updatePersonalDetails = (req, res) => {
