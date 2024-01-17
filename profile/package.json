@@ -25,7 +25,8 @@
     "redux": "^5.0.1",
     "sass": "^1.69.6",
     "scss": "^0.2.4",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "start": "react-scripts start",
