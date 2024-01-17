@@ -9,6 +9,9 @@ import editImg from "../../../assets/edit.svg"
 const PersonalDetails = ({  setBlurActive }) => {
 
   const PersonalDetails = useSelector(state=>state.personalDetails);
+  const {RollNo} = useSelector(
+    (state) => state.auth.user
+  );
   // console.log(PersonalDetails);
   const [isPopupOpen, setPopupOpen] = useState(false);
   const openPopup = () => {
@@ -51,7 +54,7 @@ const PersonalDetails = ({  setBlurActive }) => {
               parentContactNo={TABLE_ROWS.length > 0 ? TABLE_ROWS[0].parentContactNo : ""}
               personalEmail={TABLE_ROWS.length > 0 ? TABLE_ROWS[0].personalEmail : ""}
               dtuEmail={TABLE_ROWS.length > 0 ? TABLE_ROWS[0].dtuEmail : ""}
-              rollNo={TABLE_ROWS.length > 0 ? TABLE_ROWS[0].RollNo : ""}
+              rollNo={RollNo}
               studentimage={TABLE_ROWS.length > 0 ? TABLE_ROWS[0].studentImage : ""}
               closeModal={closePopup} 
               name={"ADD"} />

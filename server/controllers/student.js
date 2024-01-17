@@ -217,8 +217,8 @@ export const getPersonalDetails = (req, res) => {
 };
 
 export const updatePersonalDetails = (req, res) => {
+  
   const { id, motherName, fatherName, personalContactNo, parentContactNo, personalEmail, dtuEmail } = req.body;
-
   // Check if the record exists in the database
   const checkQuery = 'SELECT * FROM studentPersonalDetails WHERE RollNo = ?';
 
@@ -230,6 +230,7 @@ export const updatePersonalDetails = (req, res) => {
     }
 
     if (checkResult && checkResult.length > 0) {
+      console.log("personal details exist");
       // Record exists, perform an update
       const updateQuery =
         'UPDATE studentPersonalDetails SET motherName = ?, fatherName = ?, personalContactNo = ?, parentContactNo = ?, personalEmail = ?, dtuEmail = ? WHERE RollNo = ?';
@@ -250,6 +251,7 @@ export const updatePersonalDetails = (req, res) => {
         }
       );
     } else {
+      console.log("personal details does not exist");
       // Record doesn't exist, perform an insert
       const insertQuery =
         'INSERT INTO studentPersonalDetails (RollNo, motherName, fatherName, personalContactNo, parentContactNo, personalEmail, dtuEmail) VALUES (?, ?, ?, ?, ?, ?, ?)';
