@@ -81,7 +81,7 @@ export default function AddPopupProfessionalSkills(props) {
             value={formData.organisation}
             onChange={handleChange}
             name="organisation"
-            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 h-[40px]"
+            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 !h-[40px]"
             labelProps={{
               className: "before:content-none after:content-none",
             }}
@@ -95,7 +95,7 @@ export default function AddPopupProfessionalSkills(props) {
             value={formData.position}
             onChange={handleChange}
             name="position"
-            className=" !border-t-gray-200 focus:!border-t-gray-900 pl-2 h-[40px]"
+            className=" !border-t-gray-200 focus:!border-t-gray-900 pl-2 !h-[40px]"
             labelProps={{
               className: "before:content-none after:content-none",
             }}
@@ -109,7 +109,7 @@ export default function AddPopupProfessionalSkills(props) {
             value={formData.eventname}
             onChange={handleChange}
             name="eventname"
-            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 h-[40px]"
+            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 !h-[40px]"
             labelProps={{
               className: "before:content-none after:content-none",
             }}
@@ -123,7 +123,7 @@ export default function AddPopupProfessionalSkills(props) {
             value={formData.date}
             onChange={handleChange}
             name="date"
-            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 h-[40px]"
+            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 !h-[40px]"
             labelProps={{
               className: "before:content-none after:content-none",
             }}

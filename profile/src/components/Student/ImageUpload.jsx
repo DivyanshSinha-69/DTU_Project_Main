@@ -102,7 +102,7 @@ const Test = () => {
                 <img
                   src={uploadImg}
                   alt="+"
-                  className="p-2 h-[40px] w-10 bg-gray-800 rounded-full cursor-pointer hover:invert hover:scale-[130%] transition-transform ease-in "
+                  className="p-2 !h-[40px] w-10 bg-gray-800 rounded-full cursor-pointer hover:invert hover:scale-[130%] transition-transform ease-in "
                 />
               </label>
                <input

@@ -76,7 +76,7 @@ export default function HigherEducationPopup(props) {
             value={formData.examName}
             onChange={handleChange}
             name="examName"
-            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 h-[40px]"
+            className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 !h-[40px]"
             labelProps={{
               className: "before:content-none after:content-none",
             }}
@@ -90,7 +90,7 @@ export default function HigherEducationPopup(props) {
             value={formData.instituteName}
             onChange={handleChange}
             name="instituteName"
-            className=" !border-t-gray-200 focus:!border-t-gray-900 pl-2 h-[40px]"
+            className=" !border-t-gray-200 focus:!border-t-gray-900 pl-2 !h-[40px]"
             labelProps={{
               className: "before:content-none after:content-none",
             }}
