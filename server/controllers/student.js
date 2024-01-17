@@ -1,5 +1,6 @@
 import { connectDB } from "../data/database.js";
 import multer from "multer";
+import path from 'path';
 
 const storage = multer.memoryStorage(); // Store the file in memory as Buffer
 const upload = multer({ storage: storage });
@@ -587,10 +588,11 @@ export const updateEntrepreneurDetails=(req,res)=>{
   
   
 }
-export const getCompanyRegCert=(req,res)=>{
+
+export const getCompanyRegCert = (req, res) => {
   const { id } = req.body;
-  
-  // Retrieve PDF data from the database based on the provided 'id'
+
+  // Retrieve the stored link from the database based on the provided 'id'
   const query = 'SELECT companyRegCertificate FROM entrepreneurDetails WHERE RollNO = ?';
   connectDB.query(query, [id], (err, result) => {
     if (err) {
@@ -600,23 +602,78 @@ export const getCompanyRegCert=(req,res)=>{
     }
 
     if (result.length > 0) {
-      const { companyRegCertificate} = result[0];
+      const { companyRegCertificate } = result[0];
 
-      // Convert the base64-encoded PDF data back to a Buffer
-      if ( companyRegCertificate) {
-        const pdfBuffer = Buffer.from(companyRegCertificate, 'base64');
+      // Check if a link is present
+      if (companyRegCertificate) {
+        // Construct the full URL using the local server's base URL and the stored link
+        const baseUrl = 'http://localhost:3001';
+        const fullUrl = `${baseUrl}${companyRegCertificate}`;
 
-        // Set the appropriate headers for the PDF response
-        res.setHeader('Content-Type', 'application/pdf');
-        // res.setHeader('Content-Disposition', `inline; filename=${originalname}`);
-        // Send the PDF data as the response
-        res.end(pdfBuffer);
+        // Send the PDF link as the response
+        res.status(200).send(fullUrl);
+      } else {
+        res.status(404).send('PDF link not found');
       }
     } else {
-      res.status(404).send('PDF not found');
+      res.status(404).send('PDF link not found');
     }
   });
-}
+};
+
+
+// export const uploadCompanyRegCert = (req, res) => {
+//   upload.single('pdf')(req, res, async (err) => {
+//     if (err) {
+//       console.error('Error uploading PDF: ' + err.stack);
+//       res.status(500).send('Internal Server Error');
+//       return;
+//     }
+
+//     const { buffer } = req.file;
+//     const { rollNo } = req.body;
+//     const base64PDF = buffer.toString('base64');
+
+//     // Check if RollNo exists
+//     const checkQuery = 'SELECT * FROM entrepreneurDetails WHERE RollNo = ?';
+
+//     connectDB.query(checkQuery, [rollNo], (checkErr, checkResult) => {
+//       if (checkErr) {
+//         console.error('Error checking RollNo existence: ' + checkErr.stack);
+//         res.status(500).send('Internal Server Error');
+//       } else {
+//         if (checkResult.length === 0) {
+//           // RollNo does not exist, insert
+//           const insertQuery = 'INSERT INTO entrepreneurDetails (RollNo, companyRegCertificate) VALUES (?, ?)';
+//           connectDB.query(insertQuery, [rollNo, base64PDF], (insertErr, insertResult) => {
+//             if (insertErr) {
+//               console.error('Error inserting into database: ' + insertErr.stack);
+//               res.status(500).send('Internal Server Error');
+//             } else {
+//               res.status(200).send('PDF uploaded and saved to database');
+//             }
+//           });
+//         } else {
+//           // RollNo exists, update
+//           const updateQuery = 'UPDATE entrepreneurDetails SET companyRegCertificate = ? WHERE RollNo = ?';
+//           connectDB.query(updateQuery, [base64PDF, rollNo], (updateErr, updateResult) => {
+//             if (updateErr) {
+//               console.error('Error updating database: ' + updateErr.stack);
+//               res.status(500).send('Internal Server Error');
+//             } else {
+//               res.status(200).send('PDF uploaded and saved to database');
+//             }
+//           });
+//         }
+//       }
+//     });
+//   });
+// };
+
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import fs from 'fs';
+
 export const uploadCompanyRegCert = (req, res) => {
   upload.single('pdf')(req, res, async (err) => {
     if (err) {
@@ -625,45 +682,63 @@ export const uploadCompanyRegCert = (req, res) => {
       return;
     }
 
-    const { buffer } = req.file;
+    const { buffer, originalname } = req.file;
     const { rollNo } = req.body;
-    const base64PDF = buffer.toString('base64');
+    const fileName = `${originalname}`;
 
-    // Check if RollNo exists
-    const checkQuery = 'SELECT * FROM entrepreneurDetails WHERE RollNo = ?';
+    // Get the current module's directory
+    const currentModulePath = fileURLToPath(import.meta.url);
+    const currentModuleDir = dirname(currentModulePath);
 
-    connectDB.query(checkQuery, [rollNo], (checkErr, checkResult) => {
-      if (checkErr) {
-        console.error('Error checking RollNo existence: ' + checkErr.stack);
+    // Save the PDF file to the companyCertificates folder
+    const filePath = path.join(currentModuleDir, 'companyCertificates', fileName);
+    fs.writeFile(filePath, buffer, (writeErr) => {
+      if (writeErr) {
+        console.error('Error saving PDF to file: ' + writeErr.stack);
         res.status(500).send('Internal Server Error');
-      } else {
-        if (checkResult.length === 0) {
-          // RollNo does not exist, insert
-          const insertQuery = 'INSERT INTO entrepreneurDetails (RollNo, companyRegCertificate) VALUES (?, ?)';
-          connectDB.query(insertQuery, [rollNo, base64PDF], (insertErr, insertResult) => {
-            if (insertErr) {
-              console.error('Error inserting into database: ' + insertErr.stack);
-              res.status(500).send('Internal Server Error');
-            } else {
-              res.status(200).send('PDF uploaded and saved to database');
-            }
-          });
-        } else {
-          // RollNo exists, update
-          const updateQuery = 'UPDATE entrepreneurDetails SET companyRegCertificate = ? WHERE RollNo = ?';
-          connectDB.query(updateQuery, [base64PDF, rollNo], (updateErr, updateResult) => {
-            if (updateErr) {
-              console.error('Error updating database: ' + updateErr.stack);
-              res.status(500).send('Internal Server Error');
-            } else {
-              res.status(200).send('PDF uploaded and saved to database');
-            }
-          });
-        }
+        return;
       }
+
+      // Check if RollNo exists
+      const checkQuery = 'SELECT * FROM entrepreneurDetails WHERE RollNo = ?';
+
+      connectDB.query(checkQuery, [rollNo], (checkErr, checkResult) => {
+        if (checkErr) {
+          console.error('Error checking RollNo existence: ' + checkErr.stack);
+          res.status(500).send('Internal Server Error');
+        } else {
+          const certificateLink = `/companyCertificates/${fileName}`;
+
+          if (checkResult.length === 0) {
+            // RollNo does not exist, insert
+            const insertQuery = 'INSERT INTO entrepreneurDetails (RollNo, companyRegCertificate) VALUES (?, ?)';
+            connectDB.query(insertQuery, [rollNo, certificateLink], (insertErr, insertResult) => {
+              if (insertErr) {
+                console.error('Error inserting into database: ' + insertErr.stack);
+                res.status(500).send('Internal Server Error');
+              } else {
+                res.status(200).send('PDF uploaded and saved to database');
+              }
+            });
+          } else {
+            // RollNo exists, update
+            const updateQuery = 'UPDATE entrepreneurDetails SET companyRegCertificate = ? WHERE RollNo = ?';
+            connectDB.query(updateQuery, [certificateLink, rollNo], (updateErr, updateResult) => {
+              if (updateErr) {
+                console.error('Error updating database: ' + updateErr.stack);
+                res.status(500).send('Internal Server Error');
+              } else {
+                res.status(200).send('PDF uploaded and saved to database');
+              }
+            });
+          }
+        }
+      });
     });
   });
 };
+
+
 
 
 

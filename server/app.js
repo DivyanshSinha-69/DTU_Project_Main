@@ -10,6 +10,7 @@ import cors from "cors";
 
 
 export const app = express();
+app.use('/companyCertificates', express.static('controllers/companyCertificates'));
 
 config({
   path: "./essentials.env",
@@ -26,6 +27,8 @@ app.use(
   app.options("*", cors());
   app.use(express.json());
   app.use(cookieParser());
+
+
 
 // Using routes
 app.use("/ece/admin",adminRouter)
