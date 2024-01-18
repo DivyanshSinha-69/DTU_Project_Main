@@ -41,6 +41,7 @@ const CompanyRegCertPdf = ({ setPdfSrc }) => {
             headers: {
               "Content-Type": "multipart/form-data",
             },
+            withCredentials: true,
           }
         );
       } catch (error) {
@@ -56,13 +57,15 @@ const CompanyRegCertPdf = ({ setPdfSrc }) => {
         .post(
           `http://localhost:3001/ece/student/getcompanyregcert`,
           { id: RollNo },
-          { responseType: "arraybuffer" }
+          // { responseType: "arraybuffer" }
         )
         .then((response) => {
-          const base64PDF = arrayBufferToBase64(response.data);
+          
+          // const base64PDF = arrayBufferToBase64(response.data);
           // console.log(`data:application/pdf;base64,${base64PDF}`)
           // console.log(base64PDF);
-          setPdfSrc(base64PDF);
+          setPdfSrc(response.data.companyRegCertificate);
+          
         })
         .catch((error) => {
           console.error("Error fetching PDF: ", error);

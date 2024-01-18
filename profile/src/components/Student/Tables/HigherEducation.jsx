@@ -130,12 +130,14 @@ const HigherEducation = ({ setBlurActive }) => {
                             color="blue-gray"
                             className="font-normal"
                           >
-                            <button
-                              onClick={handleOpenPdf(offerLetter)}
+                            <a
+                              // onClick={handleOpenPdf(offerLetter)}
+                              href={offerLetter}
+                              target="blank"
                               className=" text-blue-600 font-bold hover:underline md:ml-[20px]"
                             >
                               View
-                            </button>
+                            </a>
                           </Typography>
                         </td>
                       </tr>

@@ -20,9 +20,11 @@ const handleDownloadExcel = () => {
     // Iterate over the PDF columns and convert them to links
     ["gateScoreCard", "manuscript", "appointmentLetter", "offerLetter", "companyRegCertificate"].forEach(column => {
       if (updatedRowData[column]) {
-        const pdfBlob = base64ToBlob(updatedRowData[column], "application/pdf");
-        const pdfBlobUrl = URL.createObjectURL(pdfBlob);
-        updatedRowData[column] = pdfBlobUrl; // Replace the base64 data with the blob URL
+        // const pdfBlob = base64ToBlob(updatedRowData[column], "application/pdf");
+        // const pdfBlobUrl = URL.createObjectURL(pdfBlob);
+        // updatedRowData[column] = pdfBlobUrl; // Replace the base64 data with the blob URL
+        console.log( updatedRowData[column])
+        updatedRowData[column] = updatedRowData[column];
       }
     });
 
@@ -94,10 +96,13 @@ const handleDownloadExcel = () => {
 
   const handleOpenPdf = (pdfSrc) => {
     return () => {
+      // if (pdfSrc) {
+      //   const blob = base64ToBlob(pdfSrc, "application/pdf");
+      //   const blobUrl = URL.createObjectURL(blob);
+      //   window.open(blobUrl, "_blank");
+      // }
       if (pdfSrc) {
-        const blob = base64ToBlob(pdfSrc, "application/pdf");
-        const blobUrl = URL.createObjectURL(blob);
-        window.open(blobUrl, "_blank");
+        window.open(pdfSrc, "_blank");
       }
     };
   };

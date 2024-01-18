@@ -162,12 +162,13 @@ const Placement = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          <button
-                            onClick={handleOpenPdf(appointmentLetter)}
+                          <a
+                            href={appointmentLetter}
+                            target="blank"
                             className=" text-blue-600 font-bold hover:underline ml-[20px] md:ml-[40px]"
                           >
                             View
-                          </button>
+                          </a>
                         </Typography>
                       </td>
                       <td className={classes}>

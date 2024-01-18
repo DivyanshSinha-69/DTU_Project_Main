@@ -56,13 +56,9 @@ const MtechScoreCardPdf = ({ setPdfSrc }) => {
         .post(
           `http://localhost:3001/ece/student/getscorecard`,
           { id: RollNo },
-          { responseType: "arraybuffer" }
         )
         .then((response) => {
-          const base64PDF = arrayBufferToBase64(response.data);
-          // console.log(`data:application/pdf;base64,${base64PDF}`)
-          console.log(base64PDF);
-          setPdfSrc(base64PDF);
+          setPdfSrc(response.data.gateScoreCard);
         })
         .catch((error) => {
           console.error("Error fetching PDF: ", error);

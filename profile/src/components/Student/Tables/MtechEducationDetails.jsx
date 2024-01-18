@@ -53,7 +53,7 @@ const MtechEducationDetails = ({  setBlurActive }) => {
             className="mx-auto my-auto p-2"
             closeOnDocumentClick
           >
-            <div className="h-[625px] w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.8] rounded-[12%] top-10 fixed inset-5 md:inset-20 flex items-center justify-center">
+            <div className="h-[650px] w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.8] rounded-[12%] top-10 fixed inset-5 md:inset-20 flex items-center justify-center">
               <MtechEducationDetailPopup
               gateRollNo={TABLE_ROWS.length > 0 ? TABLE_ROWS[0].gateRollNo : ""}
               gateAir={TABLE_ROWS.length > 0 ? TABLE_ROWS[0].gateAir : ""}
@@ -144,12 +144,13 @@ const MtechEducationDetails = ({  setBlurActive }) => {
                               color="blue-gray"
                               className="font-normal"
                             >
-                              <button
-                                onClick={handleOpenPdf(gateScoreCard)}
+                              <a
+                                href={gateScoreCard}
+                                target="blank"
                                 className=" text-blue-600 font-bold hover:underline"
                               >
                                 View
-                              </button>
+                              </a>
                             </Typography>
                           </td>
                         )

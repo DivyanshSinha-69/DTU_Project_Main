@@ -174,12 +174,13 @@ const Publication = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          <button
-                            onClick={handleOpenPdf(manuscript)}
+                          <a
+                            href={manuscript}
+                            target="blank"
                             className=" text-blue-600 font-bold hover:underline ml-[17px]"
                           >
                             View
-                          </button>
+                          </a>
                         </Typography>
                       </td>
                       <td className={classes}>

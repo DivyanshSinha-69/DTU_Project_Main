@@ -10,7 +10,7 @@ import cors from "cors";
 
 
 export const app = express();
-app.use('/companyCertificates', express.static('controllers/companyCertificates'));
+app.use('/public', express.static('public'));
 
 config({
   path: "./essentials.env",

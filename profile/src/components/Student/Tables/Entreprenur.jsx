@@ -26,15 +26,23 @@ const Entreprenur = ({  setBlurActive }) => {
   const TABLE_ROWS = entrepreneurDetails.EntrepreneurDetails||[];
 
 
-  const handleOpenPdf = (pdfSrc) => {
-    return () => {
-      if (pdfSrc) {
-        const blob = base64ToBlob(pdfSrc, "application/pdf");
-        const blobUrl = URL.createObjectURL(blob);
-        window.open(blobUrl, "_blank");
-      }
-    };
-  };
+  // const handleOpenPdf = (pdfSrc) => {
+  //   return () => {
+  //     if (pdfSrc) {
+  //       const blob = base64ToBlob(pdfSrc, "application/pdf");
+  //       const blobUrl = URL.createObjectURL(blob);
+  //       window.open(blobUrl, "_blank");
+  //     }
+  //   };
+  // };
+  // const handleOpenPdf = (pdfSrc) => {
+  //   return () => {
+  //     if (pdfSrc) {
+  //       window.open(pdfSrc,"_blank");
+  //     }
+  //   };
+  // };
+  
 
   return (
     <div>
@@ -136,12 +144,14 @@ const Entreprenur = ({  setBlurActive }) => {
                               color="blue-gray"
                               className="font-normal"
                             >
-                              <button
-                                onClick={handleOpenPdf(companyRegCertificate)}
+                              <a
+                                // onClick={handleOpenPdf(companyRegCertificate)}
+                                href={companyRegCertificate}
+                                target="blank"
                                 className=" text-blue-600 font-bold hover:underline ml-[15px] md:ml-[60px]"
                               >
                                 View
-                              </button>
+                              </a>
                             </Typography>
                           </td>
                     </tr>

@@ -43,12 +43,15 @@ const PlacementPdf = ({ setPdfSrc,setId }) => {
 
   const handleUpload = async (e) => {
     e.preventDefault();
-    const id = `${RollNo}+${Date.now()}`;
+    let modifiedRollNo = RollNo.replace(/\//g, '-');
+    const id = `${modifiedRollNo}-${Date.now()}`;
     setId(id);
     if (file && id) {
       const formData = new FormData();
       formData.append("pdf", file);
       formData.append("id", id);
+      formData.append("rollNo", RollNo);
+      
 
       try {
         const response = await axios.post(
@@ -73,12 +76,9 @@ const PlacementPdf = ({ setPdfSrc,setId }) => {
         .post(
           `http://localhost:3001/ece/student/getpdf`,
           { id: id },
-          { responseType: "arraybuffer" }
         )
         .then((response) => {
-          const base64PDF = arrayBufferToBase64(response.data);
-          // console.log(`data:application/pdf;base64,${base64PDF}`)
-          setPdfSrc(base64PDF);
+          setPdfSrc(response.data.appointmentLetter);
         })
         .catch((error) => {
           console.error("Error fetching PDF: ", error);

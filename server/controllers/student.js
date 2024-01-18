@@ -1,6 +1,6 @@
 import { connectDB } from "../data/database.js";
 import multer from "multer";
-import path from 'path';
+import path, { resolve } from 'path';
 
 const storage = multer.memoryStorage(); // Store the file in memory as Buffer
 const upload = multer({ storage: storage });
@@ -280,28 +280,108 @@ export const updatePersonalDetails = (req, res) => {
 // placement table
 
 
+// export const deletePlacement = (req, res) => {
+//   const { ID } = req.body;
+//   const sql = "DELETE FROM placementData WHERE ID = ?";
+
+//   connectDB.query(sql, [ID], (err, result) => {
+//     if (err) {
+//       console.error("Error executing delete query:", err);
+//       res.status(500).json({ error: "Internal Server Error" });
+//       return;
+//     }
+
+//     // Check if any row is affected (indicating a successful delete)
+//     if (result.affectedRows > 0) {
+//       res.status(200).json({
+//         success: true,
+//         message: "Record deleted successfully",
+//       });
+//     } else {
+//       res.status(404).json({ error: "Record not found" });
+//     }
+//   });
+// };
+
 export const deletePlacement = (req, res) => {
   const { ID } = req.body;
-  const sql = "DELETE FROM placementData WHERE ID = ?";
 
-  connectDB.query(sql, [ID], (err, result) => {
-    if (err) {
-      console.error("Error executing delete query:", err);
-      res.status(500).json({ error: "Internal Server Error" });
+  // Retrieve PDF link from the database based on the provided 'ID'
+  const pdfQuery = 'SELECT appointmentLetter FROM placementData WHERE ID = ?';
+  connectDB.query(pdfQuery, [ID], (pdfErr, pdfResult) => {
+    if (pdfErr) {
+      console.error('Error querying PDF link from the database: ' + pdfErr.stack);
+      res.status(500).json({ error: 'Internal Server Error' });
       return;
     }
 
-    // Check if any row is affected (indicating a successful delete)
-    if (result.affectedRows > 0) {
-      res.status(200).json({
-        success: true,
-        message: "Record deleted successfully",
-      });
+    if (pdfResult.length > 0) {
+      const { appointmentLetter } = pdfResult[0];
+
+      // Check if the appointmentLetter link exists
+      if (appointmentLetter) {
+        // Extract the relative file path from the link
+        const relativeFilePath = appointmentLetter.replace('http://localhost:3001/public', '');
+        
+        const currentModulePath = fileURLToPath(import.meta.url);
+        const currentModuleDir = dirname(currentModulePath);
+        // Construct the absolute file path
+        const absoluteFilePath = path.join(currentModuleDir, '..', 'public', relativeFilePath);
+
+        // Delete the corresponding PDF file
+        fs.unlink(absoluteFilePath, (unlinkErr) => {
+          if (unlinkErr) {
+            console.error('Error deleting PDF file: ' + unlinkErr.stack);
+            res.status(500).json({ error: 'Internal Server Error' });
+            return;
+          }
+
+          // Proceed with deleting the database entry after the file deletion
+          const deleteQuery = 'DELETE FROM placementData WHERE ID = ?';
+          connectDB.query(deleteQuery, [ID], (deleteErr, result) => {
+            if (deleteErr) {
+              console.error('Error executing delete query:', deleteErr);
+              res.status(500).json({ error: 'Internal Server Error' });
+            } else {
+              // Check if any row is affected (indicating a successful delete)
+              if (result.affectedRows > 0) {
+                res.status(200).json({
+                  success: true,
+                  message: 'Record deleted successfully',
+                });
+              } else {
+                res.status(404).json({ error: 'Record not found' });
+              }
+            }
+          });
+        });
+      } else {
+        // Proceed with deleting the database entry if no PDF link is associated
+        const deleteQuery = 'DELETE FROM placementData WHERE ID = ?';
+        connectDB.query(deleteQuery, [ID], (deleteErr, result) => {
+          if (deleteErr) {
+            console.error('Error executing delete query:', deleteErr);
+            res.status(500).json({ error: 'Internal Server Error' });
+          } else {
+            // Check if any row is affected (indicating a successful delete)
+            if (result.affectedRows > 0) {
+              res.status(200).json({
+                success: true,
+                message: 'Record deleted successfully',
+              });
+            } else {
+              res.status(404).json({ error: 'Record not found' });
+            }
+          }
+        });
+      }
     } else {
-      res.status(404).json({ error: "Record not found" });
+      res.status(404).json({ error: 'Record not found' });
     }
   });
 };
+
+
 
 export const addPlacement = (req, res) => {
   // console.log(req);
@@ -357,6 +437,7 @@ export const getPlacement = (req, res) => {
 
 };
 
+
 export const uploadPdf = (req, res) => {
   upload.single('pdf')(req, res, async (err) => {
     if (err) {
@@ -365,28 +446,50 @@ export const uploadPdf = (req, res) => {
       return;
     }
 
-    // Access the uploaded file information
-    // console.log(req.body);
-    const { buffer } = req.file;
-    const { id } = req.body;
-    // const id = '2K20/EC/0371704815836050'
-    // Convert the PDF buffer to base64 for storing in the database
-    const base64PDF = buffer.toString('base64');
+    const { buffer, originalname } = req.file;
+    const { id, rollNo } = req.body;
 
-    // Save PDF information to the database
-    const query = 'INSERT INTO placementData (appointmentLetter, ID) VALUES (?, ?)';
+    let modifiedRollNo = rollNo.replace(/\//g, '-');
+    const fileName = `${id}.pdf`;
 
-    connectDB.query(query, [base64PDF, id], (dbErr, result) => {
-      if (dbErr) {
-        console.error('Error inserting into database: ' + dbErr.stack);
+    // Get the current module's directory
+    const currentModulePath = fileURLToPath(import.meta.url);
+    const currentModuleDir = dirname(currentModulePath);
+    const parentDir = resolve(currentModuleDir, '..');
+
+    // Create a directory if it doesn't exist
+    const rollNoDir = path.join(parentDir, 'public/appointmentLetters', modifiedRollNo);
+    if (!fs.existsSync(rollNoDir)) {
+      fs.mkdirSync(rollNoDir);
+    }
+
+    // Save the PDF file inside the rollNo directory
+    const filePath = path.join(rollNoDir, fileName);
+    fs.writeFile(filePath, buffer, (writeErr) => {
+      if (writeErr) {
+        console.error('Error saving PDF to file: ' + writeErr.stack);
         res.status(500).send('Internal Server Error');
-      } else {
-        // console.log('PDF uploaded and saved to database'); 
-        res.status(200).send('PDF uploaded and saved to database');
+        return;
       }
+
+      // Insert into the database without checking if RollNo exists
+      const baseUrl = 'http://localhost:3001/public';
+      const appointmentLettersLink = `${baseUrl}/appointmentLetters/${modifiedRollNo}/${fileName}`;
+
+      const insertQuery = 'INSERT INTO placementData (id, appointmentLetter) VALUES (?, ?)';
+      connectDB.query(insertQuery, [id, appointmentLettersLink], (insertErr, insertResult) => {
+        if (insertErr) {
+          console.error('Error inserting into database: ' + insertErr.stack);
+          res.status(500).send('Internal Server Error');
+        } else {
+          res.status(200).send('PDF uploaded and saved to database');
+        }
+      });
     });
   });
 };
+
+
 
 
 export const getPdf = (req, res) => {
@@ -404,18 +507,16 @@ export const getPdf = (req, res) => {
     if (result.length > 0) {
       const { appointmentLetter } = result[0];
 
-      // Convert the base64-encoded PDF data back to a Buffer
+      // Check if a link is present
       if (appointmentLetter) {
-        const pdfBuffer = Buffer.from(appointmentLetter, 'base64');
 
-        // Set the appropriate headers for the PDF response
-        res.setHeader('Content-Type', 'application/pdf');
-        // res.setHeader('Content-Disposition', `inline; filename=${originalname}`);
-        // Send the PDF data as the response
-        res.end(pdfBuffer);
+        // Send the PDF link as the response
+        res.status(200).send({appointmentLetter});
+      } else {
+        res.status(404).send('PDF link not found');
       }
     } else {
-      res.status(404).send('PDF not found');
+      res.status(404).send('PDF link not found');
     }
   });
 };
@@ -488,32 +589,74 @@ export const uploadScoreCard=(req,res)=>{
       return;
     }
 
-    // Access the uploaded file information
-    // console.log(req.body);
-    const { buffer } = req.file;
+    const { buffer, originalname } = req.file;
     const { rollNo } = req.body;
-    // Convert the PDF buffer to base64 for storing in the database
-    const base64PDF = buffer.toString('base64');
+    
+    
+    let modifiedRollNo = rollNo.replace(/\//g, '-');
+    console.log(modifiedRollNo);
+    const fileName = `${modifiedRollNo}.pdf`;
 
-    // Save PDF information to the database
-    const query = 'UPDATE mtechEducationalDetails SET gateScoreCard= ? WHERE RollNo =  ?';
+    // Get the current module's directory
+    const currentModulePath = fileURLToPath(import.meta.url);
+    const currentModuleDir = dirname(currentModulePath);
+    const parentDir = resolve(currentModuleDir, '..');
+    // Save the PDF file to the companyCertificates folder
 
-    connectDB.query(query, [base64PDF, rollNo], (dbErr, result) => {
-      if (dbErr) {
-        console.error('Error inserting into database: ' + dbErr.stack);
+
+    const filePath = path.join(parentDir, 'public/scoreCards', fileName);
+    fs.writeFile(filePath, buffer, (writeErr) => {
+      if (writeErr) {
+        console.error('Error saving PDF to file: ' + writeErr.stack);
         res.status(500).send('Internal Server Error');
-      } else {
-        // console.log('PDF uploaded and saved to database'); 
-        res.status(200).send('PDF uploaded and saved to database');
+        return;
       }
+
+      // Check if RollNo exists
+      const checkQuery = 'SELECT * FROM mtechEducationalDetails WHERE RollNo = ?';
+
+      connectDB.query(checkQuery, [rollNo], (checkErr, checkResult) => {
+        if (checkErr) {
+          console.error('Error checking RollNo existence: ' + checkErr.stack);
+          res.status(500).send('Internal Server Error');
+        } else {
+          
+          const baseUrl = 'http://localhost:3001/public';
+          const gateScoreCardLink = `${baseUrl}/scoreCards/${fileName}`;
+
+          if (checkResult.length === 0) {
+            // RollNo does not exist, insert
+            const insertQuery = 'INSERT INTO mtechEducationalDetails (RollNo, gateScoreCard) VALUES (?, ?)';
+            connectDB.query(insertQuery, [rollNo, gateScoreCardLink], (insertErr, insertResult) => {
+              if (insertErr) {
+                console.error('Error inserting into database: ' + insertErr.stack);
+                res.status(500).send('Internal Server Error');
+              } else {
+                res.status(200).send('PDF uploaded and saved to database');
+              }
+            });
+          } else {
+            // RollNo exists, update
+            const updateQuery = 'UPDATE mtechEducationalDetails SET gateScoreCard = ? WHERE RollNo = ?';
+            connectDB.query(updateQuery, [gateScoreCardLink, rollNo], (updateErr, updateResult) => {
+              if (updateErr) {
+                console.error('Error updating database: ' + updateErr.stack);
+                res.status(500).send('Internal Server Error');
+              } else {
+                res.status(200).send('PDF uploaded and saved to database');
+              }
+            });
+          }
+        }
+      });
     });
   });
 }
 
 export const getScoreCard=(req,res)=>{
   const { id } = req.body;
-  
-  // Retrieve PDF data from the database based on the provided 'id'
+
+  // Retrieve the stored link from the database based on the provided 'id'
   const query = 'SELECT gateScoreCard FROM mtechEducationalDetails WHERE RollNO = ?';
   connectDB.query(query, [id], (err, result) => {
     if (err) {
@@ -525,18 +668,16 @@ export const getScoreCard=(req,res)=>{
     if (result.length > 0) {
       const { gateScoreCard } = result[0];
 
-      // Convert the base64-encoded PDF data back to a Buffer
-      if ( gateScoreCard) {
-        const pdfBuffer = Buffer.from(gateScoreCard, 'base64');
+      // Check if a link is present
+      if (gateScoreCard) {
 
-        // Set the appropriate headers for the PDF response
-        res.setHeader('Content-Type', 'application/pdf');
-        // res.setHeader('Content-Disposition', `inline; filename=${originalname}`);
-        // Send the PDF data as the response
-        res.end(pdfBuffer);
+        // Send the PDF link as the response
+        res.status(200).send({gateScoreCard});
+      } else {
+        res.status(404).send('PDF link not found');
       }
     } else {
-      res.status(404).send('PDF not found');
+      res.status(404).send('PDF link not found');
     }
   });
 }
@@ -607,11 +748,11 @@ export const getCompanyRegCert = (req, res) => {
       // Check if a link is present
       if (companyRegCertificate) {
         // Construct the full URL using the local server's base URL and the stored link
-        const baseUrl = 'http://localhost:3001';
-        const fullUrl = `${baseUrl}${companyRegCertificate}`;
+        // const baseUrl = 'http://localhost:3001/public';
+        // const fullUrl = `${baseUrl}${companyRegCertificate}`;
 
         // Send the PDF link as the response
-        res.status(200).send(fullUrl);
+        res.status(200).send({companyRegCertificate});
       } else {
         res.status(404).send('PDF link not found');
       }
@@ -621,54 +762,6 @@ export const getCompanyRegCert = (req, res) => {
   });
 };
 
-
-// export const uploadCompanyRegCert = (req, res) => {
-//   upload.single('pdf')(req, res, async (err) => {
-//     if (err) {
-//       console.error('Error uploading PDF: ' + err.stack);
-//       res.status(500).send('Internal Server Error');
-//       return;
-//     }
-
-//     const { buffer } = req.file;
-//     const { rollNo } = req.body;
-//     const base64PDF = buffer.toString('base64');
-
-//     // Check if RollNo exists
-//     const checkQuery = 'SELECT * FROM entrepreneurDetails WHERE RollNo = ?';
-
-//     connectDB.query(checkQuery, [rollNo], (checkErr, checkResult) => {
-//       if (checkErr) {
-//         console.error('Error checking RollNo existence: ' + checkErr.stack);
-//         res.status(500).send('Internal Server Error');
-//       } else {
-//         if (checkResult.length === 0) {
-//           // RollNo does not exist, insert
-//           const insertQuery = 'INSERT INTO entrepreneurDetails (RollNo, companyRegCertificate) VALUES (?, ?)';
-//           connectDB.query(insertQuery, [rollNo, base64PDF], (insertErr, insertResult) => {
-//             if (insertErr) {
-//               console.error('Error inserting into database: ' + insertErr.stack);
-//               res.status(500).send('Internal Server Error');
-//             } else {
-//               res.status(200).send('PDF uploaded and saved to database');
-//             }
-//           });
-//         } else {
-//           // RollNo exists, update
-//           const updateQuery = 'UPDATE entrepreneurDetails SET companyRegCertificate = ? WHERE RollNo = ?';
-//           connectDB.query(updateQuery, [base64PDF, rollNo], (updateErr, updateResult) => {
-//             if (updateErr) {
-//               console.error('Error updating database: ' + updateErr.stack);
-//               res.status(500).send('Internal Server Error');
-//             } else {
-//               res.status(200).send('PDF uploaded and saved to database');
-//             }
-//           });
-//         }
-//       }
-//     });
-//   });
-// };
 
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -684,14 +777,20 @@ export const uploadCompanyRegCert = (req, res) => {
 
     const { buffer, originalname } = req.file;
     const { rollNo } = req.body;
-    const fileName = `${originalname}`;
+    
+    
+    let modifiedRollNo = rollNo.replace(/\//g, '-');
+    console.log(modifiedRollNo);
+    const fileName = `${modifiedRollNo}.pdf`;
 
     // Get the current module's directory
     const currentModulePath = fileURLToPath(import.meta.url);
     const currentModuleDir = dirname(currentModulePath);
-
+    const parentDir = resolve(currentModuleDir, '..');
     // Save the PDF file to the companyCertificates folder
-    const filePath = path.join(currentModuleDir, 'companyCertificates', fileName);
+
+
+    const filePath = path.join(parentDir, 'public/companyCertificates', fileName);
     fs.writeFile(filePath, buffer, (writeErr) => {
       if (writeErr) {
         console.error('Error saving PDF to file: ' + writeErr.stack);
@@ -707,7 +806,9 @@ export const uploadCompanyRegCert = (req, res) => {
           console.error('Error checking RollNo existence: ' + checkErr.stack);
           res.status(500).send('Internal Server Error');
         } else {
-          const certificateLink = `/companyCertificates/${fileName}`;
+          
+          const baseUrl = 'http://localhost:3001/public';
+          const certificateLink = `${baseUrl}/companyCertificates/${fileName}`;
 
           if (checkResult.length === 0) {
             // RollNo does not exist, insert
@@ -792,8 +893,8 @@ export const updateHigherEducationDetails=(req,res)=>{
 export const getOfferLetter=(req,res)=>{
 
   const { id } = req.body;
-  
-  // Retrieve PDF data from the database based on the provided 'id'
+
+  // Retrieve the stored link from the database based on the provided 'id'
   const query = 'SELECT offerLetter FROM higherEducationDetails WHERE RollNO = ?';
   connectDB.query(query, [id], (err, result) => {
     if (err) {
@@ -803,20 +904,18 @@ export const getOfferLetter=(req,res)=>{
     }
 
     if (result.length > 0) {
-      const { offerLetter} = result[0];
+      const { offerLetter } = result[0];
 
-      // Convert the base64-encoded PDF data back to a Buffer
-      if ( offerLetter) {
-        const pdfBuffer = Buffer.from(offerLetter, 'base64');
+      // Check if a link is present
+      if (offerLetter) {
 
-        // Set the appropriate headers for the PDF response
-        res.setHeader('Content-Type', 'application/pdf');
-        // res.setHeader('Content-Disposition', `inline; filename=${originalname}`);
-        // Send the PDF data as the response
-        res.end(pdfBuffer);
+        // Send the PDF link as the response
+        res.status(200).send({offerLetter});
+      } else {
+        res.status(404).send('PDF link not found');
       }
     } else {
-      res.status(404).send('PDF not found');
+      res.status(404).send('PDF link not found');
     }
   });
 
@@ -829,42 +928,66 @@ export const uploadofferletter=(req,res)=>{
       return;
     }
 
-    const { buffer } = req.file;
+    const { buffer, originalname } = req.file;
     const { rollNo } = req.body;
-    const base64PDF = buffer.toString('base64');
+    
+    
+    let modifiedRollNo = rollNo.replace(/\//g, '-');
+    console.log(modifiedRollNo);
+    const fileName = `${modifiedRollNo}.pdf`;
 
-    // Check if RollNo exists
-    const checkQuery = 'SELECT * FROM higherEducationDetails WHERE RollNo = ?';
+    // Get the current module's directory
+    const currentModulePath = fileURLToPath(import.meta.url);
+    const currentModuleDir = dirname(currentModulePath);
+    const parentDir = resolve(currentModuleDir, '..');
+    // Save the PDF file to the companyCertificates folder
 
-    connectDB.query(checkQuery, [rollNo], (checkErr, checkResult) => {
-      if (checkErr) {
-        console.error('Error checking RollNo existence: ' + checkErr.stack);
+
+    const filePath = path.join(parentDir, 'public/offerLetters', fileName);
+    fs.writeFile(filePath, buffer, (writeErr) => {
+      if (writeErr) {
+        console.error('Error saving PDF to file: ' + writeErr.stack);
         res.status(500).send('Internal Server Error');
-      } else {
-        if (checkResult.length === 0) {
-          // RollNo does not exist, insert
-          const insertQuery = 'INSERT INTO higherEducationDetails (RollNo, offerLetter) VALUES (?, ?)';
-          connectDB.query(insertQuery, [rollNo, base64PDF], (insertErr, insertResult) => {
-            if (insertErr) {
-              console.error('Error inserting into database: ' + insertErr.stack);
-              res.status(500).send('Internal Server Error');
-            } else {
-              res.status(200).send('PDF uploaded and saved to database');
-            }
-          });
-        } else {
-          // RollNo exists, update
-          const updateQuery = 'UPDATE higherEducationDetails SET offerLetter = ? WHERE RollNo = ?';
-          connectDB.query(updateQuery, [base64PDF, rollNo], (updateErr, updateResult) => {
-            if (updateErr) {
-              console.error('Error updating database: ' + updateErr.stack);
-              res.status(500).send('Internal Server Error');
-            } else {
-              res.status(200).send('PDF uploaded and saved to database');
-            }
-          });
-        }
+        return;
       }
+
+      // Check if RollNo exists
+      const checkQuery = 'SELECT * FROM higherEducationDetails WHERE RollNo = ?';
+
+      connectDB.query(checkQuery, [rollNo], (checkErr, checkResult) => {
+        if (checkErr) {
+          console.error('Error checking RollNo existence: ' + checkErr.stack);
+          res.status(500).send('Internal Server Error');
+        } else {
+          
+          const baseUrl = 'http://localhost:3001/public';
+          const offerLetterLink = `${baseUrl}/offerLetters/${fileName}`;
+
+          if (checkResult.length === 0) {
+            // RollNo does not exist, insert
+            const insertQuery = 'INSERT INTO higherEducationDetails (RollNo, offerLetter) VALUES (?, ?)';
+            connectDB.query(insertQuery, [rollNo, offerLetterLink], (insertErr, insertResult) => {
+              if (insertErr) {
+                console.error('Error inserting into database: ' + insertErr.stack);
+                res.status(500).send('Internal Server Error');
+              } else {
+                res.status(200).send('PDF uploaded and saved to database');
+              }
+            });
+          } else {
+            // RollNo exists, update
+            const updateQuery = 'UPDATE higherEducationDetails SET offerLetter = ? WHERE RollNo = ?';
+            connectDB.query(updateQuery, [offerLetterLink, rollNo], (updateErr, updateResult) => {
+              if (updateErr) {
+                console.error('Error updating database: ' + updateErr.stack);
+                res.status(500).send('Internal Server Error');
+              } else {
+                res.status(200).send('PDF uploaded and saved to database');
+              }
+            });
+          }
+        }
+      });
     });
   });
 }
@@ -872,23 +995,78 @@ export const uploadofferletter=(req,res)=>{
 
 export const deletePublication = (req, res) => {
   const { ID } = req.body;
-  const sql = "DELETE FROM publicationDetails WHERE ID = ?";
 
-  connectDB.query(sql, [ID], (err, result) => {
-    if (err) {
-      console.error("Error executing delete query:", err);
-      res.status(500).json({ error: "Internal Server Error" });
+  // Retrieve PDF link from the database based on the provided 'ID'
+  const pdfQuery = 'SELECT manuscript FROM publicationDetails WHERE ID = ?';
+  connectDB.query(pdfQuery, [ID], (pdfErr, pdfResult) => {
+    if (pdfErr) {
+      console.error('Error querying PDF link from the database: ' + pdfErr.stack);
+      res.status(500).json({ error: 'Internal Server Error' });
       return;
     }
 
-    // Check if any row is affected (indicating a successful delete)
-    if (result.affectedRows > 0) {
-      res.status(200).json({
-        success: true,
-        message: "Record deleted successfully",
-      });
+    if (pdfResult.length > 0) {
+      const { manuscript } = pdfResult[0];
+
+      // Check if the appointmentLetter link exists
+      if (manuscript) {
+        // Extract the relative file path from the link
+        const relativeFilePath = manuscript.replace('http://localhost:3001/public', '');
+        
+        const currentModulePath = fileURLToPath(import.meta.url);
+        const currentModuleDir = dirname(currentModulePath);
+        // Construct the absolute file path
+        const absoluteFilePath = path.join(currentModuleDir, '..', 'public', relativeFilePath);
+
+        // Delete the corresponding PDF file
+        fs.unlink(absoluteFilePath, (unlinkErr) => {
+          if (unlinkErr) {
+            console.error('Error deleting PDF file: ' + unlinkErr.stack);
+            res.status(500).json({ error: 'Internal Server Error' });
+            return;
+          }
+
+          // Proceed with deleting the database entry after the file deletion
+          const deleteQuery = 'DELETE FROM publicationDetails WHERE ID = ?';
+          connectDB.query(deleteQuery, [ID], (deleteErr, result) => {
+            if (deleteErr) {
+              console.error('Error executing delete query:', deleteErr);
+              res.status(500).json({ error: 'Internal Server Error' });
+            } else {
+              // Check if any row is affected (indicating a successful delete)
+              if (result.affectedRows > 0) {
+                res.status(200).json({
+                  success: true,
+                  message: 'Record deleted successfully',
+                });
+              } else {
+                res.status(404).json({ error: 'Record not found' });
+              }
+            }
+          });
+        });
+      } else {
+        // Proceed with deleting the database entry if no PDF link is associated
+        const deleteQuery = 'DELETE FROM publicationDetails WHERE ID = ?';
+        connectDB.query(deleteQuery, [ID], (deleteErr, result) => {
+          if (deleteErr) {
+            console.error('Error executing delete query:', deleteErr);
+            res.status(500).json({ error: 'Internal Server Error' });
+          } else {
+            // Check if any row is affected (indicating a successful delete)
+            if (result.affectedRows > 0) {
+              res.status(200).json({
+                success: true,
+                message: 'Record deleted successfully',
+              });
+            } else {
+              res.status(404).json({ error: 'Record not found' });
+            }
+          }
+        });
+      }
     } else {
-      res.status(404).json({ error: "Record not found" });
+      res.status(404).json({ error: 'Record not found' });
     }
   });
 };
@@ -952,25 +1130,45 @@ export const uploadManuscript = (req, res) => {
       return;
     }
 
-    // Access the uploaded file information
-    // console.log(req.body);
-    const { buffer } = req.file;
-    const { id } = req.body;
-    // const id = '2K20/EC/0371704815836050'
-    // Convert the PDF buffer to base64 for storing in the database
-    const base64PDF = buffer.toString('base64');
+    const { buffer, originalname } = req.file;
+    const { id, rollNo } = req.body;
 
-    // Save PDF information to the database
-    const query = 'INSERT INTO publicationDetails (manuscript, ID) VALUES (?, ?)';
+    let modifiedRollNo = rollNo.replace(/\//g, '-');
+    const fileName = `${id}.pdf`;
 
-    connectDB.query(query, [base64PDF, id], (dbErr, result) => {
-      if (dbErr) {
-        console.error('Error inserting into database: ' + dbErr.stack);
+    // Get the current module's directory
+    const currentModulePath = fileURLToPath(import.meta.url);
+    const currentModuleDir = dirname(currentModulePath);
+    const parentDir = resolve(currentModuleDir, '..');
+
+    // Create a directory if it doesn't exist
+    const rollNoDir = path.join(parentDir, 'public/manuscripts', modifiedRollNo);
+    if (!fs.existsSync(rollNoDir)) {
+      fs.mkdirSync(rollNoDir);
+    }
+
+    // Save the PDF file inside the rollNo directory
+    const filePath = path.join(rollNoDir, fileName);
+    fs.writeFile(filePath, buffer, (writeErr) => {
+      if (writeErr) {
+        console.error('Error saving PDF to file: ' + writeErr.stack);
         res.status(500).send('Internal Server Error');
-      } else {
-        // console.log('PDF uploaded and saved to database'); 
-        res.status(200).send('PDF uploaded and saved to database');
+        return;
       }
+
+      // Insert into the database without checking if RollNo exists
+      const baseUrl = 'http://localhost:3001/public';
+      const manuscriptLink = `${baseUrl}/manuscripts/${modifiedRollNo}/${fileName}`;
+
+      const insertQuery = 'INSERT INTO publicationDetails (id, manuscript) VALUES (?, ?)';
+      connectDB.query(insertQuery, [id, manuscriptLink], (insertErr, insertResult) => {
+        if (insertErr) {
+          console.error('Error inserting into database: ' + insertErr.stack);
+          res.status(500).send('Internal Server Error');
+        } else {
+          res.status(200).send('PDF uploaded and saved to database');
+        }
+      });
     });
   });
 };
@@ -991,18 +1189,16 @@ export const getManuscript = (req, res) => {
     if (result.length > 0) {
       const { manuscript } = result[0];
 
-      // Convert the base64-encoded PDF data back to a Buffer
+      // Check if a link is present
       if (manuscript) {
-        const pdfBuffer = Buffer.from(manuscript, 'base64');
 
-        // Set the appropriate headers for the PDF response
-        res.setHeader('Content-Type', 'application/pdf');
-        // res.setHeader('Content-Disposition', `inline; filename=${originalname}`);
-        // Send the PDF data as the response
-        res.end(pdfBuffer);
+        // Send the PDF link as the response
+        res.status(200).send({manuscript});
+      } else {
+        res.status(404).send('PDF link not found');
       }
     } else {
-      res.status(404).send('PDF not found');
+      res.status(404).send('PDF link not found');
     }
   });
 };
