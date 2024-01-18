@@ -6,8 +6,8 @@ export const connectDB = mysql.createConnection({
   user     : 'root',
   // user     : process.env.USE,
   // password : process.env.PASSWORD,
-  // password : "rootuser",
-  password : "root",
+  password : "rootuser",
+  // password : "root",
   
   database : 'admin'
 });
@@ -16,7 +16,7 @@ export const connectDB = mysql.createConnection({
 // Connect to the database
 connectDB.connect((err)=>{
   if(err){
-      throw err;
+      console.log(err);
   }
   console.log('Database connected ...');
 });

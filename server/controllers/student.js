@@ -545,40 +545,73 @@ export const getMtechEducationDetails = (req,res) => {
 
 };
 
-export const updateMtechEducationDetails = (req,res) => {
+export const updateMtechEducationDetails = (req, res) => {
   const { admittedThrough, gateRollNo, gateAir, gateMarks, RollNo } = req.body;
-  let sql;
-  if(admittedThrough==='GATE'){
-    sql =
-    "UPDATE mtechEducationalDetails SET admittedThrough = ?, gateRollNo = ?, gateAir = ?, gateMarks = ? WHERE RollNo = ?";
-  }
-  else{
-    sql =
-    "UPDATE mtechEducationalDetails SET admittedThrough = ?, gateRollNo = ?, gateAir = ?, gateMarks = ?, gateScoreCard = null WHERE RollNo = ?";
-  }
+  let sqlCheckUserExists = "SELECT * FROM mtechEducationalDetails WHERE RollNo = ?";
 
+  connectDB.query(sqlCheckUserExists, [RollNo], (checkErr, checkResult) => {
+    if (checkErr) {
+      console.error("Error checking user existence:", checkErr);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
 
-  connectDB.query(
-    sql,
-    [admittedThrough,gateRollNo,gateAir,gateMarks,RollNo],
-    (err, result) => {
-      if (err) {
-        console.error("Error executing update query:", err);
-        res.status(500).json({ error: "Internal Server Error" });
-        return;
+    // If the user exists, update the record
+    if (checkResult.length > 0) {
+      let sqlUpdate;
+      if (admittedThrough === 'GATE') {
+        sqlUpdate =
+          "UPDATE mtechEducationalDetails SET admittedThrough = ?, gateRollNo = ?, gateAir = ?, gateMarks = ? WHERE RollNo = ?";
+      } else {
+        sqlUpdate =
+          "UPDATE mtechEducationalDetails SET admittedThrough = ?, gateRollNo = ?, gateAir = ?, gateMarks = ?, gateScoreCard = null WHERE RollNo = ?";
       }
 
-      // Check if any row is affected (indicating a successful update)
-      if (result.affectedRows > 0) {
-        res.status(201).json({
-          success: true,
-          message: "Record updated successfully",
-        });
-      } else {
-        res.status(404).json({ error: "Record not found" });
+      connectDB.query(
+        sqlUpdate,
+        [admittedThrough, gateRollNo, gateAir, gateMarks, RollNo],
+        (updateErr, updateResult) => {
+          if (updateErr) {
+            console.error("Error executing update query:", updateErr);
+            res.status(500).json({ error: "Internal Server Error" });
+            return;
+          }
+          if (updateResult.affectedRows > 0) {
+            res.status(201).json({
+              success: true,
+              message: "Record updated successfully",
+            });
+          } else {
+            res.status(404).json({ error: "Record not found" });
+          }
+        }
+      );
+    } else {
+      // If the user does not exist, insert a new record
+      let sqlInsert;
+      if (admittedThrough === 'Non-GATE') {
+        sqlInsert =
+          "INSERT INTO mtechEducationalDetails (RollNo, admittedThrough, gateRollNo, gateAir, gateMarks, gateScoreCard) VALUES (?, ?, ?, ?, ?, null)";
+      
+
+      connectDB.query(
+        sqlInsert,
+        [RollNo, admittedThrough, gateRollNo, gateAir, gateMarks],
+        (insertErr, insertResult) => {
+          if (insertErr) {
+            console.error("Error executing insert query:", insertErr);
+            res.status(500).json({ error: "Internal Server Error" });
+          } else {
+            res.status(201).json({
+              success: true,
+              message: "Record inserted successfully",
+            });
+          }
+        }
+      );
       }
     }
-  );
+  });
 };
 
 export const uploadScoreCard=(req,res)=>{
@@ -594,7 +627,6 @@ export const uploadScoreCard=(req,res)=>{
     
     
     let modifiedRollNo = rollNo.replace(/\//g, '-');
-    console.log(modifiedRollNo);
     const fileName = `${modifiedRollNo}.pdf`;
 
     // Get the current module's directory

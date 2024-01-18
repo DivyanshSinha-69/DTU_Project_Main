@@ -33,7 +33,16 @@ export default function AddPlacementsPopup(props) {
 
     if (!formData.companyName || !formData.placementType || !formData.joiningDate) {
       toast.error("Please fill in all required fields");
-      return;
+    } else {
+      // Check if the joiningDate is in the format YYYY-MM-DD
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    
+      if (!dateRegex.test(formData.joiningDate)) {
+        toast.error("Please enter the joining date in the format YYYY-MM-DD");
+        return;
+      }
+    
+      // Your code for further processing when all conditions are met
     }
     
     try {
@@ -115,6 +124,7 @@ export default function AddPlacementsPopup(props) {
             placeholder="YYYY-MM-DD"
             value={formData.eventname}
             onChange={handleChange}
+            oninput={()=>validateInput(this)}
             name="joiningDate"
             className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 !h-[40px]"
             labelProps={{
@@ -148,6 +158,18 @@ export default function AddPlacementsPopup(props) {
       </form>
     </Card>
   );
+  
 }
 
+function validateInput(inputElement) {
+  const errorMessageElement = document.getElementById('errorMessage');
+  const inputValue = inputElement.value;
+
+  // Check if the input matches the pattern (only numbers)
+  if (!/^[0-9]*$/.test(inputValue)) {
+    errorMessageElement.textContent = 'Please enter numbers only.';
+  } else {
+    errorMessageElement.textContent = '';
+  }
+}
 

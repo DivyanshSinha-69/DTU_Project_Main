@@ -27,14 +27,21 @@ export default function EntrepreneurPopup(props) {
 
   const handlepopup = async () => {
     try {
-      if (
-        !formData.companyName ||
-        !formData.companyLink||
-        !formData.cinNumber
-      ) {
+      if (!formData.companyName || !formData.companyLink || !formData.cinNumber) {
         toast.error("Please fill in all required fields");
         return;
+      } else {
+        // Check if the companyLink is a valid URL
+        const urlRegex = /^(ftp|http|https):\/\/[^ "]+$/;
+      
+        if (!urlRegex.test(formData.companyLink)) {
+          toast.error("Please enter a valid website link for the company");
+          return;
+        }
+      
+        // Your code for further processing when all conditions are met
       }
+      
 
       const response = await axios.put(
         "http://localhost:3001/ece/student/updateentrepreneurdetails",

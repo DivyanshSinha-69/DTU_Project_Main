@@ -45,6 +45,24 @@ export default function PersonalDetailPopup(props) {
     ) {
       toast.error("Please fill in all required fields");
       return;
+    } else {
+      // Check if personalContactNo and parentContactNo have exactly 10 digits
+      const phoneRegex = /^\d{10}$/;
+    
+      if (!phoneRegex.test(formData.personalContactNo) || !phoneRegex.test(formData.parentContactNo)) {
+        toast.error("Please enter valid 10-digit phone numbers for Personal and Parent contacts");
+        return;
+      }
+    
+      // Check if personalEmail and dtuEmail are valid email addresses
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+      if (!emailRegex.test(formData.personalEmail) || !emailRegex.test(formData.dtuEmail)) {
+        toast.error("Please enter valid email addresses for Personal and DTU emails");
+        return;
+      }
+    
+      // Your code for further processing when all conditions are met
     }
     try {
       const response = await axios.put(
@@ -72,7 +90,6 @@ export default function PersonalDetailPopup(props) {
         parentContactNo: formData.parentContactNo,
         personalEmail: formData.personalEmail,
         dtuEmail: formData.dtuEmail,
-        studentImage: studentimage,
       };
 
       dispatch(updatePersonalDetails([{ ...updateddata }]));

@@ -31,7 +31,18 @@ export default function AddPopupProfessionalSkills(props) {
     if (!formData.organisation || !formData.position || !formData.eventname || !formData.date) {
       toast.error("Please fill in all required fields");
       return;
+    } else {
+      // Check if the date is in the format YYYY-MM-DD
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    
+      if (!dateRegex.test(formData.date)) {
+        toast.error("Please enter the date in the format YYYY-MM-DD");
+        return;
+      }
+    
+      // Your code for further processing when all conditions are met
     }
+    
     const id = RollNo+Date.now();
     try {
       const response = await axios.post(

@@ -4,7 +4,7 @@ import { Card, Input, Button, Typography } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
 import MtechScoreCardPdf from "./MtechScoreCardPdf";
 import { setMtechEducation } from "../../../redux/reducers/UserMtechEducationalDetails";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 
 export default function MtechEducationDetailPopup(props) {
   const { closeModal, name, gateRollNo, gateAir, gateMarks, admittedThrough } =
@@ -32,7 +32,6 @@ export default function MtechEducationDetailPopup(props) {
   const handleSelectChange = (e) => {
     setAdmissionMethod(e.target.value);
     formData.admittedThrough = e.target.value;
-    console.log(formData);
   };
 
   const handlepopup = async () => {
@@ -46,6 +45,23 @@ export default function MtechEducationDetailPopup(props) {
         ) {
           toast.error("Please fill in all required fields");
           return;
+        } else {
+          // Check if gateAir contains only digits
+          if (!/^\d+$/.test(formData.gateAir)) {
+            toast.error("Gate Air field should only contain digits");
+            return;
+          }
+
+          // Check if gateMarks contains only digits and is less than or equal to 100
+          if (!/^\d+(\.\d+)?$/.test(formData.gateMarks) ||parseFloat(formData.gateMarks) > 100) {
+            toast.error(
+              "Gate Marks should only contain digits and be less than or equal to 100"
+            );
+            return;
+          }
+
+          // Continue with the rest of your code if all checks pass
+          // ...
         }
 
         const response = await axios.put(

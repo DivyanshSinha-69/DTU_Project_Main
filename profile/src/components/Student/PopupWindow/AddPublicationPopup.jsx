@@ -35,6 +35,16 @@ export default function AddPlacementsPopup(props) {
     if (!formData.publishedIn || !formData.publicationDoi || !formData.publishedArticleLink || !formData.articleTitle) {
       toast.error("Please fill in all required fields");
       return;
+    } else {
+      // Check if the publishedArticleLink is a valid URL
+      const urlRegex = /^(ftp|http|https):\/\/[^ "]+$/;
+    
+      if (!urlRegex.test(formData.publishedArticleLink)) {
+        toast.error("Please enter a valid website link for the published article");
+        return;
+      }
+    
+      // Your code for further processing when all conditions are met
     }
 
     try {
