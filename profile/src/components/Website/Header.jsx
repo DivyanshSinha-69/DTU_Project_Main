@@ -30,6 +30,7 @@ import { removePlacement } from "../../redux/reducers/UserPlacementDetail";
 import { removeMtechEducation } from "../../redux/reducers/UserMtechEducationalDetails";
 import { removeEntrepreneurDetails } from "../../redux/reducers/UserEntrepreneurDetails";
 import { removeHigherEducationDetails } from "../../redux/reducers/UserHigherEducationDetails";
+import { removeInterInstitute } from "../../redux/reducers/UserInterInstituteDetails";
 
 
 export default function StickyNavbar() {
@@ -68,6 +69,7 @@ export default function StickyNavbar() {
       dispatch(removeMtechEducation());
       dispatch(removeEntrepreneurDetails());
       dispatch(removeHigherEducationDetails());
+      dispatch(removeInterInstitute());
       // dispatch(setRole("null"));
       navigate("/");
     } catch (error) {

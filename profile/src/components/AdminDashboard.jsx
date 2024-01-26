@@ -3,6 +3,7 @@ import axios from "axios";
 import React, { useState } from "react";
 import excel from "../assets/excel.svg";
 import * as XLSX from "xlsx";
+import Loader from "./Loader";
 
 const Dashboard = () => {
   const [formData, setFormData] = useState({
@@ -11,53 +12,60 @@ const Dashboard = () => {
     year1: "2K20",
     year2: "2K25",
   });
+  const [loader, setLoader] = useState(true);
 
-const handleDownloadExcel = () => {
-  // Create a copy of TABLE_ROWS to avoid modifying the original data
-  const rowsWithLinks = TABLE_ROWS.map((rowData) => {
-    const updatedRowData = { ...rowData };
+  const handleDownloadExcel = () => {
+    // Create a copy of TABLE_ROWS to avoid modifying the original data
+    const rowsWithLinks = TABLE_ROWS.map((rowData) => {
+      const updatedRowData = { ...rowData };
 
-    // Iterate over the PDF columns and convert them to links
-    ["gateScoreCard", "manuscript", "appointmentLetter", "offerLetter", "companyRegCertificate"].forEach(column => {
-      if (updatedRowData[column]) {
-        // const pdfBlob = base64ToBlob(updatedRowData[column], "application/pdf");
-        // const pdfBlobUrl = URL.createObjectURL(pdfBlob);
-        // updatedRowData[column] = pdfBlobUrl; // Replace the base64 data with the blob URL
-        console.log( updatedRowData[column])
-        updatedRowData[column] = updatedRowData[column];
-      }
+      // Iterate over the PDF columns and convert them to links
+      [
+        "gateScoreCard",
+        "manuscript",
+        "appointmentLetter",
+        "offerLetter",
+        "companyRegCertificate",
+      ].forEach((column) => {
+        if (updatedRowData[column]) {
+          // const pdfBlob = base64ToBlob(updatedRowData[column], "application/pdf");
+          // const pdfBlobUrl = URL.createObjectURL(pdfBlob);
+          // updatedRowData[column] = pdfBlobUrl; // Replace the base64 data with the blob URL
+          console.log(updatedRowData[column]);
+          updatedRowData[column] = updatedRowData[column];
+        }
+      });
+
+      return updatedRowData;
     });
 
-    return updatedRowData;
-  });
+    // Create Excel sheet with modified rows
+    const ws = XLSX.utils.json_to_sheet(rowsWithLinks);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Sheet 1");
+    XLSX.writeFile(wb, `${formData.info}.xlsx`);
+  };
 
-  // Create Excel sheet with modified rows
-  const ws = XLSX.utils.json_to_sheet(rowsWithLinks);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Sheet 1");
-  XLSX.writeFile(wb, `${formData.info}.xlsx`);
-};
+  // const handleDownloadExcel = () => {
+  //   // Assuming TABLE_ROWS is your data
 
-// const handleDownloadExcel = () => {
-//   // Assuming TABLE_ROWS is your data
-  
-//   const tableRows = TABLE_ROWS;
+  //   const tableRows = TABLE_ROWS;
 
-//   // Make a POST request to the server
-//   axios.post('http://localhost:3001/ece/admin/getexcel', { tableRows }, { responseType: 'blob' })
-//     .then(response => {
-//       const url = window.URL.createObjectURL(new Blob([response.data]));
-//       const link = document.createElement('a');
-//       link.href = url;
-//       link.setAttribute('download', 'output.xlsx');
-//       document.body.appendChild(link);
-//       link.click();
-//       document.body.removeChild(link);
-//     })
-//     .catch(error => {
-//       console.error('Error:', error);
-//     });
-// };
+  //   // Make a POST request to the server
+  //   axios.post('http://localhost:3001/ece/admin/getexcel', { tableRows }, { responseType: 'blob' })
+  //     .then(response => {
+  //       const url = window.URL.createObjectURL(new Blob([response.data]));
+  //       const link = document.createElement('a');
+  //       link.href = url;
+  //       link.setAttribute('download', 'output.xlsx');
+  //       document.body.appendChild(link);
+  //       link.click();
+  //       document.body.removeChild(link);
+  //     })
+  //     .catch(error => {
+  //       console.error('Error:', error);
+  //     });
+  // };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -71,6 +79,7 @@ const handleDownloadExcel = () => {
   const [TABLE_ROWS, setTABLE_ROWS] = useState([]);
 
   const handleSubmit = async () => {
+    setLoader(true);
     try {
       const response = await axios.post(
         "http://localhost:3001/ece/admin/getdata",
@@ -85,12 +94,15 @@ const handleDownloadExcel = () => {
       if (response.data.data.length > 0) {
         setTABLE_HEAD(Object.keys(response.data.data[0]));
         setTABLE_ROWS(response.data.data);
+        setLoader(false);
       } else {
         setTABLE_HEAD([]);
         setTABLE_ROWS([]);
       }
+      
     } catch (error) {
       console.error(error);
+      setLoader(false);
     }
   };
 
@@ -577,93 +589,102 @@ const handleDownloadExcel = () => {
             </div>
           </div>
         </div>
-        <div className="w-[80%] overflow-hidden">
-          {TABLE_HEAD.length > 0 ? (
-            <Card
-              className={`max-h-[650px] h-[auto] w-[90%] mx-auto mt-7 pl-10 pr-10 card overflow-x-scroll ${
-                TABLE_ROWS.length > 10 ? "overflow-y-scroll" : ""
-              }`}
-            >
-              <table className="w-full min-w-auto lg:min-w-max table-auto text-left">
-                <thead>
-                  <tr>
-                    {TABLE_HEAD.map((head) => (
-                      <th
-                        key={head}
-                        className="border-b border-blue-gray-100 bg-blue-gray-50 p-4"
-                      >
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal leading-none opacity-70"
-                        >
-                          {head}
-                        </Typography>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {TABLE_ROWS.map((rowData, rowIndex) => (
-                    <tr key={rowIndex}>
-                      {TABLE_HEAD.map((head, headIndex) => (
-                        <td
-                          key={head}
-                          className={
-                            headIndex === TABLE_HEAD.length
-                              ? "p-4"
-                              : "p-4 border-b border-blue-gray-50"
-                          }
-                        >
-                          <Typography
-                            variant="small"
-                            color="blue-gray"
-                            className="font-normal"
+        {loader ? (
+          <div className="mx-auto "
+          >
+          <Loader/>
+          </div>
+        ) : (
+          <>
+            <div className="w-[80%] overflow-hidden">
+              {TABLE_HEAD.length > 0 ? (
+                <Card
+                  className={`max-h-[650px] h-[auto] w-[90%] mx-auto mt-7 pl-10 pr-10 card overflow-x-scroll ${
+                    TABLE_ROWS.length > 10 ? "overflow-y-scroll" : ""
+                  }`}
+                >
+                  <table className="w-full min-w-auto lg:min-w-max table-auto text-left">
+                    <thead>
+                      <tr>
+                        {TABLE_HEAD.map((head) => (
+                          <th
+                            key={head}
+                            className="border-b border-blue-gray-100 bg-blue-gray-50 p-4"
                           >
-                            {head === "gateScoreCard" ||
-                            head === "manuscript" ||
-                            head === "appointmentLetter" ||
-                            head === "offerLetter" ||
-                            head === "companyRegCertificate" ? (
-                              <button
-                                onClick={handleOpenPdf(rowData[head])}
-                                className=" text-blue-600 font-bold hover:underline"
+                            <Typography
+                              variant="small"
+                              color="blue-gray"
+                              className="font-normal leading-none opacity-70"
+                            >
+                              {head}
+                            </Typography>
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {TABLE_ROWS.map((rowData, rowIndex) => (
+                        <tr key={rowIndex}>
+                          {TABLE_HEAD.map((head, headIndex) => (
+                            <td
+                              key={head}
+                              className={
+                                headIndex === TABLE_HEAD.length
+                                  ? "p-4"
+                                  : "p-4 border-b border-blue-gray-50"
+                              }
+                            >
+                              <Typography
+                                variant="small"
+                                color="blue-gray"
+                                className="font-normal"
                               >
-                                View
-                              </button>
-                            ) : head === "companyLink" ? (
-                              <a
-                                href={rowData[head]}
-                                className="text-blue-600 font-bold hover:underline"
-                                target={"blank"}
-                              >
-                                link
-                              </a>
-                            ) : (
-                              rowData[head]
-                            )}
-                          </Typography>
-                        </td>
+                                {head === "gateScoreCard" ||
+                                head === "manuscript" ||
+                                head === "appointmentLetter" ||
+                                head === "offerLetter" ||
+                                head === "companyRegCertificate" ? (
+                                  <button
+                                    onClick={handleOpenPdf(rowData[head])}
+                                    className=" text-blue-600 font-bold hover:underline"
+                                  >
+                                    View
+                                  </button>
+                                ) : head === "companyLink" ? (
+                                  <a
+                                    href={rowData[head]}
+                                    className="text-blue-600 font-bold hover:underline"
+                                    target={"blank"}
+                                  >
+                                    link
+                                  </a>
+                                ) : (
+                                  rowData[head]
+                                )}
+                              </Typography>
+                            </td>
+                          ))}
+                        </tr>
                       ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </Card>
-          ) : null}
+                    </tbody>
+                  </table>
+                </Card>
+              ) : null}
 
-          {TABLE_HEAD.length > 0 ? (
-            <div className="text-center m-5">
-              <button
-                onClick={handleDownloadExcel}
-                className="flex mx-auto bg-[#191b28] w-[125px] p-2 rounded-lg text-white hover:scale-[105%] font1 hover:bg-[#0a4b26] transition-transform ease-in"
-              >
-                <img src={excel} alt="XLSX" className="h-7 w-7" />
-                <span className="my-auto ml-2">Download</span>
-              </button>
+              {TABLE_HEAD.length > 0 ? (
+                <div className="text-center m-5">
+                  <button
+                    onClick={handleDownloadExcel}
+                    className="flex mx-auto bg-[#191b28] w-[125px] p-2 rounded-lg text-white hover:scale-[105%] font1 hover:bg-[#0a4b26] transition-transform ease-in"
+                  >
+                    <img src={excel} alt="XLSX" className="h-7 w-7" />
+                    <span className="my-auto ml-2">Download</span>
+                  </button>
+                </div>
+              ) : null}
             </div>
-          ) : null}
-        </div>
+          </>
+        )}
       </div>
     </div>
   );

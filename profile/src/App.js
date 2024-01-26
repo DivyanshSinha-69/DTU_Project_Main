@@ -15,6 +15,7 @@ import { useEffect } from "react";
 import axios from "axios";
 import { login } from "./redux/reducers/AuthSlice";
 import { setRole } from "./redux/reducers/UserSlice";
+import Loader from "./components/Loader";
 
 function App() {
 
@@ -67,6 +68,7 @@ function App() {
           )}
           <Route path="/parents" element={<Parents />} />
           <Route path="/test" element={<Dashboard />} />
+          <Route path="/loader" element={<Loader />} />
           <Route path="/alumini" element={<Alumini />} />
           {role==="admin"?<Route path="/admin/portal" element={<Dashboard />} />:<Route path="/login" element={<Login />} />}
          

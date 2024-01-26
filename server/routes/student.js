@@ -30,7 +30,12 @@ import {
   getManuscript,
   addPublication,
   deletePublication,
-  getPublication
+  getPublication,
+  addInterInstituteActivity,
+  getInterInstituteActivity,
+  getCertificate,
+  uploadCertificate,
+  deleteInterInstituteActivity
 } from "../controllers/student.js";
 // import { isAuthenticated } from "../middlewares/auth.js";
 
@@ -77,6 +82,14 @@ router.post("/addpublication", addPublication);
 
 router.post("/uploadmanuscript",uploadManuscript);
 router.post("/getmanuscript",getManuscript);
+
+router.post("/addinterinstituteactivity",addInterInstituteActivity);
+router.post("/getinterinstituteactivity", getInterInstituteActivity);
+router.delete("/deleteinterinstituteactivity", deleteInterInstituteActivity);
+
+router.post("/getcertificate",getCertificate);
+router.post("/uploadcertificate",uploadCertificate);
 // router.get("/me", isAuthenticated, getMyProfile);
+
 
 export default router;

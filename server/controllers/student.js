@@ -1234,3 +1234,221 @@ export const getManuscript = (req, res) => {
     }
   });
 };
+
+
+export const addInterInstituteActivity = (req, res) => {
+  // console.log(req);
+  const { collegeName, eventName, eventDate,position, roll ,ID } = req.body;
+  
+  const sql ='UPDATE interInstituteEventDetails SET collegeName = ?, eventName = ?, eventDate = ?, RollNo = ?,position = ? WHERE ID = ?';
+  // console.log(ID);
+
+  connectDB.query(
+    sql,
+    [collegeName, eventName, eventDate, roll, position, ID],
+    (err, result) => {
+      if (err) {
+        // console.error("Error executing insert query:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+        return;
+      }
+      // console.log(result);
+      // Check if a new row is inserted (indicating a successful add)
+      if (result.affectedRows > 0) {
+        res.status(201).json({
+          success: true,
+          message: "Record added successfully",
+        });
+      } else {
+        res.status(400).json({ error: "Failed to add record" });
+      }
+    }
+  );
+};
+
+export const getInterInstituteActivity = (req, res) => {
+  const { rollno } = req.body;
+  const sql = "SELECT * FROM interInstituteEventDetails where RollNo = ?";
+  connectDB.query(sql, [rollno], (err, results) => {
+    if (err) {
+      console.error("Error executing fetch query:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+
+    // Check if the user with the given credentials exists
+    if (results.length > 0) {
+      res.status(200).json({
+        user: results,
+        success: true,
+      });
+    } else {
+      res.status(401).json({ error: "No data Exist" });
+      return;
+    }
+  });
+
+};
+
+
+export const uploadCertificate = (req, res) => {
+
+  upload.single('pdf')(req, res, async (err) => {
+    if (err) {
+      console.error('Error uploading PDF: ' + err.stack);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+
+    const { buffer, originalname } = req.file;
+    const { id, rollNo } = req.body;
+
+    let modifiedRollNo = rollNo.replace(/\//g, '-');
+    const fileName = `${id}.pdf`;
+
+    // Get the current module's directory
+    const currentModulePath = fileURLToPath(import.meta.url);
+    const currentModuleDir = dirname(currentModulePath);
+    const parentDir = resolve(currentModuleDir, '..');
+
+    // Create a directory if it doesn't exist
+    const rollNoDir = path.join(parentDir, 'public/certificates', modifiedRollNo);
+    if (!fs.existsSync(rollNoDir)) {
+      fs.mkdirSync(rollNoDir);
+    }
+
+    // Save the PDF file inside the rollNo directory
+    const filePath = path.join(rollNoDir, fileName);
+    fs.writeFile(filePath, buffer, (writeErr) => {
+      if (writeErr) {
+        console.error('Error saving PDF to file: ' + writeErr.stack);
+        res.status(500).send('Internal Server Error');
+        return;
+      }
+
+      // Insert into the database without checking if RollNo exists
+      const baseUrl = 'http://localhost:3001/public';
+      const certificateLink = `${baseUrl}/certificates/${modifiedRollNo}/${fileName}`;
+
+      const insertQuery = 'INSERT INTO  interInstituteEventDetails (id, certificate) VALUES (?, ?)';
+      connectDB.query(insertQuery, [id, certificateLink], (insertErr, insertResult) => {
+        if (insertErr) {
+          console.error('Error inserting into database: ' + insertErr.stack);
+          res.status(500).send('Internal Server Error');
+        } else {
+          res.status(200).send('PDF uploaded and saved to database');
+        }
+      });
+    });
+  });
+};
+
+
+
+
+export const getCertificate = (req, res) => {
+  const { id } = req.body;
+  
+  // Retrieve PDF data from the database based on the provided 'id'
+  const query = 'SELECT certificate FROM interInstituteEventDetails WHERE ID = ?';
+  connectDB.query(query, [id], (err, result) => {
+    if (err) {
+      console.error('Error querying database: ' + err.stack);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+
+    if (result.length > 0) {
+      const { certificate } = result[0];
+
+      // Check if a link is present
+      if (certificate) {
+
+        // Send the PDF link as the response
+        res.status(200).send({certificate});
+      } else {
+        res.status(404).send('PDF link not found');
+      }
+    } else {
+      res.status(404).send('PDF link not found');
+    }
+  });
+};
+
+export const deleteInterInstituteActivity = (req, res) => {
+  const { ID } = req.body;
+
+  // Retrieve PDF link from the database based on the provided 'ID'
+  const pdfQuery = 'SELECT certificate FROM interInstituteEventDetails WHERE ID = ?';
+  connectDB.query(pdfQuery, [ID], (pdfErr, pdfResult) => {
+    if (pdfErr) {
+      console.error('Error querying PDF link from the database: ' + pdfErr.stack);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+
+    if (pdfResult.length > 0) {
+      const { certificate } = pdfResult[0];
+
+      // Check if the appointmentLetter link exists
+      if (certificate) {
+        // Extract the relative file path from the link
+        const relativeFilePath = certificate.replace('http://localhost:3001/public', '');
+        
+        const currentModulePath = fileURLToPath(import.meta.url);
+        const currentModuleDir = dirname(currentModulePath);
+        // Construct the absolute file path
+        const absoluteFilePath = path.join(currentModuleDir, '..', 'public', relativeFilePath);
+
+        // Delete the corresponding PDF file
+        fs.unlink(absoluteFilePath, (unlinkErr) => {
+          if (unlinkErr) {
+            console.error('Error deleting PDF file: ' + unlinkErr.stack);
+            res.status(500).json({ error: 'Internal Server Error' });
+            return;
+          }
+
+          // Proceed with deleting the database entry after the file deletion
+          const deleteQuery = 'DELETE FROM interInstituteEventDetails WHERE ID = ?';
+          connectDB.query(deleteQuery, [ID], (deleteErr, result) => {
+            if (deleteErr) {
+              console.error('Error executing delete query:', deleteErr);
+              res.status(500).json({ error: 'Internal Server Error' });
+            } else {
+              // Check if any row is affected (indicating a successful delete)
+              if (result.affectedRows > 0) {
+                res.status(200).json({
+                  success: true,
+                  message: 'Record deleted successfully',
+                });
+              } else {
+                res.status(404).json({ error: 'Record not found' });
+              }
+            }
+          });
+        });
+      } else {
+        // Proceed with deleting the database entry if no PDF link is associated
+        const deleteQuery = 'DELETE FROM interInstituteEventDetails WHERE ID = ?';
+        connectDB.query(deleteQuery, [ID], (deleteErr, result) => {
+          if (deleteErr) {
+            console.error('Error executing delete query:', deleteErr);
+            res.status(500).json({ error: 'Internal Server Error' });
+          } else {
+            // Check if any row is affected (indicating a successful delete)
+            if (result.affectedRows > 0) {
+              res.status(200).json({
+                success: true,
+                message: 'Record deleted successfully',
+              });
+            } else {
+              res.status(404).json({ error: 'Record not found' });
+            }
+          }
+        });
+      }
+    } else {
+      res.status(404).json({ error: 'Record not found' });
+    }
+  });
+};

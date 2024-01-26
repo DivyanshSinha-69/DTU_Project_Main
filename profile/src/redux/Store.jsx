@@ -9,6 +9,7 @@ import UserMtechEducationalDetails from "./reducers/UserMtechEducationalDetails"
 import UserEntrepreneurDetails from "./reducers/UserEntrepreneurDetails";
 import UserHigherEducationDetails from "./reducers/UserHigherEducationDetails";
 import UserPublicationDetails from "./reducers/UserPublicationDetails";
+import UserInterInstituteDetails from "./reducers/UserInterInstituteDetails";
 
 export const store=configureStore({
 
@@ -22,7 +23,8 @@ export const store=configureStore({
         mtechEducation:UserMtechEducationalDetails,
         entrepreneurDetails:UserEntrepreneurDetails,
         higherEducationDetails:UserHigherEducationDetails,
-        publicationDetails:UserPublicationDetails
+        publicationDetails:UserPublicationDetails,
+        interInstitute:UserInterInstituteDetails
     },
 });
 

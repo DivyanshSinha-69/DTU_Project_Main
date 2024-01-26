@@ -21,12 +21,17 @@ import { setHigherEducationDetails } from "../../redux/reducers/UserHigherEducat
 import { setPublicationDetails } from "../../redux/reducers/UserPublicationDetails"
 // import Placement from "./studentportaltables/Placement";
 import { Toaster } from 'react-hot-toast';
+import Loader from "../Loader"
+import Activities from "./Tables/Activities";
+import { setInterInstitute } from "../../redux/reducers/UserInterInstituteDetails";
 
 const Student = () => {
+
   const { studentName, RollNo, Course, CourseName } = useSelector(
     (state) => state.auth.user
   );
   const [isBlurActive, setBlurActive] = useState(false);
+  const [loader,setLoader] = useState(true);
 
   const { image } = useSelector((state) => state.userImage);
   const dispatch = useDispatch();
@@ -57,6 +62,18 @@ const Student = () => {
           }
         );
         dispatch(setProfessionalSkills(response.data.user));
+
+        const interInstituteData = await axios.post(
+          "http://localhost:3001/ece/student/getinterinstituteactivity",
+          {
+            rollno: RollNo,
+          },
+          {
+            withCredentials: true,
+          }
+        );
+
+        dispatch(setInterInstitute(interInstituteData.data.user));
 
         //getmtechedu
         if (Course === "Mtech") {
@@ -118,16 +135,26 @@ const Student = () => {
           }
         );
         dispatch(setPlacement(placementresponse.data.user));
+        
+        setLoader(false);
+
       } catch (error) {
         console.error("Error fetching data:", error);
+        setLoader(false);
       }
     };
 
     fetchData();
+
+    
+
   }, []);
 
 
   return (
+    <div>
+    {loader ? <Loader /> : (
+    <>
     <div className="bg-[#FAFAFA] pt-10">
       <div
         className={`h-auto w-full ${isBlurActive ? "blur-effect" : ""}`}
@@ -186,6 +213,11 @@ const Student = () => {
       <div className={`pt-10  ${isBlurActive ? "blur-effect" : ""}`}>
         <Entreprenur setBlurActive={setBlurActive} />
       </div>
+      
+      <div className={`pt-10  ${isBlurActive ? "blur-effect" : ""}`}>
+        <Activities setBlurActive={setBlurActive} />
+      </div>
+
         <Toaster 
         toastOptions={{
           // Define default options
@@ -196,6 +228,11 @@ const Student = () => {
             color: '#fff',
           }
         }}/>
+    </div>
+  
+    </>
+    )
+      }
     </div>
   );
 };
