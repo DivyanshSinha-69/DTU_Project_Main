@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { Card, Input, Button, Typography } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
 import { addInterInstitute } from "../../../redux/reducers/UserInterInstituteDetails";
-import PlacementPdf from "./PlacementPdf";
 import toast from 'react-hot-toast';
 import InterInstituteCertificates from "./InterInstitutecertificates";
 
