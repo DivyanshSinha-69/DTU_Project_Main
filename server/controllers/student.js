@@ -424,15 +424,12 @@ export const getPlacement = (req, res) => {
     }
 
     // Check if the user with the given credentials exists
-    if (results.length > 0) {
-      res.status(200).json({
-        user: results,
-        success: true,
-      });
-    } else {
-      res.status(401).json({ error: "No data Exist" });
-      return;
-    }
+    const user = results || [];
+
+     res.status(200).json({
+       user,
+       success: true,
+     });
   });
 
 };
@@ -614,6 +611,104 @@ export const updateMtechEducationDetails = (req, res) => {
   });
 };
 
+export const getBtechEducationDetails = (req,res) => {
+  const { rollno } = req.body;
+  const sql = "SELECT * FROM btechEducationalDetails where RollNo = ?";
+  connectDB.query(sql, [rollno], (err, results) => {
+    if (err) {
+      console.error("Error executing fetch query:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+
+    // Check if the user with the given credentials exists
+    if (results.length > 0) {
+      res.status(200).json({
+        user: results,
+        success: true,
+      });
+    } else {
+      res.status(401).json({ error: "No data Exist" });
+      return;
+    }
+  });
+
+};
+
+export const updateBtechEducationDetails = (req, res) => {
+  let { admittedThrough, air, RollNo } = req.body;
+  let sqlCheckUserExists = "SELECT * FROM btechEducationalDetails WHERE RollNo = ?";
+
+  connectDB.query(sqlCheckUserExists, [RollNo], (checkErr, checkResult) => {
+    if (checkErr) {
+      console.error("Error checking user existence:", checkErr);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+
+    // If the user exists, update the record
+    if (checkResult.length > 0) {
+      let sqlUpdate;
+      if (admittedThrough === 'JEE') {
+        sqlUpdate =
+          "UPDATE btechEducationalDetails SET admittedThrough = ?, air = ? WHERE RollNo = ?";
+      } else {
+        sqlUpdate =
+        "UPDATE btechEducationalDetails SET admittedThrough = ?, air = ? WHERE RollNo = ?";
+        air=null;
+      }
+
+      connectDB.query(
+        sqlUpdate,
+        [admittedThrough, air, RollNo],
+        (updateErr, updateResult) => {
+          if (updateErr) {
+            console.error("Error executing update query:", updateErr);
+            res.status(500).json({ error: "Internal Server Error" });
+            return;
+          }
+          if (updateResult.affectedRows > 0) {
+            res.status(201).json({
+              success: true,
+              message: "Record updated successfully",
+            });
+          } else {
+            res.status(404).json({ error: "Record not found" });
+          }
+        }
+      );
+      
+    } else {
+      // If the user does not exist, insert a new record
+      let sqlInsert;
+      if (admittedThrough === 'Non-JEE') {
+        sqlInsert =
+        "INSERT INTO btechEducationalDetails (RollNo, admittedThrough, air) VALUES (?, ?, null)";
+      }
+      else{
+        sqlInsert =
+          "INSERT INTO btechEducationalDetails (RollNo, admittedThrough, air) VALUES (?, ?, ?)";
+      }
+
+      connectDB.query(
+        sqlInsert,
+        [RollNo, admittedThrough,air],
+        (insertErr, insertResult) => {
+          if (insertErr) {
+            console.error("Error executing insert query:", insertErr);
+            res.status(500).json({ error: "Internal Server Error" });
+          } else {
+            res.status(201).json({
+              success: true,
+              message: "Record inserted successfully",
+            });
+          }
+        }
+      );
+      
+    }
+  });
+};
 export const uploadScoreCard=(req,res)=>{
   upload.single('pdf')(req, res, async (err) => {
     if (err) {
@@ -1277,15 +1372,12 @@ export const getInterInstituteActivity = (req, res) => {
     }
 
     // Check if the user with the given credentials exists
-    if (results.length > 0) {
-      res.status(200).json({
-        user: results,
-        success: true,
-      });
-    } else {
-      res.status(401).json({ error: "No data Exist" });
-      return;
-    }
+    const user = results || [];
+
+     res.status(200).json({
+       user,
+       success: true,
+     });
   });
 
 };

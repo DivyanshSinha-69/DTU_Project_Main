@@ -10,6 +10,7 @@ import UserEntrepreneurDetails from "./reducers/UserEntrepreneurDetails";
 import UserHigherEducationDetails from "./reducers/UserHigherEducationDetails";
 import UserPublicationDetails from "./reducers/UserPublicationDetails";
 import UserInterInstituteDetails from "./reducers/UserInterInstituteDetails";
+import UserBtechEducationalDetails from "./reducers/UserBtechEducationalDetails";
 
 export const store=configureStore({
 
@@ -21,6 +22,7 @@ export const store=configureStore({
         personalDetails:UserPersonalDetails,
         placement:UserPlacement,
         mtechEducation:UserMtechEducationalDetails,
+        btechEducation:UserBtechEducationalDetails,
         entrepreneurDetails:UserEntrepreneurDetails,
         higherEducationDetails:UserHigherEducationDetails,
         publicationDetails:UserPublicationDetails,

@@ -24,6 +24,8 @@ import { Toaster } from 'react-hot-toast';
 import Loader from "../Loader"
 import Activities from "./Tables/Activities";
 import { setInterInstitute } from "../../redux/reducers/UserInterInstituteDetails";
+import BtechEducationDetails from "./Tables/BtechEducationalDetails";
+import { setBtechEducation } from "../../redux/reducers/UserBtechEducationalDetails";
 
 const Student = () => {
 
@@ -89,6 +91,25 @@ const Student = () => {
             );
             dispatch(
               setMtechEducation(mtechEducationDetailsResponse.data.user)
+            );
+          } catch (error) {
+            // Handle error
+            console.error(error);
+          }
+        }
+        if (Course === "Btech") {
+          try {
+            const btechEducationDetailsResponse = await axios.post(
+              "http://localhost:3001/ece/student/getbtecheducationdetails",
+              {
+                rollno: RollNo,
+              },
+              {
+                withCredentials: true,
+              }
+            );
+            dispatch(
+              setBtechEducation(btechEducationDetailsResponse.data.user)
             );
           } catch (error) {
             // Handle error
@@ -185,6 +206,14 @@ const Student = () => {
       <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
         <PersonalDetails setBlurActive={setBlurActive} />
       </div>
+
+      {Course === "Btech" && (
+        <>
+          <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
+            <BtechEducationDetails setBlurActive={setBlurActive} />
+          </div>
+        </>
+      )}
 
       {Course === "Mtech" && (
         <>
