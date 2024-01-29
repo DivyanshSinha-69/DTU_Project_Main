@@ -124,7 +124,7 @@ export default function StickyNavbar() {
           className="p-1 font-normal hover:translate-y-[-5px] transition-transform ease-in"
         >
           <HashLink
-            to="/login"
+            to="/login/admin"
             className="flex flex-row items-center lg:flex-col"
             style={{ ":hover": { cursor: "pointer" } }}
           >

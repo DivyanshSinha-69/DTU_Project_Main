@@ -16,6 +16,7 @@ import axios from "axios";
 import { login } from "./redux/reducers/AuthSlice";
 import { setRole } from "./redux/reducers/UserSlice";
 import Loader from "./components/Loader";
+import AdminLogin from "./components/AdminLogin";
 
 function App() {
 
@@ -58,6 +59,8 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/login/admin" element={<AdminLogin />} />
+          
           {role === "student" ? (
             <Route path="/student/portal" element={<Student />} />
             
@@ -67,7 +70,6 @@ function App() {
             <Route path="/login" element={<Login />} />
           )}
           <Route path="/parents" element={<Parents />} />
-          <Route path="/test" element={<Dashboard />} />
           <Route path="/loader" element={<Loader />} />
           <Route path="/alumini" element={<Alumini />} />
           {role==="admin"?<Route path="/admin/portal" element={<Dashboard />} />:<Route path="/login" element={<Login />} />}
