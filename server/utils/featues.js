@@ -4,6 +4,7 @@ export const sendCookie = (user, res, message, statusCode = 200) => {
   try {
     // console.log(user.id);
     const token = jwt.sign({ user}, "dtuece");
+    
     // console.log('Generated token:', token);
 
     res
@@ -35,7 +36,6 @@ export const getDataFromToken = (req,res) => {
 
     // Verify and decode the token
     const decoded = jwt.verify(token,  "dtuece");
-    // console.log(decoded);
     res.status(200).json({ user: decoded.user });
   } catch (error) {
     // Handle token verification errors

@@ -34,6 +34,7 @@ function App() {
         const userDetails = response.data;
         dispatch(login(userDetails.user));
         dispatch(setRole(userDetails.user.Position));
+
         if (userDetails.user.Position === "student") {
           navigate("/student/portal");
         } else if (userDetails.user.Position === "teacher") {
@@ -66,13 +67,12 @@ function App() {
             
           ) : role === "teacher" ? (
             <Route path="/teacher/portal" element={<Teacher />} />
-          ) : (
+          ) : role==="admin"? (<Route path="/admin/portal" element={<Dashboard />} />): (
             <Route path="/login" element={<Login />} />
           )}
           <Route path="/parents" element={<Parents />} />
           <Route path="/loader" element={<Loader />} />
           <Route path="/alumini" element={<Alumini />} />
-          {role==="admin"?<Route path="/admin/portal" element={<Dashboard />} />:<Route path="/login" element={<Login />} />}
          
           
           <Route path="*" element={<Unaithorized />} />

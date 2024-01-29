@@ -56,7 +56,6 @@ export default function EntrepreneurPopup(props) {
         }
       );
      
-      console.log("pdf -> ",pdfSrc);
       const updateddata = {
         companyName: formData.companyName,
         cinNumber: formData.cinNumber,

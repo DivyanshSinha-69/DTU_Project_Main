@@ -6,6 +6,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { Input } from "@material-tailwind/react";
+import toast from "react-hot-toast";
 
 const CompanyRegCertPdf = ({ setPdfSrc }) => {
   const { RollNo } = useSelector((state) => state.auth.user);
@@ -29,6 +30,12 @@ const CompanyRegCertPdf = ({ setPdfSrc }) => {
   const handleUpload = async (e) => {
     e.preventDefault();
     if (file) {
+
+      if (file.size > 10 * 1024) {
+        toast.error("file size should be 10KB or below");
+        return;
+      }
+
       const formData = new FormData();
       formData.append("pdf", file);
       formData.append("rollNo", RollNo);
@@ -84,7 +91,7 @@ const CompanyRegCertPdf = ({ setPdfSrc }) => {
       {isFileSelected && (
         <>
           <p className="text-sm font-bold w-[150px] text-red-700 translate-y-[10px]">
-            max-size: 20KB
+            max-size: 10KB
           </p>
           <button
             onClick={handleUpload}

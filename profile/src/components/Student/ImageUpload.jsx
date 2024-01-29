@@ -5,6 +5,7 @@ import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { setUserImage } from "../../redux/reducers/UserImage";
 import uploadImg from "../../assets/upload.svg";
+import toast from "react-hot-toast";
 const Test = () => {
 
   const { RollNo } = useSelector((state) => state.auth.user);
@@ -52,7 +53,16 @@ const Test = () => {
   };
 
   const handleUpload = async () => {
+
+
+
     if (file && RollNo) {
+
+      if (file.size > 20 * 1024) {
+        toast.error("Image size should be 20KB or below");
+        return;
+      }
+
       const formData = new FormData();
       formData.append("image", file);
       formData.append("rollNo", RollNo);

@@ -231,7 +231,6 @@ export const updatePersonalDetails = (req, res) => {
     }
 
     if (checkResult && checkResult.length > 0) {
-      console.log("personal details exist");
       // Record exists, perform an update
       const updateQuery =
         'UPDATE studentPersonalDetails SET motherName = ?, fatherName = ?, personalContactNo = ?, parentContactNo = ?, personalEmail = ?, dtuEmail = ? WHERE RollNo = ?';
@@ -252,7 +251,6 @@ export const updatePersonalDetails = (req, res) => {
         }
       );
     } else {
-      console.log("personal details does not exist");
       // Record doesn't exist, perform an insert
       const insertQuery =
         'INSERT INTO studentPersonalDetails (RollNo, motherName, fatherName, personalContactNo, parentContactNo, personalEmail, dtuEmail) VALUES (?, ?, ?, ?, ?, ?, ?)';
@@ -907,7 +905,6 @@ export const uploadCompanyRegCert = (req, res) => {
     
     
     let modifiedRollNo = rollNo.replace(/\//g, '-');
-    console.log(modifiedRollNo);
     const fileName = `${modifiedRollNo}.pdf`;
 
     // Get the current module's directory
@@ -1060,7 +1057,6 @@ export const uploadofferletter=(req,res)=>{
     
     
     let modifiedRollNo = rollNo.replace(/\//g, '-');
-    console.log(modifiedRollNo);
     const fileName = `${modifiedRollNo}.pdf`;
 
     // Get the current module's directory

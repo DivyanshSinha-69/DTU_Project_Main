@@ -44,9 +44,7 @@ const Login = () => {
         navigate("/student/portal");
       } else if (userDetails.user.Position === "teacher") {
         navigate("/teacher/portal");
-      } else if (userDetails.user.Position === "admin") {
-        navigate("/admin/portal");
-      } else {
+      }  else {
         navigate("/unauthorized");
       }
     } catch (error) {

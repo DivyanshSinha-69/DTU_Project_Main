@@ -47,7 +47,7 @@ export default function PersonalDetailPopup(props) {
       return;
     } else {
       // Check if personalContactNo and parentContactNo have exactly 10 digits
-      const phoneRegex = /^\d{10}$/;
+      const phoneRegex = /^\d+$/;
     
       if (!phoneRegex.test(formData.personalContactNo) || !phoneRegex.test(formData.parentContactNo)) {
         toast.error("Please enter valid 10-digit phone numbers for Personal and Parent contacts");

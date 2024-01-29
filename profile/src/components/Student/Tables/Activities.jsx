@@ -169,7 +169,7 @@ const Activities = ({ setBlurActive }) => {
                           <a
                             href={certificate}
                             target="blank"
-                            className=" text-blue-600 font-bold hover:underline ml-[20px] md:ml-[40px]"
+                            className=" text-blue-600 font-bold hover:underline ml-[15px]"
                           >
                             View
                           </a>

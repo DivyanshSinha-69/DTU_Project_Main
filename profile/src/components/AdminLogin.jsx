@@ -35,8 +35,13 @@ const AdminLogin = () => {
       // console.log("User Details:", userDetails);
       // console.log(userDetails.role);
       // Example: Dispatching an action with user details
-      dispatch(setRole("admin"));
-      dispatch(login("admin"));   
+      const userDetails = response.data.user;
+      // console.log(userDetails);
+      // console.log(response.data.user.position);
+      dispatch(login(userDetails));
+      dispatch(setRole(userDetails.Position));
+      // dispatch(setRole("admin"));
+      // dispatch(login("admin"));   
       // Redirect to the desired page after successful login
         navigate("/admin/portal");
 
