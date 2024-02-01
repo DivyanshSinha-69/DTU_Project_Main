@@ -8,6 +8,8 @@ import commonRouter from "./routes/common.js"
 // import { errorMiddleware } from "./middlewares/error.js";
 import cors from "cors";
 
+import path from "path";
+import { fileURLToPath } from "url";
 
 export const app = express();
 app.use('/public', express.static('public'));
@@ -15,6 +17,26 @@ app.use('/public', express.static('public'));
 config({
   path: "./essentials.env",
 });
+
+const __filename = fileURLToPath(import.meta.url);
+
+const _dirname = path.dirname(__filename)
+const buildPath = path.join(_dirname  , "../profile/build");
+
+app.use(express.static(buildPath))
+
+app.get("/*", function(req, res){
+
+    res.sendFile(
+        path.join(_dirname, "../profile/build/index.html"),
+        function (err) {
+          if (err) {
+            res.status(500).send(err);
+          }
+        }
+      );
+
+})
 
 // Using Middlewares
 app.use(
