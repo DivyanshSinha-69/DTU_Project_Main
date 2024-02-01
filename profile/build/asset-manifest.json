@@ -1,0 +1,31 @@
+{
+  "files": {
+    "main.css": "/static/css/main.d8580c42.css",
+    "main.js": "/static/js/main.c74f9a56.js",
+    "static/media/dtu2.png": "/static/media/dtu2.bb7ea8e586b4efdeeb62.png",
+    "static/media/dtu3.png": "/static/media/dtu3.bb7ea8e586b4efdeeb62.png",
+    "static/media/dtu.png": "/static/media/dtu.5c8833d20e7b8e7a1aee.png",
+    "static/media/dtuSVG.svg": "/static/media/dtuSVG.bb456276f1bc29698eb9dec865ae0e7a.svg",
+    "static/media/studImg.png": "/static/media/studImg.0d29dc4f71af294d6ade.png",
+    "static/media/employer.svg": "/static/media/employer.39d97d761f21d7641e9d01fbc80ee9d8.svg",
+    "static/media/parent.svg": "/static/media/parent.ab916b6572c5f36e1ca66faac11df3c5.svg",
+    "static/media/teacher.svg": "/static/media/teacher.8cc54b3dc429bedfd7e348968facc98f.svg",
+    "static/media/student.svg": "/static/media/student.283a4736ca0c053712b080ba69acadb2.svg",
+    "static/media/portal.svg": "/static/media/portal.a23e55ef04e316d2e9132f175cf6d4ca.svg",
+    "static/media/excel.svg": "/static/media/excel.46455aa65f3683e0cddabd4d7e514fc8.svg",
+    "static/media/hyperlink.svg": "/static/media/hyperlink.7fcefb561e8a5def0e58a7e5e25cd1fd.svg",
+    "static/media/delete.svg": "/static/media/delete.b8f0563eb849959e95c7ac9d40b72604.svg",
+    "static/media/homepage.svg": "/static/media/homepage.1eee6c5bba3d76c34bc76eab6ae14c74.svg",
+    "static/media/edit.svg": "/static/media/edit.68604797747dccbf2bcdf53e49bc2f92.svg",
+    "static/media/upload.svg": "/static/media/upload.5e7bcc9a00669b1d994cd7aa76e2f3e4.svg",
+    "static/media/alumini.svg": "/static/media/alumini.f8469f9ea58519a879901f56672bb006.svg",
+    "index.html": "/index.html",
+    "static/media/add.svg": "/static/media/add.2fd8642bd2e07fc2724d2bd390a36306.svg",
+    "main.d8580c42.css.map": "/static/css/main.d8580c42.css.map",
+    "main.c74f9a56.js.map": "/static/js/main.c74f9a56.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.d8580c42.css",
+    "static/js/main.c74f9a56.js"
+  ]
+}
