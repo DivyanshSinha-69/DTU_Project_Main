@@ -25,23 +25,11 @@ const buildPath = path.join(_dirname  , "../profile/build");
 
 app.use(express.static(buildPath))
 
-app.get("/*", function(req, res){
-
-    res.sendFile(
-        path.join(_dirname, "../profile/build/index.html"),
-        function (err) {
-          if (err) {
-            res.status(500).send(err);
-          }
-        }
-      );
-
-})
 
 // Using Middlewares
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: "http://18.212.137.222",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -57,6 +45,18 @@ app.use("/ece/admin",adminRouter)
 app.use("/ece/professor",professorRouter)
 app.use("/ece/student",studentRouter)
 app.use("/",commonRouter);
+app.get("/*", function(req, res){
+
+  res.sendFile(
+      path.join(_dirname, "../profile/build/index.html"),
+      function (err) {
+        if (err) {
+          res.status(500).send(err);
+        }
+      }
+    );
+
+})
 
 // Using Error Middleware
 // app.use(errorMiddleware);

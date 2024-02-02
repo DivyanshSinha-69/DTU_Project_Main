@@ -15,7 +15,7 @@ const InterInstituteCertificates = ({ setPdfSrc,setId }) => {
 
 //     axios
 //       .post(
-//         `http://localhost:3001/ece/student/getpdf`,
+//         `http://18.212.137.222/ece/student/getpdf`,
 //         { id: id },
 //         { responseType: "arraybuffer" }
 //       )
@@ -62,7 +62,7 @@ const InterInstituteCertificates = ({ setPdfSrc,setId }) => {
 
       try {
         const response = await axios.post(
-          "http://localhost:3001/ece/student/uploadcertificate",
+          "http://18.212.137.222/ece/student/uploadcertificate",
           formData,
           {
             headers: {
@@ -81,7 +81,7 @@ const InterInstituteCertificates = ({ setPdfSrc,setId }) => {
 
       axios
         .post(
-          `http://localhost:3001/ece/student/getcertificate`,
+          `http://18.212.137.222/ece/student/getcertificate`,
           { id: id },
         )
         .then((response) => {

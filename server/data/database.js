@@ -1,14 +1,23 @@
 import mysql from "mysql2";
 
 export const connectDB = mysql.createConnection({
-  host     : 'localhost',
+  // host     : 'localhost',
+  // // host     : process.env.HOST,
+  // user     : 'root',
+  // // user     : process.env.USE,
+  // // password : process.env.PASSWORD,
+  // // password : "rootuser",
+  // password : "root",
+  
+  // database : 'admin'
+  host     : 'admin.c52qe8oyqyso.us-east-1.rds.amazonaws.com',
   // host     : process.env.HOST,
-  user     : 'root',
+  user     : 'amar312696',
   // user     : process.env.USE,
   // password : process.env.PASSWORD,
   // password : "rootuser",
-  password : "root",
-  
+  password : "7982763189A",
+
   database : 'admin'
 });
 
