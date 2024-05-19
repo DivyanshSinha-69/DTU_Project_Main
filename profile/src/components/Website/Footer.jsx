@@ -16,7 +16,7 @@ export default function Footer() {
           <li>
             <Typography
               as="a"
-              href="#"
+              href="https://www.dtu.ac.in/Web/About/history.php"
               color="blue-gray"
               className="font-lg transition-colors "
             >
@@ -26,7 +26,7 @@ export default function Footer() {
           <li>
             <Typography
               as="a"
-              href="#"
+              href="https://www.dtu.ac.in/Web/Administrations/Chancellor.php"
               color="blue-gray"
               className="font-lg transition-colors"
             >
@@ -36,7 +36,7 @@ export default function Footer() {
           <li>
             <Typography
               as="a"
-              href="#"
+              href="https://dtu.ac.in/Web/dtujac.php"
               color="blue-gray"
               className="font-lg transition-colors "
             >
