@@ -56,7 +56,7 @@ export default function StickyNavbar() {
 
     try {
       // Make a POST request to your server with login credentials
-      const response = await axios.get("http://18.212.137.222/logout",{
+      const response = await axios.get("http://localhost:3001/logout",{
         withCredentials: true,
       });
 

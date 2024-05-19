@@ -15,7 +15,7 @@ const ManuscriptPdf = ({ setPdfSrc,setId }) => {
 
 //     axios
 //       .post(
-//         `http://18.212.137.222/ece/student/getpdf`,
+//         `http://localhost:3001/ece/student/getpdf`,
 //         { id: id },
 //         { responseType: "arraybuffer" }
 //       )
@@ -61,7 +61,7 @@ const ManuscriptPdf = ({ setPdfSrc,setId }) => {
 
       try {
         const response = await axios.post(
-          "http://18.212.137.222/ece/student/uploadmanuscript",
+          "http://localhost:3001/ece/student/uploadmanuscript",
           formData,
           {
             headers: {
@@ -80,7 +80,7 @@ const ManuscriptPdf = ({ setPdfSrc,setId }) => {
 
       axios
         .post(
-          `http://18.212.137.222/ece/student/getmanuscript`,
+          `http://localhost:3001/ece/student/getmanuscript`,
           { id: id },
         
         )

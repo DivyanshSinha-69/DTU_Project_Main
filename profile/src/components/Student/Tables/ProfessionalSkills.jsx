@@ -42,7 +42,7 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
   const handledelete = async (ID) => {
     try {
       const response = await axios.delete(
-        "http://18.212.137.222/ece/student/deleteprofessionalskills",
+        "http://localhost:3001/ece/student/deleteprofessionalskills",
         {
           data: {
             ID: ID,

@@ -27,7 +27,7 @@ function App() {
   useEffect(() => {
     const checkExistingToken = async () => {
       try {
-        const response = await axios.get("http://18.212.137.222/cookiescheck", {
+        const response = await axios.get("http://localhost:3001/cookiescheck", {
           withCredentials: true,
         });
 

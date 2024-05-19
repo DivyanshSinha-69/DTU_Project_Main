@@ -13,6 +13,7 @@
     "devextreme-react": "^23.2.3",
     "heroicons": "^2.1.1",
     "react": "^18.2.0",
+    "react-date-picker": "^10.6.0",
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.4.1",
     "react-pro-sidebar": "^1.1.0-alpha.1",

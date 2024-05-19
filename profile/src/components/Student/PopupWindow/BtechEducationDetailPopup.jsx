@@ -53,7 +53,7 @@ export default function BtechEducationDetailPopup(props) {
         }
 
         const response = await axios.put(
-          "http://18.212.137.222/ece/student/updatebtecheducationdetails",
+          "http://localhost:3001/ece/student/updatebtecheducationdetails",
           {
             admittedThrough: formData.admittedThrough,
             air: formData.air,
@@ -77,7 +77,7 @@ export default function BtechEducationDetailPopup(props) {
         }
       } else {
         const response = await axios.put(
-          "http://18.212.137.222/ece/student/updatebtecheducationdetails",
+          "http://localhost:3001/ece/student/updatebtecheducationdetails",
           {
             admittedThrough: formData.admittedThrough,
             air:null,

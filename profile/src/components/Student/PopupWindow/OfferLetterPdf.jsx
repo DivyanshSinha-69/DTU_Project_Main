@@ -42,7 +42,7 @@ const CompanyRegCertPdf = ({ setPdfSrc }) => {
 
       try {
         const response = await axios.post(
-          "http://18.212.137.222/ece/student/uploadofferletter",
+          "http://localhost:3001/ece/student/uploadofferletter",
           formData,
           {
             headers: {
@@ -61,7 +61,7 @@ const CompanyRegCertPdf = ({ setPdfSrc }) => {
 
       axios
         .post(
-          `http://18.212.137.222/ece/student/getofferletter`,
+          `http://localhost:3001/ece/student/getofferletter`,
           { id: RollNo },
           
         )
