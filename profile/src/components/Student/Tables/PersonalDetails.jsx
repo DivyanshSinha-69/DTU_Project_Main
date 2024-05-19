@@ -32,12 +32,15 @@ const PersonalDetails = ({  setBlurActive }) => {
     <div>
       <div className="h-auto p-10">
         <div className="flex flex-row justify-between pr-5 pl-5">
+          
           <p className="p-3 text-2xl font1 border-top my-auto">
-            Personal Details
+            Personal Details <br /><span className="text-lg text-red-600">( As per class 10th marksheet )</span>
           </p>
+          
           <button onClick={openPopup} className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full  hover:invert hover:scale-[130%] transition-transform ease-in">
             <img src={editImg} alt="hello" className="h-5 w-5"/>
           </button>
+
 
           <Popup
             trigger={null}
