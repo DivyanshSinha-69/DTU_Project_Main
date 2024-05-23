@@ -81,9 +81,9 @@ const Acknowledgement = () => {
                   ))}
                 </View>
               </View>
-
-              <Text style={styles.declaration}>
-              Declaration: I hereby declare that all the information I have provided 
+            <Text style={{...styles.declaration, fontFamily: 'Arimo' }}>Declaration: </Text>
+              <Text style={{...styles.declaration,marginTop:5}}>
+              I hereby declare that all the information I have provided 
               during the completion of the information collection process is true,
                accurate, and to the best of my knowledge. I understand that any false 
                or misleading information provided may result in disciplinary action as 
