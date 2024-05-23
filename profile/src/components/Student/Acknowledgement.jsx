@@ -8,6 +8,7 @@ import {
   View,
   Font,
   Image,
+  pdf,
   StyleSheet,
   PDFViewer,
 } from "@react-pdf/renderer";
@@ -106,10 +107,35 @@ const Acknowledgement = () => {
         </Document>
       );
 
+    // Create PDF Blob
+    const pdfBlob = await pdf(pdfContent).toBlob();
+
+    // Create Blob URL
+    const url = URL.createObjectURL(pdfBlob);
+
+    // Detect device type
+    const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+      //trigger direct download
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "acknowledgement.pdf");
+
+      document.body.appendChild(link);
+      link.click();
+
+      document.body.removeChild(link);
+    
+    if(!isMobileDevice) {
+      // For laptops and desktops, set PDF data state
       setPdfData(pdfContent);
-    } catch (error) {
-      console.error(error);
     }
+
+    // Clean up
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error(error);
+  }
   };
 
   return (
