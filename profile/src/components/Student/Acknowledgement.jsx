@@ -12,7 +12,13 @@ import {
   PDFViewer,
 } from "@react-pdf/renderer";
 
-import dtulogo from "../../assets/logoDtu.png"; // Make sure the image is in a compatible format
+import dtulogo from "../../assets/logoDtu.png";
+import ArimoFont from "../../assets/Arimo.ttf"; // Import the font file
+
+Font.register({
+  family: 'Arimo',
+  src: ArimoFont, // Register the font
+});
 
 const Acknowledgement = () => {
   const { studentName, RollNo } = useSelector((state) => state.auth.user);
@@ -66,7 +72,7 @@ const Acknowledgement = () => {
                     </Text>
                   ))}
                 </View>
-                <View style={styles.column}>
+                <View style={{...styles.column,borderRightWidth: 0}}>
                   <Text style={styles.header}>Details Not Filled</Text>
                   {absentTables.map((table) => (
                     <Text key={table} style={styles.tableText}>
@@ -87,7 +93,7 @@ const Acknowledgement = () => {
               <Text style={{...styles.details, marginTop:30}}>Signature of Student ......................... </Text>
               <Text style={{...styles.details, marginBottom:20}}>Date: {formattedDateTime}</Text>
 
-              <Text style={styles.cert}>Certificate</Text>
+              <Text style={styles.cert}>CERTIFICATE</Text>
               <Text style={styles.certBody}>This is to certify that {studentName} ({RollNo}) has successfully fulfilled the requirements of the information filling process.</Text>  
             
             <View style={styles.signature}>
@@ -140,10 +146,10 @@ const styles = StyleSheet.create({
   DTU: {
     fontSize: 20,
     textAlign: "center",
-    marginBottom: 4,
     marginLeft: 30,
     marginTop: -80,
     width: "100%",
+    fontFamily: 'Arimo', 
   },
   headOther: {
     fontSize: 12,
@@ -155,13 +161,14 @@ const styles = StyleSheet.create({
   line: {
     borderBottomWidth: 1,
     borderBottomColor: "black",
-    marginTop: 20, // Adjust this value as needed for spacing
+    marginTop: 12, // Adjust this value as needed for spacing
   },
   details: {
     fontSize: 12,
     marginBottom: 5,
     marginLeft: 10,
     width: "100%",
+    fontFamily: 'Arimo',
   },
   tableContainer: {
     display: "flex",
@@ -175,8 +182,7 @@ const styles = StyleSheet.create({
   column: {
     flex: 1,
     borderRightWidth: 1,
-    borderRightColor: "black",
-    
+    borderRightColor: "black",   
   },
   header: {
     fontSize: 12,
@@ -184,10 +190,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "black",
     marginBottom: 10,
+    fontFamily: 'Arimo',
   },
   tableText: {
     fontSize: 12,
-    marginBottom: 5,
+    marginBottom: 10,
     
   },
     declaration: {
@@ -201,6 +208,7 @@ const styles = StyleSheet.create({
         fontSize: 12,
         textAlign: "center",
         width: "100%",
+        fontFamily: 'Arimo',
     },
     certBody:{
         marginTop: 5,
@@ -217,10 +225,12 @@ const styles = StyleSheet.create({
         fontSize: 12,
         paddingRight:10,
         marginLeft: 10,
+        fontFamily: 'Arimo',
     },
     sign:{
         fontSize: 12,
         marginLeft: 350,
+        fontFamily: 'Arimo',
     }
 });
 
