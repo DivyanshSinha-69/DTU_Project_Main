@@ -36,7 +36,7 @@ const Placement = ({ setBlurActive }) => {
   const handledelete = async (ID) => {
     try {
       const response = await axios.delete(
-        "http://localhost:3001/ece/student/deleteplacement",
+        "http://192.168.1.3:3001/ece/student/deleteplacement",
         {
           data: {
             ID: ID,

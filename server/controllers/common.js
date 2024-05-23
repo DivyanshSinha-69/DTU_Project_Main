@@ -60,3 +60,8 @@ export const logout = (req, res) => {
       success: true,
     });
 };
+
+export const forgot = (req,res) => {
+  const {rollno} = req.body;
+  console.log("roll no milgya :->"+rollno);
+};

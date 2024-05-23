@@ -8,7 +8,8 @@ import studImg from "../../assets/studImg.png";
 import PersonalDetails from "./Tables/PersonalDetails";
 import Entreprenur from "./Tables/Entreprenur";
 import Placement from "./Tables/Placement";
-import Publication from "./Tables/Publication"
+import Publication from "./Tables/Publication";
+import Acknowledgement from "./Acknowledgement";
 import "../../styles/popup.css";
 import { setPersonalDetails } from "../../redux/reducers/UserPersonalDetails";
 import Test from "./ImageUpload";
@@ -43,7 +44,7 @@ const Student = () => {
         // Fetch personal details
 
         const personalDetailsResponse = await axios.post(
-          "http://localhost:3001/ece/student/personaldetails",
+          "http://192.168.1.3:3001/ece/student/personaldetails",
           {
             rollno: RollNo,
           },
@@ -55,7 +56,7 @@ const Student = () => {
         dispatch(setPersonalDetails(personalDetailsResponse.data.user));
 
         const response = await axios.post(
-          "http://localhost:3001/ece/student/profskills",
+          "http://192.168.1.3:3001/ece/student/profskills",
           {
             rollno: RollNo,
           },
@@ -66,7 +67,7 @@ const Student = () => {
         dispatch(setProfessionalSkills(response.data.user));
 
         const interInstituteData = await axios.post(
-          "http://localhost:3001/ece/student/getinterinstituteactivity",
+          "http://192.168.1.3:3001/ece/student/getinterinstituteactivity",
           {
             rollno: RollNo,
           },
@@ -81,7 +82,7 @@ const Student = () => {
         if (Course === "Mtech") {
           try {
             const mtechEducationDetailsResponse = await axios.post(
-              "http://localhost:3001/ece/student/getmtecheducationdetails",
+              "http://192.168.1.3:3001/ece/student/getmtecheducationdetails",
               {
                 rollno: RollNo,
               },
@@ -100,7 +101,7 @@ const Student = () => {
         if (Course === "Btech") {
           try {
             const btechEducationDetailsResponse = await axios.post(
-              "http://localhost:3001/ece/student/getbtecheducationdetails",
+              "http://192.168.1.3:3001/ece/student/getbtecheducationdetails",
               {
                 rollno: RollNo,
               },
@@ -118,7 +119,7 @@ const Student = () => {
         }
 
         const entrepreneurDetails=await axios.post(
-          "http://localhost:3001/ece/student/getentrepreneurdetails",
+          "http://192.168.1.3:3001/ece/student/getentrepreneurdetails",
           {
             rollno:RollNo,
           },{
@@ -129,7 +130,7 @@ const Student = () => {
         dispatch(setEntrepreneurDetails(entrepreneurDetails.data.user));
 
         const higherEducationDetails = await axios.post(
-        "http://localhost:3001/ece/student/gethighereducationdetails",{
+        "http://192.168.1.3:3001/ece/student/gethighereducationdetails",{
           rollno:RollNo,
         },{
           withCredentials:true,
@@ -138,7 +139,7 @@ const Student = () => {
         dispatch(setHigherEducationDetails(higherEducationDetails.data.user))
 
         const publicationDetails = await axios.post(
-        "http://localhost:3001/ece/student/publication",{
+        "http://192.168.1.3:3001/ece/student/publication",{
           rollno:RollNo,
         },{
           withCredentials:true,
@@ -147,7 +148,7 @@ const Student = () => {
         dispatch(setPublicationDetails(publicationDetails.data.user))
 
         const placementresponse = await axios.post(
-          "http://localhost:3001/ece/student/placement",
+          "http://192.168.1.3:3001/ece/student/placement",
           {
             rollno: RollNo,
           },
@@ -245,6 +246,11 @@ const Student = () => {
       
       <div className={`pt-10  ${isBlurActive ? "blur-effect" : ""}`}>
         <Activities setBlurActive={setBlurActive} />
+      </div>
+
+      <div className=" justify-center py-10 flex flex-col items-center">
+        <Acknowledgement />
+        
       </div>
 
         <Toaster 

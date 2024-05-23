@@ -44,7 +44,7 @@ export default function PopupProfessionalSkills(props) {
     try {
       
       const response = await axios.put(
-        "http://localhost:3001/ece/student/updateprofessionalskills",
+        "http://192.168.1.3:3001/ece/student/updateprofessionalskills",
         {
           id: formData.id,
           organisation: formData.organisation,

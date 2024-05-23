@@ -5,6 +5,7 @@ import { useDispatch } from "react-redux";
 import axios from "axios";
 import { login } from "../redux/reducers/AuthSlice";
 import { setRole } from "../redux/reducers/UserSlice";
+import { HashLink } from "react-router-hash-link";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ const Login = () => {
     try {
       // Make a POST request to your server with login credentials
       const response = await axios.post(
-        "http://localhost:3001/login",
+        "http://192.168.1.3:3001/login",
         {
           email: email,
           password: password,
@@ -101,12 +102,12 @@ const Login = () => {
                   Password
                 </label>
                 <div className="text-sm">
-                  <a
-                    href="#"
+                  <HashLink
+                    to="/forgot"
                     className="font-semibold text-md text-gray-800 hover:text-indigo-500"
                   >
                     Forgot password?
-                  </a>
+                  </HashLink>
                 </div>
               </div>
               <div className="mt-2">

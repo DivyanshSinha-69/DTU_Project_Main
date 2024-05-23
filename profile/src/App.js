@@ -4,6 +4,7 @@ import StickyNavbar from "./components/Website/Header";
 import Footer from "./components/Website/Footer";
 import Home from "./components/Homepage/Home";
 import Login from "./components/Login";
+import Forgot from "./components/Forgot";
 import Teacher from "./components/Teacher";
 import Student from "./components/Student/Student";
 import Dashboard from "./components/AdminDashboard";
@@ -27,7 +28,7 @@ function App() {
   useEffect(() => {
     const checkExistingToken = async () => {
       try {
-        const response = await axios.get("http://localhost:3001/cookiescheck", {
+        const response = await axios.get("http://192.168.1.3:3001/cookiescheck", {
           withCredentials: true,
         });
 
@@ -73,6 +74,7 @@ function App() {
           <Route path="/parents" element={<Parents />} />
           <Route path="/loader" element={<Loader />} />
           <Route path="/alumini" element={<Alumini />} />
+          <Route path="/forgot" element={<Forgot />} />
          
           
           <Route path="*" element={<Unaithorized />} />

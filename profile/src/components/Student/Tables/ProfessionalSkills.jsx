@@ -42,7 +42,7 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
   const handledelete = async (ID) => {
     try {
       const response = await axios.delete(
-        "http://localhost:3001/ece/student/deleteprofessionalskills",
+        "http://192.168.1.3:3001/ece/student/deleteprofessionalskills",
         {
           data: {
             ID: ID,
@@ -65,7 +65,7 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
       <div className="h-auto p-10 ">
         <div className="flex flex-row justify-between pr-5 pl-5">
           <p className="p-3 text-2xl font1 border-top my-auto">
-            Professional Activities
+            Professional Activities <br /> <span className="text-lg text-red-600">( Provide information on all the events organized by your society. )</span>
           </p>
           <button
             onClick={openPopup}

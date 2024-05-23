@@ -29,7 +29,7 @@ config({
 // Using Middlewares
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: "http://192.168.1.3:3000",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })

@@ -319,7 +319,7 @@ export const deletePlacement = (req, res) => {
       // Check if the appointmentLetter link exists
       if (appointmentLetter) {
         // Extract the relative file path from the link
-        const relativeFilePath = appointmentLetter.replace('http://localhost:3001/public', '');
+        const relativeFilePath = appointmentLetter.replace('http://192.168.1.3:3001/public', '');
         
         const currentModulePath = fileURLToPath(import.meta.url);
         const currentModuleDir = dirname(currentModulePath);
@@ -468,7 +468,7 @@ export const uploadPdf = (req, res) => {
       }
 
       // Insert into the database without checking if RollNo exists
-      const baseUrl = 'http://localhost:3001/public';
+      const baseUrl = 'http://192.168.1.3:3001/public';
       const appointmentLettersLink = `${baseUrl}/appointmentLetters/${modifiedRollNo}/${fileName}`;
 
       const insertQuery = 'INSERT INTO placementData (id, appointmentLetter) VALUES (?, ?)';
@@ -746,7 +746,7 @@ export const uploadScoreCard=(req,res)=>{
           res.status(500).send('Internal Server Error');
         } else {
           
-          const baseUrl = 'http://localhost:3001/public';
+          const baseUrl = 'http://192.168.1.3:3001/public';
           const gateScoreCardLink = `${baseUrl}/scoreCards/${fileName}`;
 
           if (checkResult.length === 0) {
@@ -873,7 +873,7 @@ export const getCompanyRegCert = (req, res) => {
       // Check if a link is present
       if (companyRegCertificate) {
         // Construct the full URL using the local server's base URL and the stored link
-        // const baseUrl = 'http://localhost:3001/public';
+        // const baseUrl = 'http://192.168.1.3:3001/public';
         // const fullUrl = `${baseUrl}${companyRegCertificate}`;
 
         // Send the PDF link as the response
@@ -931,7 +931,7 @@ export const uploadCompanyRegCert = (req, res) => {
           res.status(500).send('Internal Server Error');
         } else {
           
-          const baseUrl = 'http://localhost:3001/public';
+          const baseUrl = 'http://192.168.1.3:3001/public';
           const certificateLink = `${baseUrl}/companyCertificates/${fileName}`;
 
           if (checkResult.length === 0) {
@@ -1083,7 +1083,7 @@ export const uploadofferletter=(req,res)=>{
           res.status(500).send('Internal Server Error');
         } else {
           
-          const baseUrl = 'http://localhost:3001/public';
+          const baseUrl = 'http://192.168.1.3:3001/public';
           const offerLetterLink = `${baseUrl}/offerLetters/${fileName}`;
 
           if (checkResult.length === 0) {
@@ -1134,7 +1134,7 @@ export const deletePublication = (req, res) => {
       // Check if the appointmentLetter link exists
       if (manuscript) {
         // Extract the relative file path from the link
-        const relativeFilePath = manuscript.replace('http://localhost:3001/public', '');
+        const relativeFilePath = manuscript.replace('http://192.168.1.3:3001/public', '');
         
         const currentModulePath = fileURLToPath(import.meta.url);
         const currentModuleDir = dirname(currentModulePath);
@@ -1280,7 +1280,7 @@ export const uploadManuscript = (req, res) => {
       }
 
       // Insert into the database without checking if RollNo exists
-      const baseUrl = 'http://localhost:3001/public';
+      const baseUrl = 'http://192.168.1.3:3001/public';
       const manuscriptLink = `${baseUrl}/manuscripts/${modifiedRollNo}/${fileName}`;
 
       const insertQuery = 'INSERT INTO publicationDetails (id, manuscript) VALUES (?, ?)';
@@ -1415,7 +1415,7 @@ export const uploadCertificate = (req, res) => {
       }
 
       // Insert into the database without checking if RollNo exists
-      const baseUrl = 'http://localhost:3001/public';
+      const baseUrl = 'http://192.168.1.3:3001/public';
       const certificateLink = `${baseUrl}/certificates/${modifiedRollNo}/${fileName}`;
 
       const insertQuery = 'INSERT INTO  interInstituteEventDetails (id, certificate) VALUES (?, ?)';
@@ -1481,7 +1481,7 @@ export const deleteInterInstituteActivity = (req, res) => {
       // Check if the appointmentLetter link exists
       if (certificate) {
         // Extract the relative file path from the link
-        const relativeFilePath = certificate.replace('http://localhost:3001/public', '');
+        const relativeFilePath = certificate.replace('http://192.168.1.3:3001/public', '');
         
         const currentModulePath = fileURLToPath(import.meta.url);
         const currentModuleDir = dirname(currentModulePath);
@@ -1539,4 +1539,48 @@ export const deleteInterInstituteActivity = (req, res) => {
       res.status(404).json({ error: 'Record not found' });
     }
   });
+};
+
+export const getAcknowledgement = async (req, res) => {
+  const { rollNo } = req.body;
+
+  // Mapping object for table display names
+  const tableDisplayNames = {
+    'entrepreneurDetails': 'Entrepreneurship Details',
+    'EventDetails': 'Professional Activities',
+    'higherEducationDetails': 'Higher Education Details',
+    'placementData': 'Placement Details',
+    'publicationDetails': 'Publication Details',
+    'studentPersonalDetails': 'Personal Details',
+    'interInstituteEventDetails': 'Inter-Institute Events',
+    'btechEducationalDetails': 'Educational Details'
+  };
+  
+  const tables = Object.keys(tableDisplayNames);
+  const presentTables = [];
+  const absentTables = [];
+  
+  const checkRollNoInTable = (table) => {
+    const query = `SELECT 1 FROM \`${table}\` WHERE RollNo = ? LIMIT 1`;
+    connectDB.query(query, [rollNo], (err, result) => {
+      if (err) {
+        console.error('Error querying database: ' + err.stack);
+        return;
+      }
+      
+      if (result.length > 0) {
+        presentTables.push(tableDisplayNames[table]);
+      } else {
+        absentTables.push(tableDisplayNames[table]);
+      }
+      
+      if (tables.length === presentTables.length + absentTables.length) {
+        // Once all tables have been checked, send the response
+        res.status(200).send({ presentTables, absentTables });
+      }
+    });
+  };
+  
+  tables.forEach(table => checkRollNoInTable(table));
+
 };

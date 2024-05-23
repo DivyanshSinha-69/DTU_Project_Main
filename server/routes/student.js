@@ -37,7 +37,8 @@ import {
   uploadCertificate,
   deleteInterInstituteActivity,
   getBtechEducationDetails,
-  updateBtechEducationDetails
+  updateBtechEducationDetails,
+  getAcknowledgement
 } from "../controllers/student.js";
 // import { isAuthenticated } from "../middlewares/auth.js";
 
@@ -93,6 +94,7 @@ router.delete("/deleteinterinstituteactivity", deleteInterInstituteActivity);
 
 router.post("/getcertificate",getCertificate);
 router.post("/uploadcertificate",uploadCertificate);
+router.post("/getacknowledgement",getAcknowledgement);
 // router.get("/me", isAuthenticated, getMyProfile);
 
 

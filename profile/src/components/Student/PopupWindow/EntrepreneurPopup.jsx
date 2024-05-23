@@ -44,7 +44,7 @@ export default function EntrepreneurPopup(props) {
       
 
       const response = await axios.put(
-        "http://localhost:3001/ece/student/updateentrepreneurdetails",
+        "http://192.168.1.3:3001/ece/student/updateentrepreneurdetails",
         {
           companyName: formData.companyName,
           cinNumber: formData.cinNumber,
