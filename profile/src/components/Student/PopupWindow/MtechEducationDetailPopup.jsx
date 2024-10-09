@@ -65,7 +65,7 @@ export default function MtechEducationDetailPopup(props) {
         }
 
         const response = await axios.put(
-          "http://192.168.1.3:3001/ece/student/updatemtecheducationdetails",
+          "http://eceportal.dtu.ac.in:3001/ece/student/updatemtecheducationdetails",
           {
             admittedThrough: formData.admittedThrough,
             gateRollNo: formData.gateRollNo,
@@ -94,7 +94,7 @@ export default function MtechEducationDetailPopup(props) {
         }
       } else {
         const response = await axios.put(
-          "http://192.168.1.3:3001/ece/student/updatemtecheducationdetails",
+          "http://eceportal.dtu.ac.in:3001/ece/student/updatemtecheducationdetails",
           {
             admittedThrough: formData.admittedThrough,
             gateRollNo: null,

@@ -2,6 +2,8 @@ import { connectDB } from "../data/database.js";
 import { sendCookie } from "../utils/featues.js";
 
 export const adminLogin = (req, res) => {
+
+  //console.log(req.body);
   console.log("received a login");
   const { email, password } = req.body;
   

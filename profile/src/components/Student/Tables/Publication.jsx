@@ -38,7 +38,7 @@ const Publication = ({ setBlurActive }) => {
   const handledelete = async (ID) => {
     try {
       const response = await axios.delete(
-        "http://192.168.1.3:3001/ece/student/deletepublication",
+        "http://eceportal.dtu.ac.in:3001/ece/student/deletepublication",
         {
           data: {
             ID: ID,
@@ -67,7 +67,11 @@ const Publication = ({ setBlurActive }) => {
     <div>
       <div className="h-auto p-10 ">
         <div className="flex flex-row justify-between pr-5 pl-5">
-          <p className="p-3 text-2xl font1 border-top my-auto">Publication Details</p>
+          <p className="p-3 text-2xl font1 border-top my-auto">Publication Details
+          
+          <br /> <span className="text-lg text-red-600">(If You have recived the acceptance and paper is not yet published <br/>enter DOI as "In Progress" and add a drive link of paper in place of article link. )</span>
+          </p>
+          
           <button
             onClick={openPopup}
             className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full hover:invert hover:scale-[130%] transition-transform ease-in"

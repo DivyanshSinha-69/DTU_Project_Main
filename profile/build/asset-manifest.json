@@ -1,11 +1,13 @@
 {
   "files": {
-    "main.css": "/static/css/main.d8580c42.css",
-    "main.js": "/static/js/main.efc1f109.js",
+    "main.css": "/static/css/main.6567dbc3.css",
+    "main.js": "/static/js/main.a5e83aad.js",
     "static/media/dtu2.png": "/static/media/dtu2.bb7ea8e586b4efdeeb62.png",
     "static/media/dtu3.png": "/static/media/dtu3.bb7ea8e586b4efdeeb62.png",
     "static/media/dtu.png": "/static/media/dtu.5c8833d20e7b8e7a1aee.png",
-    "static/media/dtuSVG.svg": "/static/media/dtuSVG.bb456276f1bc29698eb9dec865ae0e7a.svg",
+    "static/media/Arimo.ttf": "/static/media/Arimo.7b7636b299316b91b95a.ttf",
+    "static/media/logoDtu.png": "/static/media/logoDtu.d9fda039c396f16bff79.png",
+    "static/media/dtuSVG.svg": "/static/media/dtuSVG.c04b31f671ef11d91cf4f15228a44f93.svg",
     "static/media/studImg.png": "/static/media/studImg.0d29dc4f71af294d6ade.png",
     "static/media/employer.svg": "/static/media/employer.39d97d761f21d7641e9d01fbc80ee9d8.svg",
     "static/media/parent.svg": "/static/media/parent.ab916b6572c5f36e1ca66faac11df3c5.svg",
@@ -21,11 +23,11 @@
     "static/media/alumini.svg": "/static/media/alumini.f8469f9ea58519a879901f56672bb006.svg",
     "index.html": "/index.html",
     "static/media/add.svg": "/static/media/add.2fd8642bd2e07fc2724d2bd390a36306.svg",
-    "main.d8580c42.css.map": "/static/css/main.d8580c42.css.map",
-    "main.efc1f109.js.map": "/static/js/main.efc1f109.js.map"
+    "main.6567dbc3.css.map": "/static/css/main.6567dbc3.css.map",
+    "main.a5e83aad.js.map": "/static/js/main.a5e83aad.js.map"
   },
   "entrypoints": [
-    "static/css/main.d8580c42.css",
-    "static/js/main.efc1f109.js"
+    "static/css/main.6567dbc3.css",
+    "static/js/main.a5e83aad.js"
   ]
 }

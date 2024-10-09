@@ -21,7 +21,7 @@ const Test = () => {
     // Send a POST request with 'id' in the request body
     axios
       .post(
-        `http://192.168.1.3:3001/ece/student/getImage`,
+        `http://eceportal.dtu.ac.in:3001/ece/student/getImage`,
         { rollNo: imageId },
         { responseType: "arraybuffer" }
       )
@@ -58,8 +58,8 @@ const Test = () => {
 
     if (file && RollNo) {
 
-      if (file.size > 20 * 1024) {
-        toast.error("Image size should be 20KB or below");
+      if (file.size > 500 * 1024) {
+        toast.error("Image size should be 500KB or below");
         return;
       }
 
@@ -69,7 +69,7 @@ const Test = () => {
 
       try {
         const response = await axios.post(
-          "http://192.168.1.3:3001/ece/student/upload",
+          "http://eceportal.dtu.ac.in:3001/ece/student/upload",
           formData,
           {
             headers: {
@@ -89,7 +89,7 @@ const Test = () => {
       // Send a POST request with 'id' in the request body
       axios
         .post(
-          `http://192.168.1.3:3001/ece/student/getImage`,
+          `http://eceportal.dtu.ac.in:3001/ece/student/getImage`,
           { rollNo: imageId },
           { responseType: "arraybuffer" }
         )
@@ -125,7 +125,7 @@ const Test = () => {
               />
               {isFileSelected && 
               <>
-              <p className="text-sm font-bold w-[150px] text-red-700 translate-x-[-115px] translate-y-[-35px]">max-size : 20Kb</p>
+              <p className="text-sm font-bold w-[150px] text-red-700 translate-x-[-115px] translate-y-[-35px]">max-size : 500Kb</p>
               <button onClick={handleUpload} className="bg-gray-600 rounded-lg text-white hover:invert p-2 font1 hover:scale-[110%] transition-transform ease-in translate-x-[-95px] translate-y-[-30px]">Upload</button>
               </>
               }

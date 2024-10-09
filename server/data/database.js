@@ -6,7 +6,8 @@ export const connectDB = mysql.createConnection({
   user     : 'root',
   // // user     : process.env.USE,
   // // password : process.env.PASSWORD,
-  password : "rootuser",
+  // password : "rootuser",
+  password : "dtueceportal@123",
   // password : "root",
   
   database : 'admin'

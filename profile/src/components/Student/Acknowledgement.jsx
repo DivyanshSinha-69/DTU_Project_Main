@@ -28,7 +28,7 @@ const Acknowledgement = () => {
   const handleAcknowledgement = async () => {
     try {
       const response = await axios.post(
-        "http://192.168.1.3:3001/ece/student/getacknowledgement",
+        "http://eceportal.dtu.ac.in:3001/ece/student/getacknowledgement",
         { rollNo: RollNo },
         { withCredentials: true }
       );
@@ -99,7 +99,11 @@ const Acknowledgement = () => {
             
             <View style={styles.signature}>
                 <Text style={styles.signDate}>Dated</Text>
-                <Text style={styles.sign}>Signature of Coordinator</Text>
+                <Text style={styles.sign}>Signature of Coordinator</Text>       
+            </View>
+
+            <View>
+            <Text style={{...styles.sign, marginLeft:417}}>( Sumit Khandelwal )</Text>
             </View>
             
             </View>

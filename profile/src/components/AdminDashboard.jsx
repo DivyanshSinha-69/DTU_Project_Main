@@ -58,7 +58,7 @@ const Dashboard = () => {
   //   const tableRows = TABLE_ROWS;
 
   //   // Make a POST request to the server
-  //   axios.post('http://192.168.1.3:3001/ece/admin/getexcel', { tableRows }, { responseType: 'blob' })
+  //   axios.post('http://eceportal.dtu.ac.in:3001/ece/admin/getexcel', { tableRows }, { responseType: 'blob' })
   //     .then(response => {
   //       const url = window.URL.createObjectURL(new Blob([response.data]));
   //       const link = document.createElement('a');
@@ -89,7 +89,7 @@ const Dashboard = () => {
     setClicked(true);
     try {
       const response = await axios.post(
-        "http://192.168.1.3:3001/ece/admin/getdata",
+        "http://eceportal.dtu.ac.in:3001/ece/admin/getdata",
         {
           ...formData,
         },

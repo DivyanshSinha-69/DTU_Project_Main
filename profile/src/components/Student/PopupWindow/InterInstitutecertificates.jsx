@@ -15,7 +15,7 @@ const InterInstituteCertificates = ({ setPdfSrc,setId }) => {
 
 //     axios
 //       .post(
-//         `http://192.168.1.3:3001/ece/student/getpdf`,
+//         `http://eceportal.dtu.ac.in:3001/ece/student/getpdf`,
 //         { id: id },
 //         { responseType: "arraybuffer" }
 //       )
@@ -49,8 +49,8 @@ const InterInstituteCertificates = ({ setPdfSrc,setId }) => {
     setId(id);
     if (file && id) {
 
-      if (file.size > 10 * 1024) {
-        toast.error("file size should be 10KB or below");
+      if (file.size > 500 * 1024) {
+        toast.error("file size should be 500KB or below");
         return;
       }
 
@@ -62,7 +62,7 @@ const InterInstituteCertificates = ({ setPdfSrc,setId }) => {
 
       try {
         const response = await axios.post(
-          "http://192.168.1.3:3001/ece/student/uploadcertificate",
+          "http://eceportal.dtu.ac.in:3001/ece/student/uploadcertificate",
           formData,
           {
             headers: {
@@ -81,7 +81,7 @@ const InterInstituteCertificates = ({ setPdfSrc,setId }) => {
 
       axios
         .post(
-          `http://192.168.1.3:3001/ece/student/getcertificate`,
+          `http://eceportal.dtu.ac.in:3001/ece/student/getcertificate`,
           { id: id },
         )
         .then((response) => {
@@ -107,7 +107,7 @@ const InterInstituteCertificates = ({ setPdfSrc,setId }) => {
       {isFileSelected && (
         <>
           <p className="text-sm font-bold w-[150px] text-red-700 translate-y-[10px]">
-            max-size: 10KB
+            max-size: 500KB
           </p>
           <button
             onClick={handleUpload}

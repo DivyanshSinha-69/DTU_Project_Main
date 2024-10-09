@@ -28,7 +28,7 @@ function App() {
   useEffect(() => {
     const checkExistingToken = async () => {
       try {
-        const response = await axios.get("http://192.168.1.3:3001/cookiescheck", {
+        const response = await axios.get("http://eceportal.dtu.ac.in:3001/cookiescheck", {
           withCredentials: true,
         });
 
@@ -59,7 +59,7 @@ function App() {
       <Router>
         <StickyNavbar />
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
           <Route path="/login/admin" element={<AdminLogin />} />
           

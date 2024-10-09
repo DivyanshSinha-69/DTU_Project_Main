@@ -20,7 +20,7 @@ const Login = () => {
     try {
       // Make a POST request to your server with login credentials
       const response = await axios.post(
-        "http://192.168.1.3:3001/login",
+        "http://eceportal.dtu.ac.in:3001/login",
         {
           email: email,
           password: password,
@@ -101,14 +101,14 @@ const Login = () => {
                 >
                   Password
                 </label>
-                <div className="text-sm">
+                {/* <div className="text-sm">
                   <HashLink
                     to="/forgot"
                     className="font-semibold text-md text-gray-800 hover:text-indigo-500"
                   >
                     Forgot password?
                   </HashLink>
-                </div>
+                </div> */}
               </div>
               <div className="mt-2">
                 <input

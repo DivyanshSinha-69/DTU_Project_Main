@@ -56,7 +56,7 @@ export default function StickyNavbar() {
 
     try {
       // Make a POST request to your server with login credentials
-      const response = await axios.get("http://192.168.1.3:3001/logout",{
+      const response = await axios.get("http://eceportal.dtu.ac.in:3001/logout",{
         withCredentials: true,
       });
 
@@ -136,7 +136,7 @@ export default function StickyNavbar() {
         </Typography>
       )}
 
-      <Typography
+      {/* <Typography
         as="li"
         variant="small"
         color="blue-gray"
@@ -180,7 +180,7 @@ export default function StickyNavbar() {
           <img src={homeimg} alt="alumni" height={30} width={30} />
           <p className="lg:ml-0 ml-4">Home</p>
         </HashLink>
-      </Typography>
+      </Typography> */}
       {isAuthenticated === true && (
         <>
         <Typography
@@ -230,8 +230,6 @@ export default function StickyNavbar() {
         <Navbar className="bg-white border-0 top-0 z-10 h-max max-w-full rounded-nonep-0 lg:p-0 shadow-none">
           <div className="flex  bg-inherit border-0 items-center justify-between rounded-none text-blue-gray-900">
             <Typography
-              as={HashLink}
-              to="/"
               className="mr-4 cursor-pointer py-0 font-medium "
             >
               <div className="flex justify-center text-align">

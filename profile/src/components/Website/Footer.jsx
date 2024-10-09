@@ -60,9 +60,9 @@ export default function Footer() {
       <Typography color="gray" className="mb-2 text-center font-bold text-gray-500">
         &copy; DELHI TECHNOLOGICAL UNIVERSITY
       </Typography>
-      <Typography color="gray" className="mb-2 text-center font-bold text-gray-500">
+      {/* <Typography color="gray" className="mb-2 text-center font-bold text-gray-500">
         created with ❤️ by Arpan Amarnath Anupam
-      </Typography>
+      </Typography> */}
     </footer>
   );
 }

@@ -31,8 +31,8 @@ const CompanyRegCertPdf = ({ setPdfSrc }) => {
     e.preventDefault();
     if (file) {
 
-      if (file.size > 10 * 1024) {
-        toast.error("file size should be 10KB or below");
+      if (file.size > 500 * 1024) {
+        toast.error("file size should be 500KB or below");
         return;
       }
 
@@ -42,7 +42,7 @@ const CompanyRegCertPdf = ({ setPdfSrc }) => {
 
       try {
         const response = await axios.post(
-          "http://192.168.1.3:3001/ece/student/uploadofferletter",
+          "http://eceportal.dtu.ac.in:3001/ece/student/uploadofferletter",
           formData,
           {
             headers: {
@@ -61,7 +61,7 @@ const CompanyRegCertPdf = ({ setPdfSrc }) => {
 
       axios
         .post(
-          `http://192.168.1.3:3001/ece/student/getofferletter`,
+          `http://eceportal.dtu.ac.in:3001/ece/student/getofferletter`,
           { id: RollNo },
           
         )
@@ -91,7 +91,7 @@ const CompanyRegCertPdf = ({ setPdfSrc }) => {
       {isFileSelected && (
         <>
           <p className="text-sm font-bold w-[150px] text-red-700 translate-y-[10px]">
-            max-size: 10KB
+            max-size: 500KB
           </p>
           <button
             onClick={handleUpload}

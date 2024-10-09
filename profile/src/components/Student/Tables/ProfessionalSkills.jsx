@@ -42,7 +42,7 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
   const handledelete = async (ID) => {
     try {
       const response = await axios.delete(
-        "http://192.168.1.3:3001/ece/student/deleteprofessionalskills",
+        "http://eceportal.dtu.ac.in:3001/ece/student/deleteprofessionalskills",
         {
           data: {
             ID: ID,

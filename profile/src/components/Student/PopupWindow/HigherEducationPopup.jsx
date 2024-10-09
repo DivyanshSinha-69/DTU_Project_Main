@@ -35,7 +35,7 @@ export default function HigherEducationPopup(props) {
       }
 
       const response = await axios.put(
-        "http://192.168.1.3:3001/ece/student/updatehighereducationdetails",
+        "http://eceportal.dtu.ac.in:3001/ece/student/updatehighereducationdetails",
         {
           examName: formData.examName,
           instituteName: formData.instituteName,

@@ -53,7 +53,7 @@ export const getData = (req, res) => {
   } else {
     // Fetch details based on the specified info, assuming info is not 'defaulters'
     sql = `
-      SELECT ${sanitizedInfo}.*
+      SELECT Student_data.studentName,${sanitizedInfo}.*
       FROM Student_data
       INNER JOIN ${sanitizedInfo} ON Student_data.RollNo = ${sanitizedInfo}.RollNo
       WHERE Student_data.batch BETWEEN ? AND ?
