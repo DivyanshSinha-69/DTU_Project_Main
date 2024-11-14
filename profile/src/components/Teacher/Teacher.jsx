@@ -3,7 +3,7 @@ import axios from "axios";
 // import teacherImg from "../../assets/teacherImg.png";
 import PersonalDetails from "./Tables/PersonalDetails";
 import ResearchProjects from "./Tables/ResearchProjects";
-import Publications from "./Tables/Publications";
+
 import Association from "./Tables/Association";
 import Visits from "./Tables/Visits";
 
@@ -67,10 +67,7 @@ const Teacher = () => {
               <Visits setBlurActive={setBlurActive} />
             </div>
             
-            <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
-              <Publications setBlurActive={setBlurActive} />
-            </div>
-
+            
             
 
             
