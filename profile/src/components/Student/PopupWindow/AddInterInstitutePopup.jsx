@@ -47,7 +47,7 @@ export default function AddInterInstitutePopup(props) {
     
     try {
       const response = await axios.post(
-        "http://eceportal.dtu.ac.in:3001/ece/student/addinterinstituteactivity",
+        "http://localhost:3001/ece/student/addinterinstituteactivity",
         {
           collegeName: formData.collegeName,
           eventName: formData.eventName,

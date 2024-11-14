@@ -46,7 +46,7 @@ export default function AddPopupProfessionalSkills(props) {
     const id = RollNo+Date.now();
     try {
       const response = await axios.post(
-        "http://eceportal.dtu.ac.in:3001/ece/student/addprofessionalskills",
+        "http://localhost:3001/ece/student/addprofessionalskills",
         {
           organisation: formData.organisation,
           position: formData.position,

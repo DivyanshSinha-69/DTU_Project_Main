@@ -5,7 +5,7 @@ import Footer from "./components/Website/Footer";
 import Home from "./components/Homepage/Home";
 import Login from "./components/Login";
 import Forgot from "./components/Forgot";
-import Teacher from "./components/Teacher";
+import Teacher from "./components/Teacher/Teacher";
 import Student from "./components/Student/Student";
 import Dashboard from "./components/AdminDashboard";
 import Unaithorized from "./components/Unauthorized";
@@ -28,7 +28,7 @@ function App() {
   useEffect(() => {
     const checkExistingToken = async () => {
       try {
-        const response = await axios.get("http://eceportal.dtu.ac.in:3001/cookiescheck", {
+        const response = await axios.get("http://localhost:3001/cookiescheck", {
           withCredentials: true,
         });
 
@@ -38,7 +38,7 @@ function App() {
 
         if (userDetails.user.Position === "student") {
           navigate("/student/portal");
-        } else if (userDetails.user.Position === "teacher") {
+         }else if (userDetails.user.Position === "teacher") {
           navigate("/teacher/portal");
         } else if (userDetails.user.Position === "admin") {
           navigate("/admin/portal");
@@ -62,12 +62,13 @@ function App() {
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
           <Route path="/login/admin" element={<AdminLogin />} />
+          <Route path="/teacher/portal" element={<Teacher />} />
           
           {role === "student" ? (
             <Route path="/student/portal" element={<Student />} />
             
-          ) : role === "teacher" ? (
-            <Route path="/teacher/portal" element={<Teacher />} />
+          /*) : role === "teacher" ? (
+            <Route path="/teacher/portal" element={<Teacher />} />*/
           ) : role==="admin"? (<Route path="/admin/portal" element={<Dashboard />} />): (
             <Route path="/login" element={<Login />} />
           )}

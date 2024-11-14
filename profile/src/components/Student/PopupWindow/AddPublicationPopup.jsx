@@ -49,7 +49,7 @@ export default function AddPlacementsPopup(props) {
 
     try {
       const response = await axios.post(
-        "http://eceportal.dtu.ac.in:3001/ece/student/addpublication",
+        "http://localhost:3001/ece/student/addpublication",
         {
           publishedIn: formData.publishedIn,
           articleTitle: formData.articleTitle,
