@@ -3,7 +3,6 @@ import axios from "axios";
 // import teacherImg from "../../assets/teacherImg.png";
 import PersonalDetails from "./Tables/PersonalDetails";
 import ResearchProjects from "./Tables/ResearchProjects";
-import Publications from "./Tables/Publications";
 import Association from "./Tables/Association";
 import Visits from "./Tables/Visits";
 
@@ -39,7 +38,7 @@ const Teacher = () => {
                   <h1 className="font-extrabold text-3xl text-center">{teacherData.name}</h1>
                   <h2 className="font-bold text-1xl text-center">ID: {teacherData.employeeId}</h2>
                   <h2 className="text-lg text-center">{teacherData.designation}</h2>
-                  <h2>Department: {teacherData.department}</h2>
+                  <h2>Department: ECE</h2>
                 </div>
                 <div className="h-[175px] w-[175px] justify-center items-center m-2">
                   <img
@@ -66,11 +65,6 @@ const Teacher = () => {
             <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
               <Visits setBlurActive={setBlurActive} />
             </div>
-            
-            
-
-            
-
             
 
             <Toaster 
