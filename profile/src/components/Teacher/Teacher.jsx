@@ -67,9 +67,7 @@ const Teacher = () => {
               <Visits setBlurActive={setBlurActive} />
             </div>
             
-            <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
-              <Publications setBlurActive={setBlurActive} />
-            </div>
+            
 
             
 
