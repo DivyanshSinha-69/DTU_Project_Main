@@ -2,7 +2,7 @@ import  express  from "express"; //hi hello
 import { config } from "dotenv";
 import cookieParser from "cookie-parser";
 import adminRouter from "./routes/admin.js"
-import professorRouter from "./routes/professor.js"
+import professorRouter from "./routes/faculty.js"
 import studentRouter from "./routes/student.js"
 import commonRouter from "./routes/common.js"
 // import { errorMiddleware } from "./middlewares/error.js";
