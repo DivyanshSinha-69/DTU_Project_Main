@@ -15,7 +15,7 @@ const InterInstituteCertificates = ({ setPdfSrc,setId }) => {
 
 //     axios
 //       .post(
-//         `http://eceportal.dtu.ac.in:3001/ece/student/getpdf`,
+//         `http://localhost:3001/ece/student/getpdf`,
 //         { id: id },
 //         { responseType: "arraybuffer" }
 //       )
@@ -62,7 +62,7 @@ const InterInstituteCertificates = ({ setPdfSrc,setId }) => {
 
       try {
         const response = await axios.post(
-          "http://eceportal.dtu.ac.in:3001/ece/student/uploadcertificate",
+          "http://localhost:3001/ece/student/uploadcertificate",
           formData,
           {
             headers: {
@@ -81,7 +81,7 @@ const InterInstituteCertificates = ({ setPdfSrc,setId }) => {
 
       axios
         .post(
-          `http://eceportal.dtu.ac.in:3001/ece/student/getcertificate`,
+          `http://localhost:3001/ece/student/getcertificate`,
           { id: id },
         )
         .then((response) => {

@@ -21,7 +21,7 @@ const Test = () => {
     // Send a POST request with 'id' in the request body
     axios
       .post(
-        `http://eceportal.dtu.ac.in:3001/ece/student/getImage`,
+        `http://localhost:3001/ece/student/getImage`,
         { rollNo: imageId },
         { responseType: "arraybuffer" }
       )
@@ -69,7 +69,7 @@ const Test = () => {
 
       try {
         const response = await axios.post(
-          "http://eceportal.dtu.ac.in:3001/ece/student/upload",
+          "http://localhost:3001/ece/student/upload",
           formData,
           {
             headers: {
@@ -89,7 +89,7 @@ const Test = () => {
       // Send a POST request with 'id' in the request body
       axios
         .post(
-          `http://eceportal.dtu.ac.in:3001/ece/student/getImage`,
+          `http://localhost:3001/ece/student/getImage`,
           { rollNo: imageId },
           { responseType: "arraybuffer" }
         )

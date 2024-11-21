@@ -29,7 +29,7 @@ app.use(express.static(buildPath))
 // Using Middlewares
 app.use(
   cors({
-    origin: "http://eceportal.dtu.ac.in:3000",
+    origin: "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })

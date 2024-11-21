@@ -28,7 +28,7 @@ function App() {
   useEffect(() => {
     const checkExistingToken = async () => {
       try {
-        const response = await axios.get("http://eceportal.dtu.ac.in:3001/cookiescheck", {
+        const response = await axios.get("http://localhost:3001/cookiescheck", {
           withCredentials: true,
         });
 

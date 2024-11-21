@@ -42,7 +42,7 @@ const MtechScoreCardPdf = ({ setPdfSrc }) => {
 
       try {
         const response = await axios.post(
-          "http://eceportal.dtu.ac.in:3001/ece/student/uploadscorecard",
+          "http://localhost:3001/ece/student/uploadscorecard",
           formData,
           {
             headers: {
@@ -61,7 +61,7 @@ const MtechScoreCardPdf = ({ setPdfSrc }) => {
 
       axios
         .post(
-          `http://eceportal.dtu.ac.in:3001/ece/student/getscorecard`,
+          `http://localhost:3001/ece/student/getscorecard`,
           { id: RollNo },
         )
         .then((response) => {

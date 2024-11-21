@@ -56,7 +56,7 @@ export default function StickyNavbar() {
 
     try {
       // Make a POST request to your server with login credentials
-      const response = await axios.get("http://eceportal.dtu.ac.in:3001/logout",{
+      const response = await axios.get("http://localhost:3001/logout",{
         withCredentials: true,
       });
 

@@ -19,7 +19,7 @@ const Forgot = () => {
     try {
       // Make a POST request to your server with login credentials
       const response = await axios.post(
-        "http://eceportal.dtu.ac.in:3001/forgot",
+        "http://localhost:3001/forgot",
         {
           rollno: rollno,
         },

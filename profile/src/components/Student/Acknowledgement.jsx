@@ -28,7 +28,7 @@ const Acknowledgement = () => {
   const handleAcknowledgement = async () => {
     try {
       const response = await axios.post(
-        "http://eceportal.dtu.ac.in:3001/ece/student/getacknowledgement",
+        "http://localhost:3001/ece/student/getacknowledgement",
         { rollNo: RollNo },
         { withCredentials: true }
       );

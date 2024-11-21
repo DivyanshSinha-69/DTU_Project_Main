@@ -42,7 +42,7 @@ const CompanyRegCertPdf = ({ setPdfSrc }) => {
 
       try {
         const response = await axios.post(
-          "http://eceportal.dtu.ac.in:3001/ece/student/uploadofferletter",
+          "http://localhost:3001/ece/student/uploadofferletter",
           formData,
           {
             headers: {
@@ -61,7 +61,7 @@ const CompanyRegCertPdf = ({ setPdfSrc }) => {
 
       axios
         .post(
-          `http://eceportal.dtu.ac.in:3001/ece/student/getofferletter`,
+          `http://localhost:3001/ece/student/getofferletter`,
           { id: RollNo },
           
         )
