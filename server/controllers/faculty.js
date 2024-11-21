@@ -167,3 +167,84 @@ export const updateFacultyDetails = (req, res) => {
   });
 };
 
+
+
+// Get association details for a faculty
+export const getAssociationDetails = (req, res) => {
+  const { faculty_id } = req.body;
+  const sql = "SELECT * FROM association WHERE faculty_id = ?";
+
+  connectDB.query(sql, [faculty_id], (err, results) => {
+    if (err) {
+      console.error("Error executing fetch query:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+
+    // Always return an array, even if it's empty
+    const association = results || [];
+
+    res.status(200).json({
+      association,
+      success: true,
+    });
+  });
+};
+
+// Update association details for a faculty
+export const updateAssociationDetails = (req, res) => {
+  const { faculty_id, designation, date_asg_prof, date_asg_astprof, date_asg_asoprof, date_end_prof, date_end_astprof, date_end_asoprof, date_joining, specialization } = req.body;
+
+  // Check if the record exists in the database
+  const checkQuery = 'SELECT * FROM association WHERE faculty_id = ?';
+
+  connectDB.query(checkQuery, [faculty_id], (checkErr, checkResult) => {
+    if (checkErr) {
+      console.error('Error checking database:', checkErr);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+
+    if (checkResult && checkResult.length > 0) {
+      // Record exists, perform an update
+      const updateQuery =
+        'UPDATE association SET designation = ?, date_asg_prof = ?, date_asg_astprof = ?, date_asg_asoprof = ?, date_end_prof = ?, date_end_astprof = ?, date_end_asoprof = ?, date_joining = ?, specialization = ? WHERE faculty_id = ?';
+
+      connectDB.query(
+        updateQuery,
+        [designation, date_asg_prof, date_asg_astprof, date_asg_asoprof, date_end_prof, date_end_astprof, date_end_asoprof, date_joining, specialization, faculty_id],
+        (updateErr, updateResult) => {
+          if (updateErr) {
+            console.error('Error executing update query:', updateErr);
+            res.status(500).json({ error: 'Internal Server Error' });
+          } else {
+            res.status(200).json({
+              success: true,
+              message: 'Association record updated successfully',
+            });
+          }
+        }
+      );
+    } else {
+      // Record doesn't exist, perform an insert
+      const insertQuery =
+        'INSERT INTO association (faculty_id, designation, date_asg_prof, date_asg_astprof, date_asg_asoprof, date_end_prof, date_end_astprof, date_end_asoprof, date_joining, specialization) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+
+      connectDB.query(
+        insertQuery,
+        [faculty_id, designation, date_asg_prof, date_asg_astprof, date_asg_asoprof, date_end_prof, date_end_astprof, date_end_asoprof, date_joining, specialization],
+        (insertErr, insertResult) => {
+          if (insertErr) {
+            console.error('Error inserting into database:', insertErr);
+            res.status(500).json({ error: 'Internal Server Error' });
+          } else {
+            res.status(200).json({
+              success: true,
+              message: 'Association record added successfully',
+            });
+          }
+        }
+      );
+    }
+  });
+};
