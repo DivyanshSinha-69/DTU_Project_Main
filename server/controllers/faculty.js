@@ -337,3 +337,115 @@ export const deleteResearchPaper = (req, res) => {
     }
   });
 };
+
+export const getVAERecords = (req, res) => {
+  const { faculty_id, visit_id } = req.body;
+
+  let sql, params;
+
+  if (visit_id) {
+    // If visit_id is provided, fetch that specific record
+    sql = "SELECT * FROM VAErecords WHERE visit_id = ?";
+    params = [visit_id];
+  } else if (faculty_id) {
+    // If faculty_id is provided, fetch all records for that faculty
+    sql = "SELECT * FROM VAErecords WHERE faculty_id = ?";
+    params = [faculty_id];
+  } else {
+    res.status(400).json({ error: "Either faculty_id or visit_id must be provided" });
+    return;
+  }
+
+  connectDB.query(sql, params, (err, results) => {
+    if (err) {
+      console.error("Error fetching VAE records:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+    } else {
+      res.status(200).json({ records: results, success: true });
+    }
+  });
+};
+
+
+export const updateVAERecord = (req, res) => {
+  const {
+    visit_id,
+    faculty_id,
+    visit_type,
+    institution,
+    course_taught,
+    year_of_visit,
+    hours_taught,
+  } = req.body;
+
+  const checkQuery = "SELECT * FROM VAErecords WHERE visit_id = ?";
+  connectDB.query(checkQuery, [visit_id], (checkErr, checkResult) => {
+    if (checkErr) {
+      console.error("Error checking record:", checkErr);
+      res.status(500).json({ error: "Internal Server Error" });
+    } else if (checkResult && checkResult.length > 0) {
+      // Update the existing record
+      const updateQuery =
+        "UPDATE VAErecords SET faculty_id = ?, visit_type = ?, institution = ?, course_taught = ?, year_of_visit = ?, hours_taught = ? WHERE visit_id = ?";
+      connectDB.query(
+        updateQuery,
+        [
+          faculty_id,
+          visit_type,
+          institution,
+          course_taught,
+          year_of_visit,
+          hours_taught,
+          visit_id,
+        ],
+        (updateErr, updateResult) => {
+          if (updateErr) {
+            console.error("Error updating record:", updateErr);
+            res.status(500).json({ error: "Internal Server Error" });
+          } else {
+            res.status(200).json({
+              success: true,
+              message: "Record updated successfully",
+            });
+          }
+        }
+      );
+    } else {
+      // Insert a new record
+      const insertQuery =
+        "INSERT INTO VAErecords (faculty_id, visit_type, institution, course_taught, year_of_visit, hours_taught) VALUES (?, ?, ?, ?, ?, ?)";
+      connectDB.query(
+        insertQuery,
+        [faculty_id, visit_type, institution, course_taught, year_of_visit, hours_taught],
+        (insertErr, insertResult) => {
+          if (insertErr) {
+            console.error("Error inserting record:", insertErr);
+            res.status(500).json({ error: "Internal Server Error" });
+          } else {
+            res.status(200).json({
+              success: true,
+              message: "Record added successfully",
+            });
+          }
+        }
+      );
+    }
+  });
+};
+
+// Delete a VAE record
+export const deleteVAERecord = (req, res) => {
+  const { visit_id } = req.body;
+
+  const deleteQuery = "DELETE FROM VAErecords WHERE visit_id = ?";
+  connectDB.query(deleteQuery, [visit_id], (err, result) => {
+    if (err) {
+      console.error("Error deleting record:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+    } else if (result.affectedRows > 0) {
+      res.status(200).json({ success: true, message: "Record deleted successfully" });
+    } else {
+      res.status(404).json({ success: false, message: "Record not found" });
+    }
+  });
+};

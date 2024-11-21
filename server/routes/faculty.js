@@ -9,7 +9,10 @@ import {
   updateAssociationDetails,
   getResearchPapers,
   updateResearchPaper,
-  deleteResearchPaper
+  deleteResearchPaper,
+  getVAERecords,
+  updateVAERecord,
+  deleteVAERecord,
 } from "../controllers/faculty.js"; // Add new controller functions
 
 // import { isAuthenticated } from "../middlewares/auth.js";
@@ -20,10 +23,10 @@ const router = express.Router();
 router.post("/uploadfacultyimage", uploadFacultyImage);
 
 // Route for getting faculty image
-router.post("/getfacultyimage", getFacultyImage);
+router.get("/facultyimage", getFacultyImage);
 
 // Route for getting faculty personal details
-router.post("/getfacultydetails", getFacultyDetails);
+router.get("/facultydetails", getFacultyDetails);
 
 // Route for updating faculty personal details
 router.put("/updatefacultydetails", updateFacultyDetails);
@@ -45,5 +48,13 @@ router.put("/updateresearchpaper", updateResearchPaper);
 
 // Route for deleting a research paper
 router.delete("/deleteresearchpaper", deleteResearchPaper);
+
+router.get("/vaerecords", getVAERecords);
+
+// Update a VAE record
+router.put("/vaerecord", updateVAERecord);
+
+// Delete a VAE record
+router.delete("/vaerecord", deleteVAERecord);
 
 export default router;
