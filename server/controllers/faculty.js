@@ -248,3 +248,92 @@ export const updateAssociationDetails = (req, res) => {
     }
   });
 };
+
+
+// Get research papers for a faculty
+export const getResearchPapers = (req, res) => {
+  const { faculty_id } = req.body;
+  const sql = "SELECT * FROM research_paper WHERE faculty_id = ?";
+
+  connectDB.query(sql, [faculty_id], (err, results) => {
+    if (err) {
+      console.error("Error fetching research papers:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+    } else {
+      res.status(200).json({
+        research_papers: results || [],
+        success: true,
+      });
+    }
+  });
+};
+
+// Update or insert a research paper
+export const updateResearchPaper = (req, res) => {
+  const { PublicationID, faculty_id, title, serial_number, domain, publication_name, published_date, pdf_file_path } = req.body;
+
+  // Check if the research paper exists in the database
+  const checkQuery = "SELECT * FROM research_paper WHERE PublicationID = ?";
+
+  connectDB.query(checkQuery, [PublicationID], (checkErr, checkResult) => {
+    if (checkErr) {
+      console.error("Error checking database:", checkErr);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+
+    if (checkResult && checkResult.length > 0) {
+      // Research paper exists, update it
+      const updateQuery = `
+        UPDATE research_paper 
+        SET title = ?, serial_number = ?, domain = ?, publication_name = ?, published_date = ?, pdf_file_path = ?
+        WHERE PublicationID = ?`;
+
+      connectDB.query(
+        updateQuery,
+        [title, serial_number, domain, publication_name, published_date, pdf_file_path, PublicationID],
+        (updateErr) => {
+          if (updateErr) {
+            console.error("Error updating research paper:", updateErr);
+            res.status(500).json({ error: "Internal Server Error" });
+          } else {
+            res.status(200).json({ success: true, message: "Research paper updated successfully" });
+          }
+        }
+      );
+    } else {
+      // Research paper doesn't exist, insert it
+      const insertQuery = `
+        INSERT INTO research_paper (faculty_id, title, serial_number, domain, publication_name, published_date, pdf_file_path)
+        VALUES (?, ?, ?, ?, ?, ?, ?)`;
+
+      connectDB.query(
+        insertQuery,
+        [faculty_id, title, serial_number, domain, publication_name, published_date, pdf_file_path],
+        (insertErr) => {
+          if (insertErr) {
+            console.error("Error inserting research paper:", insertErr);
+            res.status(500).json({ error: "Internal Server Error" });
+          } else {
+            res.status(200).json({ success: true, message: "Research paper added successfully" });
+          }
+        }
+      );
+    }
+  });
+};
+
+// Delete a research paper
+export const deleteResearchPaper = (req, res) => {
+  const { PublicationID } = req.body;
+  const deleteQuery = "DELETE FROM research_paper WHERE PublicationID = ?";
+
+  connectDB.query(deleteQuery, [PublicationID], (err) => {
+    if (err) {
+      console.error("Error deleting research paper:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+    } else {
+      res.status(200).json({ success: true, message: "Research paper deleted successfully" });
+    }
+  });
+};

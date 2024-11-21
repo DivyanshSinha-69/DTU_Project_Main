@@ -6,8 +6,11 @@ import {
   updateFacultyDetails,
   getall,
   getAssociationDetails,
-  updateAssociationDetails
-} from "../controllers/faculty.js"; // Add these new controller functions
+  updateAssociationDetails,
+  getResearchPapers,
+  updateResearchPaper,
+  deleteResearchPaper
+} from "../controllers/faculty.js"; // Add new controller functions
 
 // import { isAuthenticated } from "../middlewares/auth.js";
 
@@ -33,5 +36,14 @@ router.post("/getassociationdetails", getAssociationDetails);
 
 // Route for updating faculty association details
 router.put("/updateassociationdetails", updateAssociationDetails);
+
+// Route for fetching all research papers for a faculty
+router.post("/getresearchpapers", getResearchPapers);
+
+// Route for updating or adding a research paper
+router.put("/updateresearchpaper", updateResearchPaper);
+
+// Route for deleting a research paper
+router.delete("/deleteresearchpaper", deleteResearchPaper);
 
 export default router;
