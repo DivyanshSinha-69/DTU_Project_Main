@@ -42,7 +42,7 @@ app.use(
 
 // Using routes
 app.use("/ece/admin",adminRouter)
-app.use("/ece/professor",professorRouter)
+app.use("/ece/faculty",professorRouter)
 app.use("/ece/student",studentRouter)
 app.use("/",commonRouter);
 app.get("/*", function(req, res){

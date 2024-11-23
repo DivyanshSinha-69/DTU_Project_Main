@@ -39,7 +39,7 @@ function App() {
         if (userDetails.user.Position === "student") {
           navigate("/student/portal");
          }else if (userDetails.user.Position === "teacher") {
-          navigate("/teacher/portal");
+          navigate("/faculty/portal");
         } else if (userDetails.user.Position === "admin") {
           navigate("/admin/portal");
         } else {
