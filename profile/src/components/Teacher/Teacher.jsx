@@ -17,7 +17,7 @@ const Teacher = () => {
 
   // Dummy data for the teacher (replace with actual data later)
   const teacherData = {
-    name: "Dr. John Doe",
+    name: "Dr. John Does",
     employeeId: "12345",
     department: "ECE",
     designation: "Professor",

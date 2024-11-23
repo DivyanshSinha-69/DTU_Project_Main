@@ -11,6 +11,15 @@ import UserHigherEducationDetails from "./reducers/UserHigherEducationDetails";
 import UserPublicationDetails from "./reducers/UserPublicationDetails";
 import UserInterInstituteDetails from "./reducers/UserInterInstituteDetails";
 import UserBtechEducationalDetails from "./reducers/UserBtechEducationalDetails";
+import FacultyImageReducer from "./reducers/UserFacultyImage";
+import UserQualificationsReducer from "./reducers/UserQualification";   
+import UserAssociationReducer from "./reducers/UserAssocation";
+import userResearchPapersReducer from './reducers/UserResearchPaper';  // Import the UserResearchPaper reducer
+import userVAErecordsReducer from './reducers/UserVAErecords'; // Import the VAErecords slice
+
+
+
+
 
 export const store=configureStore({
 
@@ -26,7 +35,12 @@ export const store=configureStore({
         entrepreneurDetails:UserEntrepreneurDetails,
         higherEducationDetails:UserHigherEducationDetails,
         publicationDetails:UserPublicationDetails,
-        interInstitute:UserInterInstituteDetails
+        interInstitute:UserInterInstituteDetails,
+        facultyImage:FacultyImageReducer,
+        userQualifications: UserQualificationsReducer,
+        userAssociation: UserAssociationReducer,
+        userResearchPapers: userResearchPapersReducer,  // Add the research papers reducer here
+        userVAErecords: userVAErecordsReducer,  
     },
 });
 
