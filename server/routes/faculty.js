@@ -7,6 +7,7 @@ import {
   addFacultyDetails,
   getall,
   getAssociationDetails,
+  addAssociationDetails, 
   updateAssociationDetails,
   getResearchPapers,
   updateResearchPaper,
@@ -39,7 +40,10 @@ router.post("/addfacultydetails", addFacultyDetails);
 router.get("/getall", getall);
 
 // Route for getting faculty association details
-router.post("/getassociationdetails", getAssociationDetails);
+router.get("/getassociationdetails", getAssociationDetails);
+
+// Route to add association details
+router.post("/addassociationdetails", addAssociationDetails);
 
 // Route for updating faculty association details
 router.put("/updateassociationdetails", updateAssociationDetails);

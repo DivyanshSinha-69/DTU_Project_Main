@@ -220,6 +220,52 @@ export const getAssociationDetails = (req, res) => {
   });
 };
 
+export const addAssociationDetails = (req, res) => {
+  const { 
+    faculty_id, 
+    designation, 
+    date_asg_prof, 
+    date_asg_astprof, 
+    date_asg_asoprof, 
+    date_end_prof, 
+    date_end_astprof, 
+    date_end_asoprof, 
+    date_joining, 
+    specialization 
+  } = req.body;
+
+  // Insert the new record into the association table
+  const insertQuery = `
+    INSERT INTO association 
+    (faculty_id, designation, date_asg_prof, date_asg_astprof, date_asg_asoprof, date_end_prof, date_end_astprof, date_end_asoprof, date_joining, specialization) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  connectDB.query(
+    insertQuery,
+    [faculty_id, designation, date_asg_prof, date_asg_astprof, date_asg_asoprof, date_end_prof, date_end_astprof, date_end_asoprof, date_joining, specialization],
+    (err, results) => {
+      if (err) {
+        console.error('Error inserting into association table:', err);
+        if (err.code === 'ER_NO_REFERENCED_ROW_2') {
+          res.status(400).json({ 
+            error: 'Invalid faculty_id. Ensure the faculty exists in the qualification table.' 
+          });
+        } else {
+          res.status(500).json({ error: 'Internal Server Error' });
+        }
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Association record added successfully',
+      });
+    }
+  );
+};
+
+
 // Update association details for a faculty
 export const updateAssociationDetails = (req, res) => {
   const { faculty_id, designation, date_asg_prof, date_asg_astprof, date_asg_asoprof, date_end_prof, date_end_astprof, date_end_asoprof, date_joining, specialization } = req.body;
