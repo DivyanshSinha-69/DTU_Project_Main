@@ -9,8 +9,8 @@ import {
   getAssociationDetails,
   addAssociationDetails, 
   updateAssociationDetails,
-  getResearchPapers,
-  updateResearchPaper,
+  addResearchPaper,
+  getResearchPaper,
   deleteResearchPaper,
   getVAERecords,
   updateVAERecord,
@@ -48,14 +48,15 @@ router.post("/addassociationdetails", addAssociationDetails);
 // Route for updating faculty association details
 router.put("/updateassociationdetails", updateAssociationDetails);
 
-// Route for fetching all research papers for a faculty
-router.post("/getresearchpapers", getResearchPapers);
+// Route to add/update a research paper
+router.post("/addresearchpaper", addResearchPaper);
 
-// Route for updating or adding a research paper
-router.put("/updateresearchpaper", updateResearchPaper);
+// Route for fetching all research papers for a faculty
+router.get("/getresearchpaper", getResearchPaper);
+
 
 // Route for deleting a research paper
-router.delete("/deleteresearchpaper", deleteResearchPaper);
+router.delete('/deleteresearchpaper/:PublicationID', deleteResearchPaper);
 
 router.get("/vaerecords", getVAERecords);
 

@@ -1,5 +1,8 @@
 import { connectDB } from "../data/database.js";
 import multer from "multer";
+import { fileURLToPath } from 'url';
+import path, { resolve, dirname } from 'path';
+import fs from 'fs';
 
 // Set up multer to handle image uploads
 const storage = multer.memoryStorage(); // Store the file in memory as Buffer
@@ -325,93 +328,246 @@ export const updateAssociationDetails = (req, res) => {
 };
 
 
-// Get research papers for a faculty
-export const getResearchPapers = (req, res) => {
-  const { faculty_id } = req.body;
-  const sql = "SELECT * FROM research_paper WHERE faculty_id = ?";
+// Setup multer storage configuration
 
-  connectDB.query(sql, [faculty_id], (err, results) => {
+
+export const addResearchPaper = (req, res) => {
+  // Use multer to handle file upload in the incoming request
+  upload.single("pdf")(req, res, async (err) => {
     if (err) {
-      console.error("Error fetching research papers:", err);
-      res.status(500).json({ error: "Internal Server Error" });
-    } else {
+      console.error("Error uploading PDF:", err);
+      return res.status(500).send("Error uploading PDF");
+    }
+
+    // Extract form data and file from the request
+    const { buffer, originalname } = req.file;
+    const { faculty_id, title, serial_number, domain, publication_name, published_date } = req.body;
+
+    // Sanitize the serial_number to avoid issues with file names
+    const sanitizedSerialNumber = serial_number.replace(/\//g, "-");
+    const fileName = `${sanitizedSerialNumber}.pdf`;
+
+    // Construct the folder path where the file will be stored
+    const currentModulePath = fileURLToPath(import.meta.url);
+    const currentModuleDir = path.dirname(currentModulePath);
+    const parentDir = path.resolve(currentModuleDir, "..");
+    const facultyDir = path.join(parentDir, "public", "Faculty", "ResearchPapers", faculty_id.toString());
+
+    // Create directory if it does not exist
+    if (!fs.existsSync(facultyDir)) {
+      fs.mkdirSync(facultyDir, { recursive: true });
+    }
+
+    const filePath = path.join(facultyDir, fileName);
+
+    // Check if the research paper already exists in the database for the given faculty_id and serial_number
+    const checkQuery = "SELECT * FROM research_paper WHERE faculty_id = ? AND serial_number = ?";
+    connectDB.query(checkQuery, [faculty_id, serial_number], (selectErr, results) => {
+      if (selectErr) {
+        console.error("Error checking existing research papers:", selectErr);
+        return res.status(500).send("Error checking research paper");
+      }
+
+      if (results.length > 0) {
+        // If the research paper already exists, we update the existing record
+        const updateQuery = `
+          UPDATE research_paper
+          SET title = ?, domain = ?, publication_name = ?, published_date = ?, pdf_file_path = ?
+          WHERE faculty_id = ? AND serial_number = ?`;
+
+        connectDB.query(
+          updateQuery,
+          [title, domain, publication_name, published_date, filePath, faculty_id, serial_number],
+          (updateErr) => {
+            if (updateErr) {
+              console.error("Error updating research paper:", updateErr);
+              return res.status(500).send("Error updating research paper");
+            }
+
+            // Write the file to the server
+            fs.writeFile(filePath, buffer, (writeErr) => {
+              if (writeErr) {
+                console.error("Error saving PDF to file:", writeErr);
+                return res.status(500).send("Error saving PDF");
+              }
+
+              return res.status(200).json({
+                success: true,
+                message: "Research paper updated successfully",
+                pdf_url: `/public/Faculty/${faculty_id}/ResearchPapers/${fileName}`,
+              });
+            });
+          }
+        );
+      } else {
+        // If the research paper doesn't exist, insert a new record
+        const insertQuery = `
+          INSERT INTO research_paper (faculty_id, title, serial_number, domain, publication_name, published_date, pdf_file_path)
+          VALUES (?, ?, ?, ?, ?, ?, ?)`;
+
+        connectDB.query(
+          insertQuery,
+          [faculty_id, title, serial_number, domain, publication_name, published_date, filePath],
+          (insertErr) => {
+            if (insertErr) {
+              console.error("Error inserting research paper into database:", insertErr);
+              return res.status(500).send("Error inserting research paper");
+            }
+
+            // Write the file to the server
+            fs.writeFile(filePath, buffer, (writeErr) => {
+              if (writeErr) {
+                console.error("Error saving PDF to file:", writeErr);
+                return res.status(500).send("Error saving PDF");
+              }
+
+              return res.status(200).json({
+                success: true,
+                message: "Research paper added successfully",
+                pdf_url: `/public/Faculty/${faculty_id}/ResearchPapers/${fileName}`,
+              });
+            });
+          }
+        );
+      }
+    });
+  });
+};
+
+
+
+// Get research papers for a faculty
+
+export const getResearchPaper = (req, res) => {
+  const { faculty_id } = req.body;
+
+  const selectQuery = `SELECT * FROM research_paper WHERE faculty_id = ?`;
+
+  connectDB.query(selectQuery, [faculty_id], (selectErr, results) => {
+    if (selectErr) {
+      console.error("Error fetching research papers:", selectErr);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+
+    if (results.length > 0) {
+      const formattedResults = results.map((paper) => {
+        return {
+          PublicationID: paper.PublicationID,
+          faculty_id: paper.faculty_id,
+          title: paper.title,
+          serial_number: paper.serial_number,
+          domain: paper.domain,
+          publication_name: paper.publication_name,
+          published_date: paper.published_date,
+          pdf_url: paper.pdf_file_path,
+        };
+      });
+
       res.status(200).json({
-        research_papers: results || [],
         success: true,
+        message: "Research papers retrieved successfully",
+        data: formattedResults,
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: "No research papers found for the given faculty_id",
+        data: [],
       });
     }
   });
 };
 
-// Update or insert a research paper
-export const updateResearchPaper = (req, res) => {
-  const { PublicationID, faculty_id, title, serial_number, domain, publication_name, published_date, pdf_file_path } = req.body;
 
-  // Check if the research paper exists in the database
-  const checkQuery = "SELECT * FROM research_paper WHERE PublicationID = ?";
-
-  connectDB.query(checkQuery, [PublicationID], (checkErr, checkResult) => {
-    if (checkErr) {
-      console.error("Error checking database:", checkErr);
-      res.status(500).json({ error: "Internal Server Error" });
-      return;
-    }
-
-    if (checkResult && checkResult.length > 0) {
-      // Research paper exists, update it
-      const updateQuery = `
-        UPDATE research_paper 
-        SET title = ?, serial_number = ?, domain = ?, publication_name = ?, published_date = ?, pdf_file_path = ?
-        WHERE PublicationID = ?`;
-
-      connectDB.query(
-        updateQuery,
-        [title, serial_number, domain, publication_name, published_date, pdf_file_path, PublicationID],
-        (updateErr) => {
-          if (updateErr) {
-            console.error("Error updating research paper:", updateErr);
-            res.status(500).json({ error: "Internal Server Error" });
-          } else {
-            res.status(200).json({ success: true, message: "Research paper updated successfully" });
-          }
-        }
-      );
-    } else {
-      // Research paper doesn't exist, insert it
-      const insertQuery = `
-        INSERT INTO research_paper (faculty_id, title, serial_number, domain, publication_name, published_date, pdf_file_path)
-        VALUES (?, ?, ?, ?, ?, ?, ?)`;
-
-      connectDB.query(
-        insertQuery,
-        [faculty_id, title, serial_number, domain, publication_name, published_date, pdf_file_path],
-        (insertErr) => {
-          if (insertErr) {
-            console.error("Error inserting research paper:", insertErr);
-            res.status(500).json({ error: "Internal Server Error" });
-          } else {
-            res.status(200).json({ success: true, message: "Research paper added successfully" });
-          }
-        }
-      );
-    }
-  });
-};
 
 // Delete a research paper
-export const deleteResearchPaper = (req, res) => {
-  const { PublicationID } = req.body;
-  const deleteQuery = "DELETE FROM research_paper WHERE PublicationID = ?";
 
-  connectDB.query(deleteQuery, [PublicationID], (err) => {
-    if (err) {
-      console.error("Error deleting research paper:", err);
-      res.status(500).json({ error: "Internal Server Error" });
-    } else {
-      res.status(200).json({ success: true, message: "Research paper deleted successfully" });
+
+
+
+
+
+
+// Delete research paper by PublicationID
+export const deleteResearchPaper = (req, res) => {
+  const { PublicationID } = req.params;
+
+  // Ensure the PublicationID is an integer
+  if (isNaN(PublicationID)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid PublicationID, it should be an integer"
+    });
+  }
+
+  // Query to get the research paper details by PublicationID
+  const selectQuery = "SELECT * FROM research_paper WHERE PublicationID = ?";
+  
+  connectDB.query(selectQuery, [PublicationID], (selectErr, results) => {
+    if (selectErr) {
+      console.error("Error fetching research paper details:", selectErr);
+      return res.status(500).send("Error fetching research paper details");
     }
+
+    if (results.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Research paper not found"
+      });
+    }
+
+    // Extract file path from the query result
+    const filePath = results[0].pdf_file_path;
+    const fileName = path.basename(filePath);  // Get the file name from the path
+    const folderPath = path.dirname(filePath); // Get the folder where the file is located
+
+    console.log("File path to delete:", filePath); // Debug log for file path
+
+    // Delete the file from the server
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        console.error("Error deleting PDF file:", err);
+        return res.status(500).json({
+          success: false,
+          message: "Error deleting PDF file"
+        });
+      }
+
+      // Now delete the record from the database
+      const deleteQuery = "DELETE FROM research_paper WHERE PublicationID = ?";
+      connectDB.query(deleteQuery, [PublicationID], (deleteErr) => {
+        if (deleteErr) {
+          console.error("Error deleting research paper from database:", deleteErr);
+          return res.status(500).json({
+            success: false,
+            message: "Error deleting research paper from database"
+          });
+        }
+
+        console.log("Research paper deleted successfully");
+
+        return res.status(200).json({
+          success: true,
+          message: "Research paper and PDF deleted successfully"
+        });
+      });
+    });
   });
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 export const getVAERecords = (req, res) => {
   const { faculty_id, visit_id } = req.body;
