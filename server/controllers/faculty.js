@@ -167,6 +167,35 @@ export const updateFacultyDetails = (req, res) => {
   });
 };
 
+export const addFacultyDetails = (req, res) => {
+  const { faculty_name, degree, university, year_of_attaining_highest_degree, email_id, mobile_number } = req.body;
+
+  // Query to insert data into the qualification table
+  const insertQuery =
+    "INSERT INTO qualification (faculty_name, degree, university, year_of_attaining_highest_degree, email_id, mobile_number) VALUES (?, ?, ?, ?, ?, ?)";
+
+  connectDB.query(
+    insertQuery,
+    [faculty_name, degree, university, year_of_attaining_highest_degree, email_id, mobile_number],
+    (err, result) => {
+      if (err) {
+        if (err.code === "ER_DUP_ENTRY") {
+          res.status(400).json({ success: false, message: "Email ID or Mobile Number already exists" });
+        } else {
+          console.error("Error inserting into database:", err);
+          res.status(500).json({ success: false, message: "Internal Server Error" });
+        }
+      } else {
+        res.status(201).json({
+          success: true,
+          message: "Faculty details added successfully",
+          faculty_id: result.insertId, // Return the auto-generated faculty ID
+        });
+      }
+    }
+  );
+};
+
 
 
 // Get association details for a faculty

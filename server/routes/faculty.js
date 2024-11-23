@@ -4,6 +4,7 @@ import {
   getFacultyImage,
   getFacultyDetails,
   updateFacultyDetails,
+  addFacultyDetails,
   getall,
   getAssociationDetails,
   updateAssociationDetails,
@@ -13,9 +14,10 @@ import {
   getVAERecords,
   updateVAERecord,
   deleteVAERecord,
+  
 } from "../controllers/faculty.js"; // Add new controller functions
 
-// import { isAuthenticated } from "../middlewares/auth.js";
+
 
 const router = express.Router();
 
@@ -30,6 +32,8 @@ router.get("/facultydetails", getFacultyDetails);
 
 // Route for updating faculty personal details
 router.put("/updatefacultydetails", updateFacultyDetails);
+
+router.post("/addfacultydetails", addFacultyDetails);
 
 // Route for fetching all faculty qualifications
 router.get("/getall", getall);
