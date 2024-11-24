@@ -479,16 +479,6 @@ export const getResearchPaper = (req, res) => {
   });
 };
 
-
-
-// Delete a research paper
-
-
-
-
-
-
-
 // Delete research paper by PublicationID
 export const deleteResearchPaper = (req, res) => {
   const { PublicationID } = req.params;
@@ -556,127 +546,175 @@ export const deleteResearchPaper = (req, res) => {
   });
 };
 
+// Controller to add VAE record
+export const addVAERecord = (req, res) => {
+  const { faculty_id, visit_type, institution, course_taught, year_of_visit, hours_taught } = req.body;
+
+  // Query to insert the VAE record
+  const query = `
+    INSERT INTO VAErecords (faculty_id, visit_type, institution, course_taught, year_of_visit, hours_taught)
+    VALUES (?, ?, ?, ?, ?, ?)`;
+
+  connectDB.query(query, [faculty_id, visit_type, institution, course_taught, year_of_visit, hours_taught], (err, result) => {
+    if (err) {
+      console.error("Error inserting VAE record:", err);
+      return res.status(500).json({ message: 'Error inserting VAE record', error: err });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'VAE record created successfully',
+      data: result,
+    });
+  });
+};
 
 
 
 
 
+// Controller to get VAE records by faculty_id (using PUT)
+export const getVAERecord = (req, res) => {
+  const { faculty_id } = req.body;  // Get faculty_id from request body
 
-
-
-
-
-
-
-
-export const getVAERecords = (req, res) => {
-  const { faculty_id, visit_id } = req.body;
-
-  let sql, params;
-
-  if (visit_id) {
-    // If visit_id is provided, fetch that specific record
-    sql = "SELECT * FROM VAErecords WHERE visit_id = ?";
-    params = [visit_id];
-  } else if (faculty_id) {
-    // If faculty_id is provided, fetch all records for that faculty
-    sql = "SELECT * FROM VAErecords WHERE faculty_id = ?";
-    params = [faculty_id];
-  } else {
-    res.status(400).json({ error: "Either faculty_id or visit_id must be provided" });
-    return;
+  if (!faculty_id) {
+    return res.status(400).json({ success: false, message: "faculty_id is required" });
   }
 
-  connectDB.query(sql, params, (err, results) => {
+  // Query to fetch VAE records for the given faculty_id
+  const query = 'SELECT * FROM VAErecords WHERE faculty_id = ?';
+
+  connectDB.query(query, [faculty_id], (err, results) => {
     if (err) {
       console.error("Error fetching VAE records:", err);
-      res.status(500).json({ error: "Internal Server Error" });
+      return res.status(500).json({ success: false, message: 'Error fetching VAE records', error: err });
+    }
+
+    if (results.length > 0) {
+      res.status(200).json({
+        success: true,
+        message: 'VAE records fetched successfully',
+        data: results,
+      });
     } else {
-      res.status(200).json({ records: results, success: true });
+      res.status(404).json({
+        success: false,
+        message: 'No VAE records found for the given faculty_id',
+        data: [],
+      });
     }
   });
 };
 
 
+
+
+
+// Controller to update VAE record by visit_id
+// Controller to update an existing VAE record
 export const updateVAERecord = (req, res) => {
-  const {
-    visit_id,
-    faculty_id,
-    visit_type,
-    institution,
-    course_taught,
-    year_of_visit,
-    hours_taught,
-  } = req.body;
+  const { visit_id, faculty_id, visit_type, institution, course_taught, year_of_visit, hours_taught } = req.body;
 
-  const checkQuery = "SELECT * FROM VAErecords WHERE visit_id = ?";
-  connectDB.query(checkQuery, [visit_id], (checkErr, checkResult) => {
-    if (checkErr) {
-      console.error("Error checking record:", checkErr);
-      res.status(500).json({ error: "Internal Server Error" });
-    } else if (checkResult && checkResult.length > 0) {
-      // Update the existing record
-      const updateQuery =
-        "UPDATE VAErecords SET faculty_id = ?, visit_type = ?, institution = ?, course_taught = ?, year_of_visit = ?, hours_taught = ? WHERE visit_id = ?";
-      connectDB.query(
-        updateQuery,
-        [
-          faculty_id,
-          visit_type,
-          institution,
-          course_taught,
-          year_of_visit,
-          hours_taught,
-          visit_id,
-        ],
-        (updateErr, updateResult) => {
-          if (updateErr) {
-            console.error("Error updating record:", updateErr);
-            res.status(500).json({ error: "Internal Server Error" });
-          } else {
-            res.status(200).json({
-              success: true,
-              message: "Record updated successfully",
-            });
-          }
-        }
-      );
-    } else {
-      // Insert a new record
-      const insertQuery =
-        "INSERT INTO VAErecords (faculty_id, visit_type, institution, course_taught, year_of_visit, hours_taught) VALUES (?, ?, ?, ?, ?, ?)";
-      connectDB.query(
-        insertQuery,
-        [faculty_id, visit_type, institution, course_taught, year_of_visit, hours_taught],
-        (insertErr, insertResult) => {
-          if (insertErr) {
-            console.error("Error inserting record:", insertErr);
-            res.status(500).json({ error: "Internal Server Error" });
-          } else {
-            res.status(200).json({
-              success: true,
-              message: "Record added successfully",
-            });
-          }
-        }
-      );
+  // Ensure that the visit_id and faculty_id are provided
+  if (!visit_id || !faculty_id) {
+    return res.status(400).json({
+      success: false,
+      message: "visit_id and faculty_id are required"
+    });
+  }
+
+  // Query to check if the VAE record exists for the given visit_id and faculty_id
+  const checkQuery = "SELECT * FROM VAErecords WHERE visit_id = ? AND faculty_id = ?";
+  
+  connectDB.query(checkQuery, [visit_id, faculty_id], (selectErr, results) => {
+    if (selectErr) {
+      console.error("Error checking existing VAE record:", selectErr);
+      return res.status(500).json({
+        success: false,
+        message: "Error checking existing VAE record"
+      });
     }
+
+    if (results.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "VAE record not found for the given visit_id and faculty_id"
+      });
+    }
+
+    // If record exists, proceed to update the VAE record
+    const updateQuery = `
+      UPDATE VAErecords
+      SET visit_type = ?, institution = ?, course_taught = ?, year_of_visit = ?, hours_taught = ?
+      WHERE visit_id = ? AND faculty_id = ?`;
+
+    connectDB.query(updateQuery, [visit_type, institution, course_taught, year_of_visit, hours_taught, visit_id, faculty_id], (updateErr) => {
+      if (updateErr) {
+        console.error("Error updating VAE record:", updateErr);
+        return res.status(500).json({
+          success: false,
+          message: "Error updating VAE record"
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "VAE record updated successfully"
+      });
+    });
   });
 };
 
-// Delete a VAE record
-export const deleteVAERecord = (req, res) => {
-  const { visit_id } = req.body;
 
-  const deleteQuery = "DELETE FROM VAErecords WHERE visit_id = ?";
-  connectDB.query(deleteQuery, [visit_id], (err, result) => {
-    if (err) {
-      console.error("Error deleting record:", err);
-      res.status(500).json({ error: "Internal Server Error" });
-    } else if (result.affectedRows > 0) {
-      res.status(200).json({ success: true, message: "Record deleted successfully" });
-    } else {
-      res.status(404).json({ success: false, message: "Record not found" });
+
+
+// Controller to delete an existing VAE record
+export const deleteVAERecord = (req, res) => {
+  const { visit_id, faculty_id } = req.body;
+
+  // Ensure that visit_id and faculty_id are provided
+  if (!visit_id || !faculty_id) {
+    return res.status(400).json({
+      success: false,
+      message: "visit_id and faculty_id are required"
+    });
+  }
+
+  // Query to check if the VAE record exists for the given visit_id and faculty_id
+  const checkQuery = "SELECT * FROM VAErecords WHERE visit_id = ? AND faculty_id = ?";
+  
+  connectDB.query(checkQuery, [visit_id, faculty_id], (selectErr, results) => {
+    if (selectErr) {
+      console.error("Error checking VAE record:", selectErr);
+      return res.status(500).json({
+        success: false,
+        message: "Error checking VAE record"
+      });
     }
+
+    if (results.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "VAE record not found for the given visit_id and faculty_id"
+      });
+    }
+
+    // If the record exists, proceed to delete it
+    const deleteQuery = "DELETE FROM VAErecords WHERE visit_id = ? AND faculty_id = ?";
+    
+    connectDB.query(deleteQuery, [visit_id, faculty_id], (deleteErr) => {
+      if (deleteErr) {
+        console.error("Error deleting VAE record:", deleteErr);
+        return res.status(500).json({
+          success: false,
+          message: "Error deleting VAE record"
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "VAE record deleted successfully"
+      });
+    });
   });
 };

@@ -12,7 +12,8 @@ import {
   addResearchPaper,
   getResearchPaper,
   deleteResearchPaper,
-  getVAERecords,
+  addVAERecord,
+  getVAERecord,
   updateVAERecord,
   deleteVAERecord,
   
@@ -29,7 +30,7 @@ router.post("/uploadfacultyimage", uploadFacultyImage);
 router.get("/facultyimage", getFacultyImage);
 
 // Route for getting faculty personal details
-router.get("/facultydetails", getFacultyDetails);
+router.get("/getfacultydetails", getFacultyDetails);
 
 // Route for updating faculty personal details
 router.put("/updatefacultydetails", updateFacultyDetails);
@@ -54,16 +55,17 @@ router.post("/addresearchpaper", addResearchPaper);
 // Route for fetching all research papers for a faculty
 router.get("/getresearchpaper", getResearchPaper);
 
-
 // Route for deleting a research paper
 router.delete('/deleteresearchpaper/:PublicationID', deleteResearchPaper);
 
-router.get("/vaerecords", getVAERecords);
+router.post("/addvaerecord", addVAERecord);
+
+router.put("/getvaerecord", getVAERecord);
 
 // Update a VAE record
-router.put("/vaerecord", updateVAERecord);
+router.put("/updatevaerecord", updateVAERecord);
 
 // Delete a VAE record
-router.delete("/vaerecord", deleteVAERecord);
+router.delete("/deletevaerecord", deleteVAERecord);
 
 export default router;
