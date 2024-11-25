@@ -35,9 +35,10 @@ router.get("/getfacultydetails", getFacultyDetails);
 // Route for updating faculty personal details
 router.put("/updatefacultydetails", updateFacultyDetails);
 
+// Route for adding faculty personal details
 router.post("/addfacultydetails", addFacultyDetails);
 
-// Route for fetching all faculty qualifications
+// Route for fetching all the faculties details
 router.get("/getall", getall);
 
 // Route for getting faculty association details
