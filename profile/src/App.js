@@ -62,7 +62,7 @@ function App() {
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
           <Route path="/login/admin" element={<AdminLogin />} />
-          <Route path="/teacher/portal" element={<Teacher />} />
+          <Route path="/faculty/portal" element={<Teacher />} />
           
           {role === "student" ? (
             <Route path="/student/portal" element={<Student />} />
