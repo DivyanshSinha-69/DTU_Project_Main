@@ -4,18 +4,22 @@ import {
   getFacultyImage,
   getFacultyDetails,
   updateFacultyDetails,
+  addFacultyDetails,
   getall,
   getAssociationDetails,
+  addAssociationDetails, 
   updateAssociationDetails,
-  getResearchPapers,
-  updateResearchPaper,
+  addResearchPaper,
+  getResearchPaper,
   deleteResearchPaper,
-  getVAERecords,
+  addVAERecord,
+  getVAERecord,
   updateVAERecord,
   deleteVAERecord,
+  
 } from "../controllers/faculty.js"; // Add new controller functions
 
-// import { isAuthenticated } from "../middlewares/auth.js";
+
 
 const router = express.Router();
 
@@ -26,35 +30,43 @@ router.post("/uploadfacultyimage", uploadFacultyImage);
 router.get("/facultyimage", getFacultyImage);
 
 // Route for getting faculty personal details
-router.get("/facultydetails", getFacultyDetails);
+router.get("/getfacultydetails", getFacultyDetails);
 
 // Route for updating faculty personal details
 router.put("/updatefacultydetails", updateFacultyDetails);
 
-// Route for fetching all faculty qualifications
+// Route for adding faculty personal details
+router.post("/addfacultydetails", addFacultyDetails);
+
+// Route for fetching all the faculties details
 router.get("/getall", getall);
 
 // Route for getting faculty association details
-router.post("/getassociationdetails", getAssociationDetails);
+router.get("/getassociationdetails", getAssociationDetails);
+
+// Route to add association details
+router.post("/addassociationdetails", addAssociationDetails);
 
 // Route for updating faculty association details
 router.put("/updateassociationdetails", updateAssociationDetails);
 
-// Route for fetching all research papers for a faculty
-router.post("/getresearchpapers", getResearchPapers);
+// Route to add/update a research paper
+router.post("/addresearchpaper", addResearchPaper);
 
-// Route for updating or adding a research paper
-router.put("/updateresearchpaper", updateResearchPaper);
+// Route for fetching all research papers for a faculty
+router.get("/getresearchpaper", getResearchPaper);
 
 // Route for deleting a research paper
-router.delete("/deleteresearchpaper", deleteResearchPaper);
+router.delete('/deleteresearchpaper/:PublicationID', deleteResearchPaper);
 
-router.get("/vaerecords", getVAERecords);
+router.post("/addvaerecord", addVAERecord);
+
+router.put("/getvaerecord", getVAERecord);
 
 // Update a VAE record
-router.put("/vaerecord", updateVAERecord);
+router.put("/updatevaerecord", updateVAERecord);
 
 // Delete a VAE record
-router.delete("/vaerecord", deleteVAERecord);
+router.delete("/deletevaerecord", deleteVAERecord);
 
 export default router;
