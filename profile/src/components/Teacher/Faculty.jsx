@@ -11,7 +11,7 @@ import "../../styles/popup.css";
 import { Toaster } from 'react-hot-toast';
 import Loader from "../Loader";
 
-const Teacher = () => {
+const Faculty = () => {
   const [isBlurActive, setBlurActive] = useState(false);
   const [loader, setLoader] = useState(true);
 
@@ -89,4 +89,4 @@ const Teacher = () => {
   );
 };
 
-export default Teacher;
+export default Faculty;
