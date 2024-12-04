@@ -57,7 +57,7 @@ const Association = ({ setBlurActive }) => {
     };
 
     // Prepare table data based on designation logic
-    const TABLE_HEAD = ["Designation", "Date Attained", "Start Date", "End Date"];
+    const TABLE_HEAD = ["Designation", "Date Attained", "Start Date", "Last Date"];
     const TABLE_ROWS = [];
 
     const { highestDesignation, highestDesignationDate, associateProfessorStartDate, associateProfessorEndDate, assistantProfessorStartDate, assistantProfessorEndDate } = associationDetails;

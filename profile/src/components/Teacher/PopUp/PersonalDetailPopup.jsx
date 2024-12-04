@@ -93,7 +93,7 @@ export default function PersonalDetailPopup({
         </div>
         <div className="relative z-0 w-full mb-5 group">
           <label htmlFor="email" className="block text-sm">
-            Email
+            Official Email ID
           </label>
           <input
             type="email"

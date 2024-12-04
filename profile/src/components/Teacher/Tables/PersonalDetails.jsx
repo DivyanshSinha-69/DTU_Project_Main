@@ -34,7 +34,7 @@ const PersonalDetails = ({ setBlurActive }) => {
     "Name",
     "Highest Degree",
     "Year of Degree",
-    "Email ID",
+    "Official Email ID",
     "Contact No.",
     "Qualification Year",
   ];

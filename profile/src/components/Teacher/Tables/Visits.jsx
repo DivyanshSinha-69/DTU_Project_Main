@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { Card, Typography } from "@material-tailwind/react";
 import Popup from "reactjs-popup";
-import VisitsPopUp from "../PopUp/VisitsPopUp"; // Updated to use VisitsPopUp
-import '../../../styles/popup.css';
-import { useSelector, useDispatch } from "react-redux";
+import VisitsPopUp from "../PopUp/VisitsPopUp";
+import "../../../styles/popup.css";
 import editImg from "../../../assets/edit.svg";
-import addImg from "../../../assets/add.svg"; // Add an icon for adding a visit
+import addImg from "../../../assets/add.svg";
+import deleteImg from "../../../assets/delete.svg";
 
 // Dummy data for testing
 const dummyVisitDetails = [
@@ -15,31 +15,33 @@ const dummyVisitDetails = [
 ];
 
 const Visits = ({ setBlurActive }) => {
-  const dispatch = useDispatch();
-  const [visitDetails, setVisitDetails] = useState(dummyVisitDetails); // Using dummy data as initial state
+  const [visitDetails, setVisitDetails] = useState(dummyVisitDetails);
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [selectedVisit, setSelectedVisit] = useState(null);
-  const [isAddVisit, setIsAddVisit] = useState(false); // New state to handle adding a visit
+  const [isAddVisit, setIsAddVisit] = useState(false);
 
   const openPopup = (visit) => {
-    setSelectedVisit(visit); // Set the visit details for the popup
+    setSelectedVisit(visit);
     setPopupOpen(true);
-    setBlurActive(true); // Activate blur when opening the popup
+    setBlurActive(true);
   };
 
   const closePopup = () => {
     setPopupOpen(false);
-    setIsAddVisit(false); // Reset Add visit state when closing the popup
-    setBlurActive(false); // Deactivate blur when closing the popup
+    setIsAddVisit(false);
+    setBlurActive(false);
   };
 
   const handleAddVisit = (newVisit) => {
-    // Adds a new visit to the visitDetails array
     setVisitDetails([...visitDetails, newVisit]);
     closePopup();
   };
 
-  const TABLE_HEAD = ["Visit Type", "Institution Name", "Courses"];
+  const handleDeleteVisit = (indexToDelete) => {
+    setVisitDetails(visitDetails.filter((_, index) => index !== indexToDelete));
+  };
+
+  const TABLE_HEAD = ["Visit Type", "Institution Name", "Courses", "Actions"];
 
   return (
     <div>
@@ -48,24 +50,30 @@ const Visits = ({ setBlurActive }) => {
           <p className="p-3 text-2xl font1 border-top my-auto">
             Teacher Visit Details <br /><span className="text-lg text-red-600">(Details of academic visits)</span>
           </p>
-
-          {/* Add button to open popup for adding new visit */}
-          <button onClick={() => { setIsAddVisit(true); setPopupOpen(true); setBlurActive(true); }} className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full hover:invert hover:scale-[130%] transition-transform ease-in">
-            <img src={addImg} alt="hello" className="h-5 w-5"/>
+          <button
+            onClick={() => {
+              setIsAddVisit(true);
+              setPopupOpen(true);
+              setBlurActive(true);
+            }}
+            className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full hover:invert hover:scale-[130%] transition-transform ease-in"
+          >
+            <img src={addImg} alt="add" className="h-5 w-5" />
           </button>
         </div>
         <hr className="mb-7"></hr>
 
-        {/* Table */}
         <div className="">
           <Card className="h-auto w-full pl-10 pr-10 overflow-x-scroll md:overflow-hidden">
             <table className="w-full min-w-auto lg:min-w-max table-auto text-left">
               <thead>
                 <tr>
-                  {TABLE_HEAD.map((head) => (
+                  {TABLE_HEAD.map((head, index) => (
                     <th
                       key={head}
-                      className="border-b border-blue-gray-100 bg-blue-gray-50 p-4"
+                      className={`border-b border-blue-gray-100 bg-blue-gray-50 p-4 ${
+                        head === "Actions" ? "text-right" : ""
+                      }`}
                     >
                       <Typography
                         variant="small"
@@ -76,15 +84,6 @@ const Visits = ({ setBlurActive }) => {
                       </Typography>
                     </th>
                   ))}
-                  <th className="border-b border-blue-gray-100 bg-blue-gray-50 p-4">
-                    <Typography
-                      variant="small"
-                      color="blue-gray"
-                      className="font-normal leading-none opacity-70"
-                    >
-                      Actions
-                    </Typography>
-                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -97,6 +96,7 @@ const Visits = ({ setBlurActive }) => {
 
                   return (
                     <tr key={`${visitType}-${institutionName}-${index}`}>
+                      {/* Other columns */}
                       <td className={classes}>
                         <Typography
                           variant="small"
@@ -124,10 +124,22 @@ const Visits = ({ setBlurActive }) => {
                           {courses}
                         </Typography>
                       </td>
-                      <td className={classes}>
-                        <button onClick={() => openPopup(visit)} className="bg-green-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in">
-                          <img src={editImg} alt="edit" className="h-5 w-5"/>
-                        </button>
+                      {/* Actions column */}
+                      <td className={`${classes} text-right`}>
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => openPopup(visit)}
+                            className="bg-green-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
+                          >
+                            <img src={editImg} alt="edit" className="h-5 w-5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteVisit(index)}
+                            className="bg-red-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
+                          >
+                            <img src={deleteImg} alt="delete" className="h-5 w-5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -152,7 +164,7 @@ const Visits = ({ setBlurActive }) => {
               institutionName=""
               courses=""
               closeModal={closePopup}
-              handleAddVisit={handleAddVisit} // Pass the function to handle adding a visit
+              handleAddVisit={handleAddVisit}
             />
           ) : (
             selectedVisit && (
