@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Card, Typography } from "@material-tailwind/react";
 import Popup from "reactjs-popup";
 import addImg from "../../../assets/add.svg";
-import linkImg from "../../../assets/hyperlink.svg";
 import editImg from "../../../assets/edit.svg"; // Import the edit icon
 import deleteImg from "../../../assets/delete.svg"; // Import the delete icon
 import ResearchProjectPopup from "../PopUp/ResearchProjectPopUp"; // Assume this popup component exists
@@ -10,28 +9,31 @@ import ResearchProjectPopup from "../PopUp/ResearchProjectPopUp"; // Assume this
 const ResearchProjects = ({ setBlurActive }) => {
   const [researchProjectsDetails, setResearchProjectsDetails] = useState([
     {
+      TypeOfPaper: "Conference",
       Title: "Machine Learning for Healthcare",
       Domain: "AI",
       PublicationName: "AI Journal",
       PublishedDate: "2022-05-12",
-      PublishedLink: "https://example.com/project1",
+      Document: null,
     },
     {
+      TypeOfPaper: "Journal",
       Title: "Data Science in Education",
       Domain: "Data Science",
       PublicationName: "Data Science Review",
       PublishedDate: "2023-01-20",
-      PublishedLink: "https://example.com/project2",
+      Document: null,
     },
   ]);
 
   const TABLE_HEAD = [
     "Serial No",
+    "Type of Paper",
     "Title of Paper",
     "Domain",
-    "Publication Name",
+    "Name of Conference/Journal/Book Chapter",
     "Published Date",
-    "Published Link",
+    "Document",
     "Actions",
   ];
 
@@ -77,7 +79,10 @@ const ResearchProjects = ({ setBlurActive }) => {
       <div className="h-auto p-10">
         <div className="flex flex-row justify-between pr-5 pl-5">
           <p className="p-3 text-2xl font1 border-top my-auto">
-            Research Papers Published
+            Research Papers Published <br />
+            <span className="text-lg text-red-600">
+              (As per official records)
+            </span>
           </p>
           <button
             onClick={() => openPopup()}
@@ -113,7 +118,7 @@ const ResearchProjects = ({ setBlurActive }) => {
                 {TABLE_HEAD.map((head) => (
                   <th
                     key={head}
-                    className="border-b border-blue-gray-100 bg-blue-gray-50 p-4"
+                    className={`border-b border-blue-gray-100 bg-blue-gray-50 p-4 ${head === "Actions" ? "text-right" : ""}`}
                   >
                     <Typography
                       variant="small"
@@ -130,11 +135,12 @@ const ResearchProjects = ({ setBlurActive }) => {
               {researchProjectsDetails.map(
                 (
                   {
+                    TypeOfPaper,
                     Title,
                     Domain,
                     PublicationName,
                     PublishedDate,
-                    PublishedLink,
+                    Document,
                   },
                   index
                 ) => {
@@ -153,6 +159,15 @@ const ResearchProjects = ({ setBlurActive }) => {
                           className="font-normal"
                         >
                           {index + 1}
+                        </Typography>
+                      </td>
+                      <td className={classes}>
+                        <Typography
+                          variant="small"
+                          color="blue-gray"
+                          className="font-normal"
+                        >
+                          {TypeOfPaper}
                         </Typography>
                       </td>
                       <td className={classes}>
@@ -197,29 +212,20 @@ const ResearchProjects = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          <a
-                            href={PublishedLink}
-                            target="_blank"
-                            className="hover:underline"
-                          >
-                            <img
-                              className="md:ml-[50px] h-5 w-10 hover:invert hover:scale-125 transition-transform ease-in"
-                              src={linkImg}
-                              alt="link"
-                            />
-                          </a>
+                          {Document ? Document.name || "Uploaded" : "Not Uploaded"}
                         </Typography>
                       </td>
                       <td className={classes}>
-                        <div className="flex gap-2">
+                        <div className="flex justify-end gap-2">
                           <button
                             onClick={() =>
                               openPopup({
+                                TypeOfPaper,
                                 Title,
                                 Domain,
                                 PublicationName,
                                 PublishedDate,
-                                PublishedLink,
+                                Document,
                               })
                             }
                             className="bg-green-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
@@ -233,7 +239,7 @@ const ResearchProjects = ({ setBlurActive }) => {
                             <img
                               src={deleteImg}
                               alt="delete"
-                              className="h-5 w-5"
+                              className="h-5 w-5 filter brightness-0 invert"
                             />
                           </button>
                         </div>

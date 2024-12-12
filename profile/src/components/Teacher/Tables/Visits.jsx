@@ -137,7 +137,7 @@ const Visits = ({ setBlurActive }) => {
                             onClick={() => handleDeleteVisit(index)}
                             className="bg-red-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
                           >
-                            <img src={deleteImg} alt="delete" className="h-5 w-5" />
+                            <img src={deleteImg} alt="delete" className="h-5 w-5 filter brightness-0 invert"  />
                           </button>
                         </div>
                       </td>

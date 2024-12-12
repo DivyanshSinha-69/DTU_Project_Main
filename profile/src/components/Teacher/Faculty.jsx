@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-// import teacherImg from "../../assets/teacherImg.png";
+import teacherImg from "../../assets/teacherImg.png";
 import PersonalDetails from "./Tables/PersonalDetails";
 import ResearchProjects from "./Tables/ResearchProjects";
-
 import Association from "./Tables/Association";
 import Visits from "./Tables/Visits";
-
+import PhdGuidance from "./Tables/PhdGuidance";
 import "../../styles/popup.css";
 import { Toaster } from 'react-hot-toast';
 import Loader from "../Loader";
@@ -33,21 +32,19 @@ const Faculty = () => {
       {loader ? <Loader /> : (
         <>
           <div className="bg-[#FAFAFA] pt-10">
-            <div className={`h-auto w-full ${isBlurActive ? "blur-effect" : ""}`}>
-              <div className="h-[30%] w-[70%] flex flex-wrap justify-around mx-auto">
-                <div className="!h-[40px] flex flex-col justify-center items-center m-2">
-                  <h1 className="font-extrabold text-3xl text-center">{teacherData.name}</h1>
-                  <h2 className="font-bold text-1xl text-center">ID: {teacherData.employeeId}</h2>
-                  <h2 className="text-lg text-center">{teacherData.designation}</h2>
-                  <h2>Department: {teacherData.department}</h2>
-                </div>
-                <div className="h-[175px] w-[175px] justify-center items-center m-2">
-                  <img
-                    className="my-auto rounded-xl h-[175px] w-[175px]"
-                    // src={teacherImg}
-                    alt="Teacher profile"
-                  />
-                </div>
+            <div className="h-auto w-full flex flex-wrap justify-center mx-auto">
+              <div className="img-container m-2">
+                <img
+                  className="rounded-xl h-[175px] w-[175px]"
+                  src={teacherImg}
+                  alt="Teacher profile"
+                />
+              </div>
+              <div className="details-container m-2">
+                <h1 className="font-extrabold text-3xl">{teacherData.name}</h1>
+                <h2 className="font-bold text-1xl">ID: {teacherData.employeeId}</h2>
+                <h2 className="text-lg">{teacherData.designation}</h2>
+                <h2>Department: {teacherData.department}</h2>
               </div>
             </div>
 
@@ -67,10 +64,9 @@ const Faculty = () => {
               <Visits setBlurActive={setBlurActive} />
             </div>
             
-            
-            
-
-            
+            <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
+              <PhdGuidance setBlurActive={setBlurActive} />
+            </div>
 
             <Toaster 
               toastOptions={{
