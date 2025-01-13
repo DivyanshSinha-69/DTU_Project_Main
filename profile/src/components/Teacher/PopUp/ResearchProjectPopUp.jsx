@@ -110,6 +110,7 @@ export default function ResearchProjectPopup({ closeModal, saveProject, project 
               <option value="Conference">Conference</option>
               <option value="Journal">Journal</option>
               <option value="Book Chapter">Book Chapter</option>
+              <option value="Other">Other</option>
             </select>
           </div>
 

@@ -3,12 +3,17 @@ import axios from "axios";
 import teacherImg from "../../assets/teacherImg.png";
 import PersonalDetails from "./Tables/PersonalDetails";
 import ResearchProjects from "./Tables/ResearchProjects";
+import BookRecordsPublished from "./Tables/BookRecords.jsx";
 import Association from "./Tables/Association";
 import Visits from "./Tables/Visits";
+import FacultyDevelopmentProgram from "./Tables/FDP";
 import PhdGuidance from "./Tables/PhdGuidance";
+import PhDsAwarded from "./Tables/PhDsAwarded";
+import SponsoredResearch from "./Tables/SponsoredResearch";
 import "../../styles/popup.css";
 import { Toaster } from 'react-hot-toast';
 import Loader from "../Loader";
+import ConsultancyDetails from "./Tables/Consultancy";
 
 const Faculty = () => {
   const [isBlurActive, setBlurActive] = useState(false);
@@ -59,14 +64,35 @@ const Faculty = () => {
             <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
               <ResearchProjects setBlurActive={setBlurActive} />
             </div>
+            
+            <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
+              <BookRecordsPublished setBlurActive={setBlurActive} />
+            </div>
 
             <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
               <Visits setBlurActive={setBlurActive} />
             </div>
             
-            <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
+            {/* <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
               <PhdGuidance setBlurActive={setBlurActive} />
+            </div> */}
+
+            <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
+              <FacultyDevelopmentProgram setBlurActive={setBlurActive} />
             </div>
+
+            <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
+              <PhDsAwarded setBlurActive={setBlurActive} />
+            </div>
+
+            <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
+              <SponsoredResearch setBlurActive={setBlurActive} />
+            </div>
+
+            <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
+              <ConsultancyDetails setBlurActive={setBlurActive} />
+            </div>
+
 
             <Toaster 
               toastOptions={{

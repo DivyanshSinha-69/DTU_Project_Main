@@ -1,86 +1,68 @@
 import React, { useState } from "react";
 import { Card, Typography } from "@material-tailwind/react";
 import Popup from "reactjs-popup";
-import VisitsPopUp from "../PopUp/VisitsPopUp";
+import FDPPopUp from "../PopUp/FDPPopUp";
 import "../../../styles/popup.css";
 import editImg from "../../../assets/edit.svg";
 import addImg from "../../../assets/add.svg";
 import deleteImg from "../../../assets/delete.svg";
 
 // Dummy data for testing
-const dummyVisitDetails = [
-  {
-    visitType: "Visiting",
-    institutionName: "University of Oxford",
-    courses: "AI and Machine Learning",
-    year_of_visit: 2022,
-    hours_taught: 30,
-  },
-  {
-    visitType: "Adjunct",
-    institutionName: "Stanford University",
-    courses: "Advanced Algorithms",
-    year_of_visit: 2023,
-    hours_taught: 20,
-  },
-  {
-    visitType: "Emeritus",
-    institutionName: "MIT",
-    courses: "Quantum Computing",
-    year_of_visit: 2021,
-    hours_taught: 25,
-  },
+const dummyFDPDetails = [
+  { programName: "Teaching Excellence", year: 2022, month: "March", days: 5 },
+  { programName: "Research Methodology", year: 2023, month: "July", days: 3 },
+  { programName: "Advanced Pedagogy", year: 2021, month: "December", days: 7 }
 ];
 
-const Visits = ({ setBlurActive }) => {
-  const [visitDetails, setVisitDetails] = useState(dummyVisitDetails);
+const FacultyDevelopmentProgram = ({ setBlurActive }) => {
+  const [fdpDetails, setFdpDetails] = useState(dummyFDPDetails);
   const [isPopupOpen, setPopupOpen] = useState(false);
-  const [selectedVisit, setSelectedVisit] = useState(null);
-  const [isAddVisit, setIsAddVisit] = useState(false);
+  const [selectedFDP, setSelectedFDP] = useState(null);
+  const [isAddFDP, setIsAddFDP] = useState(false);
 
-  const openPopup = (visit) => {
-    setSelectedVisit(visit);
+  const openPopup = (fdp) => {
+    setSelectedFDP(fdp);
     setPopupOpen(true);
     setBlurActive(true);
   };
 
   const closePopup = () => {
     setPopupOpen(false);
-    setIsAddVisit(false);
+    setIsAddFDP(false);
     setBlurActive(false);
   };
 
-  const handleAddVisit = (newVisit) => {
-    setVisitDetails([...visitDetails, newVisit]);
-    closePopup();
+  const handleAddFDP = (newFDP) => {
+    if (selectedFDP) {
+        // Update existing FDP
+        setFdpDetails((prevDetails) =>
+          prevDetails.map((fdp) =>
+            fdp === selectedFDP ? { ...newFDP } : fdp
+          )
+        );
+      } else {
+        // Add new FDP
+        setFdpDetails([...fdpDetails, newFDP]);
+      }
+      closePopup(); 
   };
 
-  const handleDeleteVisit = (indexToDelete) => {
-    setVisitDetails(visitDetails.filter((_, index) => index !== indexToDelete));
+  const handleDeleteFDP = (indexToDelete) => {
+    setFdpDetails(fdpDetails.filter((_, index) => index !== indexToDelete));
   };
 
-  const TABLE_HEAD = [
-    "Visit Type",
-    "Institution Name",
-    "Courses",
-    "Year of Visit",
-    "Hours Taught",
-    "Actions",
-  ];
+  const TABLE_HEAD = ["Program Name", "Year Conducted", "Month Conducted", "Days Contributed", "Actions"];
 
   return (
     <div>
       <div className="h-auto p-10">
         <div className="flex flex-row justify-between pr-5 pl-5">
           <p className="p-3 text-2xl font1 border-top my-auto">
-            Teacher Visit Details <br />
-            <span className="text-lg text-red-600">
-              (Details of academic visits)
-            </span>
+            Faculty Development Program <br /><span className="text-lg text-red-600">(Details of FDPs conducted or attended)</span>
           </p>
           <button
             onClick={() => {
-              setIsAddVisit(true);
+              setIsAddFDP(true);
               setPopupOpen(true);
               setBlurActive(true);
             }}
@@ -96,7 +78,7 @@ const Visits = ({ setBlurActive }) => {
             <table className="w-full min-w-auto lg:min-w-max table-auto text-left">
               <thead>
                 <tr>
-                  {TABLE_HEAD.map((head) => (
+                  {TABLE_HEAD.map((head, index) => (
                     <th
                       key={head}
                       className={`border-b border-blue-gray-100 bg-blue-gray-50 p-4 ${
@@ -115,28 +97,22 @@ const Visits = ({ setBlurActive }) => {
                 </tr>
               </thead>
               <tbody>
-                {visitDetails.map((visit, index) => {
-                  const {
-                    visitType,
-                    institutionName,
-                    courses,
-                    year_of_visit,
-                    hours_taught,
-                  } = visit;
-                  const isLast = index === visitDetails.length - 1;
+                {fdpDetails.map((fdp, index) => {
+                  const { programName, year, month, days } = fdp;
+                  const isLast = index === fdpDetails.length - 1;
                   const classes = isLast
                     ? "p-4"
                     : "p-4 border-b border-blue-gray-50";
 
                   return (
-                    <tr key={`${visitType}-${institutionName}-${index}`}>
+                    <tr key={`${programName}-${year}-${index}`}>
                       <td className={classes}>
                         <Typography
                           variant="small"
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {visitType}
+                          {programName}
                         </Typography>
                       </td>
                       <td className={classes}>
@@ -145,7 +121,7 @@ const Visits = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {institutionName}
+                          {year}
                         </Typography>
                       </td>
                       <td className={classes}>
@@ -154,7 +130,7 @@ const Visits = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {courses}
+                          {month}
                         </Typography>
                       </td>
                       <td className={classes}>
@@ -163,39 +139,22 @@ const Visits = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {year_of_visit}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {hours_taught}
+                          {days}
                         </Typography>
                       </td>
                       <td className={`${classes} text-right`}>
                         <div className="flex justify-end gap-2">
                           <button
-                            onClick={() => openPopup(visit)}
+                            onClick={() => openPopup(fdp)}
                             className="bg-green-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
                           >
-                            <img
-                              src={editImg}
-                              alt="edit"
-                              className="h-5 w-5"
-                            />
+                            <img src={editImg} alt="edit" className="h-5 w-5" />
                           </button>
                           <button
-                            onClick={() => handleDeleteVisit(index)}
+                            onClick={() => handleDeleteFDP(index)}
                             className="bg-red-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
                           >
-                            <img
-                              src={deleteImg}
-                              alt="delete"
-                              className="h-5 w-5 filter brightness-0 invert"
-                            />
+                            <img src={deleteImg} alt="delete" className="h-5 w-5 filter brightness-0 invert" />
                           </button>
                         </div>
                       </td>
@@ -216,25 +175,25 @@ const Visits = ({ setBlurActive }) => {
         closeOnDocumentClick
       >
         <div className="h-[550px] w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.8] rounded-[12%] top-10 fixed inset-5 md:inset-20 flex items-center justify-center">
-          {isAddVisit ? (
-            <VisitsPopUp
-              visitType=""
-              institutionName=""
-              courses=""
-              year_of_visit=""
-              hours_taught=""
+          {isAddFDP ? (
+            <FDPPopUp
+              programName=""
+              year=""
+              month=""
+              days=""
               closeModal={closePopup}
-              handleAddVisit={handleAddVisit}
+              handleAddFDP={handleAddFDP}
             />
           ) : (
-            selectedVisit && (
-              <VisitsPopUp
-                visitType={selectedVisit.visitType}
-                institutionName={selectedVisit.institutionName}
-                courses={selectedVisit.courses}
-                year_of_visit={selectedVisit.year_of_visit}
-                hours_taught={selectedVisit.hours_taught}
+            selectedFDP && (
+              <FDPPopUp
+                programName={selectedFDP.programName}
+                year={selectedFDP.year}
+                month={selectedFDP.month}
+                days={selectedFDP.days}
                 closeModal={closePopup}
+                handleAddFDP={handleAddFDP}
+                
               />
             )
           )}
@@ -244,4 +203,4 @@ const Visits = ({ setBlurActive }) => {
   );
 };
 
-export default Visits;
+export default FacultyDevelopmentProgram;

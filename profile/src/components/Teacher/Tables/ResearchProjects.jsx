@@ -31,7 +31,7 @@ const ResearchProjects = ({ setBlurActive }) => {
     "Type of Paper",
     "Title of Paper",
     "Domain",
-    "Name of Conference/Journal/Book Chapter",
+    "Name of Conference/Journal/Book Chapter/Other",
     "Published Date",
     "Document",
     "Actions",

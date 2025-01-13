@@ -1,86 +1,69 @@
 import React, { useState } from "react";
 import { Card, Typography } from "@material-tailwind/react";
 import Popup from "reactjs-popup";
-import VisitsPopUp from "../PopUp/VisitsPopUp";
+import PhDPopUp from "../PopUp/PhDsAwardedPopUp";
 import "../../../styles/popup.css";
 import editImg from "../../../assets/edit.svg";
 import addImg from "../../../assets/add.svg";
 import deleteImg from "../../../assets/delete.svg";
 
 // Dummy data for testing
-const dummyVisitDetails = [
-  {
-    visitType: "Visiting",
-    institutionName: "University of Oxford",
-    courses: "AI and Machine Learning",
-    year_of_visit: 2022,
-    hours_taught: 30,
-  },
-  {
-    visitType: "Adjunct",
-    institutionName: "Stanford University",
-    courses: "Advanced Algorithms",
-    year_of_visit: 2023,
-    hours_taught: 20,
-  },
-  {
-    visitType: "Emeritus",
-    institutionName: "MIT",
-    courses: "Quantum Computing",
-    year_of_visit: 2021,
-    hours_taught: 25,
-  },
+const dummyPhDDetails = [
+  { menteeName: "John Doe", rollNo: "123456", passingYear: 2020 },
+  { menteeName: "Jane Smith", rollNo: "789012", passingYear: 2021 },
+  { menteeName: "Alice Johnson", rollNo: "345678", passingYear: 2022 },
 ];
 
-const Visits = ({ setBlurActive }) => {
-  const [visitDetails, setVisitDetails] = useState(dummyVisitDetails);
+const PhDsAwarded = ({ setBlurActive }) => {
+  const [phdDetails, setPhdDetails] = useState(dummyPhDDetails);
   const [isPopupOpen, setPopupOpen] = useState(false);
-  const [selectedVisit, setSelectedVisit] = useState(null);
-  const [isAddVisit, setIsAddVisit] = useState(false);
+  const [selectedPhD, setSelectedPhD] = useState(null);
+  const [isAddPhD, setIsAddPhD] = useState(false);
 
-  const openPopup = (visit) => {
-    setSelectedVisit(visit);
+  const openPopup = (phd) => {
+    setSelectedPhD(phd);
     setPopupOpen(true);
     setBlurActive(true);
   };
 
   const closePopup = () => {
     setPopupOpen(false);
-    setIsAddVisit(false);
+    setIsAddPhD(false);
     setBlurActive(false);
   };
 
-  const handleAddVisit = (newVisit) => {
-    setVisitDetails([...visitDetails, newVisit]);
+  const handleAddPhD = (newPhD) => {
+    if (selectedPhD) {
+      // Update existing PhD
+      setPhdDetails((prevDetails) =>
+        prevDetails.map((phd) => (phd === selectedPhD ? { ...newPhD } : phd))
+      );
+    } else {
+      // Add new PhD
+      setPhdDetails([...phdDetails, newPhD]);
+    }
     closePopup();
   };
 
-  const handleDeleteVisit = (indexToDelete) => {
-    setVisitDetails(visitDetails.filter((_, index) => index !== indexToDelete));
+  const handleDeletePhD = (indexToDelete) => {
+    setPhdDetails(phdDetails.filter((_, index) => index !== indexToDelete));
   };
 
-  const TABLE_HEAD = [
-    "Visit Type",
-    "Institution Name",
-    "Courses",
-    "Year of Visit",
-    "Hours Taught",
-    "Actions",
-  ];
+  const TABLE_HEAD = ["Mentee Name", "Roll No", "Passing Year", "Actions"];
 
   return (
     <div>
       <div className="h-auto p-10">
         <div className="flex flex-row justify-between pr-5 pl-5">
           <p className="p-3 text-2xl font1 border-top my-auto">
-            Teacher Visit Details <br />
+            PhDs Awarded <br />
             <span className="text-lg text-red-600">
-              (Details of academic visits)
+              (Details of PhDs awarded)
             </span>
           </p>
           <button
             onClick={() => {
-              setIsAddVisit(true);
+              setIsAddPhD(true);
               setPopupOpen(true);
               setBlurActive(true);
             }}
@@ -96,7 +79,7 @@ const Visits = ({ setBlurActive }) => {
             <table className="w-full min-w-auto lg:min-w-max table-auto text-left">
               <thead>
                 <tr>
-                  {TABLE_HEAD.map((head) => (
+                  {TABLE_HEAD.map((head, index) => (
                     <th
                       key={head}
                       className={`border-b border-blue-gray-100 bg-blue-gray-50 p-4 ${
@@ -115,28 +98,22 @@ const Visits = ({ setBlurActive }) => {
                 </tr>
               </thead>
               <tbody>
-                {visitDetails.map((visit, index) => {
-                  const {
-                    visitType,
-                    institutionName,
-                    courses,
-                    year_of_visit,
-                    hours_taught,
-                  } = visit;
-                  const isLast = index === visitDetails.length - 1;
+                {phdDetails.map((phd, index) => {
+                  const { menteeName, rollNo, passingYear } = phd;
+                  const isLast = index === phdDetails.length - 1;
                   const classes = isLast
                     ? "p-4"
                     : "p-4 border-b border-blue-gray-50";
 
                   return (
-                    <tr key={`${visitType}-${institutionName}-${index}`}>
+                    <tr key={`${menteeName}-${rollNo}-${index}`}>
                       <td className={classes}>
                         <Typography
                           variant="small"
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {visitType}
+                          {menteeName}
                         </Typography>
                       </td>
                       <td className={classes}>
@@ -145,7 +122,7 @@ const Visits = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {institutionName}
+                          {rollNo}
                         </Typography>
                       </td>
                       <td className={classes}>
@@ -154,31 +131,13 @@ const Visits = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {courses}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {year_of_visit}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {hours_taught}
+                          {passingYear}
                         </Typography>
                       </td>
                       <td className={`${classes} text-right`}>
                         <div className="flex justify-end gap-2">
                           <button
-                            onClick={() => openPopup(visit)}
+                            onClick={() => openPopup(phd)}
                             className="bg-green-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
                           >
                             <img
@@ -188,7 +147,7 @@ const Visits = ({ setBlurActive }) => {
                             />
                           </button>
                           <button
-                            onClick={() => handleDeleteVisit(index)}
+                            onClick={() => handleDeletePhD(index)}
                             className="bg-red-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
                           >
                             <img
@@ -216,25 +175,22 @@ const Visits = ({ setBlurActive }) => {
         closeOnDocumentClick
       >
         <div className="h-[550px] w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.8] rounded-[12%] top-10 fixed inset-5 md:inset-20 flex items-center justify-center">
-          {isAddVisit ? (
-            <VisitsPopUp
-              visitType=""
-              institutionName=""
-              courses=""
-              year_of_visit=""
-              hours_taught=""
+          {isAddPhD ? (
+            <PhDPopUp
+              menteeName=""
+              rollNo=""
+              passingYear=""
               closeModal={closePopup}
-              handleAddVisit={handleAddVisit}
+              handleAddPhD={handleAddPhD}
             />
           ) : (
-            selectedVisit && (
-              <VisitsPopUp
-                visitType={selectedVisit.visitType}
-                institutionName={selectedVisit.institutionName}
-                courses={selectedVisit.courses}
-                year_of_visit={selectedVisit.year_of_visit}
-                hours_taught={selectedVisit.hours_taught}
+            selectedPhD && (
+              <PhDPopUp
+                menteeName={selectedPhD.menteeName}
+                rollNo={selectedPhD.rollNo}
+                passingYear={selectedPhD.passingYear}
                 closeModal={closePopup}
+                handleAddPhD={handleAddPhD}
               />
             )
           )}
@@ -244,4 +200,4 @@ const Visits = ({ setBlurActive }) => {
   );
 };
 
-export default Visits;
+export default PhDsAwarded;

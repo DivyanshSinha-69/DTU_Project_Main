@@ -2,21 +2,19 @@ import React, { useState } from "react";
 import { Card } from "@material-tailwind/react";
 import toast from "react-hot-toast";
 
-export default function VisitsPopUp({
-  visitType,
-  institutionName,
-  courses,
+export default function FacultyDevelopmentPopUp({
+  programName,
+  year,
+  month,
+  days,
   closeModal,
-  handleAddVisit,
-  year_of_visit,
-  hours_taught,
+  handleAddFDP,
 }) {
   const [formData, setFormData] = useState({
-    visitType: visitType || "",
-    institutionName: institutionName || "",
-    courses: courses || "",
-    year_of_visit: year_of_visit || "",
-    hours_taught: hours_taught || "",
+    programName: programName || "",
+    year: year|| "",
+    month: month || "",
+    days: days || "",
   });
 
   const handleChange = (e) => {
@@ -27,17 +25,18 @@ export default function VisitsPopUp({
     }));
   };
 
-  const handlepopup = async (e) => {
+  const handlePopupSubmit = async (e) => {
     e.preventDefault();
-    const { visitType, institutionName, courses, year_of_visit, hours_taught } = formData;
-    if (!visitType || !institutionName || !courses || !year_of_visit || !hours_taught) {
+    const { programName, year, month, days } = formData;
+
+    if (!programName || !year || !month || !days) {
       toast.error("Please fill in all required fields.");
       return;
     }
 
-    if (handleAddVisit) {
-      handleAddVisit(formData);
-    }
+    if (handleAddFDP) {
+    handleAddFDP(formData);  // Corrected typo here
+  }
     closeModal();
   };
 
@@ -54,72 +53,42 @@ export default function VisitsPopUp({
     ));
   };
 
+  const months = [
+    "January", "February", "March", "April", "May", 
+    "June", "July", "August", "September", "October", 
+    "November", "December"
+  ];
+
   return (
     <Card color="transparent" shadow={false} className="w-[90%] max-w-[700px] h-auto p-8 rounded-[20px]">
-      <form className="text-white flex flex-col space-y-6" onSubmit={handlepopup}>
-        {/* Visit Type Dropdown */}
+      <form className="text-white flex flex-col space-y-6" onSubmit={handlePopupSubmit}>
+        {/* Program Name */}
         <div className="relative z-0 w-full group">
-          <label htmlFor="visitType" className="block text-sm">
-            Visit Type
-          </label>
-          <select
-            name="visitType"
-            id="visitType"
-            className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            onChange={handleChange}
-            value={formData.visitType}
-            required
-          >
-            <option value="">Select Visit Type</option>
-            <option value="Visiting">Visiting</option>
-            <option value="Adjunct">Adjunct</option>
-            <option value="Emeritus">Emeritus</option>
-          </select>
-        </div>
-
-        {/* Institution Name */}
-        <div className="relative z-0 w-full group">
-          <label htmlFor="institutionName" className="block text-sm">
-            Institution Name
+          <label htmlFor="programName" className="block text-sm">
+            Program Name
           </label>
           <input
             type="text"
-            name="institutionName"
-            id="institutionName"
+            name="programName"
+            id="programName"
             className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             onChange={handleChange}
-            value={formData.institutionName}
+            value={formData.programName}
             required
           />
         </div>
 
-        {/* Courses */}
+        {/* Year Conducted Dropdown */}
         <div className="relative z-0 w-full group">
-          <label htmlFor="courses" className="block text-sm">
-            Courses
-          </label>
-          <input
-            type="text"
-            name="courses"
-            id="courses"
-            className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            onChange={handleChange}
-            value={formData.courses}
-            required
-          />
-        </div>
-
-        {/* Year of Visit Dropdown */}
-        <div className="relative z-0 w-full group">
-          <label htmlFor="year_of_visit" className="block text-sm">
-            Year of Visit
+          <label htmlFor="year" className="block text-sm">
+            Year Conducted
           </label>
           <select
-            name="year_of_visit"
-            id="year_of_visit"
+            name="year"
+            id="year"
             className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             onChange={handleChange}
-            value={formData.year_of_visit}
+            value={formData.year}
             required
           >
             <option value="">Select Year</option>
@@ -127,20 +96,42 @@ export default function VisitsPopUp({
           </select>
         </div>
 
-        {/* Hours Taught */}
+        {/* Month Conducted Dropdown */}
         <div className="relative z-0 w-full group">
-          <label htmlFor="hours_taught" className="block text-sm">
-            Hours Taught
+          <label htmlFor="month" className="block text-sm">
+            Month Conducted
+          </label>
+          <select
+            name="month"
+            id="month"
+            className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={handleChange}
+            value={formData.month}
+            required
+          >
+            <option value="">Select Month</option>
+            {months.map((month, index) => (
+              <option key={index} value={month}>
+                {month}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Days Contributed */}
+        <div className="relative z-0 w-full group">
+          <label htmlFor="days" className="block text-sm">
+            Days Contributed
           </label>
           <input
             type="number"
-            name="hours_taught"
-            id="hours_taught"
+            name="days"
+            id="days"
             className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             onChange={handleChange}
-            value={formData.hours_taught}
+            value={formData.days}
             required
-            min="0"
+            min="1"
           />
         </div>
 
@@ -150,7 +141,7 @@ export default function VisitsPopUp({
             type="submit"
             className="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
           >
-            {visitType ? "Update Visit" : "Add Visit"}
+            {programName ? "Update Program" : "Add Program"}
           </button>
           <button
             type="button"
