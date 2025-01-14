@@ -5,7 +5,7 @@ import Footer from "./components/Website/Footer";
 import Home from "./components/Homepage/Home";
 import Login from "./components/Login";
 import Forgot from "./components/Forgot";
-import Teacher from "./components/Teacher/Teacher";
+import Faculty from "./components/Teacher/Faculty";
 import Student from "./components/Student/Student";
 import Dashboard from "./components/AdminDashboard";
 import Unaithorized from "./components/Unauthorized";
@@ -38,7 +38,7 @@ function App() {
 
         if (userDetails.user.Position === "student") {
           navigate("/student/portal");
-         }else if (userDetails.user.Position === "teacher") {
+        } else if (userDetails.user.Position === "faculty") {
           navigate("/faculty/portal");
         } else if (userDetails.user.Position === "admin") {
           navigate("/admin/portal");
@@ -62,7 +62,7 @@ function App() {
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
           <Route path="/login/admin" element={<AdminLogin />} />
-          <Route path="/faculty/portal" element={<Teacher />} />
+          <Route path="/faculty/portal" element={<Faculty />} />
           
           {role === "student" ? (
             <Route path="/student/portal" element={<Student />} />
