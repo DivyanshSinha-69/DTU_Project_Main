@@ -2,21 +2,21 @@ import React, { useState } from "react";
 import { Card } from "@material-tailwind/react";
 import toast from "react-hot-toast";
 
-export default function VisitsPopUp({
-  visitType,
-  institutionName,
-  courses,
+export default function ConsultancyDetailsPopUp({
+  title,
+  client,
+  amount,
+  duration,
+  startDate,
   closeModal,
-  handleAddVisit,
-  year_of_visit,
-  hours_taught,
+  handleAddConsultancy,
 }) {
   const [formData, setFormData] = useState({
-    visitType: visitType || "",
-    institutionName: institutionName || "",
-    courses: courses || "",
-    year_of_visit: year_of_visit || "",
-    hours_taught: hours_taught || "",
+    title: title || "",
+    client: client || "",
+    amount: amount || "",
+    duration: duration || "",
+    startDate: startDate || "",
   });
 
   const handleChange = (e) => {
@@ -27,120 +27,103 @@ export default function VisitsPopUp({
     }));
   };
 
-  const handlepopup = async (e) => {
+  const handlePopupSubmit = (e) => {
     e.preventDefault();
-    const { visitType, institutionName, courses, year_of_visit, hours_taught } = formData;
-    if (!visitType || !institutionName || !courses || !year_of_visit || !hours_taught) {
+    const { title, client, amount, duration, startDate } = formData;
+
+    if (!title || !client || !amount || !duration || !startDate) {
       toast.error("Please fill in all required fields.");
       return;
     }
 
-    if (handleAddVisit) {
-      handleAddVisit(formData);
+    if (handleAddConsultancy) {
+      handleAddConsultancy(formData);
     }
     closeModal();
   };
 
-  const generateYearOptions = () => {
-    const currentYear = new Date().getFullYear();
-    const years = [];
-    for (let year = 2020; year <= currentYear; year++) {
-      years.push(year);
-    }
-    return years.map((year) => (
-      <option key={year} value={year}>
-        {year}
-      </option>
-    ));
-  };
-
   return (
     <Card color="transparent" shadow={false} className="w-[90%] max-w-[700px] h-auto p-8 rounded-[20px]">
-      <form className="text-white flex flex-col space-y-6" onSubmit={handlepopup}>
-        {/* Visit Type Dropdown */}
+      <form className="text-white flex flex-col space-y-6" onSubmit={handlePopupSubmit}>
+        {/* Consultancy Title */}
         <div className="relative z-0 w-full group">
-          <label htmlFor="visitType" className="block text-sm">
-            Visit Type
-          </label>
-          <select
-            name="visitType"
-            id="visitType"
-            className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            onChange={handleChange}
-            value={formData.visitType}
-            required
-          >
-            <option value="">Select Visit Type</option>
-            <option value="Visiting">Visiting</option>
-            <option value="Adjunct">Adjunct</option>
-            <option value="Emeritus">Emeritus</option>
-          </select>
-        </div>
-
-        {/* Institution Name */}
-        <div className="relative z-0 w-full group">
-          <label htmlFor="institutionName" className="block text-sm">
-            Institution Name
+          <label htmlFor="title" className="block text-sm">
+            Consultancy Title
           </label>
           <input
             type="text"
-            name="institutionName"
-            id="institutionName"
+            name="title"
+            id="title"
             className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             onChange={handleChange}
-            value={formData.institutionName}
+            value={formData.title}
             required
           />
         </div>
 
-        {/* Courses */}
+        {/* Client Name */}
         <div className="relative z-0 w-full group">
-          <label htmlFor="courses" className="block text-sm">
-            Courses
+          <label htmlFor="client" className="block text-sm">
+            Client Name
           </label>
           <input
             type="text"
-            name="courses"
-            id="courses"
+            name="client"
+            id="client"
             className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             onChange={handleChange}
-            value={formData.courses}
+            value={formData.client}
             required
           />
         </div>
 
-        {/* Year of Visit Dropdown */}
+        {/* Amount Charged */}
         <div className="relative z-0 w-full group">
-          <label htmlFor="year_of_visit" className="block text-sm">
-            Year of Visit
-          </label>
-          <select
-            name="year_of_visit"
-            id="year_of_visit"
-            className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            onChange={handleChange}
-            value={formData.year_of_visit}
-            required
-          >
-            <option value="">Select Year</option>
-            {generateYearOptions()}
-          </select>
-        </div>
-
-        {/* Hours Taught */}
-        <div className="relative z-0 w-full group">
-          <label htmlFor="hours_taught" className="block text-sm">
-            Hours Taught
+          <label htmlFor="amount" className="block text-sm">
+            Amount Charged (in INR)
           </label>
           <input
             type="number"
-            name="hours_taught"
-            id="hours_taught"
+            name="amount"
+            id="amount"
             className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             onChange={handleChange}
-            value={formData.hours_taught}
+            value={formData.amount}
             required
             min="0"
+          />
+        </div>
+
+        {/* Consultancy Duration */}
+        <div className="relative z-0 w-full group">
+          <label htmlFor="duration" className="block text-sm">
+            Consultancy Duration (Years)
+          </label>
+          <input
+            type="number"
+            name="duration"
+            id="duration"
+            className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={handleChange}
+            value={formData.duration}
+            required
+            min="1"
+          />
+        </div>
+
+        {/* Start Date */}
+        <div className="relative z-0 w-full group">
+          <label htmlFor="startDate" className="block text-sm">
+            Start Date
+          </label>
+          <input
+            type="date"
+            name="startDate"
+            id="startDate"
+            className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={handleChange}
+            value={formData.startDate}
+            required
           />
         </div>
 
@@ -150,7 +133,7 @@ export default function VisitsPopUp({
             type="submit"
             className="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
           >
-            {visitType ? "Update Visit" : "Add Visit"}
+            {title ? "Update Consultancy" : "Add Consultancy"}
           </button>
           <button
             type="button"
