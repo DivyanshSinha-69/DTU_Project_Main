@@ -23,6 +23,8 @@ export const connectDB = mysql.createConnection({
 });
 
 
+
+
 // Connect to the database
 connectDB.connect((err)=>{
   if(err){
@@ -30,3 +32,12 @@ connectDB.connect((err)=>{
   }
   console.log('Database connected ...');
 });
+
+const pool = mysql.createPool({
+  host: 'localhost',
+  user: 'root',
+  password: '12348765@',
+  database: 'admin',
+});
+
+export default pool;

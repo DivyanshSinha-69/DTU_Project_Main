@@ -1,72 +1,43 @@
 import express from "express";
+import upload from '../config/multerConfig.js';  // Adjust path if needed
+
 import {
-  uploadFacultyImage,
-  getFacultyImage,
-  getFacultyDetails,
-  updateFacultyDetails,
-  addFacultyDetails,
-  getall,
-  getAssociationDetails,
-  addAssociationDetails, 
-  updateAssociationDetails,
+  getFacultyCredentials,
+  addFacultyCredentials,
+  updateFacultyCredentials,
+  deleteFacultyCredentials,
+  getFacultyAssociations,
+  addFacultyAssociation,
+  updateFacultyAssociation,
+  deleteFacultyAssociation,
   addResearchPaper,
-  getResearchPaper,
-  deleteResearchPaper,
-  addVAERecord,
-  getVAERecord,
-  updateVAERecord,
-  deleteVAERecord,
-  
-} from "../controllers/faculty.js"; // Add new controller functions
-
-
+  getResearchPapersByFaculty,
+  updateResearchPaper,
+  deleteResearchPaper
+} from "../controllers/faculty.js";
 
 const router = express.Router();
 
-// Route for uploading faculty image
-router.post("/uploadfacultyimage", uploadFacultyImage);
+router.get("/facultycredentials", getFacultyCredentials);
+router.post("/addfacultycredentials", addFacultyCredentials);
+router.put("/updatefacultycredentials/:faculty_id", updateFacultyCredentials);
+router.delete("/deletefacultycredentials/:faculty_id", deleteFacultyCredentials);
 
-// Route for getting faculty image
-router.get("/facultyimage", getFacultyImage);
+router.get("/facultyassociation", getFacultyAssociations);
+router.post("/addfacultyassociation", addFacultyAssociation);
+router.put("/updatefacultyassociation/:faculty_id", updateFacultyAssociation);
+router.delete("/deletefacultyassociation/:faculty_id", deleteFacultyAssociation);
 
-// Route for getting faculty personal details
-router.get("/getfacultydetails", getFacultyDetails);
+// Route for adding a new research paper
+router.post('/researchpaper', upload, addResearchPaper);
 
-// Route for updating faculty personal details
-router.put("/updatefacultydetails", updateFacultyDetails);
+// Route for getting all research papers for a specific faculty_id
+router.get('/researchpapers/:faculty_id', getResearchPapersByFaculty);
 
-// Route for adding faculty personal details
-router.post("/addfacultydetails", addFacultyDetails);
+// Route for updating an existing research paper (using faculty_id and title)
+router.put('/researchpaper/:faculty_id/:title_of_paper', upload, updateResearchPaper);
 
-// Route for fetching all the faculties details
-router.get("/getall", getall);
-
-// Route for getting faculty association details
-router.get("/getassociationdetails", getAssociationDetails);
-
-// Route to add association details
-router.post("/addassociationdetails", addAssociationDetails);
-
-// Route for updating faculty association details
-router.put("/updateassociationdetails", updateAssociationDetails);
-
-// Route to add/update a research paper
-router.post("/addresearchpaper", addResearchPaper);
-
-// Route for fetching all research papers for a faculty
-router.get("/getresearchpaper", getResearchPaper);
-
-// Route for deleting a research paper
-router.delete('/deleteresearchpaper/:PublicationID', deleteResearchPaper);
-
-router.post("/addvaerecord", addVAERecord);
-
-router.put("/getvaerecord", getVAERecord);
-
-// Update a VAE record
-router.put("/updatevaerecord", updateVAERecord);
-
-// Delete a VAE record
-router.delete("/deletevaerecord", deleteVAERecord);
+// Route for deleting a research paper (using faculty_id and title)
+router.delete('/researchpaper/:faculty_id/:title_of_paper', deleteResearchPaper);
 
 export default router;
