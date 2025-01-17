@@ -911,3 +911,165 @@ export const deleteConsultancy = (req, res) => {
   });
 };
 
+export const getFacultyDetails = (req, res) => {
+  const { faculty_id } = req.params;
+
+  const query = 'SELECT * FROM faculty_details WHERE faculty_id = ?';
+  
+  pool.query(query, [faculty_id], (err, results) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error fetching faculty details', error: err });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'Faculty not found' });
+    }
+
+    res.status(200).json(results[0]);
+  });
+};
+
+export const addFaculty = (req, res) => {
+  const { faculty_id, faculty_name, degree, university, year_of_attaining_highest_degree, email_id, mobile_number } = req.body;
+
+  if (!faculty_id) {
+    return res.status(400).json({ message: 'Faculty ID is required' });
+  }
+
+  const facultyImage = req.file ? `public/Faculty/images/${faculty_id}.${req.file.originalname.split('.').pop()}` : null;
+
+  const sql = `
+    INSERT INTO faculty_details (faculty_id, faculty_name, faculty_image, degree, university, year_of_attaining_highest_degree, email_id, mobile_number)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  pool.query(
+    sql,
+    [faculty_id, faculty_name, facultyImage, degree, university, year_of_attaining_highest_degree, email_id, mobile_number],
+    (error, result) => {
+      if (error) {
+        return res.status(500).json({ message: 'Error adding faculty details', error });
+      }
+
+      res.status(201).json({ message: 'Faculty details added successfully', data: result });
+    }
+  );
+};
+
+export const updateFacultyDetails = (req, res) => {
+  const { faculty_id } = req.params;
+  const { faculty_name, degree, university, year_of_attaining_highest_degree, email_id, mobile_number } = req.body;
+  
+  // Check if a new image is uploaded
+  const newImage = req.file;
+
+  // Get the old image path from the database
+  const getQuery = 'SELECT faculty_image FROM faculty_details WHERE faculty_id = ?';
+  
+  pool.query(getQuery, [faculty_id], (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error retrieving faculty data', error: err });
+    }
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: 'Faculty not found' });
+    }
+
+    const oldImagePath = result[0].faculty_image; // Get the old image path
+
+    // If a new image is uploaded, delete the old image
+    let newImagePath = null;  // Default value for new image path
+
+    if (newImage) {
+      // Deleting the old image from the folder (if it exists)
+      if (oldImagePath) {
+        const oldImageFullPath = path.join(__dirname, '..', 'public', 'Faculty', 'images', oldImagePath);
+        fs.unlink(oldImageFullPath, (err) => {
+          if (err) {
+            console.log('Error deleting old image:', err);
+          }
+        });
+      }
+
+      // New image path
+      newImagePath = `Faculty/images/${newImage.filename}`;
+    } else {
+      // If no new image is uploaded, keep the old image path
+      newImagePath = oldImagePath;
+    }
+
+    // Update query to include faculty details
+    const updateQuery = `
+      UPDATE faculty_details
+      SET faculty_name = ?, degree = ?, university = ?, year_of_attaining_highest_degree = ?, email_id = ?, mobile_number = ?, faculty_image = ?
+      WHERE faculty_id = ?
+    `;
+
+    pool.query(updateQuery, [faculty_name, degree, university, year_of_attaining_highest_degree, email_id, mobile_number, newImagePath, faculty_id], (err, updateResult) => {
+      if (err) {
+        return res.status(500).json({ message: 'Error updating faculty details', error: err });
+      }
+
+      if (updateResult.affectedRows === 0) {
+        return res.status(404).json({ message: 'Failed to update faculty details' });
+      }
+
+      res.status(200).json({ message: 'Faculty details and image updated successfully' });
+    });
+  });
+};
+
+export const deleteFaculty = (req, res) => {
+  const { faculty_id } = req.params;
+
+  // Query to get the image path from the database
+  const getQuery = 'SELECT faculty_image FROM faculty_details WHERE faculty_id = ?';
+
+  pool.query(getQuery, [faculty_id], (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error retrieving faculty details', error: err });
+    }
+
+    // If no record found
+    if (result.length === 0) {
+      return res.status(404).json({ message: 'No faculty found with the given ID.' });
+    }
+
+    const imagePath = result[0].faculty_image; // The image file path retrieved from the database
+
+    // If no image path exists in the database, skip the deletion
+    if (!imagePath) {
+      return res.status(200).json({ message: 'Faculty details deleted, but no image to delete.' });
+    }
+
+    // Query to delete the faculty record from the database
+    const deleteQuery = 'DELETE FROM faculty_details WHERE faculty_id = ?';
+
+    pool.query(deleteQuery, [faculty_id], (err, deleteResult) => {
+      if (err) {
+        return res.status(500).json({ message: 'Error deleting faculty details from database', error: err });
+      }
+
+      if (deleteResult.affectedRows === 0) {
+        return res.status(404).json({ message: 'Failed to delete faculty details from the database' });
+      }
+
+      // Remove any relative paths from the imagePath if it contains 'public' or unnecessary folder prefixes
+      const imagePathWithoutPublic = imagePath.replace(/^public\//, ''); // This will remove the 'public/' part if it's present
+
+      // Construct the correct full file path for the image
+      const fullImagePath = path.join(__dirname, '..', 'public', imagePathWithoutPublic);
+
+      console.log(`Attempting to delete image: ${fullImagePath}`); // Log the path for debugging
+
+      // Try to delete the image file from the filesystem
+      fs.unlink(fullImagePath, (err) => {
+        if (err) {
+          return res.status(500).json({ message: 'Error deleting the image file', error: err });
+        }
+
+        res.status(200).json({ message: 'Faculty details and image deleted successfully' });
+      });
+    });
+  });
+};

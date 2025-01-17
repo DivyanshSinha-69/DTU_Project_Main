@@ -1,5 +1,5 @@
 import express from "express";
-import upload from '../config/multerConfig.js';  // Adjust path if needed
+import { uploadResearchPaper, uploadFacultyImage } from '../config/multerConfig.js';
 
 import {
   getFacultyCredentials,
@@ -39,6 +39,10 @@ import {
   addConsultancy,
   updateConsultancy,
   deleteConsultancy,
+  getFacultyDetails,
+  addFaculty,
+  updateFacultyDetails,
+  deleteFaculty, 
 } from "../controllers/faculty.js";
 
 const router = express.Router();
@@ -54,13 +58,13 @@ router.put("/updatefacultyassociation/:faculty_id", updateFacultyAssociation);
 router.delete("/deletefacultyassociation/:faculty_id", deleteFacultyAssociation);
 
 // Route for adding a new research paper
-router.post('/researchpaper', upload, addResearchPaper);
+router.post('/researchpaper', uploadResearchPaper, addResearchPaper);
 
 // Route for getting all research papers for a specific faculty_id
 router.get('/researchpapers/:faculty_id', getResearchPapersByFaculty);
 
 // Route for updating an existing research paper (using faculty_id and title)
-router.put('/researchpaper/:faculty_id/:title_of_paper', upload, updateResearchPaper);
+router.put('/researchpaper/:faculty_id/:title_of_paper', uploadResearchPaper, updateResearchPaper);
 
 // Route for deleting a research paper (using faculty_id and title)
 router.delete('/researchpaper/:faculty_id/:title_of_paper', deleteResearchPaper);
@@ -126,5 +130,11 @@ router.get('/consultancy/:faculty_id', getConsultancyByFaculty);
 router.post('/consultancy', addConsultancy);
 router.put('/consultancy/:consultancy_id', updateConsultancy);
 router.delete('/consultancy/:consultancy_id', deleteConsultancy);
+
+router.get('/faculty/:faculty_id', getFacultyDetails);
+router.post('/faculty', uploadFacultyImage, addFaculty);
+router.put('/faculty/:faculty_id', uploadFacultyImage, updateFacultyDetails);
+router.delete('/faculty/:faculty_id', deleteFaculty);
+
 
 export default router;
