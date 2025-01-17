@@ -404,3 +404,672 @@ export const deleteResearchPaper = (req, res) => {
     });
   });
 };
+
+
+// 1. Get all FDP records or by faculty_id
+export const getFDPRecords = (req, res) => {
+  const { faculty_id } = req.query;
+
+  const query = faculty_id 
+    ? 'SELECT * FROM faculty_FDP WHERE faculty_id = ?' 
+    : 'SELECT * FROM faculty_FDP';
+  const params = faculty_id ? [faculty_id] : [];
+
+  pool.query(query, params, (err, results) => {
+    if (err) {
+      console.error('Error fetching FDP records:', err);
+      return res.status(500).json({ message: 'Error fetching FDP records', error: err });
+    }
+    res.status(200).json({ message: 'FDP records fetched successfully', data: results });
+  });
+};
+
+// 2. Add a new FDP record
+export const addFDPRecord = (req, res) => {
+  const { faculty_id, FDP_name, year_conducted, month_conducted, days_contributed } = req.body;
+
+  const query = `
+    INSERT INTO faculty_FDP (faculty_id, FDP_name, year_conducted, month_conducted, days_contributed)
+    VALUES (?, ?, ?, ?, ?)
+  `;
+  const params = [faculty_id, FDP_name, year_conducted, month_conducted, days_contributed];
+
+  pool.query(query, params, (err, result) => {
+    if (err) {
+      console.error('Error adding FDP record:', err);
+      return res.status(500).json({ message: 'Error adding FDP record', error: err });
+    }
+    res.status(201).json({ message: 'FDP record added successfully', data: { id: result.insertId } });
+  });
+};
+
+// 3. Update an FDP record
+export const updateFDPRecord = (req, res) => {
+  const { faculty_id, FDP_name, year_conducted, month_conducted, days_contributed } = req.body;
+
+  const query = `
+    UPDATE faculty_FDP 
+    SET year_conducted = ?, month_conducted = ?, days_contributed = ?
+    WHERE faculty_id = ? AND FDP_name = ?
+  `;
+  const params = [year_conducted, month_conducted, days_contributed, faculty_id, FDP_name];
+
+  pool.query(query, params, (err, result) => {
+    if (err) {
+      console.error('Error updating FDP record:', err);
+      return res.status(500).json({ message: 'Error updating FDP record', error: err });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'No FDP record found with the given faculty_id and FDP_name' });
+    }
+    res.status(200).json({ message: 'FDP record updated successfully' });
+  });
+};
+
+// 4. Delete an FDP record
+export const deleteFDPRecord = (req, res) => {
+  const { faculty_id, FDP_name } = req.body;
+
+  const query = 'DELETE FROM faculty_FDP WHERE faculty_id = ? AND FDP_name = ?';
+  const params = [faculty_id, FDP_name];
+
+  pool.query(query, params, (err, result) => {
+    if (err) {
+      console.error('Error deleting FDP record:', err);
+      return res.status(500).json({ message: 'Error deleting FDP record', error: err });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'No FDP record found with the given faculty_id and FDP_name' });
+    }
+    res.status(200).json({ message: 'FDP record deleted successfully' });
+  });
+};
+
+
+export const getVAERecords = (req, res) => {
+  const { faculty_id } = req.query;
+
+  let query = 'SELECT * FROM faculty_VAErecords';
+  const params = [];
+
+  if (faculty_id) {
+    query += ' WHERE faculty_id = ?';
+    params.push(faculty_id);
+  }
+
+  pool.query(query, params, (err, results) => {
+    if (err) {
+      console.error('Error fetching VAE records:', err);
+      return res.status(500).json({ message: 'Error fetching VAE records', error: err });
+    }
+    res.status(200).json({ message: 'VAE records retrieved successfully', data: results });
+  });
+};
+
+export const addVAERecord = (req, res) => {
+  const { faculty_id, visit_type, institution, course_taught, year_of_visit, month_of_visit, hours_taught } = req.body;
+
+  // Validate input
+  if (!faculty_id || !visit_type || !institution || !course_taught || !year_of_visit || !month_of_visit || !hours_taught) {
+    return res.status(400).json({ message: 'All fields are required' });
+  }
+
+  const query = `
+    INSERT INTO faculty_VAErecords (faculty_id, visit_type, institution, course_taught, year_of_visit, month_of_visit, hours_taught)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `;
+  const params = [faculty_id, visit_type, institution, course_taught, year_of_visit, month_of_visit, hours_taught];
+
+  pool.query(query, params, (err, result) => {
+    if (err) {
+      console.error('Error adding VAE record:', err);
+      return res.status(500).json({ message: 'Error adding VAE record', error: err });
+    }
+    res.status(201).json({ message: 'VAE record added successfully', data: { id: result.insertId } });
+  });
+};
+
+export const updateVAERecord = (req, res) => {
+  const { visit_id } = req.params;
+  const { visit_type, institution, course_taught, year_of_visit, month_of_visit, hours_taught } = req.body;
+
+  // Validate input
+  if (!visit_id || !visit_type || !institution || !course_taught || !year_of_visit || !month_of_visit || !hours_taught) {
+    return res.status(400).json({ message: 'All fields are required' });
+  }
+
+  const query = `
+    UPDATE faculty_VAErecords
+    SET visit_type = ?, institution = ?, course_taught = ?, year_of_visit = ?, month_of_visit = ?, hours_taught = ?
+    WHERE visit_id = ?
+  `;
+  const params = [visit_type, institution, course_taught, year_of_visit, month_of_visit, hours_taught, visit_id];
+
+  pool.query(query, params, (err, result) => {
+    if (err) {
+      console.error('Error updating VAE record:', err);
+      return res.status(500).json({ message: 'Error updating VAE record', error: err });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'No VAE record found with the given visit_id' });
+    }
+    res.status(200).json({ message: 'VAE record updated successfully' });
+  });
+};
+
+export const deleteVAERecord = (req, res) => {
+  const { visit_id } = req.params;
+
+  if (!visit_id) {
+    return res.status(400).json({ message: 'visit_id is required' });
+  }
+
+  const query = 'DELETE FROM faculty_VAErecords WHERE visit_id = ?';
+
+  pool.query(query, [visit_id], (err, result) => {
+    if (err) {
+      console.error('Error deleting VAE record:', err);
+      return res.status(500).json({ message: 'Error deleting VAE record', error: err });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'No VAE record found with the given visit_id' });
+    }
+    res.status(200).json({ message: 'VAE record deleted successfully' });
+  });
+};
+
+
+// Get all Book records
+export const getBookRecords = (req, res) => {
+  const faculty_id = req.params.faculty_id;
+
+  const query = faculty_id
+    ? "SELECT * FROM faculty_Book_records WHERE faculty_id = ?"
+    : "SELECT * FROM faculty_Book_records";
+
+  pool.query(query, faculty_id ? [faculty_id] : [], (err, results) => {
+    if (err) {
+      return res.status(500).json({ message: "Error fetching book records", error: err });
+    }
+    res.status(200).json(results);
+  });
+};
+
+// Add a new Book record
+export const addBookRecord = (req, res) => {
+  const { ISBN, faculty_id, book_title, publication_name, published_date } = req.body;
+
+  const query = `
+    INSERT INTO faculty_Book_records (ISBN, faculty_id, book_title, publication_name, published_date)
+    VALUES (?, ?, ?, ?, ?)
+  `;
+
+  const queryParams = [ISBN, faculty_id, book_title, publication_name, published_date];
+
+  pool.query(query, queryParams, (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: "Error adding book record", error: err });
+    }
+    res.status(201).json({ message: "Book record added successfully", insertId: result.insertId });
+  });
+};
+
+// Update an existing Book record
+export const updateBookRecord = (req, res) => {
+  const { ISBN } = req.params;
+  const { faculty_id, book_title, publication_name, published_date } = req.body;
+
+  const query = `
+    UPDATE faculty_Book_records
+    SET faculty_id = ?, book_title = ?, publication_name = ?, published_date = ?
+    WHERE ISBN = ?
+  `;
+
+  const queryParams = [faculty_id, book_title, publication_name, published_date, ISBN];
+
+  pool.query(query, queryParams, (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: "Error updating book record", error: err });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "No book record found with the given ISBN" });
+    }
+    res.status(200).json({ message: "Book record updated successfully" });
+  });
+};
+
+// Delete a Book record
+export const deleteBookRecord = (req, res) => {
+  const { ISBN } = req.params;
+
+  const query = "DELETE FROM faculty_Book_records WHERE ISBN = ?";
+
+  pool.query(query, [ISBN], (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: "Error deleting book record", error: err });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "No book record found with the given ISBN" });
+    }
+    res.status(200).json({ message: "Book record deleted successfully" });
+  });
+};
+
+
+export const getPhDAwardedRecords = (req, res) => {
+  const query = 'SELECT * FROM faculty_PhD_awarded';
+  pool.query(query, (err, results) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error fetching PhD awarded records', error: err });
+    }
+    res.status(200).json(results);
+  });
+};
+
+/**
+ * Get all PhD mentee names for a specific faculty_id
+ */
+export const getPhDAwardedRecordsByFacultyId = (req, res) => {
+  const { faculty_id } = req.params;
+
+  const query = `
+    SELECT mentee_name, mentee_rn, passing_year 
+    FROM faculty_PhD_awarded 
+    WHERE faculty_id = ?
+  `;
+
+  pool.query(query, [faculty_id], (err, results) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error fetching PhD awarded records', error: err });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'No PhD awarded records found for the given faculty_id' });
+    }
+    res.status(200).json(results);
+  });
+};
+
+
+export const addPhDAwardedRecord = (req, res) => {
+  const { faculty_id, mentee_name, mentee_rn, passing_year } = req.body;
+
+  const query = `
+    INSERT INTO faculty_PhD_awarded (faculty_id, mentee_name, mentee_rn, passing_year)
+    VALUES (?, ?, ?, ?)
+  `;
+
+  const queryParams = [faculty_id, mentee_name, mentee_rn, passing_year];
+
+  pool.query(query, queryParams, (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error adding PhD awarded record', error: err });
+    }
+    res.status(201).json({ message: 'PhD awarded record added successfully', recordId: result.insertId });
+  });
+};
+
+/**
+ * Update an existing PhD record
+ */
+export const updatePhDAwardedRecord = (req, res) => {
+  const { mentee_name, passing_year } = req.body;
+  const { mentee_rn } = req.params;
+
+  if (!mentee_rn) {
+    return res.status(400).json({ message: "Mentee registration number is required" });
+  }
+
+  const query = `
+    UPDATE faculty_PhD_awarded
+    SET mentee_name = ?, passing_year = ?
+    WHERE mentee_rn = ?
+  `;
+
+  const queryParams = [mentee_name, passing_year, mentee_rn];
+
+  pool.query(query, queryParams, (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: "Error updating PhD awarded record", error: err });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "PhD awarded record not found" });
+    }
+    res.status(200).json({ message: "PhD awarded record updated successfully" });
+  });
+};
+
+/**
+ * Delete a PhD record
+ */
+export const deletePhDAwardedRecord = (req, res) => {
+  const { mentee_rn } = req.params;
+
+  const query = 'DELETE FROM faculty_PhD_awarded WHERE mentee_rn = ?';
+
+  pool.query(query, [mentee_rn], (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error deleting PhD awarded record', error: err });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'No PhD awarded record found with the given mentee_rn' });
+    }
+    res.status(200).json({ message: 'PhD awarded record deleted successfully' });
+  });
+};
+
+export const getSponsoredResearchByFaculty = (req, res) => {
+  const { faculty_id } = req.params;
+
+  const query = `SELECT * FROM faculty_sponsored_research WHERE faculty_id = ?`;
+  const queryParams = [faculty_id];
+
+  pool.query(query, queryParams, (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: "Error fetching sponsored research", error: err });
+    }
+    if (result.length === 0) {
+      return res.status(404).json({ message: "No sponsored research found for this faculty" });
+    }
+    res.status(200).json(result);
+  });
+};
+
+export const addSponsoredResearch = (req, res) => {
+  const { faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date } = req.body;
+
+  if (!faculty_id || !project_title || !start_date) {
+    return res.status(400).json({ message: "Faculty ID, Project Title, and Start Date are required" });
+  }
+
+  const query = `
+    INSERT INTO faculty_sponsored_research (faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `;
+  const queryParams = [faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date];
+
+  pool.query(query, queryParams, (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: "Error adding sponsored research", error: err });
+    }
+    res.status(201).json({ message: "Sponsored research added successfully", sponsorship_id: result.insertId });
+  });
+};
+
+export const updateSponsoredResearch = (req, res) => {
+  const { sponsorship_id } = req.params;
+  const { faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date } = req.body;
+
+  const query = `
+    UPDATE faculty_sponsored_research
+    SET faculty_id = ?, project_title = ?, funding_agency = ?, amount_sponsored = ?, research_duration = ?, start_date = ?
+    WHERE sponsorship_id = ?
+  `;
+  const queryParams = [faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date, sponsorship_id];
+
+  pool.query(query, queryParams, (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: "Error updating sponsored research", error: err });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Sponsored research not found" });
+    }
+    res.status(200).json({ message: "Sponsored research updated successfully" });
+  });
+};
+
+export const deleteSponsoredResearch = (req, res) => {
+  const { sponsorship_id } = req.params;
+
+  const query = `DELETE FROM faculty_sponsored_research WHERE sponsorship_id = ?`;
+  const queryParams = [sponsorship_id];
+
+  pool.query(query, queryParams, (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: "Error deleting sponsored research", error: err });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Sponsored research not found" });
+    }
+    res.status(200).json({ message: "Sponsored research deleted successfully" });
+  });
+};
+
+export const getConsultancyByFaculty = (req, res) => {
+  const { faculty_id } = req.params;
+
+  const query = `SELECT * FROM faculty_consultancy WHERE faculty_id = ?`;
+  const queryParams = [faculty_id];
+
+  pool.query(query, queryParams, (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: "Error fetching consultancy records", error: err });
+    }
+    if (result.length === 0) {
+      return res.status(404).json({ message: "No consultancy records found for this faculty" });
+    }
+    res.status(200).json(result);
+  });
+};
+
+export const addConsultancy = (req, res) => {
+  const { faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date } = req.body;
+
+  if (!faculty_id || !project_title || !start_date) {
+    return res.status(400).json({ message: "Faculty ID, Project Title, and Start Date are required" });
+  }
+
+  const query = `
+    INSERT INTO faculty_consultancy (faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `;
+  const queryParams = [faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date];
+
+  pool.query(query, queryParams, (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: "Error adding consultancy record", error: err });
+    }
+    res.status(201).json({ message: "Consultancy record added successfully", consultancy_id: result.insertId });
+  });
+};
+
+export const updateConsultancy = (req, res) => {
+  const { consultancy_id } = req.params;
+  const { faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date } = req.body;
+
+  const query = `
+    UPDATE faculty_consultancy
+    SET faculty_id = ?, project_title = ?, funding_agency = ?, amount_sponsored = ?, research_duration = ?, start_date = ?
+    WHERE consultancy_id = ?
+  `;
+  const queryParams = [faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date, consultancy_id];
+
+  pool.query(query, queryParams, (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: "Error updating consultancy record", error: err });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Consultancy record not found" });
+    }
+    res.status(200).json({ message: "Consultancy record updated successfully" });
+  });
+};
+
+export const deleteConsultancy = (req, res) => {
+  const { consultancy_id } = req.params;
+
+  const query = `DELETE FROM faculty_consultancy WHERE consultancy_id = ?`;
+  const queryParams = [consultancy_id];
+
+  pool.query(query, queryParams, (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: "Error deleting consultancy record", error: err });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Consultancy record not found" });
+    }
+    res.status(200).json({ message: "Consultancy record deleted successfully" });
+  });
+};
+
+export const getFacultyDetails = (req, res) => {
+  const { faculty_id } = req.params;
+
+  const query = 'SELECT * FROM faculty_details WHERE faculty_id = ?';
+  
+  pool.query(query, [faculty_id], (err, results) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error fetching faculty details', error: err });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'Faculty not found' });
+    }
+
+    res.status(200).json(results[0]);
+  });
+};
+
+export const addFaculty = (req, res) => {
+  const { faculty_id, faculty_name, degree, university, year_of_attaining_highest_degree, email_id, mobile_number } = req.body;
+
+  if (!faculty_id) {
+    return res.status(400).json({ message: 'Faculty ID is required' });
+  }
+
+  const facultyImage = req.file ? `public/Faculty/images/${faculty_id}.${req.file.originalname.split('.').pop()}` : null;
+
+  const sql = `
+    INSERT INTO faculty_details (faculty_id, faculty_name, faculty_image, degree, university, year_of_attaining_highest_degree, email_id, mobile_number)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  pool.query(
+    sql,
+    [faculty_id, faculty_name, facultyImage, degree, university, year_of_attaining_highest_degree, email_id, mobile_number],
+    (error, result) => {
+      if (error) {
+        return res.status(500).json({ message: 'Error adding faculty details', error });
+      }
+
+      res.status(201).json({ message: 'Faculty details added successfully', data: result });
+    }
+  );
+};
+
+export const updateFacultyDetails = (req, res) => {
+  const { faculty_id } = req.params;
+  const { faculty_name, degree, university, year_of_attaining_highest_degree, email_id, mobile_number } = req.body;
+  
+  // Check if a new image is uploaded
+  const newImage = req.file;
+
+  // Get the old image path from the database
+  const getQuery = 'SELECT faculty_image FROM faculty_details WHERE faculty_id = ?';
+  
+  pool.query(getQuery, [faculty_id], (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error retrieving faculty data', error: err });
+    }
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: 'Faculty not found' });
+    }
+
+    const oldImagePath = result[0].faculty_image; // Get the old image path
+
+    // If a new image is uploaded, delete the old image
+    let newImagePath = null;  // Default value for new image path
+
+    if (newImage) {
+      // Deleting the old image from the folder (if it exists)
+      if (oldImagePath) {
+        const oldImageFullPath = path.join(__dirname, '..', 'public', 'Faculty', 'images', oldImagePath);
+        fs.unlink(oldImageFullPath, (err) => {
+          if (err) {
+            console.log('Error deleting old image:', err);
+          }
+        });
+      }
+
+      // New image path
+      newImagePath = `Faculty/images/${newImage.filename}`;
+    } else {
+      // If no new image is uploaded, keep the old image path
+      newImagePath = oldImagePath;
+    }
+
+    // Update query to include faculty details
+    const updateQuery = `
+      UPDATE faculty_details
+      SET faculty_name = ?, degree = ?, university = ?, year_of_attaining_highest_degree = ?, email_id = ?, mobile_number = ?, faculty_image = ?
+      WHERE faculty_id = ?
+    `;
+
+    pool.query(updateQuery, [faculty_name, degree, university, year_of_attaining_highest_degree, email_id, mobile_number, newImagePath, faculty_id], (err, updateResult) => {
+      if (err) {
+        return res.status(500).json({ message: 'Error updating faculty details', error: err });
+      }
+
+      if (updateResult.affectedRows === 0) {
+        return res.status(404).json({ message: 'Failed to update faculty details' });
+      }
+
+      res.status(200).json({ message: 'Faculty details and image updated successfully' });
+    });
+  });
+};
+
+export const deleteFaculty = (req, res) => {
+  const { faculty_id } = req.params;
+
+  // Query to get the image path from the database
+  const getQuery = 'SELECT faculty_image FROM faculty_details WHERE faculty_id = ?';
+
+  pool.query(getQuery, [faculty_id], (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error retrieving faculty details', error: err });
+    }
+
+    // If no record found
+    if (result.length === 0) {
+      return res.status(404).json({ message: 'No faculty found with the given ID.' });
+    }
+
+    const imagePath = result[0].faculty_image; // The image file path retrieved from the database
+
+    // If no image path exists in the database, skip the deletion
+    if (!imagePath) {
+      return res.status(200).json({ message: 'Faculty details deleted, but no image to delete.' });
+    }
+
+    // Query to delete the faculty record from the database
+    const deleteQuery = 'DELETE FROM faculty_details WHERE faculty_id = ?';
+
+    pool.query(deleteQuery, [faculty_id], (err, deleteResult) => {
+      if (err) {
+        return res.status(500).json({ message: 'Error deleting faculty details from database', error: err });
+      }
+
+      if (deleteResult.affectedRows === 0) {
+        return res.status(404).json({ message: 'Failed to delete faculty details from the database' });
+      }
+
+      // Remove any relative paths from the imagePath if it contains 'public' or unnecessary folder prefixes
+      const imagePathWithoutPublic = imagePath.replace(/^public\//, ''); // This will remove the 'public/' part if it's present
+
+      // Construct the correct full file path for the image
+      const fullImagePath = path.join(__dirname, '..', 'public', imagePathWithoutPublic);
+
+      console.log(`Attempting to delete image: ${fullImagePath}`); // Log the path for debugging
+
+      // Try to delete the image file from the filesystem
+      fs.unlink(fullImagePath, (err) => {
+        if (err) {
+          return res.status(500).json({ message: 'Error deleting the image file', error: err });
+        }
+
+        res.status(200).json({ message: 'Faculty details and image deleted successfully' });
+      });
+    });
+  });
+};
