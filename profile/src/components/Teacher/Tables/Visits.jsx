@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, Typography } from "@material-tailwind/react";
 import Popup from "reactjs-popup";
 import VisitsPopUp from "../PopUp/VisitsPopUp";
@@ -33,10 +33,43 @@ const dummyVisitDetails = [
 ];
 
 const Visits = ({ setBlurActive }) => {
-  const [visitDetails, setVisitDetails] = useState(dummyVisitDetails);
+  const visitTypeMap = { Visiting: 1, Adjunct: 2, Emeritus: 3 };
+  const visitTypeReverseMap = { 1: "Visiting", 2: "Adjunct", 3: "Emeritus" };
+  const monthMap = {
+    January: 1,
+    February: 2,
+    March: 3,
+    April: 4,
+    May: 5,
+    June: 6,
+    July: 7,
+    August: 8,
+    September: 9,
+    October: 10,
+    November: 11,
+    December: 12,
+  };
+
+  const [visitDetails, setVisitDetails] = useState([]);
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [selectedVisit, setSelectedVisit] = useState(null);
   const [isAddVisit, setIsAddVisit] = useState(false);
+  const API_BASE_URL = "http://localhost:3001/ece/faculty";
+  const FACULTY_ID = "FAC001";
+
+  useEffect(() => {
+    const fetchVisits = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/vae?faculty_id=${FACULTY_ID}`);
+        const data = await response.json();
+        setVisitDetails(data.data || []);
+      } catch (error) {
+        console.error("Error fetching visit details:", error);
+      }
+    };
+
+    fetchVisits();
+  }, []);
 
   const openPopup = (visit) => {
     setSelectedVisit(visit);
@@ -50,19 +83,82 @@ const Visits = ({ setBlurActive }) => {
     setBlurActive(false);
   };
 
-  const handleAddVisit = (newVisit) => {
-    setVisitDetails([...visitDetails, newVisit]);
-    closePopup();
+  const handleAddOrUpdateVisit = async (visitData) => {
+    try {
+      const formattedVisit = {
+        faculty_id: FACULTY_ID, // Static for now
+        visit_type: visitTypeMap[visitData.visitType], // Convert string to number
+        institution: visitData.institutionName,
+        course_taught: visitData.courses,
+        year_of_visit: visitData.year_of_visit,
+        month_of_visit: monthMap[visitData.month_of_visit], // Convert month name to number
+        hours_taught: visitData.hours_taught,
+      };
+
+      let response;
+      if (isAddVisit) {
+        // ADD new visit
+        response = await fetch(`${API_BASE_URL}/vae`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formattedVisit),
+        });
+
+        if (!response.ok) {
+          console.log("Failed to add visit", formattedVisit);
+          throw new Error("Failed to add visit");
+        }
+
+        const responseData = await response.json();
+        setVisitDetails([
+          ...visitDetails,
+          { ...formattedVisit, visit_id: responseData.data.id },
+        ]);
+      } else {
+        // UPDATE existing visit
+        response = await fetch(`${API_BASE_URL}/vae/${selectedVisit.visit_id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formattedVisit),
+        });
+
+        if (!response.ok) {
+          console.log("Failed to update visit", formattedVisit);
+          throw new Error("Failed to update visit");
+        }
+
+        setVisitDetails(
+          visitDetails.map((visit) =>
+            visit.visit_id === selectedVisit.visit_id ? { ...visit, ...formattedVisit } : visit
+          )
+        );
+      }
+
+      closePopup();
+    } catch (error) {
+      console.error("Error saving visit details:", error);
+    }
   };
 
-  const handleDeleteVisit = (indexToDelete) => {
-    setVisitDetails(visitDetails.filter((_, index) => index !== indexToDelete));
+  const handleDeleteVisit = async (visitId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/vae/${visitId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) throw new Error("Failed to delete visit");
+
+      setVisitDetails(visitDetails.filter((visit) => visit.visit_id !== visitId));
+    } catch (error) {
+      console.error("Error deleting visit:", error);
+    }
   };
 
   const TABLE_HEAD = [
     "Visit Type",
     "Institution Name",
     "Courses",
+    "Month of Visit",
     "Year of Visit",
     "Hours Taught",
     "Actions",
@@ -136,7 +232,7 @@ const Visits = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {visitType}
+                          {visitTypeReverseMap[visit.visit_type]}
                         </Typography>
                       </td>
                       <td className={classes}>
@@ -145,7 +241,7 @@ const Visits = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {institutionName}
+                          {visit.institution}
                         </Typography>
                       </td>
                       <td className={classes}>
@@ -154,9 +250,19 @@ const Visits = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {courses}
+                          {visit.course_taught}
                         </Typography>
                       </td>
+                      <td className={classes}>
+                        <Typography
+                          variant="small"
+                          color="blue-gray"
+                          className="font-normal"
+                        >
+                          {visit.month_of_visit ? Object.keys(monthMap).find(key => monthMap[key] === visit.month_of_visit) : ""}
+                        </Typography>
+                      </td>
+
                       <td className={classes}>
                         <Typography
                           variant="small"
@@ -188,7 +294,7 @@ const Visits = ({ setBlurActive }) => {
                             />
                           </button>
                           <button
-                            onClick={() => handleDeleteVisit(index)}
+                            onClick={() => handleDeleteVisit(visit.visit_id)}
                             className="bg-red-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
                           >
                             <img
@@ -223,18 +329,21 @@ const Visits = ({ setBlurActive }) => {
               courses=""
               year_of_visit=""
               hours_taught=""
+              month_of_visit=""
               closeModal={closePopup}
-              handleAddVisit={handleAddVisit}
+              handleAddVisit={handleAddOrUpdateVisit}
             />
           ) : (
             selectedVisit && (
               <VisitsPopUp
-                visitType={selectedVisit.visitType}
-                institutionName={selectedVisit.institutionName}
-                courses={selectedVisit.courses}
-                year_of_visit={selectedVisit.year_of_visit}
-                hours_taught={selectedVisit.hours_taught}
+                visitType={visitTypeReverseMap[selectedVisit?.visit_type] || ""}
+                institutionName={selectedVisit?.institution || ""}
+                courses={selectedVisit?.course_taught || ""}
+                year_of_visit={selectedVisit?.year_of_visit || ""}
+                month_of_visit={selectedVisit.month_of_visit ? Object.keys(monthMap).find(key => monthMap[key] === selectedVisit.month_of_visit) : "" || ""}
+                hours_taught={selectedVisit?.hours_taught || ""}
                 closeModal={closePopup}
+                handleAddVisit={handleAddOrUpdateVisit}
               />
             )
           )}

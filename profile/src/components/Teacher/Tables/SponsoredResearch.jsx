@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { Card, Typography } from "@material-tailwind/react";
 import Popup from "reactjs-popup";
 import SponsoredResearchPopUp from "../PopUp/SponsoredResearchPopUp";
@@ -15,16 +16,65 @@ const dummyResearchDetails = [
 ];
 
 const SponsoredResearch = ({ setBlurActive }) => {
-  const [researchDetails, setResearchDetails] = useState(dummyResearchDetails);
+  const [researchDetails, setResearchDetails] = useState([]);
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [selectedResearch, setSelectedResearch] = useState(null);
   const [isAddResearch, setIsAddResearch] = useState(false);
 
+
+  
+  // Fetch data
+  
+  const fetchResearchDetails = async () => {
+      try {
+        const response = await fetch(`http://localhost:3001/ece/faculty/sponsored-research/${facultyId}`);
+        if (!response.ok) {
+          // If the response is not OK (e.g., 404), handle it gracefully
+          if (response.status === 404) {
+            setResearchDetails([]); // No data found, set to an empty array
+            return;
+          }
+        throw new Error("Failed to fetch data");
+          
+        }
+  
+        const data = await response.json();
+        console.log("Fetched Data:", data);
+
+        setResearchDetails(
+          data.map((record) => ({
+            project_title: record.project_title,
+            agency: record.funding_agency,
+            amount: record.amount_sponsored,
+            duration: record.research_duration,
+            startDate: record.start_date,
+            sponsorship_id: record.sponsorship_id,
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching sponsored research records:", error);
+        setResearchDetails([]); // Fallback to an empty array in case of errors
+      }
+    };
+  
+  
+  
+  
+  
   const openPopup = (research) => {
-    setSelectedResearch(research);
+    // Format the start date before passing it to the popup
+    const formattedStartDate = new Date(research.start_date).toLocaleDateString("en-GB");
+  
+    // Set the selected research with the formatted start date
+    setSelectedResearch({
+      ...research,
+      start_date: formattedStartDate, // Update start_date with the formatted date
+    });
+  
     setPopupOpen(true);
     setBlurActive(true);
   };
+  
 
   const closePopup = () => {
     setPopupOpen(false);
@@ -33,26 +83,80 @@ const SponsoredResearch = ({ setBlurActive }) => {
   };
 
   const handleAddResearch = (newResearch) => {
-    if (selectedResearch) {
-      // Update existing research
-      setResearchDetails((prevDetails) =>
-        prevDetails.map((research) =>
-          research === selectedResearch ? { ...newResearch } : research
-        )
-      );
+    if (isAddResearch) {      // Add new research
+      const requestPayload = {
+        faculty_id: facultyId, // Use FAC001 for now
+        project_title: newResearch.title,
+        funding_agency: newResearch.agency,
+        amount_sponsored: newResearch.amount,
+        research_duration: newResearch.duration,
+        start_date: newResearch.startDate,
+      };
+    
+      axios
+        .post("http://localhost:3001/ece/faculty/sponsored-research", requestPayload)
+        .then((response) => {
+          setResearchDetails([...researchDetails, { ...newResearch, sponsorship_id: response.data.sponsorship_id }]);
+          closePopup();
+        })
+        .catch((error) => {
+          console.error("Error adding sponsored research:", error);
+        });
+      
     } else {
-      // Add new research
-      setResearchDetails([...researchDetails, newResearch]);
+      const updatedResearch = {
+        faculty_id: facultyId,
+        project_title: newResearch.title,
+        funding_agency: newResearch.agency,
+        amount_sponsored: newResearch.amount,
+        research_duration: newResearch.duration,
+        start_date: newResearch.startDate,
+      };
+  
+      axios
+        .put(`http://localhost:3001/ece/faculty/sponsored-research/${selectedResearch.sponsorship_id}`, updatedResearch)
+        .then(() => {
+          setResearchDetails((prevDetails) =>
+            prevDetails?.map((research) =>
+              research.sponsorship_id === selectedResearch.sponsorship_id ? { ...newResearch } : research
+            )
+          );
+          closePopup();
+          
+        })
+        
+        .catch((error) => {
+          console.error("Error updating sponsored research:", error);
+        });
     }
-    closePopup();
   };
+  
+  
 
-  const handleDeleteResearch = (indexToDelete) => {
-    setResearchDetails(researchDetails.filter((_, index) => index !== indexToDelete));
+  const handleDeleteResearch = (sponsorshipId) => {
+    axios
+      .delete(`http://localhost:3001/ece/faculty/sponsored-research/${sponsorshipId}`)
+      .then(() => {
+        setResearchDetails((prevDetails) => prevDetails.filter((research) => research.sponsorship_id !== sponsorshipId));
+      })
+      .catch((error) => {
+        console.error("Error deleting sponsored research:", error);
+      });
   };
+  
 
   const TABLE_HEAD = ["Project Title", "Funding Agency", "Amount Sponsored", "Duration (Years)", "Start Date", "Actions"];
+  const formatDateForInput = (date) => {
+    const [date1, time] = date.split('T');
 
+    const [day, month, year] = date1.split('-');
+    return `${day}-${month}-${year}`; // yyyy-MM-dd
+
+  };
+  const facultyId = "FAC001"; // Replace with dynamic faculty ID if necessary
+  useEffect(() => {
+    fetchResearchDetails();
+  }, []); // Make sure this updates when facultyId changes
   return (
     <div>
       <div className="h-auto p-10">
@@ -65,6 +169,7 @@ const SponsoredResearch = ({ setBlurActive }) => {
               setIsAddResearch(true);
               setPopupOpen(true);
               setBlurActive(true);
+            
             }}
             className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full hover:invert hover:scale-[130%] transition-transform ease-in"
           >
@@ -78,7 +183,7 @@ const SponsoredResearch = ({ setBlurActive }) => {
             <table className="w-full min-w-auto lg:min-w-max table-auto text-left">
               <thead>
                 <tr>
-                  {TABLE_HEAD.map((head, index) => (
+                  {TABLE_HEAD?.map((head, index) => (
                     <th
                       key={head}
                       className={`border-b border-blue-gray-100 bg-blue-gray-50 p-4 ${
@@ -97,8 +202,12 @@ const SponsoredResearch = ({ setBlurActive }) => {
                 </tr>
               </thead>
               <tbody>
-                {researchDetails.map((research, index) => {
-                  const { title, agency, amount, duration, startDate } = research;
+                {researchDetails?.map((research, index) => {
+                  const { title = research.project_title,
+                    agency = research.funding_agency,
+                    amount = research.amount_sponsored,
+                    duration = research.research_duration,
+                    startDate = research.start_date } = research;
                   const isLast = index === researchDetails.length - 1;
                   const classes = isLast
                     ? "p-4"
@@ -130,7 +239,7 @@ const SponsoredResearch = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          ₹{amount.toLocaleString()}
+                          ₹{amount?.toLocaleString()}
                         </Typography>
                       </td>
                       <td className={classes}>
@@ -148,23 +257,28 @@ const SponsoredResearch = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {startDate}
+                          {new Date(startDate)?.toLocaleDateString("en-GB")}
+
                         </Typography>
                       </td>
                       <td className={`${classes} text-right`}>
                         <div className="flex justify-end gap-2">
                           <button
-                            onClick={() => openPopup(research)}
+                            onClick={() => {
+                              openPopup(research);
+                              setIsAddResearch(false);
+                            }}
                             className="bg-green-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
                           >
                             <img src={editImg} alt="edit" className="h-5 w-5" />
                           </button>
                           <button
-                            onClick={() => handleDeleteResearch(index)}
-                            className="bg-red-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
-                          >
-                            <img src={deleteImg} alt="delete" className="h-5 w-5 filter brightness-0 invert" />
-                          </button>
+  onClick={() => handleDeleteResearch(research.sponsorship_id)}
+  className="bg-red-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
+>
+  <img src={deleteImg} alt="delete" className="h-5 w-5 filter brightness-0 invert" />
+</button>
+
                         </div>
                       </td>
                     </tr>
@@ -197,11 +311,11 @@ const SponsoredResearch = ({ setBlurActive }) => {
           ) : (
             selectedResearch && (
               <SponsoredResearchPopUp
-                title={selectedResearch.title}
+                title={selectedResearch.project_title}
                 agency={selectedResearch.agency}
                 amount={selectedResearch.amount}
                 duration={selectedResearch.duration}
-                startDate={selectedResearch.startDate}
+                startDate={formatDateForInput(selectedResearch.startDate)}
                 closeModal={closePopup}
                 handleAddResearch={handleAddResearch}
               />

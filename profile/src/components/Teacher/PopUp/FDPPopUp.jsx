@@ -17,6 +17,21 @@ export default function FacultyDevelopmentPopUp({
     days: days || "",
   });
 
+  const months= [
+    { name: "January", value: 1 },
+    { name: "February", value: 2 },
+    { name: "March", value: 3 },
+    { name: "April", value: 4 },
+    { name: "May", value: 5 },
+    { name: "June", value: 6 },
+    { name: "July", value: 7 },
+    { name: "August", value: 8 },
+    { name: "September", value: 9 },
+    { name: "October", value: 10 },
+    { name: "November", value: 11 },
+    { name: "December", value: 12 },
+  ];
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -53,11 +68,7 @@ export default function FacultyDevelopmentPopUp({
     ));
   };
 
-  const months = [
-    "January", "February", "March", "April", "May", 
-    "June", "July", "August", "September", "October", 
-    "November", "December"
-  ];
+  
 
   return (
     <Card color="transparent" shadow={false} className="w-[90%] max-w-[700px] h-auto p-8 rounded-[20px]">
@@ -97,26 +108,27 @@ export default function FacultyDevelopmentPopUp({
         </div>
 
         {/* Month Conducted Dropdown */}
-        <div className="relative z-0 w-full group">
-          <label htmlFor="month" className="block text-sm">
-            Month Conducted
-          </label>
-          <select
-            name="month"
-            id="month"
-            className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            onChange={handleChange}
-            value={formData.month}
-            required
-          >
-            <option value="">Select Month</option>
-            {months.map((month, index) => (
-              <option key={index} value={month}>
-                {month}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* Month Conducted Dropdown */}
+<div className="relative z-0 w-full group">
+  <label htmlFor="month" className="block text-sm">
+    Month Conducted
+  </label>
+  <select
+    name="month"
+    id="month"
+    className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+    onChange={handleChange}
+    value={formData.month}
+    required
+  >
+    <option value="">Select Month</option>
+    {months.map((month) => (
+      <option key={month.value} value={month.value}>
+        {month.name}
+      </option>
+    ))}
+  </select>
+</div>
 
         {/* Days Contributed */}
         <div className="relative z-0 w-full group">
