@@ -322,20 +322,19 @@ export const deleteFacultyAssociation = (req, res) => {
 
 export const addResearchPaper = (req, res) => {
   const { faculty_id, paper_type, title_of_paper, domain, publication_name, published_date } = req.body;
-  const filePath = req.file ? req.file.path : null;  // Assuming file is uploaded using 'pdf' field name
+  const filePath = req.file ? path.relative('public', req.file.path) : null; // Store relative path
 
-  // Step 1: Check if faculty_id exists in the faculty_details table
+  // Step 1: Check if faculty_id exists
   pool.query('SELECT * FROM faculty_details WHERE faculty_id = ?', [faculty_id], (error, results) => {
     if (error) {
       return res.status(500).json({ message: "Error checking faculty details", error });
     }
 
     if (results.length === 0) {
-      // If no faculty found, return error and prevent file storage
       return res.status(400).json({ message: "Faculty ID does not exist in the faculty_details table" });
     }
 
-    // Step 2: If faculty exists, proceed with adding the research paper
+    // Step 2: Add the research paper
     const sql = 'INSERT INTO faculty_research_paper (faculty_id, paper_type, title_of_paper, domain, publication_name, published_date, pdf_path) VALUES (?, ?, ?, ?, ?, ?, ?)';
     
     pool.query(sql, [faculty_id, paper_type, title_of_paper, domain, publication_name, published_date, filePath], (insertError, insertResult) => {
@@ -343,11 +342,11 @@ export const addResearchPaper = (req, res) => {
         return res.status(500).json({ message: "Error adding research paper", error: insertError });
       }
 
-      // Successfully inserted the research paper
       res.status(201).json({ message: 'Research paper added successfully', data: insertResult });
     });
   });
 };
+
 
 
 // Get Research Papers by Faculty ID
@@ -368,76 +367,77 @@ export const getResearchPapersByFaculty = (req, res) => {
 };
 
 export const updateResearchPaper = (req, res) => {
-    const { faculty_id, title_of_paper } = req.params;
-    const {
-      paper_type,
-      new_title_of_paper,
-      domain,
-      publication_name,
-      published_date,
-    } = req.body;
-    const filePath = req.file ? req.file.path : null; // Handle the new file upload if provided
-  
-    // Step 1: Check if the research paper exists
-    const checkQuery = 'SELECT * FROM faculty_research_paper WHERE faculty_id = ? AND title_of_paper = ?';
-    pool.query(checkQuery, [faculty_id, title_of_paper], (err, result) => {
-      if (err) {
-        return res.status(500).json({ message: 'Error checking research paper', error: err });
-      }
-  
-      if (result.length === 0) {
-        return res.status(404).json({ message: 'Research paper not found' });
-      }
-  
-      const oldPdfPath = result[0].pdf_path;
-  
-      // Step 2: Prepare the update query
-      const updateQuery = `
-        UPDATE faculty_research_paper
-        SET paper_type = ?, 
-            title_of_paper = ?, 
-            domain = ?, 
-            publication_name = ?, 
-            published_date = ?, 
-            pdf_path = COALESCE(?, pdf_path)
-        WHERE faculty_id = ? AND title_of_paper = ?
-      `;
-  
-      pool.query(
-        updateQuery,
-        [
-          paper_type,
-          new_title_of_paper || title_of_paper, // Update title if a new title is provided
-          domain,
-          publication_name,
-          published_date,
-          filePath,
-          faculty_id,
-          title_of_paper,
-        ],
-        (updateErr, updateResult) => {
-          if (updateErr) {
-            return res.status(500).json({ message: 'Error updating research paper', error: updateErr });
-          }
-  
-          // Step 3: If a new file is uploaded, delete the old file
-          if (filePath && oldPdfPath) {
-            const fullOldPdfPath = path.join(oldPdfPath);
-            fs.unlink(fullOldPdfPath, (unlinkErr) => {
-              if (unlinkErr) {
-                console.warn('Failed to delete old PDF file:', unlinkErr);
-              }
-            });
-          }
-  
-          res.status(200).json({
-            message: 'Research paper updated successfully',
-            data: updateResult,
+  const { faculty_id, title_of_paper } = req.params;
+  const {
+    paper_type,
+    new_title_of_paper,
+    domain,
+    publication_name,
+    published_date,
+  } = req.body;
+  const filePath = req.file ? path.relative('public', req.file.path) : null; // Store relative path
+
+  // Step 1: Check if the research paper exists
+  const checkQuery = 'SELECT * FROM faculty_research_paper WHERE faculty_id = ? AND title_of_paper = ?';
+  pool.query(checkQuery, [faculty_id, title_of_paper], (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error checking research paper', error: err });
+    }
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: 'Research paper not found' });
+    }
+
+    const oldPdfPath = result[0].pdf_path;
+
+    // Step 2: Update the research paper
+    const updateQuery = `
+      UPDATE faculty_research_paper
+      SET paper_type = ?, 
+          title_of_paper = ?, 
+          domain = ?, 
+          publication_name = ?, 
+          published_date = ?, 
+          pdf_path = COALESCE(?, pdf_path)
+      WHERE faculty_id = ? AND title_of_paper = ?
+    `;
+
+    pool.query(
+      updateQuery,
+      [
+        paper_type,
+        new_title_of_paper || title_of_paper,
+        domain,
+        publication_name,
+        published_date,
+        filePath,
+        faculty_id,
+        title_of_paper,
+      ],
+      (updateErr, updateResult) => {
+        if (updateErr) {
+          return res.status(500).json({ message: 'Error updating research paper', error: updateErr });
+        }
+
+        // Step 3: Delete the old file if a new file was uploaded
+        if (filePath && oldPdfPath) {
+          const fullOldPdfPath = path.join('public', oldPdfPath);
+          fs.unlink(fullOldPdfPath, (unlinkErr) => {
+            if (unlinkErr) {
+              console.warn('Failed to delete old PDF file:', unlinkErr);
+            }
           });
         }
-      );
-    });
-  };
+
+        res.status(200).json({
+          message: 'Research paper updated successfully',
+          data: updateResult,
+        });
+      }
+    );
+  });
+};
+
   
 
 
