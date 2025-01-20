@@ -13,85 +13,144 @@ const __dirname = path.dirname(__filename);
 // Controller for faculty_credentials table
 
 export const getFacultyCredentials = (req, res) => {
-    const sql = "SELECT * FROM faculty_credentials";
-    connectDB.query(sql, (err, results) => {
-        if (err) {
-            console.error("Error executing fetch query:", err);
-            res.status(500).json({ error: "Internal Server Error" });
-            return;
-        }
+  const sql = "SELECT * FROM faculty_credentials";
+  connectDB.query(sql, (err, results) => {
+      if (err) {
+          console.error("Error executing fetch query:", err);
+          res.status(500).json({ error: "Internal Server Error" });
+          return;
+      }
 
-        // Always return an array, even if it's empty
-        const credentials = results || [];
+      // Always return an array, even if it's empty
+      const credentials = results || [];
 
-        res.status(200).json({
-            credentials,
-            success: true,
-        });
-    });
+      res.status(200).json({
+          credentials,
+          success: true,
+      });
+  });
 };
+
+export const getFacultyCredentialsById = (req, res) => {
+  const { faculty_id } = req.params;
+
+  const sql = `
+      SELECT * 
+      FROM faculty_credentials 
+      WHERE faculty_id = ?
+  `;
+
+  connectDB.query(sql, [faculty_id], (err, results) => {
+      if (err) {
+          console.error("Error executing fetch query:", err);
+          res.status(500).json({ error: "Internal Server Error" });
+          return;
+      }
+
+      // Check if any record is found
+      if (results.length === 0) {
+          res.status(404).json({
+              message: "Faculty credentials not found for the given faculty_id",
+              success: false,
+          });
+          return;
+      }
+
+      res.status(200).json({
+          credentials: results[0], // Return the single credential object
+          success: true,
+      });
+  });
+};
+
 
 export const addFacultyCredentials = (req, res) => {
-    const { faculty_name, faculty_id, pass } = req.body;
-    const sql = "INSERT INTO faculty_credentials (faculty_name, faculty_id, pass) VALUES (?, ?, ?)";
-    connectDB.query(sql, [faculty_name, faculty_id, pass], (err) => {
-        if (err) {
-            console.error("Error executing insert query:", err);
-            res.status(500).json({ error: "Internal Server Error" });
-            return;
-        }
+  const { faculty_id, faculty_name, mobile_number, pass } = req.body;
 
-        res.status(201).json({
-            message: "Faculty credential added successfully",
-            success: true,
-        });
-    });
+  const sql = `
+      INSERT INTO faculty_credentials (faculty_id, faculty_name, mobile_number, pass) 
+      VALUES (?, ?, ?, ?)
+  `;
+
+  connectDB.query(sql, [faculty_id, faculty_name, mobile_number, pass], (err) => {
+      if (err) {
+          console.error("Error executing insert query:", err);
+
+          if (err.code === 'ER_NO_REFERENCED_ROW_2') {
+              return res.status(400).json({
+                  error: "Invalid faculty_id. Ensure it exists in faculty_details.",
+              });
+          }
+
+          res.status(500).json({ error: "Internal Server Error" });
+          return;
+      }
+
+      res.status(201).json({
+          message: "Faculty credential added successfully",
+          success: true,
+      });
+  });
 };
+
 
 export const updateFacultyCredentials = (req, res) => {
-    const { faculty_id } = req.params;
-    const { faculty_name, pass } = req.body;
-    const sql = "UPDATE faculty_credentials SET faculty_name = ?, pass = ? WHERE faculty_id = ?";
-    connectDB.query(sql, [faculty_name, pass, faculty_id], (err, results) => {
-        if (err) {
-            console.error("Error executing update query:", err);
-            res.status(500).json({ error: "Internal Server Error" });
-            return;
-        }
+  const { faculty_id } = req.params;
+  const { faculty_name, mobile_number, pass } = req.body;
 
-        if (results.affectedRows === 0) {
-            res.status(404).json({ error: "Faculty credential not found" });
-            return;
-        }
+  const sql = `
+      UPDATE faculty_credentials 
+      SET faculty_name = ?, mobile_number = ?, pass = ? 
+      WHERE faculty_id = ?
+  `;
 
-        res.status(200).json({
-            message: "Faculty credential updated successfully",
-            success: true,
-        });
-    });
+  connectDB.query(sql, [faculty_name, mobile_number, pass, faculty_id], (err, results) => {
+      if (err) {
+          console.error("Error executing update query:", err);
+          res.status(500).json({ error: "Internal Server Error" });
+          return;
+      }
+
+      if (results.affectedRows === 0) {
+          res.status(404).json({ error: "Faculty credential not found" });
+          return;
+      }
+
+      res.status(200).json({
+          message: "Faculty credential updated successfully",
+          success: true,
+      });
+  });
 };
+
 
 export const deleteFacultyCredentials = (req, res) => {
-    const { faculty_id } = req.params;
-    const sql = "DELETE FROM faculty_credentials WHERE faculty_id = ?";
-    connectDB.query(sql, [faculty_id], (err, results) => {
-        if (err) {
-            console.error("Error executing delete query:", err);
-            res.status(500).json({ error: "Internal Server Error" });
-            return;
-        }
+  const { faculty_id } = req.params;
 
-        if (results.affectedRows === 0) {
-            res.status(404).json({ error: "Faculty credential not found" });
-            return;
-        }
+  const sql = `
+      DELETE FROM faculty_credentials 
+      WHERE faculty_id = ?
+  `;
 
-        res.status(200).json({
-            message: "Faculty credential deleted successfully",
-            success: true,
-        });
-    });
+  connectDB.query(sql, [faculty_id], (err, results) => {
+      if (err) {
+          console.error("Error executing delete query:", err);
+          res.status(500).json({ error: "Internal Server Error" });
+          return;
+      }
+
+      if (results.affectedRows === 0) {
+          res.status(404).json({ error: "Faculty credential not found" });
+          return;
+      }
+
+      res.status(200).json({
+          message: "Faculty credential deleted successfully",
+          success: true,
+      });
+  });
 };
+
 
 
 // Fetch all faculty associations
@@ -111,6 +170,31 @@ export const getFacultyAssociations = (req, res) => {
         });
     });
 };
+
+export const getFacultyAssociationById = (req, res) => {
+  const { faculty_id } = req.params; // Get faculty_id from the request parameters
+  const sql = "SELECT * FROM faculty_association WHERE faculty_id = ?";
+  
+  connectDB.query(sql, [faculty_id], (err, results) => {
+      if (err) {
+          console.error("Error executing fetch query:", err);
+          res.status(500).json({ error: "Internal Server Error" });
+          return;
+      }
+
+      if (results.length === 0) {
+          res.status(404).json({ error: "Faculty Association not found" });
+          return;
+      }
+
+      const association = results[0];
+      res.status(200).json({
+          association,
+          success: true,
+      });
+  });
+};
+
 
 // Add a new faculty association
 export const addFacultyAssociation = (req, res) => {

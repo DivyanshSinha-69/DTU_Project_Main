@@ -3,10 +3,12 @@ import { uploadResearchPaper, uploadFacultyImage } from '../config/multerConfig.
 
 import {
   getFacultyCredentials,
+  getFacultyCredentialsById,
   addFacultyCredentials,
   updateFacultyCredentials,
   deleteFacultyCredentials,
   getFacultyAssociations,
+  getFacultyAssociationById,
   addFacultyAssociation,
   updateFacultyAssociation,
   deleteFacultyAssociation,
@@ -48,11 +50,13 @@ import {
 const router = express.Router();
 
 router.get("/facultycredentials", getFacultyCredentials);
+router.get("/facultycredentials/:faculty_id", getFacultyCredentialsById);
 router.post("/addfacultycredentials", addFacultyCredentials);
 router.put("/updatefacultycredentials/:faculty_id", updateFacultyCredentials);
 router.delete("/deletefacultycredentials/:faculty_id", deleteFacultyCredentials);
 
 router.get("/facultyassociation", getFacultyAssociations);
+router.get("/facultyassociation/:faculty_id", getFacultyAssociationById);
 router.post("/addfacultyassociation", addFacultyAssociation);
 router.put("/updatefacultyassociation/:faculty_id", updateFacultyAssociation);
 router.delete("/deletefacultyassociation/:faculty_id", deleteFacultyAssociation);
