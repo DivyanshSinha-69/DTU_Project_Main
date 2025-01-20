@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { Card, Typography } from "@material-tailwind/react";
 import Popup from "reactjs-popup";
 import ConsultancyDetailsPopUp from "../PopUp/ConsultancyPopUp";
@@ -6,6 +6,8 @@ import "../../../styles/popup.css";
 import editImg from "../../../assets/edit.svg";
 import addImg from "../../../assets/add.svg";
 import deleteImg from "../../../assets/delete.svg";
+import axios from "axios";
+
 
 // Dummy data for testing
 const dummyConsultancyDetails = [
@@ -15,15 +17,53 @@ const dummyConsultancyDetails = [
 ];
 
 const ConsultancyDetails = ({ setBlurActive }) => {
-  const [consultancyDetails, setConsultancyDetails] = useState(dummyConsultancyDetails);
+  const [consultancyDetails, setConsultancyDetails] = useState([]);
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [selectedConsultancy, setSelectedConsultancy] = useState(null);
   const [isAddConsultancy, setIsAddConsultancy] = useState(false);
 
+  const fetchConsultancyDetails = async () => {
+    try {
+      const response = await fetch(`http://localhost:3001/ece/faculty/consultancy/FAC001`); // Replace FAC001 with dynamic facultyId if needed
+  
+      if (!response.ok) {
+        // Handle 404 response (no records found)
+        if (response.status === 404) {
+          setConsultancyDetails([]); // Set an empty array if no records are found
+          return;
+        }
+        throw new Error("Failed to fetch consultancy data");
+      }
+  
+      const data = await response.json();
+      console.log("Fetched Consultancy Data:", data);
+  
+      setConsultancyDetails(
+        data.map((record) => ({
+          project_title: record.project_title,
+          funding_agency: record.funding_agency, // Renaming to client for consistency with frontend
+          amount_sponsored: record.amount_sponsored,
+          research_duration: record.research_duration,
+          start_date: record.start_date,
+          consultancy_id: record.consultancy_id,
+        }))
+      );
+    } catch (error) {
+      console.error("Error fetching consultancy records:", error);
+      setConsultancyDetails([]); // Fallback to an empty array in case of errors
+    }
+  };
+  
+  
+  useEffect(() => {
+    fetchConsultancyDetails();
+  }, []);
+  
   const openPopup = (consultancy) => {
     setSelectedConsultancy(consultancy);
     setPopupOpen(true);
     setBlurActive(true);
+    console.log("selected consult", selectedConsultancy);
   };
 
   const closePopup = () => {
@@ -32,27 +72,63 @@ const ConsultancyDetails = ({ setBlurActive }) => {
     setBlurActive(false);
   };
 
-  const handleAddConsultancy = (newConsultancy) => {
-    if (selectedConsultancy) {
-      // Update existing consultancy
-      setConsultancyDetails((prevDetails) =>
-        prevDetails.map((consultancy) =>
-          consultancy === selectedConsultancy ? { ...newConsultancy } : consultancy
-        )
-      );
-    } else {
-      // Add new consultancy
-      setConsultancyDetails([...consultancyDetails, newConsultancy]);
+  const handleAddConsultancy = async (newConsultancy) => {
+    try {
+      if (isAddConsultancy) {
+        // Add new consultancy
+        console.log("consult",newConsultancy)
+        await axios.post("http://localhost:3001/ece/faculty/consultancy", {
+          faculty_id: "FAC001", // Hardcoded for now
+          project_title: newConsultancy.title,
+          funding_agency: newConsultancy.client || null, // Optional field
+          amount_sponsored: newConsultancy.amount || 0, // Default to 0 if not provided
+          research_duration: newConsultancy.duration || null, // Optional field
+          start_date: newConsultancy.startDate, // Required field
+        });
+      } else {
+        // Update existing consultancy
+        await axios.put(
+          `http://localhost:3001/ece/faculty/consultancy/${selectedConsultancy.consultancy_id}`,
+          {
+            faculty_id: "FAC001", // Hardcoded for now
+            project_title: newConsultancy.title,
+            funding_agency: newConsultancy.client ,
+            amount_sponsored: newConsultancy.amount ,
+            research_duration: newConsultancy.duration ,
+            start_date: newConsultancy.startDate,
+          }
+        );
+      }
+  
+      // Refresh consultancy details after adding/updating
+      fetchConsultancyDetails();
+      closePopup();
+    } catch (error) {
+      console.error("Error adding/updating consultancy:", error);
     }
-    closePopup();
   };
+  
 
-  const handleDeleteConsultancy = (indexToDelete) => {
-    setConsultancyDetails(consultancyDetails.filter((_, index) => index !== indexToDelete));
+  const handleDeleteConsultancy = async (indexToDelete) => {
+    const consultancyToDelete = consultancyDetails[indexToDelete];
+    try {
+      await axios.delete(`http://localhost:3001/ece/faculty/consultancy/${consultancyToDelete.consultancy_id}`);
+      // Refresh consultancy details after deleting
+      fetchConsultancyDetails();
+    } catch (error) {
+      console.error("Error deleting consultancy:", error);
+    }
   };
+  
 
   const TABLE_HEAD = ["Consultancy Title", "Agency Name", "Amount Charged", "Duration (Years)", "Start Date", "Actions"];
+  const formatDateForInput = (date) => {
+    const [date1, time] = date?.split('T');
 
+    const [day, month, year] = date1.split('-');
+    return `${day}-${month}-${year}`; // yyyy-MM-dd
+
+  };
   return (
     <div>
       <div className="h-auto p-10">
@@ -98,21 +174,21 @@ const ConsultancyDetails = ({ setBlurActive }) => {
               </thead>
               <tbody>
                 {consultancyDetails.map((consultancy, index) => {
-                  const { title, client, amount, duration, startDate } = consultancy;
+                  const { consultancy_id, project_title, funding_agency, amount_sponsored, research_duration, start_date } = consultancy;
                   const isLast = index === consultancyDetails.length - 1;
                   const classes = isLast
                     ? "p-4"
                     : "p-4 border-b border-blue-gray-50";
 
                   return (
-                    <tr key={`${title}-${index}`}>
+                    <tr key={`${project_title}-${index}`}>
                       <td className={classes}>
                         <Typography
                           variant="small"
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {title}
+                          {project_title}
                         </Typography>
                       </td>
                       <td className={classes}>
@@ -121,7 +197,7 @@ const ConsultancyDetails = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {client}
+                          {funding_agency}
                         </Typography>
                       </td>
                       <td className={classes}>
@@ -130,7 +206,7 @@ const ConsultancyDetails = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          ₹{amount.toLocaleString()}
+                          ₹{amount_sponsored?.toLocaleString()}
                         </Typography>
                       </td>
                       <td className={classes}>
@@ -139,7 +215,7 @@ const ConsultancyDetails = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {duration}
+                          {research_duration}
                         </Typography>
                       </td>
                       <td className={classes}>
@@ -148,7 +224,7 @@ const ConsultancyDetails = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {startDate}
+                          {new Date(start_date)?.toLocaleDateString("en-GB")}
                         </Typography>
                       </td>
                       <td className={`${classes} text-right`}>
@@ -197,11 +273,11 @@ const ConsultancyDetails = ({ setBlurActive }) => {
           ) : (
             selectedConsultancy && (
               <ConsultancyDetailsPopUp
-                title={selectedConsultancy.title}
-                client={selectedConsultancy.client}
-                amount={selectedConsultancy.amount}
-                duration={selectedConsultancy.duration}
-                startDate={selectedConsultancy.startDate}
+                title={selectedConsultancy.project_title}
+                client={selectedConsultancy.funding_agency}
+                amount={selectedConsultancy.amount_sponsored}
+                duration={selectedConsultancy.research_duration}
+                startDate={formatDateForInput(selectedConsultancy.start_date)}
                 closeModal={closePopup}
                 handleAddConsultancy={handleAddConsultancy}
               />
