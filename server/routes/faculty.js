@@ -85,16 +85,11 @@ router.put('/fdp', updateFDPRecord);
 // Delete an FDP record
 router.delete('/fdp', deleteFDPRecord);
 
-// Get all VAE records or filter by faculty_id
+// VAE routes
 router.get('/vae', getVAERecords);
-
-// Add a new VAE record
+router.get('/vae/:faculty_id', getVAERecords);
 router.post('/vae', addVAERecord);
-
-// Update a VAE record by visit_id
 router.put('/vae/:visit_id', updateVAERecord);
-
-// Delete a VAE record by visit_id
 router.delete('/vae/:visit_id', deleteVAERecord);
 
 // Book routes
