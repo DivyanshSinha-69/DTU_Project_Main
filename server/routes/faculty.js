@@ -97,17 +97,11 @@ router.put('/vae/:visit_id', updateVAERecord);
 // Delete a VAE record by visit_id
 router.delete('/vae/:visit_id', deleteVAERecord);
 
-// Route to fetch all books or books by faculty ID
+// Book routes
 router.get("/books/:faculty_id?", getBookRecords);
-
-// Route to add a new book record
 router.post("/books", addBookRecord);
-
-// Route to update a book record by ISBN
-router.put("/books/:ISBN", updateBookRecord);
-
-// Route to delete a book record by ISBN
-router.delete("/books/:ISBN", deleteBookRecord);
+router.put("/books/:Book_id", updateBookRecord);
+router.delete("/books/:Book_id", deleteBookRecord);
 
 // PHD awarded routes
 router.get('/phd-awarded', getPhDAwardedRecords);

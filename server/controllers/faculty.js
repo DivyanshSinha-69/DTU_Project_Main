@@ -663,9 +663,9 @@ export const deleteVAERecord = (req, res) => {
 };
 
 
-// Get all Book records
+// Get all Book records or filter by faculty_id
 export const getBookRecords = (req, res) => {
-  const faculty_id = req.params.faculty_id;
+  const { faculty_id } = req.params;
 
   const query = faculty_id
     ? "SELECT * FROM faculty_Book_records WHERE faculty_id = ?"
@@ -698,46 +698,47 @@ export const addBookRecord = (req, res) => {
   });
 };
 
-// Update an existing Book record
+// Update an existing Book record using Book_id
 export const updateBookRecord = (req, res) => {
-  const { ISBN } = req.params;
-  const { faculty_id, book_title, publication_name, published_date } = req.body;
+  const { Book_id } = req.params;
+  const { ISBN, faculty_id, book_title, publication_name, published_date } = req.body;
 
   const query = `
     UPDATE faculty_Book_records
-    SET faculty_id = ?, book_title = ?, publication_name = ?, published_date = ?
-    WHERE ISBN = ?
+    SET ISBN = ?, faculty_id = ?, book_title = ?, publication_name = ?, published_date = ?
+    WHERE Book_id = ?
   `;
 
-  const queryParams = [faculty_id, book_title, publication_name, published_date, ISBN];
+  const queryParams = [ISBN, faculty_id, book_title, publication_name, published_date, Book_id];
 
   pool.query(query, queryParams, (err, result) => {
     if (err) {
       return res.status(500).json({ message: "Error updating book record", error: err });
     }
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "No book record found with the given ISBN" });
+      return res.status(404).json({ message: "No book record found with the given Book_id" });
     }
     res.status(200).json({ message: "Book record updated successfully" });
   });
 };
 
-// Delete a Book record
+// Delete a Book record using Book_id
 export const deleteBookRecord = (req, res) => {
-  const { ISBN } = req.params;
+  const { Book_id } = req.params;
 
-  const query = "DELETE FROM faculty_Book_records WHERE ISBN = ?";
+  const query = "DELETE FROM faculty_Book_records WHERE Book_id = ?";
 
-  pool.query(query, [ISBN], (err, result) => {
+  pool.query(query, [Book_id], (err, result) => {
     if (err) {
       return res.status(500).json({ message: "Error deleting book record", error: err });
     }
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "No book record found with the given ISBN" });
+      return res.status(404).json({ message: "No book record found with the given Book_id" });
     }
     res.status(200).json({ message: "Book record deleted successfully" });
   });
 };
+
 
 
 /**
