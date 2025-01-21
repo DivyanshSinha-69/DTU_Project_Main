@@ -1171,3 +1171,95 @@ export const deleteFaculty = (req, res) => {
     });
   });
 };
+
+export const getSpecializations = (req, res) => {
+  const { faculty_id } = req.params; // Get faculty_id from route parameters (if provided)
+
+  let query = "SELECT * FROM faculty_specialization";
+  let params = [];
+
+  if (faculty_id) {
+    query += " WHERE faculty_id = ?";
+    params.push(faculty_id);
+  }
+
+  connectDB.query(query, params, (err, results) => {
+    if (err) {
+      console.error("Error fetching specializations:", err);
+      return res.status(500).json({ message: "Error fetching specializations", error: err });
+    }
+    res.status(200).json({ message: "Specializations fetched successfully", data: results });
+  });
+};
+
+
+export const addSpecialization = (req, res) => {
+  const { faculty_id, specialization } = req.body;
+
+  // Check if the faculty_id exists in faculty_details
+  const checkQuery = "SELECT COUNT(*) AS count FROM faculty_details WHERE faculty_id = ?";
+  connectDB.query(checkQuery, [faculty_id], (err, results) => {
+    if (err) {
+      console.error("Error checking faculty_id:", err);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+
+    if (results[0].count === 0) {
+      return res.status(400).json({ message: "faculty_id does not exist in faculty_details" });
+    }
+
+    // Insert the specialization
+    const insertQuery = `
+      INSERT INTO faculty_specialization (faculty_id, specialization)
+      VALUES (?, ?)
+    `;
+    connectDB.query(insertQuery, [faculty_id, specialization], (err, result) => {
+      if (err) {
+        console.error("Error adding specialization:", err);
+        return res.status(500).json({ message: "Internal Server Error" });
+      }
+      res.status(201).json({ message: "Specialization added successfully", success: true, id: result.insertId });
+    });
+  });
+};
+
+export const updateSpecialization = (req, res) => {
+  const { specialization_id } = req.params; // Specialization ID
+  const { specialization } = req.body;
+
+  const query = `
+    UPDATE faculty_specialization
+    SET specialization = ?
+    WHERE specialization_id = ?
+  `;
+  connectDB.query(query, [specialization, specialization_id], (err, result) => {
+    if (err) {
+      console.error("Error updating specialization:", err);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Specialization not found" });
+    }
+
+    res.status(200).json({ message: "Specialization updated successfully", success: true });
+  });
+};
+
+export const deleteSpecialization = (req, res) => {
+  const { specialization_id } = req.params; // Specialization ID
+
+  const query = "DELETE FROM faculty_specialization WHERE specialization_id = ?";
+  connectDB.query(query, [specialization_id], (err, result) => {
+    if (err) {
+      console.error("Error deleting specialization:", err);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Specialization not found" });
+    }
+
+    res.status(200).json({ message: "Specialization deleted successfully", success: true });
+  });
+};
