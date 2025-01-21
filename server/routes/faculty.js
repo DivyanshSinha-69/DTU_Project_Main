@@ -73,17 +73,12 @@ router.put('/researchpaper/:faculty_id/:title_of_paper', uploadResearchPaper, up
 // Route for deleting a research paper (using faculty_id and title)
 router.delete('/researchpaper/:faculty_id/:title_of_paper', deleteResearchPaper);
 
-// Get all FDP records or filter by faculty_id
-router.get('/fdp', getFDPRecords);
-
-// Add a new FDP record
-router.post('/fdp', addFDPRecord);
-
-// Update an existing FDP record
-router.put('/fdp', updateFDPRecord);
-
-// Delete an FDP record
-router.delete('/fdp', deleteFDPRecord);
+// FDP routes
+router.get('/fdp-records', getFDPRecords);
+router.get('/fdp-records/:faculty_id', getFDPRecords);
+router.post('/fdp-records', addFDPRecord);
+router.put('/fdp-records/:FDP_id', updateFDPRecord);
+router.delete('/fdp-records/:FDP_id', deleteFDPRecord);
 
 // VAE routes
 router.get('/vae', getVAERecords);

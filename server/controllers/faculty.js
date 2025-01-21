@@ -490,14 +490,16 @@ export const deleteResearchPaper = (req, res) => {
 };
 
 
-// 1. Get all FDP records or by faculty_id
 export const getFDPRecords = (req, res) => {
-  const { faculty_id } = req.query;
+  const { faculty_id } = req.params;  // Get faculty_id from route parameters (if provided)
 
-  const query = faculty_id 
-    ? 'SELECT * FROM faculty_FDP WHERE faculty_id = ?' 
-    : 'SELECT * FROM faculty_FDP';
-  const params = faculty_id ? [faculty_id] : [];
+  let query = 'SELECT * FROM faculty_FDP';
+  let params = [];
+
+  if (faculty_id) {
+    query += ' WHERE faculty_id = ?';
+    params.push(faculty_id);
+  }
 
   pool.query(query, params, (err, results) => {
     if (err) {
@@ -507,6 +509,7 @@ export const getFDPRecords = (req, res) => {
     res.status(200).json({ message: 'FDP records fetched successfully', data: results });
   });
 };
+
 
 // 2. Add a new FDP record
 export const addFDPRecord = (req, res) => {
@@ -527,16 +530,17 @@ export const addFDPRecord = (req, res) => {
   });
 };
 
-// 3. Update an FDP record
+// 3. Update an existing FDP record using FDP_id
 export const updateFDPRecord = (req, res) => {
+  const { FDP_id } = req.params;
   const { faculty_id, FDP_name, year_conducted, month_conducted, days_contributed } = req.body;
 
   const query = `
     UPDATE faculty_FDP 
-    SET year_conducted = ?, month_conducted = ?, days_contributed = ?
-    WHERE faculty_id = ? AND FDP_name = ?
+    SET faculty_id = ?, FDP_name = ?, year_conducted = ?, month_conducted = ?, days_contributed = ?
+    WHERE FDP_id = ?
   `;
-  const params = [year_conducted, month_conducted, days_contributed, faculty_id, FDP_name];
+  const params = [faculty_id, FDP_name, year_conducted, month_conducted, days_contributed, FDP_id];
 
   pool.query(query, params, (err, result) => {
     if (err) {
@@ -544,18 +548,18 @@ export const updateFDPRecord = (req, res) => {
       return res.status(500).json({ message: 'Error updating FDP record', error: err });
     }
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'No FDP record found with the given faculty_id and FDP_name' });
+      return res.status(404).json({ message: 'No FDP record found with the given FDP_id' });
     }
     res.status(200).json({ message: 'FDP record updated successfully' });
   });
 };
 
-// 4. Delete an FDP record
+// 4. Delete an FDP record using FDP_id
 export const deleteFDPRecord = (req, res) => {
-  const { faculty_id, FDP_name } = req.body;
+  const { FDP_id } = req.params;
 
-  const query = 'DELETE FROM faculty_FDP WHERE faculty_id = ? AND FDP_name = ?';
-  const params = [faculty_id, FDP_name];
+  const query = 'DELETE FROM faculty_FDP WHERE FDP_id = ?';
+  const params = [FDP_id];
 
   pool.query(query, params, (err, result) => {
     if (err) {
@@ -563,11 +567,12 @@ export const deleteFDPRecord = (req, res) => {
       return res.status(500).json({ message: 'Error deleting FDP record', error: err });
     }
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'No FDP record found with the given faculty_id and FDP_name' });
+      return res.status(404).json({ message: 'No FDP record found with the given FDP_id' });
     }
     res.status(200).json({ message: 'FDP record deleted successfully' });
   });
 };
+
 
 
 export const getVAERecords = (req, res) => {
