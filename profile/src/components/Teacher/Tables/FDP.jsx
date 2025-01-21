@@ -14,7 +14,7 @@ import { toast } from 'react-hot-toast';
 const FacultyDevelopmentProgram = ({ setBlurActive }) => {
   const [fdpDetails, setFdpDetails] = useState([]);
   const [isPopupOpen, setPopupOpen] = useState(false);
-  const [selectedFDP, setSelectedFDP] = useState(null);
+  const [selectedFDP, setSelectedFDP] = useState([]);
   const [isAddFDP, setIsAddFDP] = useState(false);
   const faculty_id = "FAC001"; // Placeholder faculty ID
   useEffect(() => {
