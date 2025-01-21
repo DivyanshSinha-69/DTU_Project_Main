@@ -13,245 +13,326 @@ const __dirname = path.dirname(__filename);
 // Controller for faculty_credentials table
 
 export const getFacultyCredentials = (req, res) => {
-    const sql = "SELECT * FROM faculty_credentials";
-    connectDB.query(sql, (err, results) => {
-        if (err) {
-            console.error("Error executing fetch query:", err);
-            res.status(500).json({ error: "Internal Server Error" });
-            return;
-        }
+  const sql = "SELECT * FROM faculty_credentials";
+  connectDB.query(sql, (err, results) => {
+      if (err) {
+          console.error("Error executing fetch query:", err);
+          res.status(500).json({ error: "Internal Server Error" });
+          return;
+      }
 
-        // Always return an array, even if it's empty
-        const credentials = results || [];
+      // Always return an array, even if it's empty
+      const credentials = results || [];
 
-        res.status(200).json({
-            credentials,
-            success: true,
-        });
-    });
+      res.status(200).json({
+          credentials,
+          success: true,
+      });
+  });
 };
+
+export const getFacultyCredentialsById = (req, res) => {
+  const { faculty_id } = req.params;
+
+  const sql = `
+      SELECT * 
+      FROM faculty_credentials 
+      WHERE faculty_id = ?
+  `;
+
+  connectDB.query(sql, [faculty_id], (err, results) => {
+      if (err) {
+          console.error("Error executing fetch query:", err);
+          res.status(500).json({ error: "Internal Server Error" });
+          return;
+      }
+
+      // Check if any record is found
+      if (results.length === 0) {
+          res.status(404).json({
+              message: "Faculty credentials not found for the given faculty_id",
+              success: false,
+          });
+          return;
+      }
+
+      res.status(200).json({
+          credentials: results[0], // Return the single credential object
+          success: true,
+      });
+  });
+};
+
 
 export const addFacultyCredentials = (req, res) => {
-    const { faculty_name, faculty_id, pass } = req.body;
-    const sql = "INSERT INTO faculty_credentials (faculty_name, faculty_id, pass) VALUES (?, ?, ?)";
-    connectDB.query(sql, [faculty_name, faculty_id, pass], (err) => {
-        if (err) {
-            console.error("Error executing insert query:", err);
-            res.status(500).json({ error: "Internal Server Error" });
-            return;
-        }
+  const { faculty_id, faculty_name, mobile_number, pass } = req.body;
 
-        res.status(201).json({
-            message: "Faculty credential added successfully",
-            success: true,
-        });
-    });
+  const sql = `
+      INSERT INTO faculty_credentials (faculty_id, faculty_name, mobile_number, pass) 
+      VALUES (?, ?, ?, ?)
+  `;
+
+  connectDB.query(sql, [faculty_id, faculty_name, mobile_number, pass], (err) => {
+      if (err) {
+          console.error("Error executing insert query:", err);
+
+          if (err.code === 'ER_NO_REFERENCED_ROW_2') {
+              return res.status(400).json({
+                  error: "Invalid faculty_id. Ensure it exists in faculty_details.",
+              });
+          }
+
+          res.status(500).json({ error: "Internal Server Error" });
+          return;
+      }
+
+      res.status(201).json({
+          message: "Faculty credential added successfully",
+          success: true,
+      });
+  });
 };
+
 
 export const updateFacultyCredentials = (req, res) => {
-    const { faculty_id } = req.params;
-    const { faculty_name, pass } = req.body;
-    const sql = "UPDATE faculty_credentials SET faculty_name = ?, pass = ? WHERE faculty_id = ?";
-    connectDB.query(sql, [faculty_name, pass, faculty_id], (err, results) => {
-        if (err) {
-            console.error("Error executing update query:", err);
-            res.status(500).json({ error: "Internal Server Error" });
-            return;
-        }
+  const { faculty_id } = req.params;
+  const { faculty_name, mobile_number, pass } = req.body;
 
-        if (results.affectedRows === 0) {
-            res.status(404).json({ error: "Faculty credential not found" });
-            return;
-        }
+  const sql = `
+      UPDATE faculty_credentials 
+      SET faculty_name = ?, mobile_number = ?, pass = ? 
+      WHERE faculty_id = ?
+  `;
 
-        res.status(200).json({
-            message: "Faculty credential updated successfully",
-            success: true,
-        });
-    });
+  connectDB.query(sql, [faculty_name, mobile_number, pass, faculty_id], (err, results) => {
+      if (err) {
+          console.error("Error executing update query:", err);
+          res.status(500).json({ error: "Internal Server Error" });
+          return;
+      }
+
+      if (results.affectedRows === 0) {
+          res.status(404).json({ error: "Faculty credential not found" });
+          return;
+      }
+
+      res.status(200).json({
+          message: "Faculty credential updated successfully",
+          success: true,
+      });
+  });
 };
+
 
 export const deleteFacultyCredentials = (req, res) => {
-    const { faculty_id } = req.params;
-    const sql = "DELETE FROM faculty_credentials WHERE faculty_id = ?";
-    connectDB.query(sql, [faculty_id], (err, results) => {
-        if (err) {
-            console.error("Error executing delete query:", err);
-            res.status(500).json({ error: "Internal Server Error" });
-            return;
-        }
+  const { faculty_id } = req.params;
 
-        if (results.affectedRows === 0) {
-            res.status(404).json({ error: "Faculty credential not found" });
-            return;
-        }
+  const sql = `
+      DELETE FROM faculty_credentials 
+      WHERE faculty_id = ?
+  `;
 
-        res.status(200).json({
-            message: "Faculty credential deleted successfully",
-            success: true,
-        });
-    });
+  connectDB.query(sql, [faculty_id], (err, results) => {
+      if (err) {
+          console.error("Error executing delete query:", err);
+          res.status(500).json({ error: "Internal Server Error" });
+          return;
+      }
+
+      if (results.affectedRows === 0) {
+          res.status(404).json({ error: "Faculty credential not found" });
+          return;
+      }
+
+      res.status(200).json({
+          message: "Faculty credential deleted successfully",
+          success: true,
+      });
+  });
 };
+
 
 
 // Fetch all faculty associations
+// 1. Get All Faculty Associations
 export const getFacultyAssociations = (req, res) => {
-    const sql = "SELECT * FROM faculty_association";
-    connectDB.query(sql, (err, results) => {
-        if (err) {
-            console.error("Error executing fetch query:", err);
-            res.status(500).json({ error: "Internal Server Error" });
-            return;
-        }
+  const sql = "SELECT * FROM faculty_association";
+  connectDB.query(sql, (err, results) => {
+      if (err) {
+          console.error("Error executing fetch query:", err);
+          res.status(500).json({ error: "Internal Server Error" });
+          return;
+      }
 
-        const associations = results || [];
-        res.status(200).json({
-            associations,
-            success: true,
-        });
-    });
+      const associations = results || [];
+      res.status(200).json({
+          associations,
+          success: true,
+      });
+  });
 };
 
-// Add a new faculty association
+// 2. Get Faculty Association By ID
+export const getFacultyAssociationById = (req, res) => {
+const { faculty_id } = req.params; // Get faculty_id from the request parameters
+const sql = "SELECT * FROM faculty_association WHERE faculty_id = ?";
+
+connectDB.query(sql, [faculty_id], (err, results) => {
+    if (err) {
+        console.error("Error executing fetch query:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+        return;
+    }
+
+    if (results.length === 0) {
+        res.status(404).json({ error: "Faculty Association not found" });
+        return;
+    }
+
+    const association = results[0];
+    res.status(200).json({
+        association,
+        success: true,
+    });
+});
+};
+
+// 3. Add a New Faculty Association
 export const addFacultyAssociation = (req, res) => {
-    const {
-        faculty_id,
-        designation,
-        date_asg_astprof,
-        date_end_astprof,
-        date_asg_asoprof,
-        date_end_asoprof,
-        date_asg_prof,
-        date_end_prof,
-        specialization,
-    } = req.body;
+  const {
+      faculty_id,
+      designation,
+      date_asg_astprof,
+      date_end_astprof,
+      date_asg_asoprof,
+      date_end_asoprof,
+      date_asg_prof,
+      date_end_prof,
+  } = req.body;
 
-    // Check if faculty_id exists in faculty_details
-    const checkSql = "SELECT COUNT(*) AS count FROM faculty_details WHERE faculty_id = ?";
-    connectDB.query(checkSql, [faculty_id], (err, results) => {
-        if (err) {
-            console.error("Error checking faculty_id:", err);
-            res.status(500).json({ error: "Internal Server Error" });
-            return;
-        }
+  // Check if faculty_id exists in faculty_details
+  const checkSql = "SELECT COUNT(*) AS count FROM faculty_details WHERE faculty_id = ?";
+  connectDB.query(checkSql, [faculty_id], (err, results) => {
+      if (err) {
+          console.error("Error checking faculty_id:", err);
+          res.status(500).json({ error: "Internal Server Error" });
+          return;
+      }
 
-        if (results[0].count === 0) {
-            res.status(400).json({ error: "faculty_id does not exist in faculty_details" });
-            return;
-        }
+      if (results[0].count === 0) {
+          res.status(400).json({ error: "faculty_id does not exist in faculty_details" });
+          return;
+      }
 
-        // Insert into faculty_association
-        const insertSql = `
-            INSERT INTO faculty_association 
-            (faculty_id, designation, date_asg_astprof, date_end_astprof, date_asg_asoprof, date_end_asoprof, date_asg_prof, date_end_prof, specialization) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `;
+      // Insert into faculty_association
+      const insertSql = `
+          INSERT INTO faculty_association 
+          (faculty_id, designation, date_asg_astprof, date_end_astprof, date_asg_asoprof, date_end_asoprof, date_asg_prof, date_end_prof) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `;
 
-        connectDB.query(insertSql, [faculty_id, designation, date_asg_astprof, date_end_astprof, date_asg_asoprof, date_end_asoprof, date_asg_prof, date_end_prof, specialization], (err) => {
-            if (err) {
-                console.error("Error executing insert query:", err);
-                res.status(500).json({ error: "Internal Server Error" });
-                return;
-            }
+      connectDB.query(insertSql, [faculty_id, designation, date_asg_astprof, date_end_astprof, date_asg_asoprof, date_end_asoprof, date_asg_prof, date_end_prof], (err) => {
+          if (err) {
+              console.error("Error executing insert query:", err);
+              res.status(500).json({ error: "Internal Server Error" });
+              return;
+          }
 
-            res.status(201).json({
-                message: "Faculty association added successfully",
-                success: true,
-            });
-        });
-    });
+          res.status(201).json({
+              message: "Faculty association added successfully",
+              success: true,
+          });
+      });
+  });
 };
 
-
-// Update a faculty association
+// 4. Update a Faculty Association
 export const updateFacultyAssociation = (req, res) => {
-    const { faculty_id } = req.params;
-    const {
-        designation,
-        date_asg_astprof,
-        date_end_astprof,
-        date_asg_asoprof,
-        date_end_asoprof,
-        date_asg_prof,
-        date_end_prof,
-        specialization,
-    } = req.body;
+  const { faculty_id } = req.params;
+  const {
+      designation,
+      date_asg_astprof,
+      date_end_astprof,
+      date_asg_asoprof,
+      date_end_asoprof,
+      date_asg_prof,
+      date_end_prof,
+  } = req.body;
 
-    const sql = `
-        UPDATE faculty_association 
-        SET designation = ?, 
-            date_asg_astprof = ?, 
-            date_end_astprof = ?, 
-            date_asg_asoprof = ?, 
-            date_end_asoprof = ?, 
-            date_asg_prof = ?, 
-            date_end_prof = ?, 
-            specialization = ? 
-        WHERE faculty_id = ?
-    `;
+  const sql = `
+      UPDATE faculty_association 
+      SET designation = ?, 
+          date_asg_astprof = ?, 
+          date_end_astprof = ?, 
+          date_asg_asoprof = ?, 
+          date_end_asoprof = ?, 
+          date_asg_prof = ?, 
+          date_end_prof = ? 
+      WHERE faculty_id = ?
+  `;
 
-    connectDB.query(sql, [designation, date_asg_astprof, date_end_astprof, date_asg_asoprof, date_end_asoprof, date_asg_prof, date_end_prof, specialization, faculty_id], (err, results) => {
-        if (err) {
-            console.error("Error executing update query:", err);
-            res.status(500).json({ error: "Internal Server Error" });
-            return;
-        }
+  connectDB.query(sql, [designation, date_asg_astprof, date_end_astprof, date_asg_asoprof, date_end_asoprof, date_asg_prof, date_end_prof, faculty_id], (err, results) => {
+      if (err) {
+          console.error("Error executing update query:", err);
+          res.status(500).json({ error: "Internal Server Error" });
+          return;
+      }
 
-        if (results.affectedRows === 0) {
-            res.status(404).json({ error: "Faculty association not found" });
-            return;
-        }
+      if (results.affectedRows === 0) {
+          res.status(404).json({ error: "Faculty association not found" });
+          return;
+      }
 
-        res.status(200).json({
-            message: "Faculty association updated successfully",
-            success: true,
-        });
-    });
+      res.status(200).json({
+          message: "Faculty association updated successfully",
+          success: true,
+      });
+  });
 };
 
-// Delete a faculty association
+// 5. Delete a Faculty Association
 export const deleteFacultyAssociation = (req, res) => {
-    const { faculty_id } = req.params;
+  const { faculty_id } = req.params;
 
-    const sql = "DELETE FROM faculty_association WHERE faculty_id = ?";
-    connectDB.query(sql, [faculty_id], (err, results) => {
-        if (err) {
-            console.error("Error executing delete query:", err);
-            res.status(500).json({ error: "Internal Server Error" });
-            return;
-        }
+  const sql = "DELETE FROM faculty_association WHERE faculty_id = ?";
+  connectDB.query(sql, [faculty_id], (err, results) => {
+      if (err) {
+          console.error("Error executing delete query:", err);
+          res.status(500).json({ error: "Internal Server Error" });
+          return;
+      }
 
-        if (results.affectedRows === 0) {
-            res.status(404).json({ error: "Faculty association not found" });
-            return;
-        }
+      if (results.affectedRows === 0) {
+          res.status(404).json({ error: "Faculty association not found" });
+          return;
+      }
 
-        res.status(200).json({
-            message: "Faculty association deleted successfully",
-            success: true,
-        });
-    });
+      res.status(200).json({
+          message: "Faculty association deleted successfully",
+          success: true,
+      });
+  });
 };
+
 
 // Add Research Paper
 
 
 export const addResearchPaper = (req, res) => {
   const { faculty_id, paper_type, title_of_paper, domain, publication_name, published_date } = req.body;
-  const filePath = req.file ? req.file.path : null;  // Assuming file is uploaded using 'pdf' field name
+  const filePath = req.file ? path.relative('public', req.file.path) : null; // Store relative path
 
-  // Step 1: Check if faculty_id exists in the faculty_details table
+  // Step 1: Check if faculty_id exists
   pool.query('SELECT * FROM faculty_details WHERE faculty_id = ?', [faculty_id], (error, results) => {
     if (error) {
       return res.status(500).json({ message: "Error checking faculty details", error });
     }
 
     if (results.length === 0) {
-      // If no faculty found, return error and prevent file storage
       return res.status(400).json({ message: "Faculty ID does not exist in the faculty_details table" });
     }
 
-    // Step 2: If faculty exists, proceed with adding the research paper
+    // Step 2: Add the research paper
     const sql = 'INSERT INTO faculty_research_paper (faculty_id, paper_type, title_of_paper, domain, publication_name, published_date, pdf_path) VALUES (?, ?, ?, ?, ?, ?, ?)';
     
     pool.query(sql, [faculty_id, paper_type, title_of_paper, domain, publication_name, published_date, filePath], (insertError, insertResult) => {
@@ -259,11 +340,11 @@ export const addResearchPaper = (req, res) => {
         return res.status(500).json({ message: "Error adding research paper", error: insertError });
       }
 
-      // Successfully inserted the research paper
       res.status(201).json({ message: 'Research paper added successfully', data: insertResult });
     });
   });
 };
+
 
 
 // Get Research Papers by Faculty ID
@@ -284,76 +365,77 @@ export const getResearchPapersByFaculty = (req, res) => {
 };
 
 export const updateResearchPaper = (req, res) => {
-    const { faculty_id, title_of_paper } = req.params;
-    const {
-      paper_type,
-      new_title_of_paper,
-      domain,
-      publication_name,
-      published_date,
-    } = req.body;
-    const filePath = req.file ? req.file.path : null; // Handle the new file upload if provided
-  
-    // Step 1: Check if the research paper exists
-    const checkQuery = 'SELECT * FROM faculty_research_paper WHERE faculty_id = ? AND title_of_paper = ?';
-    pool.query(checkQuery, [faculty_id, title_of_paper], (err, result) => {
-      if (err) {
-        return res.status(500).json({ message: 'Error checking research paper', error: err });
-      }
-  
-      if (result.length === 0) {
-        return res.status(404).json({ message: 'Research paper not found' });
-      }
-  
-      const oldPdfPath = result[0].pdf_path;
-  
-      // Step 2: Prepare the update query
-      const updateQuery = `
-        UPDATE faculty_research_paper
-        SET paper_type = ?, 
-            title_of_paper = ?, 
-            domain = ?, 
-            publication_name = ?, 
-            published_date = ?, 
-            pdf_path = COALESCE(?, pdf_path)
-        WHERE faculty_id = ? AND title_of_paper = ?
-      `;
-  
-      pool.query(
-        updateQuery,
-        [
-          paper_type,
-          new_title_of_paper || title_of_paper, // Update title if a new title is provided
-          domain,
-          publication_name,
-          published_date,
-          filePath,
-          faculty_id,
-          title_of_paper,
-        ],
-        (updateErr, updateResult) => {
-          if (updateErr) {
-            return res.status(500).json({ message: 'Error updating research paper', error: updateErr });
-          }
-  
-          // Step 3: If a new file is uploaded, delete the old file
-          if (filePath && oldPdfPath) {
-            const fullOldPdfPath = path.join(oldPdfPath);
-            fs.unlink(fullOldPdfPath, (unlinkErr) => {
-              if (unlinkErr) {
-                console.warn('Failed to delete old PDF file:', unlinkErr);
-              }
-            });
-          }
-  
-          res.status(200).json({
-            message: 'Research paper updated successfully',
-            data: updateResult,
+  const { faculty_id, title_of_paper } = req.params;
+  const {
+    paper_type,
+    new_title_of_paper,
+    domain,
+    publication_name,
+    published_date,
+  } = req.body;
+  const filePath = req.file ? path.relative('public', req.file.path) : null; // Store relative path
+
+  // Step 1: Check if the research paper exists
+  const checkQuery = 'SELECT * FROM faculty_research_paper WHERE faculty_id = ? AND title_of_paper = ?';
+  pool.query(checkQuery, [faculty_id, title_of_paper], (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error checking research paper', error: err });
+    }
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: 'Research paper not found' });
+    }
+
+    const oldPdfPath = result[0].pdf_path;
+
+    // Step 2: Update the research paper
+    const updateQuery = `
+      UPDATE faculty_research_paper
+      SET paper_type = ?, 
+          title_of_paper = ?, 
+          domain = ?, 
+          publication_name = ?, 
+          published_date = ?, 
+          pdf_path = COALESCE(?, pdf_path)
+      WHERE faculty_id = ? AND title_of_paper = ?
+    `;
+
+    pool.query(
+      updateQuery,
+      [
+        paper_type,
+        new_title_of_paper || title_of_paper,
+        domain,
+        publication_name,
+        published_date,
+        filePath,
+        faculty_id,
+        title_of_paper,
+      ],
+      (updateErr, updateResult) => {
+        if (updateErr) {
+          return res.status(500).json({ message: 'Error updating research paper', error: updateErr });
+        }
+
+        // Step 3: Delete the old file if a new file was uploaded
+        if (filePath && oldPdfPath) {
+          const fullOldPdfPath = path.join('public', oldPdfPath);
+          fs.unlink(fullOldPdfPath, (unlinkErr) => {
+            if (unlinkErr) {
+              console.warn('Failed to delete old PDF file:', unlinkErr);
+            }
           });
         }
-      );
-    });
-  };
+
+        res.status(200).json({
+          message: 'Research paper updated successfully',
+          data: updateResult,
+        });
+      }
+    );
+  });
+};
+
   
 
 
@@ -406,14 +488,16 @@ export const deleteResearchPaper = (req, res) => {
 };
 
 
-// 1. Get all FDP records or by faculty_id
 export const getFDPRecords = (req, res) => {
-  const { faculty_id } = req.query;
+  const { faculty_id } = req.params;  // Get faculty_id from route parameters (if provided)
 
-  const query = faculty_id 
-    ? 'SELECT * FROM faculty_FDP WHERE faculty_id = ?' 
-    : 'SELECT * FROM faculty_FDP';
-  const params = faculty_id ? [faculty_id] : [];
+  let query = 'SELECT * FROM faculty_FDP';
+  let params = [];
+
+  if (faculty_id) {
+    query += ' WHERE faculty_id = ?';
+    params.push(faculty_id);
+  }
 
   pool.query(query, params, (err, results) => {
     if (err) {
@@ -423,6 +507,7 @@ export const getFDPRecords = (req, res) => {
     res.status(200).json({ message: 'FDP records fetched successfully', data: results });
   });
 };
+
 
 // 2. Add a new FDP record
 export const addFDPRecord = (req, res) => {
@@ -443,16 +528,17 @@ export const addFDPRecord = (req, res) => {
   });
 };
 
-// 3. Update an FDP record
+// 3. Update an existing FDP record using FDP_id
 export const updateFDPRecord = (req, res) => {
+  const { FDP_id } = req.params;
   const { faculty_id, FDP_name, year_conducted, month_conducted, days_contributed } = req.body;
 
   const query = `
     UPDATE faculty_FDP 
-    SET year_conducted = ?, month_conducted = ?, days_contributed = ?
-    WHERE faculty_id = ? AND FDP_name = ?
+    SET faculty_id = ?, FDP_name = ?, year_conducted = ?, month_conducted = ?, days_contributed = ?
+    WHERE FDP_id = ?
   `;
-  const params = [year_conducted, month_conducted, days_contributed, faculty_id, FDP_name];
+  const params = [faculty_id, FDP_name, year_conducted, month_conducted, days_contributed, FDP_id];
 
   pool.query(query, params, (err, result) => {
     if (err) {
@@ -460,18 +546,18 @@ export const updateFDPRecord = (req, res) => {
       return res.status(500).json({ message: 'Error updating FDP record', error: err });
     }
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'No FDP record found with the given faculty_id and FDP_name' });
+      return res.status(404).json({ message: 'No FDP record found with the given FDP_id' });
     }
     res.status(200).json({ message: 'FDP record updated successfully' });
   });
 };
 
-// 4. Delete an FDP record
+// 4. Delete an FDP record using FDP_id
 export const deleteFDPRecord = (req, res) => {
-  const { faculty_id, FDP_name } = req.body;
+  const { FDP_id } = req.params;
 
-  const query = 'DELETE FROM faculty_FDP WHERE faculty_id = ? AND FDP_name = ?';
-  const params = [faculty_id, FDP_name];
+  const query = 'DELETE FROM faculty_FDP WHERE FDP_id = ?';
+  const params = [FDP_id];
 
   pool.query(query, params, (err, result) => {
     if (err) {
@@ -479,11 +565,12 @@ export const deleteFDPRecord = (req, res) => {
       return res.status(500).json({ message: 'Error deleting FDP record', error: err });
     }
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'No FDP record found with the given faculty_id and FDP_name' });
+      return res.status(404).json({ message: 'No FDP record found with the given FDP_id' });
     }
     res.status(200).json({ message: 'FDP record deleted successfully' });
   });
 };
+
 
 
 export const getVAERecords = (req, res) => {
@@ -579,9 +666,9 @@ export const deleteVAERecord = (req, res) => {
 };
 
 
-// Get all Book records
+// Get all Book records or filter by faculty_id
 export const getBookRecords = (req, res) => {
-  const faculty_id = req.params.faculty_id;
+  const { faculty_id } = req.params;
 
   const query = faculty_id
     ? "SELECT * FROM faculty_Book_records WHERE faculty_id = ?"
@@ -614,48 +701,52 @@ export const addBookRecord = (req, res) => {
   });
 };
 
-// Update an existing Book record
+// Update an existing Book record using Book_id
 export const updateBookRecord = (req, res) => {
-  const { ISBN } = req.params;
-  const { faculty_id, book_title, publication_name, published_date } = req.body;
+  const { Book_id } = req.params;
+  const { ISBN, faculty_id, book_title, publication_name, published_date } = req.body;
 
   const query = `
     UPDATE faculty_Book_records
-    SET faculty_id = ?, book_title = ?, publication_name = ?, published_date = ?
-    WHERE ISBN = ?
+    SET ISBN = ?, faculty_id = ?, book_title = ?, publication_name = ?, published_date = ?
+    WHERE Book_id = ?
   `;
 
-  const queryParams = [faculty_id, book_title, publication_name, published_date, ISBN];
+  const queryParams = [ISBN, faculty_id, book_title, publication_name, published_date, Book_id];
 
   pool.query(query, queryParams, (err, result) => {
     if (err) {
       return res.status(500).json({ message: "Error updating book record", error: err });
     }
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "No book record found with the given ISBN" });
+      return res.status(404).json({ message: "No book record found with the given Book_id" });
     }
     res.status(200).json({ message: "Book record updated successfully" });
   });
 };
 
-// Delete a Book record
+// Delete a Book record using Book_id
 export const deleteBookRecord = (req, res) => {
-  const { ISBN } = req.params;
+  const { Book_id } = req.params;
 
-  const query = "DELETE FROM faculty_Book_records WHERE ISBN = ?";
+  const query = "DELETE FROM faculty_Book_records WHERE Book_id = ?";
 
-  pool.query(query, [ISBN], (err, result) => {
+  pool.query(query, [Book_id], (err, result) => {
     if (err) {
       return res.status(500).json({ message: "Error deleting book record", error: err });
     }
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "No book record found with the given ISBN" });
+      return res.status(404).json({ message: "No book record found with the given Book_id" });
     }
     res.status(200).json({ message: "Book record deleted successfully" });
   });
 };
 
 
+
+/**
+ * Get all PhD awarded records
+ */
 export const getPhDAwardedRecords = (req, res) => {
   const query = 'SELECT * FROM faculty_PhD_awarded';
   pool.query(query, (err, results) => {
@@ -673,7 +764,7 @@ export const getPhDAwardedRecordsByFacultyId = (req, res) => {
   const { faculty_id } = req.params;
 
   const query = `
-    SELECT mentee_name, mentee_rn, passing_year 
+    SELECT PHD_id, mentee_name, mentee_rn, passing_year 
     FROM faculty_PhD_awarded 
     WHERE faculty_id = ?
   `;
@@ -689,7 +780,9 @@ export const getPhDAwardedRecordsByFacultyId = (req, res) => {
   });
 };
 
-
+/**
+ * Add a new PhD awarded record
+ */
 export const addPhDAwardedRecord = (req, res) => {
   const { faculty_id, mentee_name, mentee_rn, passing_year } = req.body;
 
@@ -709,23 +802,26 @@ export const addPhDAwardedRecord = (req, res) => {
 };
 
 /**
- * Update an existing PhD record
+ * Update an existing PhD record using PHD_id
+ */
+/**
+ * Update an existing PhD record using PHD_id
  */
 export const updatePhDAwardedRecord = (req, res) => {
-  const { mentee_name, passing_year } = req.body;
-  const { mentee_rn } = req.params;
+  const { mentee_name, passing_year, mentee_rn } = req.body; // Include mentee_rn in the request body
+  const { PHD_id } = req.params;
 
-  if (!mentee_rn) {
-    return res.status(400).json({ message: "Mentee registration number is required" });
+  if (!PHD_id) {
+    return res.status(400).json({ message: "PHD_id is required" });
   }
 
   const query = `
     UPDATE faculty_PhD_awarded
-    SET mentee_name = ?, passing_year = ?
-    WHERE mentee_rn = ?
+    SET mentee_name = ?, passing_year = ?, mentee_rn = ?
+    WHERE PHD_id = ?
   `;
 
-  const queryParams = [mentee_name, passing_year, mentee_rn];
+  const queryParams = [mentee_name, passing_year, mentee_rn, PHD_id];
 
   pool.query(query, queryParams, (err, result) => {
     if (err) {
@@ -738,24 +834,26 @@ export const updatePhDAwardedRecord = (req, res) => {
   });
 };
 
+
 /**
- * Delete a PhD record
+ * Delete a PhD record using PHD_id
  */
 export const deletePhDAwardedRecord = (req, res) => {
-  const { mentee_rn } = req.params;
+  const { PHD_id } = req.params;
 
-  const query = 'DELETE FROM faculty_PhD_awarded WHERE mentee_rn = ?';
+  const query = 'DELETE FROM faculty_PhD_awarded WHERE PHD_id = ?';
 
-  pool.query(query, [mentee_rn], (err, result) => {
+  pool.query(query, [PHD_id], (err, result) => {
     if (err) {
       return res.status(500).json({ message: 'Error deleting PhD awarded record', error: err });
     }
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'No PhD awarded record found with the given mentee_rn' });
+      return res.status(404).json({ message: 'No PhD awarded record found with the given PHD_id' });
     }
     res.status(200).json({ message: 'PhD awarded record deleted successfully' });
   });
 };
+
 
 export const getSponsoredResearchByFaculty = (req, res) => {
   const { faculty_id } = req.params;

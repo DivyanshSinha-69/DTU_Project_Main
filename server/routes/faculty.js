@@ -3,10 +3,12 @@ import { uploadResearchPaper, uploadFacultyImage } from '../config/multerConfig.
 
 import {
   getFacultyCredentials,
+  getFacultyCredentialsById,
   addFacultyCredentials,
   updateFacultyCredentials,
   deleteFacultyCredentials,
   getFacultyAssociations,
+  getFacultyAssociationById,
   addFacultyAssociation,
   updateFacultyAssociation,
   deleteFacultyAssociation,
@@ -27,7 +29,7 @@ import {
   updateBookRecord,
   deleteBookRecord,
   getPhDAwardedRecords,
-  getPhDAwardedRecordsByFacultyId, // Import the new function
+  getPhDAwardedRecordsByFacultyId,
   addPhDAwardedRecord,
   updatePhDAwardedRecord,
   deletePhDAwardedRecord,
@@ -48,14 +50,18 @@ import {
 const router = express.Router();
 
 router.get("/facultycredentials", getFacultyCredentials);
+router.get("/facultycredentials/:faculty_id", getFacultyCredentialsById);
 router.post("/addfacultycredentials", addFacultyCredentials);
 router.put("/updatefacultycredentials/:faculty_id", updateFacultyCredentials);
 router.delete("/deletefacultycredentials/:faculty_id", deleteFacultyCredentials);
 
+
+// Association Routes
 router.get("/facultyassociation", getFacultyAssociations);
-router.post("/addfacultyassociation", addFacultyAssociation);
-router.put("/updatefacultyassociation/:faculty_id", updateFacultyAssociation);
-router.delete("/deletefacultyassociation/:faculty_id", deleteFacultyAssociation);
+router.get("/facultyassociation/:faculty_id", getFacultyAssociationById);
+router.post("/facultyassociation", addFacultyAssociation);
+router.put("/facultyassociation/:faculty_id", updateFacultyAssociation);
+router.delete("/facultyassociation/:faculty_id", deleteFacultyAssociation);
 
 // Route for adding a new research paper
 router.post('/researchpaper', uploadResearchPaper, addResearchPaper);
@@ -69,67 +75,47 @@ router.put('/researchpaper/:faculty_id/:title_of_paper', uploadResearchPaper, up
 // Route for deleting a research paper (using faculty_id and title)
 router.delete('/researchpaper/:faculty_id/:title_of_paper', deleteResearchPaper);
 
-// Get all FDP records or filter by faculty_id
-router.get('/fdp', getFDPRecords);
+// FDP routes
+router.get('/fdp-records', getFDPRecords);
+router.get('/fdp-records/:faculty_id', getFDPRecords);
+router.post('/fdp-records', addFDPRecord);
+router.put('/fdp-records/:FDP_id', updateFDPRecord);
+router.delete('/fdp-records/:FDP_id', deleteFDPRecord);
 
-// Add a new FDP record
-router.post('/fdp', addFDPRecord);
-
-// Update an existing FDP record
-router.put('/fdp', updateFDPRecord);
-
-// Delete an FDP record
-router.delete('/fdp', deleteFDPRecord);
-
-// Get all VAE records or filter by faculty_id
+// VAE routes
 router.get('/vae', getVAERecords);
-
-// Add a new VAE record
+router.get('/vae/:faculty_id', getVAERecords);
 router.post('/vae', addVAERecord);
-
-// Update a VAE record by visit_id
 router.put('/vae/:visit_id', updateVAERecord);
-
-// Delete a VAE record by visit_id
 router.delete('/vae/:visit_id', deleteVAERecord);
 
-// Route to fetch all books or books by faculty ID
+// Book routes
 router.get("/books/:faculty_id?", getBookRecords);
-
-// Route to add a new book record
 router.post("/books", addBookRecord);
+router.put("/books/:Book_id", updateBookRecord);
+router.delete("/books/:Book_id", deleteBookRecord);
 
-// Route to update a book record by ISBN
-router.put("/books/:ISBN", updateBookRecord);
+// PHD awarded routes
+router.get('/phd-awarded', getPhDAwardedRecords);
+router.get('/phd-awarded/:faculty_id', getPhDAwardedRecordsByFacultyId);
+router.post('/phd-awarded', addPhDAwardedRecord);
+router.put('/phd-awarded/:PHD_id', updatePhDAwardedRecord);
+router.delete('/phd-awarded/:PHD_id', deletePhDAwardedRecord);
 
-// Route to delete a book record by ISBN
-router.delete("/books/:ISBN", deleteBookRecord);
 
-// Get all PhD awarded records
-router.get('/phd', getPhDAwardedRecords);
-
-// Get all PhD mentee names for a specific faculty_id
-router.get('/phd/:faculty_id', getPhDAwardedRecordsByFacultyId);
-
-// Add a new PhD awarded record
-router.post('/phd', addPhDAwardedRecord);
-
-// Update an existing PhD awarded record
-router.put('/phd/:mentee_rn', updatePhDAwardedRecord);
-
-// Delete a PhD awarded record
-router.delete('/phd/:mentee_rn', deletePhDAwardedRecord);
-
+// Sponsored Research Routes
 router.get('/sponsored-research/:faculty_id', getSponsoredResearchByFaculty);
 router.post('/sponsored-research', addSponsoredResearch);
 router.put('/sponsored-research/:sponsorship_id', updateSponsoredResearch);
 router.delete('/sponsored-research/:sponsorship_id', deleteSponsoredResearch);
+
 
 // Consultancy Routes
 router.get('/consultancy/:faculty_id', getConsultancyByFaculty);
 router.post('/consultancy', addConsultancy);
 router.put('/consultancy/:consultancy_id', updateConsultancy);
 router.delete('/consultancy/:consultancy_id', deleteConsultancy);
+
 
 router.get('/faculty/:faculty_id', getFacultyDetails);
 router.post('/faculty', uploadFacultyImage, addFaculty);
