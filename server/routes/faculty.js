@@ -1,60 +1,129 @@
 import express from "express";
+import { uploadResearchPaper, uploadFacultyImage } from '../config/multerConfig.js';
+
 import {
-  uploadFacultyImage,
-  getFacultyImage,
-  getFacultyDetails,
-  updateFacultyDetails,
-  getall,
-  getAssociationDetails,
-  updateAssociationDetails,
-  getResearchPapers,
+  getFacultyCredentials,
+  getFacultyCredentialsById,
+  addFacultyCredentials,
+  updateFacultyCredentials,
+  deleteFacultyCredentials,
+  getFacultyAssociations,
+  getFacultyAssociationById,
+  addFacultyAssociation,
+  updateFacultyAssociation,
+  deleteFacultyAssociation,
+  addResearchPaper,
+  getResearchPapersByFaculty,
   updateResearchPaper,
   deleteResearchPaper,
+  getFDPRecords,
+  addFDPRecord,
+  updateFDPRecord,
+  deleteFDPRecord,
   getVAERecords,
+  addVAERecord,
   updateVAERecord,
   deleteVAERecord,
-} from "../controllers/faculty.js"; // Add new controller functions
-
-// import { isAuthenticated } from "../middlewares/auth.js";
+  getBookRecords,
+  addBookRecord,
+  updateBookRecord,
+  deleteBookRecord,
+  getPhDAwardedRecords,
+  getPhDAwardedRecordsByFacultyId,
+  addPhDAwardedRecord,
+  updatePhDAwardedRecord,
+  deletePhDAwardedRecord,
+  getSponsoredResearchByFaculty,
+  addSponsoredResearch,
+  updateSponsoredResearch,
+  deleteSponsoredResearch,
+  getConsultancyByFaculty,
+  addConsultancy,
+  updateConsultancy,
+  deleteConsultancy,
+  getFacultyDetails,
+  addFaculty,
+  updateFacultyDetails,
+  deleteFaculty,
+  getSpecializations,
+  addSpecialization,
+  updateSpecialization,
+  deleteSpecialization,
+} from "../controllers/faculty.js";
 
 const router = express.Router();
 
-// Route for uploading faculty image
-router.post("/uploadfacultyimage", uploadFacultyImage);
+// Credentials Route
+router.get("/facultycredentials", getFacultyCredentials);
+router.get("/facultycredentials/:faculty_id", getFacultyCredentialsById);
+router.post("/facultycredentials", addFacultyCredentials);
+router.put("/facultycredentials/:faculty_id", updateFacultyCredentials);
+router.delete("/facultycredentials/:faculty_id", deleteFacultyCredentials);
 
-// Route for getting faculty image
-router.get("/facultyimage", getFacultyImage);
+// Association Routes
+router.get("/facultyassociation", getFacultyAssociations);
+router.get("/facultyassociation/:faculty_id", getFacultyAssociationById);
+router.post("/facultyassociation", addFacultyAssociation);
+router.put("/facultyassociation/:faculty_id", updateFacultyAssociation);
+router.delete("/facultyassociation/:faculty_id", deleteFacultyAssociation);
 
-// Route for getting faculty personal details
-router.get("/facultydetails", getFacultyDetails);
+// Research Paper Route
+router.post('/researchpaper', uploadResearchPaper, addResearchPaper);
+router.get('/researchpapers/:faculty_id', getResearchPapersByFaculty);
+router.put('/researchpaper/:faculty_id/:title_of_paper', uploadResearchPaper, updateResearchPaper);
+router.delete('/researchpaper/:faculty_id/:title_of_paper', deleteResearchPaper);
 
-// Route for updating faculty personal details
-router.put("/updatefacultydetails", updateFacultyDetails);
+// FDP routes
+router.get('/fdp-records', getFDPRecords);
+router.get('/fdp-records/:faculty_id', getFDPRecords);
+router.post('/fdp-records', addFDPRecord);
+router.put('/fdp-records/:FDP_id', updateFDPRecord);
+router.delete('/fdp-records/:FDP_id', deleteFDPRecord);
 
-// Route for fetching all faculty qualifications
-router.get("/getall", getall);
+// VAE routes
+router.get('/vae', getVAERecords);
+router.get('/vae/:faculty_id', getVAERecords);
+router.post('/vae', addVAERecord);
+router.put('/vae/:visit_id', updateVAERecord);
+router.delete('/vae/:visit_id', deleteVAERecord);
 
-// Route for getting faculty association details
-router.post("/getassociationdetails", getAssociationDetails);
+// Book routes
+router.get("/books/:faculty_id?", getBookRecords);
+router.post("/books", addBookRecord);
+router.put("/books/:Book_id", updateBookRecord);
+router.delete("/books/:Book_id", deleteBookRecord);
 
-// Route for updating faculty association details
-router.put("/updateassociationdetails", updateAssociationDetails);
+// PHD awarded routes
+router.get('/phd-awarded', getPhDAwardedRecords);
+router.get('/phd-awarded/:faculty_id', getPhDAwardedRecordsByFacultyId);
+router.post('/phd-awarded', addPhDAwardedRecord);
+router.put('/phd-awarded/:PHD_id', updatePhDAwardedRecord);
+router.delete('/phd-awarded/:PHD_id', deletePhDAwardedRecord);
 
-// Route for fetching all research papers for a faculty
-router.post("/getresearchpapers", getResearchPapers);
 
-// Route for updating or adding a research paper
-router.put("/updateresearchpaper", updateResearchPaper);
+// Sponsored Research Routes
+router.get('/sponsored-research/:faculty_id', getSponsoredResearchByFaculty);
+router.post('/sponsored-research', addSponsoredResearch);
+router.put('/sponsored-research/:sponsorship_id', updateSponsoredResearch);
+router.delete('/sponsored-research/:sponsorship_id', deleteSponsoredResearch);
 
-// Route for deleting a research paper
-router.delete("/deleteresearchpaper", deleteResearchPaper);
 
-router.get("/vaerecords", getVAERecords);
+// Consultancy Routes
+router.get('/consultancy/:faculty_id', getConsultancyByFaculty);
+router.post('/consultancy', addConsultancy);
+router.put('/consultancy/:consultancy_id', updateConsultancy);
+router.delete('/consultancy/:consultancy_id', deleteConsultancy);
 
-// Update a VAE record
-router.put("/vaerecord", updateVAERecord);
+// Faculty Details Routes
+router.get('/faculty/:faculty_id', getFacultyDetails);
+router.post('/faculty', uploadFacultyImage, addFaculty);
+router.put('/faculty/:faculty_id', uploadFacultyImage, updateFacultyDetails);
+router.delete('/faculty/:faculty_id', deleteFaculty);
 
-// Delete a VAE record
-router.delete("/vaerecord", deleteVAERecord);
-
+// Specialization Routes
+router.get("/specializations", getSpecializations);
+router.get("/specializations/:faculty_id", getSpecializations);
+router.post("/specializations", addSpecialization);
+router.put("/specializations/:specialization_id", updateSpecialization);
+router.delete("/specializations/:specialization_id", deleteSpecialization);
 export default router;

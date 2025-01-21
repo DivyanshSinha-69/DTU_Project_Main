@@ -27,125 +27,131 @@ const AssociationPopUp = ({ currentDetails, onUpdate, closeModal }) => {
     };
 
     return (
-        <Card color="transparent" shadow={false}>
-            <form className="max-w-md mx-auto text-white" onSubmit={handleSubmit}>
-                <div className="relative z-0 w-full mb-5 group">
-                    <label htmlFor="highestDesignation" className="block text-sm">
-                        Highest Designation
-                    </label>
-                    <select
-                        name="highestDesignation"
-                        id="highestDesignation"
-                        className="block py-2.5 px-0 w-full text-sm bg-transparent border-0 border-b-2 border-gray-300"
-                        onChange={handleChange}
-                        value={formData.highestDesignation}
-                        required
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-80">
+            <Card
+                color="transparent"
+                shadow={false}
+                className="w-[90%] max-w-[700px] h-auto p-8 bg-gray-900 rounded-[20px]"
+            >
+                <form className="text-white flex flex-col space-y-6" onSubmit={handleSubmit}>
+                    <div className="relative z-0 w-full group">
+                        <label htmlFor="highestDesignation" className="block text-sm">
+                            Highest Designation
+                        </label>
+                        <select
+                            name="highestDesignation"
+                            id="highestDesignation"
+                            className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            onChange={handleChange}
+                            value={formData.highestDesignation}
+                            required
+                        >
+                            <option value="">Select Designation</option>
+                            <option value="Professor">Professor</option>
+                            <option value="Associate Professor">Associate Professor</option>
+                            <option value="Assistant Professor">Assistant Professor</option>
+                        </select>
+                    </div>
+
+                    <div className="relative z-0 w-full group">
+                        <label htmlFor="highestDesignationDate" className="block text-sm">
+                            Date Attained
+                        </label>
+                        <input
+                            type="date"
+                            name="highestDesignationDate"
+                            id="highestDesignationDate"
+                            className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            onChange={handleChange}
+                            value={formData.highestDesignationDate}
+                            required
+                        />
+                    </div>
+
+                    {formData.highestDesignation === "Professor" && (
+                        <>
+                            <div className="relative z-0 w-full group">
+                                <label htmlFor="associateProfessorStartDate" className="block text-sm">
+                                    Start Date of Associate Professor
+                                </label>
+                                <input
+                                    type="date"
+                                    name="associateProfessorStartDate"
+                                    id="associateProfessorStartDate"
+                                    className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    onChange={handleChange}
+                                    value={formData.associateProfessorStartDate}
+                                    required
+                                />
+                            </div>
+
+                            <div className="relative z-0 w-full group">
+                                <label htmlFor="associateProfessorEndDate" className="block text-sm">
+                                    End Date of Associate Professor
+                                </label>
+                                <input
+                                    type="date"
+                                    name="associateProfessorEndDate"
+                                    id="associateProfessorEndDate"
+                                    className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    onChange={handleChange}
+                                    value={formData.associateProfessorEndDate}
+                                    required
+                                />
+                            </div>
+                        </>
+                    )}
+
+                    {(formData.highestDesignation === "Professor" || formData.highestDesignation === "Associate Professor") && (
+                        <>
+                            <div className="relative z-0 w-full group">
+                                <label htmlFor="assistantProfessorStartDate" className="block text-sm">
+                                    Start Date of Assistant Professor
+                                </label>
+                                <input
+                                    type="date"
+                                    name="assistantProfessorStartDate"
+                                    id="assistantProfessorStartDate"
+                                    className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    onChange={handleChange}
+                                    value={formData.assistantProfessorStartDate}
+                                    required
+                                />
+                            </div>
+
+                            <div className="relative z-0 w-full group">
+                                <label htmlFor="assistantProfessorEndDate" className="block text-sm">
+                                    End Date of Assistant Professor
+                                </label>
+                                <input
+                                    type="date"
+                                    name="assistantProfessorEndDate"
+                                    id="assistantProfessorEndDate"
+                                    className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    onChange={handleChange}
+                                    value={formData.assistantProfessorEndDate}
+                                    required
+                                />
+                            </div>
+                        </>
+                    )}
+
+                    <button
+                        type="submit"
+                        className="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
                     >
-                        <option value="">Select Designation</option>
-                        <option value="Professor">Professor</option>
-                        <option value="Associate Professor">Associate Professor</option>
-                        <option value="Assistant Professor">Assistant Professor</option>
-                    </select>
-                </div>
-
-                <div className="relative z-0 w-full mb-5 group">
-                    <label htmlFor="highestDesignationDate" className="block text-sm">
-                        Date Attained
-                    </label>
-                    <input
-                        type="date"
-                        name="highestDesignationDate"
-                        id="highestDesignationDate"
-                        className="block py-2.5 px-0 w-full text-sm bg-transparent border-0 border-b-2 border-gray-300"
-                        onChange={handleChange}
-                        value={formData.highestDesignationDate}
-                        required
-                    />
-                </div>
-
-                {formData.highestDesignation === "Professor" && (
-                    <>
-                        <div className="relative z-0 w-full mb-5 group">
-                            <label htmlFor="associateProfessorStartDate" className="block text-sm">
-                                Start Date of Associate Professor
-                            </label>
-                            <input
-                                type="date"
-                                name="associateProfessorStartDate"
-                                id="associateProfessorStartDate"
-                                className="block py-2.5 px-0 w-full text-sm bg-transparent border-0 border-b-2 border-gray-300"
-                                onChange={handleChange}
-                                value={formData.associateProfessorStartDate}
-                                required
-                            />
-                        </div>
-
-                        <div className="relative z-0 w-full mb-5 group">
-                            <label htmlFor="associateProfessorEndDate" className="block text-sm">
-                                End Date of Associate Professor
-                            </label>
-                            <input
-                                type="date"
-                                name="associateProfessorEndDate"
-                                id="associateProfessorEndDate"
-                                className="block py-2.5 px-0 w-full text-sm bg-transparent border-0 border-b-2 border-gray-300"
-                                onChange={handleChange}
-                                value={formData.associateProfessorEndDate}
-                                required
-                            />
-                        </div>
-                    </>
-                )}
-
-                {(formData.highestDesignation === "Professor" || formData.highestDesignation === "Associate Professor") && (
-                    <>
-                        <div className="relative z-0 w-full mb-5 group">
-                            <label htmlFor="assistantProfessorStartDate" className="block text-sm">
-                                Start Date of Assistant Professor
-                            </label>
-                            <input
-                                type="date"
-                                name="assistantProfessorStartDate"
-                                id="assistantProfessorStartDate"
-                                className="block py-2.5 px-0 w-full text-sm bg-transparent border-0 border-b-2 border-gray-300"
-                                onChange={handleChange}
-                                value={formData.assistantProfessorStartDate}
-                                required
-                            />
-                        </div>
-
-                        <div className="relative z-0 w-full mb-5 group">
-                            <label htmlFor="assistantProfessorEndDate" className="block text-sm">
-                                End Date of Assistant Professor
-                            </label>
-                            <input
-                                type="date"
-                                name="assistantProfessorEndDate"
-                                id="assistantProfessorEndDate"
-                                className="block py-2.5 px-0 w-full text-sm bg-transparent border-0 border-b-2 border-gray-300"
-                                onChange={handleChange}
-                                value={formData.assistantProfessorEndDate}
-                                required
-                            />
-                        </div>
-                    </>
-                )}
-
-                <button
-                    type="submit"
-                    className="w-full px-4 py-2 bg-blue-500 text-white rounded mt-5"
-                >
-                    Update
-                </button>
-                <button
-                    type="button"
-                    onClick={closeModal}
-                    className="w-full px-4 py-2 bg-gray-500 text-white rounded mt-2"
-                >
-                    Cancel
-                </button>
-            </form>
-        </Card>
+                        Update
+                    </button>
+                    <button
+                        type="button"
+                        onClick={closeModal}
+                        className="w-full px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 mt-4"
+                    >
+                        Cancel
+                    </button>
+                </form>
+            </Card>
+        </div>
     );
 };
 
