@@ -740,6 +740,9 @@ export const deleteBookRecord = (req, res) => {
 };
 
 
+/**
+ * Get all PhD awarded records
+ */
 export const getPhDAwardedRecords = (req, res) => {
   const query = 'SELECT * FROM faculty_PhD_awarded';
   pool.query(query, (err, results) => {
@@ -757,7 +760,7 @@ export const getPhDAwardedRecordsByFacultyId = (req, res) => {
   const { faculty_id } = req.params;
 
   const query = `
-    SELECT mentee_name, mentee_rn, passing_year 
+    SELECT PHD_id, mentee_name, mentee_rn, passing_year 
     FROM faculty_PhD_awarded 
     WHERE faculty_id = ?
   `;
@@ -773,7 +776,9 @@ export const getPhDAwardedRecordsByFacultyId = (req, res) => {
   });
 };
 
-
+/**
+ * Add a new PhD awarded record
+ */
 export const addPhDAwardedRecord = (req, res) => {
   const { faculty_id, mentee_name, mentee_rn, passing_year } = req.body;
 
@@ -793,23 +798,26 @@ export const addPhDAwardedRecord = (req, res) => {
 };
 
 /**
- * Update an existing PhD record
+ * Update an existing PhD record using PHD_id
+ */
+/**
+ * Update an existing PhD record using PHD_id
  */
 export const updatePhDAwardedRecord = (req, res) => {
-  const { mentee_name, passing_year } = req.body;
-  const { mentee_rn } = req.params;
+  const { mentee_name, passing_year, mentee_rn } = req.body; // Include mentee_rn in the request body
+  const { PHD_id } = req.params;
 
-  if (!mentee_rn) {
-    return res.status(400).json({ message: "Mentee registration number is required" });
+  if (!PHD_id) {
+    return res.status(400).json({ message: "PHD_id is required" });
   }
 
   const query = `
     UPDATE faculty_PhD_awarded
-    SET mentee_name = ?, passing_year = ?
-    WHERE mentee_rn = ?
+    SET mentee_name = ?, passing_year = ?, mentee_rn = ?
+    WHERE PHD_id = ?
   `;
 
-  const queryParams = [mentee_name, passing_year, mentee_rn];
+  const queryParams = [mentee_name, passing_year, mentee_rn, PHD_id];
 
   pool.query(query, queryParams, (err, result) => {
     if (err) {
@@ -822,24 +830,26 @@ export const updatePhDAwardedRecord = (req, res) => {
   });
 };
 
+
 /**
- * Delete a PhD record
+ * Delete a PhD record using PHD_id
  */
 export const deletePhDAwardedRecord = (req, res) => {
-  const { mentee_rn } = req.params;
+  const { PHD_id } = req.params;
 
-  const query = 'DELETE FROM faculty_PhD_awarded WHERE mentee_rn = ?';
+  const query = 'DELETE FROM faculty_PhD_awarded WHERE PHD_id = ?';
 
-  pool.query(query, [mentee_rn], (err, result) => {
+  pool.query(query, [PHD_id], (err, result) => {
     if (err) {
       return res.status(500).json({ message: 'Error deleting PhD awarded record', error: err });
     }
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'No PhD awarded record found with the given mentee_rn' });
+      return res.status(404).json({ message: 'No PhD awarded record found with the given PHD_id' });
     }
     res.status(200).json({ message: 'PhD awarded record deleted successfully' });
   });
 };
+
 
 export const getSponsoredResearchByFaculty = (req, res) => {
   const { faculty_id } = req.params;

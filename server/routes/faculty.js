@@ -29,7 +29,7 @@ import {
   updateBookRecord,
   deleteBookRecord,
   getPhDAwardedRecords,
-  getPhDAwardedRecordsByFacultyId, // Import the new function
+  getPhDAwardedRecordsByFacultyId,
   addPhDAwardedRecord,
   updatePhDAwardedRecord,
   deletePhDAwardedRecord,
@@ -109,31 +109,27 @@ router.put("/books/:ISBN", updateBookRecord);
 // Route to delete a book record by ISBN
 router.delete("/books/:ISBN", deleteBookRecord);
 
-// Get all PhD awarded records
-router.get('/phd', getPhDAwardedRecords);
+// PHD awarded routes
+router.get('/phd-awarded', getPhDAwardedRecords);
+router.get('/phd-awarded/:faculty_id', getPhDAwardedRecordsByFacultyId);
+router.post('/phd-awarded', addPhDAwardedRecord);
+router.put('/phd-awarded/:PHD_id', updatePhDAwardedRecord);
+router.delete('/phd-awarded/:PHD_id', deletePhDAwardedRecord);
 
-// Get all PhD mentee names for a specific faculty_id
-router.get('/phd/:faculty_id', getPhDAwardedRecordsByFacultyId);
 
-// Add a new PhD awarded record
-router.post('/phd', addPhDAwardedRecord);
-
-// Update an existing PhD awarded record
-router.put('/phd/:mentee_rn', updatePhDAwardedRecord);
-
-// Delete a PhD awarded record
-router.delete('/phd/:mentee_rn', deletePhDAwardedRecord);
-
+// Sponsored Research Routes
 router.get('/sponsored-research/:faculty_id', getSponsoredResearchByFaculty);
 router.post('/sponsored-research', addSponsoredResearch);
 router.put('/sponsored-research/:sponsorship_id', updateSponsoredResearch);
 router.delete('/sponsored-research/:sponsorship_id', deleteSponsoredResearch);
+
 
 // Consultancy Routes
 router.get('/consultancy/:faculty_id', getConsultancyByFaculty);
 router.post('/consultancy', addConsultancy);
 router.put('/consultancy/:consultancy_id', updateConsultancy);
 router.delete('/consultancy/:consultancy_id', deleteConsultancy);
+
 
 router.get('/faculty/:faculty_id', getFacultyDetails);
 router.post('/faculty', uploadFacultyImage, addFaculty);
