@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { Card, Typography } from "@material-tailwind/react";
 import Popup from "reactjs-popup";
 import PhDPopUp from "../PopUp/PhDsAwardedPopUp";
@@ -15,10 +15,101 @@ const dummyPhDDetails = [
 ];
 
 const PhDsAwarded = ({ setBlurActive }) => {
-  const [phdDetails, setPhdDetails] = useState(dummyPhDDetails);
+  const [phdDetails, setPhdDetails] = useState([]);
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [selectedPhD, setSelectedPhD] = useState(null);
   const [isAddPhD, setIsAddPhD] = useState(false);
+  useEffect(() => {
+    fetchPhDs();
+  }, []);
+  
+  const API_BASE_URL = "http://localhost:3001/ece/faculty";
+
+  const fetchPhDs = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/phd/FAC001`);
+      if (!response.ok) {
+        // If the response is not OK (e.g., 404), handle it gracefully
+        if (response.status === 404) {
+          setPhdDetails([]); // No data found, set to an empty array
+          return;
+        }
+        throw new Error("Failed to fetch data");
+      }
+  
+      const data = await response.json();
+      setPhdDetails(
+        data.map((record) => ({
+          menteeName: record.mentee_name,
+          rollNo: record.mentee_rn,
+          passingYear: record.passing_year,
+        }))
+      );
+    } catch (error) {
+      console.error("Error fetching PhD awarded records:", error);
+      setPhdDetails([]); // Fallback to an empty array in case of errors
+    }
+  };
+  
+
+const addPhD = async (newPhD) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/phd`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        faculty_id: "FAC001", // Hardcoded for now
+        mentee_name: newPhD.menteeName,
+        mentee_rn: newPhD.rollNo,
+        passing_year: newPhD.passingYear,
+      }),
+    });
+    if (!response.ok) {
+      throw new Error("Failed to add new record");
+    }
+    fetchPhDs();
+  } catch (error) {
+    console.error("Error adding new PhD record:", error);
+  }
+};
+
+const updatePhD = async (updatedPhD) => {
+  try {
+    console.log(updatedPhD.rollNo);
+    const response = await fetch(
+      `${API_BASE_URL}/phd/${updatedPhD.rollNo}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mentee_name: updatedPhD.menteeName,
+          passing_year: updatedPhD.passingYear,
+        }),
+      }
+    );
+    if (!response.ok) {
+      throw new Error("Failed to update the record");
+    }
+    fetchPhDs();
+  } catch (error) {
+    console.error("Error updating PhD record:", error);
+  }
+};
+
+const deletePhD = async (rollNo) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/phd/${rollNo}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) {
+      throw new Error("Failed to delete record");
+    }
+    fetchPhDs();
+  } catch (error) {
+    console.error("Error deleting PhD record:", error);
+  }
+};
+
 
   const openPopup = (phd) => {
     setSelectedPhD(phd);
@@ -32,22 +123,39 @@ const PhDsAwarded = ({ setBlurActive }) => {
     setBlurActive(false);
   };
 
-  const handleAddPhD = (newPhD) => {
-    if (selectedPhD) {
-      // Update existing PhD
-      setPhdDetails((prevDetails) =>
-        prevDetails.map((phd) => (phd === selectedPhD ? { ...newPhD } : phd))
-      );
+  const handleAddPhD = async (newPhD) => {
+    if (isAddPhD) {
+      // Update existing record
+      console.log(newPhD);
+      await addPhD(newPhD);
+      
     } else {
-      // Add new PhD
-      setPhdDetails([...phdDetails, newPhD]);
+      // Add new record
+      console.log(newPhD)
+      await updatePhD(newPhD);
     }
     closePopup();
   };
+  
 
-  const handleDeletePhD = (indexToDelete) => {
-    setPhdDetails(phdDetails.filter((_, index) => index !== indexToDelete));
+  const handleDeletePhD = async (indexToDelete) => {
+    const { rollNo } = phdDetails[indexToDelete];
+    try {
+      const response = await deletePhD(rollNo); // Call the delete API
+      if (response.ok) {
+        // Update the state to remove the deleted row
+        setPhdDetails((prevDetails) =>
+          prevDetails.filter((_, index) => index !== indexToDelete)
+        );
+      } else {
+        console.error("Failed to delete record");
+      }
+    } catch (error) {
+      console.error("Error deleting PhD record:", error);
+    }
   };
+  
+  
 
   const TABLE_HEAD = ["Mentee Name", "Roll No", "Passing Year", "Actions"];
 

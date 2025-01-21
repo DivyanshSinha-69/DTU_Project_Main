@@ -36,7 +36,7 @@ connectDB.connect((err)=>{
 const pool = mysql.createPool({
   host: 'localhost',
   user: 'root',
-  password: '12348765@',
+  password: 'Mysql#@123',
   database: 'admin',
 });
 
