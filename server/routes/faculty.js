@@ -55,11 +55,13 @@ router.post("/addfacultycredentials", addFacultyCredentials);
 router.put("/updatefacultycredentials/:faculty_id", updateFacultyCredentials);
 router.delete("/deletefacultycredentials/:faculty_id", deleteFacultyCredentials);
 
+
+// Association Routes
 router.get("/facultyassociation", getFacultyAssociations);
 router.get("/facultyassociation/:faculty_id", getFacultyAssociationById);
-router.post("/addfacultyassociation", addFacultyAssociation);
-router.put("/updatefacultyassociation/:faculty_id", updateFacultyAssociation);
-router.delete("/deletefacultyassociation/:faculty_id", deleteFacultyAssociation);
+router.post("/facultyassociation", addFacultyAssociation);
+router.put("/facultyassociation/:faculty_id", updateFacultyAssociation);
+router.delete("/facultyassociation/:faculty_id", deleteFacultyAssociation);
 
 // Route for adding a new research paper
 router.post('/researchpaper', uploadResearchPaper, addResearchPaper);

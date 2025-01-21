@@ -154,168 +154,166 @@ export const deleteFacultyCredentials = (req, res) => {
 
 
 // Fetch all faculty associations
+// 1. Get All Faculty Associations
 export const getFacultyAssociations = (req, res) => {
-    const sql = "SELECT * FROM faculty_association";
-    connectDB.query(sql, (err, results) => {
-        if (err) {
-            console.error("Error executing fetch query:", err);
-            res.status(500).json({ error: "Internal Server Error" });
-            return;
-        }
-
-        const associations = results || [];
-        res.status(200).json({
-            associations,
-            success: true,
-        });
-    });
-};
-
-export const getFacultyAssociationById = (req, res) => {
-  const { faculty_id } = req.params; // Get faculty_id from the request parameters
-  const sql = "SELECT * FROM faculty_association WHERE faculty_id = ?";
-  
-  connectDB.query(sql, [faculty_id], (err, results) => {
+  const sql = "SELECT * FROM faculty_association";
+  connectDB.query(sql, (err, results) => {
       if (err) {
           console.error("Error executing fetch query:", err);
           res.status(500).json({ error: "Internal Server Error" });
           return;
       }
 
-      if (results.length === 0) {
-          res.status(404).json({ error: "Faculty Association not found" });
-          return;
-      }
-
-      const association = results[0];
+      const associations = results || [];
       res.status(200).json({
-          association,
+          associations,
           success: true,
       });
   });
 };
 
+// 2. Get Faculty Association By ID
+export const getFacultyAssociationById = (req, res) => {
+const { faculty_id } = req.params; // Get faculty_id from the request parameters
+const sql = "SELECT * FROM faculty_association WHERE faculty_id = ?";
 
-// Add a new faculty association
+connectDB.query(sql, [faculty_id], (err, results) => {
+    if (err) {
+        console.error("Error executing fetch query:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+        return;
+    }
+
+    if (results.length === 0) {
+        res.status(404).json({ error: "Faculty Association not found" });
+        return;
+    }
+
+    const association = results[0];
+    res.status(200).json({
+        association,
+        success: true,
+    });
+});
+};
+
+// 3. Add a New Faculty Association
 export const addFacultyAssociation = (req, res) => {
-    const {
-        faculty_id,
-        designation,
-        date_asg_astprof,
-        date_end_astprof,
-        date_asg_asoprof,
-        date_end_asoprof,
-        date_asg_prof,
-        date_end_prof,
-        specialization,
-    } = req.body;
+  const {
+      faculty_id,
+      designation,
+      date_asg_astprof,
+      date_end_astprof,
+      date_asg_asoprof,
+      date_end_asoprof,
+      date_asg_prof,
+      date_end_prof,
+  } = req.body;
 
-    // Check if faculty_id exists in faculty_details
-    const checkSql = "SELECT COUNT(*) AS count FROM faculty_details WHERE faculty_id = ?";
-    connectDB.query(checkSql, [faculty_id], (err, results) => {
-        if (err) {
-            console.error("Error checking faculty_id:", err);
-            res.status(500).json({ error: "Internal Server Error" });
-            return;
-        }
+  // Check if faculty_id exists in faculty_details
+  const checkSql = "SELECT COUNT(*) AS count FROM faculty_details WHERE faculty_id = ?";
+  connectDB.query(checkSql, [faculty_id], (err, results) => {
+      if (err) {
+          console.error("Error checking faculty_id:", err);
+          res.status(500).json({ error: "Internal Server Error" });
+          return;
+      }
 
-        if (results[0].count === 0) {
-            res.status(400).json({ error: "faculty_id does not exist in faculty_details" });
-            return;
-        }
+      if (results[0].count === 0) {
+          res.status(400).json({ error: "faculty_id does not exist in faculty_details" });
+          return;
+      }
 
-        // Insert into faculty_association
-        const insertSql = `
-            INSERT INTO faculty_association 
-            (faculty_id, designation, date_asg_astprof, date_end_astprof, date_asg_asoprof, date_end_asoprof, date_asg_prof, date_end_prof, specialization) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `;
+      // Insert into faculty_association
+      const insertSql = `
+          INSERT INTO faculty_association 
+          (faculty_id, designation, date_asg_astprof, date_end_astprof, date_asg_asoprof, date_end_asoprof, date_asg_prof, date_end_prof) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `;
 
-        connectDB.query(insertSql, [faculty_id, designation, date_asg_astprof, date_end_astprof, date_asg_asoprof, date_end_asoprof, date_asg_prof, date_end_prof, specialization], (err) => {
-            if (err) {
-                console.error("Error executing insert query:", err);
-                res.status(500).json({ error: "Internal Server Error" });
-                return;
-            }
+      connectDB.query(insertSql, [faculty_id, designation, date_asg_astprof, date_end_astprof, date_asg_asoprof, date_end_asoprof, date_asg_prof, date_end_prof], (err) => {
+          if (err) {
+              console.error("Error executing insert query:", err);
+              res.status(500).json({ error: "Internal Server Error" });
+              return;
+          }
 
-            res.status(201).json({
-                message: "Faculty association added successfully",
-                success: true,
-            });
-        });
-    });
+          res.status(201).json({
+              message: "Faculty association added successfully",
+              success: true,
+          });
+      });
+  });
 };
 
-
-// Update a faculty association
+// 4. Update a Faculty Association
 export const updateFacultyAssociation = (req, res) => {
-    const { faculty_id } = req.params;
-    const {
-        designation,
-        date_asg_astprof,
-        date_end_astprof,
-        date_asg_asoprof,
-        date_end_asoprof,
-        date_asg_prof,
-        date_end_prof,
-        specialization,
-    } = req.body;
+  const { faculty_id } = req.params;
+  const {
+      designation,
+      date_asg_astprof,
+      date_end_astprof,
+      date_asg_asoprof,
+      date_end_asoprof,
+      date_asg_prof,
+      date_end_prof,
+  } = req.body;
 
-    const sql = `
-        UPDATE faculty_association 
-        SET designation = ?, 
-            date_asg_astprof = ?, 
-            date_end_astprof = ?, 
-            date_asg_asoprof = ?, 
-            date_end_asoprof = ?, 
-            date_asg_prof = ?, 
-            date_end_prof = ?, 
-            specialization = ? 
-        WHERE faculty_id = ?
-    `;
+  const sql = `
+      UPDATE faculty_association 
+      SET designation = ?, 
+          date_asg_astprof = ?, 
+          date_end_astprof = ?, 
+          date_asg_asoprof = ?, 
+          date_end_asoprof = ?, 
+          date_asg_prof = ?, 
+          date_end_prof = ? 
+      WHERE faculty_id = ?
+  `;
 
-    connectDB.query(sql, [designation, date_asg_astprof, date_end_astprof, date_asg_asoprof, date_end_asoprof, date_asg_prof, date_end_prof, specialization, faculty_id], (err, results) => {
-        if (err) {
-            console.error("Error executing update query:", err);
-            res.status(500).json({ error: "Internal Server Error" });
-            return;
-        }
+  connectDB.query(sql, [designation, date_asg_astprof, date_end_astprof, date_asg_asoprof, date_end_asoprof, date_asg_prof, date_end_prof, faculty_id], (err, results) => {
+      if (err) {
+          console.error("Error executing update query:", err);
+          res.status(500).json({ error: "Internal Server Error" });
+          return;
+      }
 
-        if (results.affectedRows === 0) {
-            res.status(404).json({ error: "Faculty association not found" });
-            return;
-        }
+      if (results.affectedRows === 0) {
+          res.status(404).json({ error: "Faculty association not found" });
+          return;
+      }
 
-        res.status(200).json({
-            message: "Faculty association updated successfully",
-            success: true,
-        });
-    });
+      res.status(200).json({
+          message: "Faculty association updated successfully",
+          success: true,
+      });
+  });
 };
 
-// Delete a faculty association
+// 5. Delete a Faculty Association
 export const deleteFacultyAssociation = (req, res) => {
-    const { faculty_id } = req.params;
+  const { faculty_id } = req.params;
 
-    const sql = "DELETE FROM faculty_association WHERE faculty_id = ?";
-    connectDB.query(sql, [faculty_id], (err, results) => {
-        if (err) {
-            console.error("Error executing delete query:", err);
-            res.status(500).json({ error: "Internal Server Error" });
-            return;
-        }
+  const sql = "DELETE FROM faculty_association WHERE faculty_id = ?";
+  connectDB.query(sql, [faculty_id], (err, results) => {
+      if (err) {
+          console.error("Error executing delete query:", err);
+          res.status(500).json({ error: "Internal Server Error" });
+          return;
+      }
 
-        if (results.affectedRows === 0) {
-            res.status(404).json({ error: "Faculty association not found" });
-            return;
-        }
+      if (results.affectedRows === 0) {
+          res.status(404).json({ error: "Faculty association not found" });
+          return;
+      }
 
-        res.status(200).json({
-            message: "Faculty association deleted successfully",
-            success: true,
-        });
-    });
+      res.status(200).json({
+          message: "Faculty association deleted successfully",
+          success: true,
+      });
+  });
 };
+
 
 // Add Research Paper
 
