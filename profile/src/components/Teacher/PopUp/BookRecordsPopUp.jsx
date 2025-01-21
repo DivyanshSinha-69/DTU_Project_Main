@@ -7,6 +7,7 @@ export default function BookPopUp({
   title,
   publication,
   publishedDate,
+  Book_id,
   closeModal,
   handleAddBook,
 }) {
@@ -15,6 +16,7 @@ export default function BookPopUp({
     title: title || "",
     publication: publication || "",
     publishedDate: publishedDate || "",
+    Book_id: Book_id || ""
   });
 
   const handleChange = (e) => {
@@ -27,7 +29,7 @@ export default function BookPopUp({
 
   const handlePopupSubmit = (e) => {
     e.preventDefault();
-    const { isbn, title, publication, publishedDate } = formData;
+    const { isbn, title, publication, publishedDate, Book_id } = formData;
 
     if (!isbn || !title || !publication || !publishedDate) {
       toast.error("Please fill in all required fields.");

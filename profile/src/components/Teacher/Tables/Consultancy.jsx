@@ -36,7 +36,6 @@ const ConsultancyDetails = ({ setBlurActive }) => {
       }
   
       const data = await response.json();
-      console.log("Fetched Consultancy Data:", data);
   
       setConsultancyDetails(
         data.map((record) => ({
@@ -63,7 +62,6 @@ const ConsultancyDetails = ({ setBlurActive }) => {
     setSelectedConsultancy(consultancy);
     setPopupOpen(true);
     setBlurActive(true);
-    console.log("selected consult", selectedConsultancy);
   };
 
   const closePopup = () => {
@@ -76,7 +74,6 @@ const ConsultancyDetails = ({ setBlurActive }) => {
     try {
       if (isAddConsultancy) {
         // Add new consultancy
-        console.log("consult",newConsultancy)
         await axios.post("http://localhost:3001/ece/faculty/consultancy", {
           faculty_id: "FAC001", // Hardcoded for now
           project_title: newConsultancy.title,

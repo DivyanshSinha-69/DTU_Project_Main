@@ -6,6 +6,7 @@ export default function PhDsAwardedPopUp({
   menteeName,
   rollNo,
   passingYear,
+  PHD_id,
   closeModal,
   handleAddPhD,
 }) {
@@ -13,6 +14,7 @@ export default function PhDsAwardedPopUp({
     menteeName: menteeName || "",
     rollNo: rollNo || "",
     passingYear: passingYear || "",
+    PHD_id: PHD_id || ""
   });
 
   const handleChange = (e) => {
@@ -25,7 +27,7 @@ export default function PhDsAwardedPopUp({
 
   const handlePopupSubmit = (e) => {
     e.preventDefault();
-    const { menteeName, rollNo, passingYear } = formData;
+    const { menteeName, rollNo, passingYear, PHD_id } = formData;
 
     if (!menteeName || !rollNo || !passingYear) {
       toast.error("Please fill in all required fields.");
