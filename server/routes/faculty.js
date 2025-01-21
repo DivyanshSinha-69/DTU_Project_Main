@@ -44,17 +44,21 @@ import {
   getFacultyDetails,
   addFaculty,
   updateFacultyDetails,
-  deleteFaculty, 
+  deleteFaculty,
+  getSpecializations,
+  addSpecialization,
+  updateSpecialization,
+  deleteSpecialization,
 } from "../controllers/faculty.js";
 
 const router = express.Router();
 
+// Credentials Route
 router.get("/facultycredentials", getFacultyCredentials);
 router.get("/facultycredentials/:faculty_id", getFacultyCredentialsById);
-router.post("/addfacultycredentials", addFacultyCredentials);
-router.put("/updatefacultycredentials/:faculty_id", updateFacultyCredentials);
-router.delete("/deletefacultycredentials/:faculty_id", deleteFacultyCredentials);
-
+router.post("/facultycredentials", addFacultyCredentials);
+router.put("/facultycredentials/:faculty_id", updateFacultyCredentials);
+router.delete("/facultycredentials/:faculty_id", deleteFacultyCredentials);
 
 // Association Routes
 router.get("/facultyassociation", getFacultyAssociations);
@@ -63,16 +67,10 @@ router.post("/facultyassociation", addFacultyAssociation);
 router.put("/facultyassociation/:faculty_id", updateFacultyAssociation);
 router.delete("/facultyassociation/:faculty_id", deleteFacultyAssociation);
 
-// Route for adding a new research paper
+// Research Paper Route
 router.post('/researchpaper', uploadResearchPaper, addResearchPaper);
-
-// Route for getting all research papers for a specific faculty_id
 router.get('/researchpapers/:faculty_id', getResearchPapersByFaculty);
-
-// Route for updating an existing research paper (using faculty_id and title)
 router.put('/researchpaper/:faculty_id/:title_of_paper', uploadResearchPaper, updateResearchPaper);
-
-// Route for deleting a research paper (using faculty_id and title)
 router.delete('/researchpaper/:faculty_id/:title_of_paper', deleteResearchPaper);
 
 // FDP routes
@@ -116,11 +114,16 @@ router.post('/consultancy', addConsultancy);
 router.put('/consultancy/:consultancy_id', updateConsultancy);
 router.delete('/consultancy/:consultancy_id', deleteConsultancy);
 
-
+// Faculty Details Routes
 router.get('/faculty/:faculty_id', getFacultyDetails);
 router.post('/faculty', uploadFacultyImage, addFaculty);
 router.put('/faculty/:faculty_id', uploadFacultyImage, updateFacultyDetails);
 router.delete('/faculty/:faculty_id', deleteFaculty);
 
-
+// Specialization Routes
+router.get("/specializations", getSpecializations);
+router.get("/specializations/:faculty_id", getSpecializations);
+router.post("/specializations", addSpecialization);
+router.put("/specializations/:specialization_id", updateSpecialization);
+router.delete("/specializations/:specialization_id", deleteSpecialization);
 export default router;
