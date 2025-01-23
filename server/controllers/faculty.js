@@ -933,6 +933,7 @@ export const deleteSponsoredResearch = (req, res) => {
   });
 };
 
+// Get consultancy records by faculty_id
 export const getConsultancyByFaculty = (req, res) => {
   const { faculty_id } = req.params;
 
@@ -950,18 +951,19 @@ export const getConsultancyByFaculty = (req, res) => {
   });
 };
 
+// Add a new consultancy record
 export const addConsultancy = (req, res) => {
-  const { faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date } = req.body;
+  const { faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date, end_date } = req.body;
 
   if (!faculty_id || !project_title || !start_date) {
     return res.status(400).json({ message: "Faculty ID, Project Title, and Start Date are required" });
   }
 
   const query = `
-    INSERT INTO faculty_consultancy (faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO faculty_consultancy (faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date, end_date)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
-  const queryParams = [faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date];
+  const queryParams = [faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date, end_date];
 
   pool.query(query, queryParams, (err, result) => {
     if (err) {
@@ -971,16 +973,17 @@ export const addConsultancy = (req, res) => {
   });
 };
 
+// Update an existing consultancy record
 export const updateConsultancy = (req, res) => {
   const { consultancy_id } = req.params;
-  const { faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date } = req.body;
+  const { faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date, end_date } = req.body;
 
   const query = `
     UPDATE faculty_consultancy
-    SET faculty_id = ?, project_title = ?, funding_agency = ?, amount_sponsored = ?, research_duration = ?, start_date = ?
+    SET faculty_id = ?, project_title = ?, funding_agency = ?, amount_sponsored = ?, research_duration = ?, start_date = ?, end_date = ?
     WHERE consultancy_id = ?
   `;
-  const queryParams = [faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date, consultancy_id];
+  const queryParams = [faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date, end_date, consultancy_id];
 
   pool.query(query, queryParams, (err, result) => {
     if (err) {
@@ -993,6 +996,7 @@ export const updateConsultancy = (req, res) => {
   });
 };
 
+// Delete a consultancy record
 export const deleteConsultancy = (req, res) => {
   const { consultancy_id } = req.params;
 
@@ -1009,6 +1013,7 @@ export const deleteConsultancy = (req, res) => {
     res.status(200).json({ message: "Consultancy record deleted successfully" });
   });
 };
+
 
 export const getFacultyDetails = (req, res) => {
   const { faculty_id } = req.params;
