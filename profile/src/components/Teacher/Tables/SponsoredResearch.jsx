@@ -39,7 +39,6 @@ const SponsoredResearch = ({ setBlurActive }) => {
         }
   
         const data = await response.json();
-        console.log("Fetched Data:", data);
 
         setResearchDetails(
           data.map((record) => ({
