@@ -874,36 +874,72 @@ export const getSponsoredResearchByFaculty = (req, res) => {
 };
 
 export const addSponsoredResearch = (req, res) => {
-  const { faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date } = req.body;
+  const {
+    faculty_id,
+    project_title,
+    funding_agency,
+    amount_sponsored,
+    research_duration,
+    start_date,
+    end_date,
+  } = req.body;
 
   if (!faculty_id || !project_title || !start_date) {
     return res.status(400).json({ message: "Faculty ID, Project Title, and Start Date are required" });
   }
 
   const query = `
-    INSERT INTO faculty_sponsored_research (faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO faculty_sponsored_research (faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date, end_date)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
-  const queryParams = [faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date];
+  const queryParams = [
+    faculty_id,
+    project_title,
+    funding_agency,
+    amount_sponsored,
+    research_duration,
+    start_date,
+    end_date,
+  ];
 
   pool.query(query, queryParams, (err, result) => {
     if (err) {
       return res.status(500).json({ message: "Error adding sponsored research", error: err });
     }
-    res.status(201).json({ message: "Sponsored research added successfully", sponsorship_id: result.insertId });
+    res.status(201).json({
+      message: "Sponsored research added successfully",
+      sponsorship_id: result.insertId,
+    });
   });
 };
 
 export const updateSponsoredResearch = (req, res) => {
   const { sponsorship_id } = req.params;
-  const { faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date } = req.body;
+  const {
+    faculty_id,
+    project_title,
+    funding_agency,
+    amount_sponsored,
+    research_duration,
+    start_date,
+    end_date,
+  } = req.body;
 
   const query = `
     UPDATE faculty_sponsored_research
-    SET faculty_id = ?, project_title = ?, funding_agency = ?, amount_sponsored = ?, research_duration = ?, start_date = ?
+    SET faculty_id = ?, project_title = ?, funding_agency = ?, amount_sponsored = ?, research_duration = ?, start_date = ?, end_date = ?
     WHERE sponsorship_id = ?
   `;
-  const queryParams = [faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date, sponsorship_id];
+  const queryParams = [
+    faculty_id,
+    project_title,
+    funding_agency,
+    amount_sponsored,
+    research_duration,
+    start_date,
+    end_date,
+    sponsorship_id,
+  ];
 
   pool.query(query, queryParams, (err, result) => {
     if (err) {
@@ -932,6 +968,7 @@ export const deleteSponsoredResearch = (req, res) => {
     res.status(200).json({ message: "Sponsored research deleted successfully" });
   });
 };
+
 
 // Get consultancy records by faculty_id
 export const getConsultancyByFaculty = (req, res) => {
