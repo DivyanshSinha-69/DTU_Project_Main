@@ -505,6 +505,7 @@ export const getFDPRecords = (req, res) => {
       return res.status(500).json({ message: 'Error fetching FDP records', error: err });
     }
     res.status(200).json({ message: 'FDP records fetched successfully', data: results });
+    console.log("fdb backend",data);
   });
 };
 

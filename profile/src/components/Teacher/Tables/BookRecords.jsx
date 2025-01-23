@@ -35,17 +35,18 @@ const BookRecordsPublished = ({ setBlurActive }) => {
       }
   
       const data = await response.json();
-      console.log("Fetched Data:", data);
   
       setBookDetails(
         data?.map((book) => ({
-          isbn: book.ISBN,                 // ISBN of the book
-          faculty_id: book.faculty_id,     // Faculty ID associated with the book
-          book_title: book.book_title,          // Book title
-          publication_name: book.publication_name, // Publisher name
-          published_date: book.published_date // Published date
+          isbn: book.ISBN, // Ensure it matches the API response field
+          faculty_id: book.faculty_id,
+          title: book.book_title, // Change `book_title` to `title` for consistency
+          publication_name: book.publication_name, // Change `publication_name` to `publication`
+          published_date: book.published_date, // Keep consistent naming
+          Book_id:book.Book_id
         }))
       );
+      
     } catch (error) {
       console.error("Error fetching book records:", error);
       setBookDetails([]); // Fallback to an empty array in case of errors
@@ -57,7 +58,6 @@ const BookRecordsPublished = ({ setBlurActive }) => {
     fetchBookRecords(); // Fetch data on component mount
   }, []);
   const openPopup = (book) => {
-    
     setSelectedBook(book);
     setPopupOpen(true);
     setBlurActive(true);
@@ -70,14 +70,15 @@ const BookRecordsPublished = ({ setBlurActive }) => {
   };
 
   const handleAddBook = async (newBook) => {
-    console.log("new book", newBook);
     const bookData = {
       ISBN: newBook.isbn,
-      faculty_id: "FAC001",  // Hardcoded faculty ID for now
-      book_title: newBook.title,
+      faculty_id: "FAC001",
+      book_title: newBook.title,  // Ensure correct API mapping
       publication_name: newBook.publication,
       published_date: newBook.publishedDate,
+      
     };
+    
   
     try {
       if (isAddBook) {
@@ -96,13 +97,21 @@ const BookRecordsPublished = ({ setBlurActive }) => {
         }
       } else {
         // Update existing book record
-        const response = await fetch(`http://localhost:3001/ece/faculty/books/${newBook.isbn}`, {
+        const response = await fetch(`http://localhost:3001/ece/faculty/books/${selectedBook.Book_id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(bookData), // Sending the data in the body
+          body: JSON.stringify({
+            ISBN: newBook.isbn,
+            faculty_id: "FAC001",
+            book_title: newBook.title,  // Ensure correct API mapping
+            publication_name: newBook.publication,
+            published_date: newBook.publishedDate,
+            Book_id: newBook.Book_id
+          }),
         });
+        
   
         if (!response.ok) {
           console.error("Error updating book record");
@@ -123,25 +132,26 @@ const BookRecordsPublished = ({ setBlurActive }) => {
   
   
 
-  const handleDeleteBook = async (isbn) => {
-    const response = await fetch(`http://localhost:3001/ece/faculty/books/${isbn}`, {
+  const handleDeleteBook = async (Book_id) => {
+    const response = await fetch(`http://localhost:3001/ece/faculty/books/${Book_id}`, {
       method: 'DELETE',
     });
     if (!response.ok) {
       console.error("Error deleting book record");
       return;
     }
-    setBookDetails(bookDetails.filter((book) => book.isbn !== isbn));
+    setBookDetails(bookDetails.filter((book) => book.Book_id !== Book_id));
   };
-
+  
   const TABLE_HEAD = ["ISBN No.", "Book Title", "Publication Name", "Published Date", "Actions"];
   const formatDateForInput = (date) => {
     const [date1, time] = date?.split('T');
 
-    const [day, month, year] = date1?.split('-');
-    return `${day}-${month}-${year}`; // yyyy-MM-dd
+    const [year, month, day] = date1?.split('-');
+    return '${day}-${month}-${year}'; 
 
   };
+  
   return (
     <div>
       <div className="h-auto p-10">
@@ -190,8 +200,7 @@ const BookRecordsPublished = ({ setBlurActive }) => {
               </thead>
               <tbody>
                 {bookDetails?.map((book, index) => {
-                  console.log(bookDetails);
-                  const { isbn, book_title, publication_name, published_date } = book;
+                  const {Book_id, isbn, title, publication_name, published_date } = book;
                   const isLast = index === bookDetails.length - 1;
                   const classes = isLast
                     ? "p-4"
@@ -214,7 +223,7 @@ const BookRecordsPublished = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {book_title}
+                          {title}
                         </Typography>
                       </td>
                       <td className={classes}>
@@ -238,7 +247,16 @@ const BookRecordsPublished = ({ setBlurActive }) => {
                       <td className={`${classes} text-right`}>
                         <div className="flex justify-end gap-2">
                           <button
-                            onClick={() => openPopup(book)}
+                            onClick={() => {
+                              setIsAddBook(false);
+                              setSelectedBook({isbn: book.ISBN, // Ensure it matches the API response field
+          faculty_id: book.faculty_id,
+          book_title: book.book_title, // Change `book_title` to `title` for consistency
+          publication_name: book.publication_name, // Change `publication_name` to `publication`
+          published_date: formatDateForInput(book.published_date), // Keep consistent naming
+          Book_id:book.Book_id});
+                              openPopup(book);
+                            }}
                             className="bg-green-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
                           >
                             <img
@@ -248,7 +266,10 @@ const BookRecordsPublished = ({ setBlurActive }) => {
                             />
                           </button>
                           <button
-                            onClick={() => handleDeleteBook(isbn)}
+                            onClick={() => {
+                        
+                              handleDeleteBook(Book_id)
+                            }}
                             className="bg-red-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
                           >
                             <img
@@ -289,8 +310,9 @@ const BookRecordsPublished = ({ setBlurActive }) => {
             selectedBook && (
               <BookPopUp
                 isbn={selectedBook.isbn}
-                title={selectedBook.book_title}
-                publication={selectedBook.publication_name}
+                title={selectedBook.title}
+                  publication={selectedBook.publication_name}
+                  Book_id={selectedBook.Book_id}
                 publishedDate={formatDateForInput(selectedBook.published_date)}
                 closeModal={closePopup}
                 handleAddBook={handleAddBook}

@@ -20,7 +20,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
   useEffect(() => {
     const fetchFDPDetails = async () => {
       try {
-        const response = await fetch(`http://localhost:3001/ece/faculty/fdp?faculty_id=${faculty_id}`);
+        const response = await fetch(`http://localhost:3001/fdp-records/${faculty_id}`);
         const result = await response.json();
         if (response.ok && Array.isArray(result.data)) {
           setFdpDetails(result.data); // Only set if the response is an array
@@ -28,7 +28,6 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
           toast.error(result.message || "Failed to fetch FDP details");
         }
       } catch (err) {
-        console.error("Error fetching FDP details:", err);
         toast.error("Error while fetching FDP details");
       }
     };
@@ -55,8 +54,8 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
   
     try {
       const response = isAddFDP
-        ? await fetch('http://localhost:3001/ece/faculty/fdp', {
-            method: "POST", // For adding a new FDP
+      ? await fetch('http://localhost:3001/fdp-records', {
+        method: "POST", // For adding a new FDP
             headers: {
               "Content-Type": "application/json",
             },
@@ -68,7 +67,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
               days_contributed: days,
             }),
           })
-        : await fetch('http://localhost:3001/ece/faculty/fdp', {
+          : await fetch(`http://localhost:3001/fdp-records/${selectedFDP.FDP_id}`, {
             method: "PUT", // For updating the FDP
             headers: {
               "Content-Type": "application/json",
@@ -113,7 +112,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
     const faculty_id = "FAC001"; // Placeholder faculty ID
     
     try {
-      const response = await fetch('http://localhost:3001/ece/faculty/fdp', {
+      const response = await fetch(`http://localhost:3001/fdp-records/${selectedFDP.FDP_id}`, {
         method: "DELETE", // For deleting an FDP
         headers: {
           "Content-Type": "application/json",

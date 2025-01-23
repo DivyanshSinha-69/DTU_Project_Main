@@ -25,13 +25,13 @@ const PhDsAwarded = ({ setBlurActive }) => {
   
   const API_BASE_URL = "http://localhost:3001/ece/faculty";
 
+
   const fetchPhDs = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/phd/FAC001`);
+      const response = await fetch(`${API_BASE_URL}/phd-awarded/FAC001`);
       if (!response.ok) {
-        // If the response is not OK (e.g., 404), handle it gracefully
         if (response.status === 404) {
-          setPhdDetails([]); // No data found, set to an empty array
+          setPhdDetails([]);
           return;
         }
         throw new Error("Failed to fetch data");
@@ -40,6 +40,7 @@ const PhDsAwarded = ({ setBlurActive }) => {
       const data = await response.json();
       setPhdDetails(
         data.map((record) => ({
+          PHD_id: record.PHD_id, // 👈 Store PHD_id
           menteeName: record.mentee_name,
           rollNo: record.mentee_rn,
           passingYear: record.passing_year,
@@ -47,71 +48,74 @@ const PhDsAwarded = ({ setBlurActive }) => {
       );
     } catch (error) {
       console.error("Error fetching PhD awarded records:", error);
-      setPhdDetails([]); // Fallback to an empty array in case of errors
+      setPhdDetails([]);
     }
   };
   
-
-const addPhD = async (newPhD) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/phd`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        faculty_id: "FAC001", // Hardcoded for now
-        mentee_name: newPhD.menteeName,
-        mentee_rn: newPhD.rollNo,
-        passing_year: newPhD.passingYear,
-      }),
-    });
-    if (!response.ok) {
-      throw new Error("Failed to add new record");
-    }
-    fetchPhDs();
-  } catch (error) {
-    console.error("Error adding new PhD record:", error);
-  }
-};
-
-const updatePhD = async (updatedPhD) => {
-  try {
-    console.log(updatedPhD.rollNo);
-    const response = await fetch(
-      `${API_BASE_URL}/phd/${updatedPhD.rollNo}`,
-      {
-        method: "PUT",
+  const addPhD = async (newPhD) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/phd-awarded`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          mentee_name: updatedPhD.menteeName,
-          passing_year: updatedPhD.passingYear,
+          faculty_id: "FAC001",
+          mentee_name: newPhD.menteeName,
+          mentee_rn: newPhD.rollNo,
+          passing_year: newPhD.passingYear,
         }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to add new record");
       }
-    );
-    if (!response.ok) {
-      throw new Error("Failed to update the record");
+      fetchPhDs();
+    } catch (error) {
+      console.error("Error adding new PhD record:", error);
     }
-    fetchPhDs();
-  } catch (error) {
-    console.error("Error updating PhD record:", error);
-  }
-};
-
-const deletePhD = async (rollNo) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/phd/${rollNo}`, {
-      method: "DELETE",
-    });
-    if (!response.ok) {
-      throw new Error("Failed to delete record");
+  };
+  
+  const updatePhD = async (updatedPhD) => {
+    try {
+      console.log("phd id", updatedPhD.PHD_id);
+      const response = await fetch(
+        `${API_BASE_URL}/phd-awarded/${updatedPhD.PHD_id}`, // 👈 Use PHD_id
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            mentee_name: updatedPhD.menteeName,
+            passing_year: updatedPhD.passingYear,
+            mentee_rn: updatedPhD.rollNo, // 👈 Include rollNo
+          }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to update the record");
+      }
+      fetchPhDs();
+    } catch (error) {
+      console.error("Error updating PhD record:", error);
     }
-    fetchPhDs();
-  } catch (error) {
-    console.error("Error deleting PhD record:", error);
-  }
-};
+  };
+  
+  const deletePhD = async (PHD_id) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/phd-awarded/${PHD_id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        throw new Error("Failed to delete record");
+      }
+      fetchPhDs();
+    } catch (error) {
+      console.error("Error deleting PhD record:", error);
+    }
+  };
+  
+ 
 
 
   const openPopup = (phd) => {
+    console.log("phd", phd);
     setSelectedPhD(phd);
     setPopupOpen(true);
     setBlurActive(true);
@@ -131,7 +135,7 @@ const deletePhD = async (rollNo) => {
       
     } else {
       // Add new record
-      console.log(newPhD)
+      console.log("newphd",newPhD)
       await updatePhD(newPhD);
     }
     closePopup();
@@ -139,9 +143,10 @@ const deletePhD = async (rollNo) => {
   
 
   const handleDeletePhD = async (indexToDelete) => {
-    const { rollNo } = phdDetails[indexToDelete];
+    const { PHD_id } = phdDetails[indexToDelete];
+
     try {
-      const response = await deletePhD(rollNo); // Call the delete API
+      const response = await deletePhD(PHD_id); // Call the delete API
       if (response.ok) {
         // Update the state to remove the deleted row
         setPhdDetails((prevDetails) =>
@@ -245,7 +250,12 @@ const deletePhD = async (rollNo) => {
                       <td className={`${classes} text-right`}>
                         <div className="flex justify-end gap-2">
                           <button
-                            onClick={() => openPopup(phd)}
+                            onClick={() => {
+                              setIsAddPhD(false);
+                              setSelectedPhD(phd);
+                              openPopup(phd);
+                              
+                            }}
                             className="bg-green-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
                           >
                             <img
@@ -292,11 +302,12 @@ const deletePhD = async (rollNo) => {
               handleAddPhD={handleAddPhD}
             />
           ) : (
-            selectedPhD && (
+            (
               <PhDPopUp
-                menteeName={selectedPhD.menteeName}
-                rollNo={selectedPhD.rollNo}
-                passingYear={selectedPhD.passingYear}
+                menteeName={selectedPhD?.menteeName}
+                rollNo={selectedPhD?.rollNo}
+                  passingYear={selectedPhD?.passingYear}
+                PHD_id = {selectedPhD?.PHD_id}
                 closeModal={closePopup}
                 handleAddPhD={handleAddPhD}
               />
