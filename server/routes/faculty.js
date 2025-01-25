@@ -49,6 +49,10 @@ import {
   addSpecialization,
   updateSpecialization,
   deleteSpecialization,
+  addFacultyImage,
+  getFacultyImage,
+  updateFacultyImage,
+  deleteFacultyImage,
 } from "../controllers/faculty.js";
 
 const router = express.Router();
@@ -116,8 +120,9 @@ router.delete('/consultancy/:consultancy_id', deleteConsultancy);
 
 // Faculty Details Routes
 router.get('/faculty/:faculty_id', getFacultyDetails);
-router.post('/faculty', uploadFacultyImage, addFaculty);
-router.put('/faculty/:faculty_id', uploadFacultyImage, updateFacultyDetails);
+router.get('/faculty', getFacultyDetails);
+router.post('/faculty', addFaculty);
+router.put('/faculty/:faculty_id', updateFacultyDetails);
 router.delete('/faculty/:faculty_id', deleteFaculty);
 
 // Specialization Routes
@@ -126,4 +131,11 @@ router.get("/specializations/:faculty_id", getSpecializations);
 router.post("/specializations", addSpecialization);
 router.put("/specializations/:specialization_id", updateSpecialization);
 router.delete("/specializations/:specialization_id", deleteSpecialization);
+
+// Faculty Image Routes
+router.post('/facultyimage/:faculty_id', uploadFacultyImage, addFacultyImage); // Route to upload faculty image
+router.get('/facultyimage/:faculty_id', getFacultyImage); // Route to get faculty image
+router.put('/facultyimage/:faculty_id', uploadFacultyImage, updateFacultyImage); // Route to update faculty image
+router.delete('/facultyimage/:faculty_id', deleteFacultyImage); // Route to delete faculty image
+
 export default router;

@@ -874,36 +874,72 @@ export const getSponsoredResearchByFaculty = (req, res) => {
 };
 
 export const addSponsoredResearch = (req, res) => {
-  const { faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date } = req.body;
+  const {
+    faculty_id,
+    project_title,
+    funding_agency,
+    amount_sponsored,
+    research_duration,
+    start_date,
+    end_date,
+  } = req.body;
 
   if (!faculty_id || !project_title || !start_date) {
     return res.status(400).json({ message: "Faculty ID, Project Title, and Start Date are required" });
   }
 
   const query = `
-    INSERT INTO faculty_sponsored_research (faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO faculty_sponsored_research (faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date, end_date)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
-  const queryParams = [faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date];
+  const queryParams = [
+    faculty_id,
+    project_title,
+    funding_agency,
+    amount_sponsored,
+    research_duration,
+    start_date,
+    end_date,
+  ];
 
   pool.query(query, queryParams, (err, result) => {
     if (err) {
       return res.status(500).json({ message: "Error adding sponsored research", error: err });
     }
-    res.status(201).json({ message: "Sponsored research added successfully", sponsorship_id: result.insertId });
+    res.status(201).json({
+      message: "Sponsored research added successfully",
+      sponsorship_id: result.insertId,
+    });
   });
 };
 
 export const updateSponsoredResearch = (req, res) => {
   const { sponsorship_id } = req.params;
-  const { faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date } = req.body;
+  const {
+    faculty_id,
+    project_title,
+    funding_agency,
+    amount_sponsored,
+    research_duration,
+    start_date,
+    end_date,
+  } = req.body;
 
   const query = `
     UPDATE faculty_sponsored_research
-    SET faculty_id = ?, project_title = ?, funding_agency = ?, amount_sponsored = ?, research_duration = ?, start_date = ?
+    SET faculty_id = ?, project_title = ?, funding_agency = ?, amount_sponsored = ?, research_duration = ?, start_date = ?, end_date = ?
     WHERE sponsorship_id = ?
   `;
-  const queryParams = [faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date, sponsorship_id];
+  const queryParams = [
+    faculty_id,
+    project_title,
+    funding_agency,
+    amount_sponsored,
+    research_duration,
+    start_date,
+    end_date,
+    sponsorship_id,
+  ];
 
   pool.query(query, queryParams, (err, result) => {
     if (err) {
@@ -932,6 +968,7 @@ export const deleteSponsoredResearch = (req, res) => {
     res.status(200).json({ message: "Sponsored research deleted successfully" });
   });
 };
+
 
 // Get consultancy records by faculty_id
 export const getConsultancyByFaculty = (req, res) => {
@@ -1016,22 +1053,30 @@ export const deleteConsultancy = (req, res) => {
 
 
 export const getFacultyDetails = (req, res) => {
-  const { faculty_id } = req.params;
+  const { faculty_id } = req.params; // Get faculty_id from route parameters (if provided)
 
-  const query = 'SELECT * FROM faculty_details WHERE faculty_id = ?';
-  
-  pool.query(query, [faculty_id], (err, results) => {
+  let query = "SELECT * FROM faculty_details";
+  let params = [];
+
+  if (faculty_id) {
+    query += " WHERE faculty_id = ?";
+    params.push(faculty_id);
+  }
+
+  pool.query(query, params, (err, results) => {
     if (err) {
-      return res.status(500).json({ message: 'Error fetching faculty details', error: err });
+      console.error("Error fetching faculty details:", err);
+      return res.status(500).json({ message: "Error fetching faculty details", error: err });
     }
 
-    if (results.length === 0) {
-      return res.status(404).json({ message: 'Faculty not found' });
-    }
-
-    res.status(200).json(results[0]);
+    res.status(200).json({
+      message: "Faculty details fetched successfully",
+      data: results,
+    });
   });
 };
+
+
 
 export const addFaculty = (req, res) => {
   const { faculty_id, faculty_name, degree, university, year_of_attaining_highest_degree, email_id, mobile_number } = req.body;
@@ -1040,16 +1085,14 @@ export const addFaculty = (req, res) => {
     return res.status(400).json({ message: 'Faculty ID is required' });
   }
 
-  const facultyImage = req.file ? `public/Faculty/images/${faculty_id}.${req.file.originalname.split('.').pop()}` : null;
-
   const sql = `
-    INSERT INTO faculty_details (faculty_id, faculty_name, faculty_image, degree, university, year_of_attaining_highest_degree, email_id, mobile_number)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO faculty_details (faculty_id, faculty_name, degree, university, year_of_attaining_highest_degree, email_id, mobile_number)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
 
   pool.query(
     sql,
-    [faculty_id, faculty_name, facultyImage, degree, university, year_of_attaining_highest_degree, email_id, mobile_number],
+    [faculty_id, faculty_name, degree, university, year_of_attaining_highest_degree, email_id, mobile_number],
     (error, result) => {
       if (error) {
         return res.status(500).json({ message: 'Error adding faculty details', error });
@@ -1060,123 +1103,53 @@ export const addFaculty = (req, res) => {
   );
 };
 
+
 export const updateFacultyDetails = (req, res) => {
   const { faculty_id } = req.params;
   const { faculty_name, degree, university, year_of_attaining_highest_degree, email_id, mobile_number } = req.body;
-  
-  // Check if a new image is uploaded
-  const newImage = req.file;
 
-  // Get the old image path from the database
-  const getQuery = 'SELECT faculty_image FROM faculty_details WHERE faculty_id = ?';
-  
-  pool.query(getQuery, [faculty_id], (err, result) => {
-    if (err) {
-      return res.status(500).json({ message: 'Error retrieving faculty data', error: err });
-    }
+  const updateQuery = `
+    UPDATE faculty_details
+    SET faculty_name = ?, degree = ?, university = ?, year_of_attaining_highest_degree = ?, email_id = ?, mobile_number = ?
+    WHERE faculty_id = ?
+  `;
 
-    if (result.length === 0) {
-      return res.status(404).json({ message: 'Faculty not found' });
-    }
-
-    const oldImagePath = result[0].faculty_image; // Get the old image path
-
-    // If a new image is uploaded, delete the old image
-    let newImagePath = null;  // Default value for new image path
-
-    if (newImage) {
-      // Deleting the old image from the folder (if it exists)
-      if (oldImagePath) {
-        const oldImageFullPath = path.join(__dirname, '..', 'public', 'Faculty', 'images', oldImagePath);
-        fs.unlink(oldImageFullPath, (err) => {
-          if (err) {
-            console.log('Error deleting old image:', err);
-          }
-        });
-      }
-
-      // New image path
-      newImagePath = `Faculty/images/${newImage.filename}`;
-    } else {
-      // If no new image is uploaded, keep the old image path
-      newImagePath = oldImagePath;
-    }
-
-    // Update query to include faculty details
-    const updateQuery = `
-      UPDATE faculty_details
-      SET faculty_name = ?, degree = ?, university = ?, year_of_attaining_highest_degree = ?, email_id = ?, mobile_number = ?, faculty_image = ?
-      WHERE faculty_id = ?
-    `;
-
-    pool.query(updateQuery, [faculty_name, degree, university, year_of_attaining_highest_degree, email_id, mobile_number, newImagePath, faculty_id], (err, updateResult) => {
+  pool.query(
+    updateQuery,
+    [faculty_name, degree, university, year_of_attaining_highest_degree, email_id, mobile_number, faculty_id],
+    (err, result) => {
       if (err) {
         return res.status(500).json({ message: 'Error updating faculty details', error: err });
       }
 
-      if (updateResult.affectedRows === 0) {
-        return res.status(404).json({ message: 'Failed to update faculty details' });
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: 'Faculty not found' });
       }
 
-      res.status(200).json({ message: 'Faculty details and image updated successfully' });
-    });
-  });
+      res.status(200).json({ message: 'Faculty details updated successfully' });
+    }
+  );
 };
+
 
 export const deleteFaculty = (req, res) => {
   const { faculty_id } = req.params;
 
-  // Query to get the image path from the database
-  const getQuery = 'SELECT faculty_image FROM faculty_details WHERE faculty_id = ?';
+  const deleteQuery = 'DELETE FROM faculty_details WHERE faculty_id = ?';
 
-  pool.query(getQuery, [faculty_id], (err, result) => {
+  pool.query(deleteQuery, [faculty_id], (err, result) => {
     if (err) {
-      return res.status(500).json({ message: 'Error retrieving faculty details', error: err });
+      return res.status(500).json({ message: 'Error deleting faculty details', error: err });
     }
 
-    // If no record found
-    if (result.length === 0) {
-      return res.status(404).json({ message: 'No faculty found with the given ID.' });
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Faculty not found' });
     }
 
-    const imagePath = result[0].faculty_image; // The image file path retrieved from the database
-
-    // If no image path exists in the database, skip the deletion
-    if (!imagePath) {
-      return res.status(200).json({ message: 'Faculty details deleted, but no image to delete.' });
-    }
-
-    // Query to delete the faculty record from the database
-    const deleteQuery = 'DELETE FROM faculty_details WHERE faculty_id = ?';
-
-    pool.query(deleteQuery, [faculty_id], (err, deleteResult) => {
-      if (err) {
-        return res.status(500).json({ message: 'Error deleting faculty details from database', error: err });
-      }
-
-      if (deleteResult.affectedRows === 0) {
-        return res.status(404).json({ message: 'Failed to delete faculty details from the database' });
-      }
-
-      // Remove any relative paths from the imagePath if it contains 'public' or unnecessary folder prefixes
-      const imagePathWithoutPublic = imagePath.replace(/^public\//, ''); // This will remove the 'public/' part if it's present
-
-      // Construct the correct full file path for the image
-      const fullImagePath = path.join(__dirname, '..', 'public', imagePathWithoutPublic);
-
-      console.log(`Attempting to delete image: ${fullImagePath}`); // Log the path for debugging
-
-      // Try to delete the image file from the filesystem
-      fs.unlink(fullImagePath, (err) => {
-        if (err) {
-          return res.status(500).json({ message: 'Error deleting the image file', error: err });
-        }
-
-        res.status(200).json({ message: 'Faculty details and image deleted successfully' });
-      });
-    });
+    res.status(200).json({ message: 'Faculty details deleted successfully' });
   });
 };
+
 
 export const getSpecializations = (req, res) => {
   const { faculty_id } = req.params; // Get faculty_id from route parameters (if provided)
@@ -1269,3 +1242,145 @@ export const deleteSpecialization = (req, res) => {
     res.status(200).json({ message: "Specialization deleted successfully", success: true });
   });
 };
+
+export const getFacultyImage = (req, res) => {
+  const { faculty_id } = req.params;
+
+  const query = 'SELECT * FROM faculty_image WHERE faculty_id = ?';
+
+  pool.query(query, [faculty_id], (err, results) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error fetching faculty image', error: err });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'Faculty image not found' });
+    }
+
+    res.status(200).json(results[0]);
+  });
+};
+
+export const addFacultyImage = (req, res) => {
+  const { faculty_id } = req.body;
+
+  if (!req.file) {
+    return res.status(400).json({ message: 'No image file uploaded' });
+  }
+
+  const imagePath = `public/Faculty/images/${faculty_id}.${req.file.originalname.split('.').pop()}`;
+
+  const query = `
+    INSERT INTO faculty_image (faculty_id, faculty_image)
+    VALUES (?, ?)
+  `;
+
+  pool.query(query, [faculty_id, imagePath], (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error adding faculty image', error: err });
+    }
+
+    res.status(201).json({ message: 'Faculty image added successfully', data: result });
+  });
+};
+
+export const updateFacultyImage = (req, res) => {
+  const { faculty_id } = req.params;
+
+  if (!req.file) {
+    return res.status(400).json({ message: 'No image file uploaded' });
+  }
+
+  // Define the new image path for storage
+  const fileExtension = path.extname(req.file.originalname);
+  const newImagePath = `Faculty/images/${faculty_id}${fileExtension}`;
+
+  // Get the old image path from the database
+  const getQuery = 'SELECT faculty_image FROM faculty_image WHERE faculty_id = ?';
+
+  pool.query(getQuery, [faculty_id], (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error retrieving faculty image', error: err });
+    }
+
+    const oldImagePath = result.length > 0 ? result[0].faculty_image : null;
+
+    // Delete the old image if it exists
+    if (oldImagePath) {
+      const fullOldImagePath = path.join(__dirname, '..', 'public', oldImagePath);
+      fs.unlink(fullOldImagePath, (err) => {
+        if (err) {
+          console.log('Error deleting old image:', err);
+        }
+      });
+    }
+
+    // Insert or update the new image path in the database
+    const updateQuery = `
+      INSERT INTO faculty_image (faculty_id, faculty_image)
+      VALUES (?, ?)
+      ON DUPLICATE KEY UPDATE faculty_image = ?
+    `;
+
+    pool.query(updateQuery, [faculty_id, newImagePath, newImagePath], (err, updateResult) => {
+      if (err) {
+        return res.status(500).json({ message: 'Error updating faculty image', error: err });
+      }
+
+      // Return a success response
+      res.status(200).json({ message: 'Faculty image updated successfully' });
+    });
+  });
+};
+
+
+export const deleteFacultyImage = (req, res) => {
+  const { faculty_id } = req.params;
+
+  // Query to get the image path from the database
+  const getQuery = 'SELECT faculty_image FROM faculty_image WHERE faculty_id = ?';
+
+  pool.query(getQuery, [faculty_id], (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error retrieving faculty image', error: err });
+    }
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: 'Faculty not found' });
+    }
+
+    const imagePath = result[0].faculty_image; // The image file path retrieved from the database
+
+    // If faculty_image is null or doesn't exist, skip the deletion process
+    if (!imagePath) {
+      return res.status(200).json({ message: 'No image to delete for the given faculty' });
+    }
+
+    // Construct the full path for the image
+    const fullImagePath = path.join(__dirname, '..', imagePath); // Full path of the image
+
+    // Try to delete the image file from the filesystem
+    fs.unlink(fullImagePath, (err) => {
+      if (err) {
+        return res.status(500).json({ message: 'Error deleting the image file', error: err });
+      }
+
+      // Proceed with deleting the record from the database after deleting the image
+      const deleteQuery = 'DELETE FROM faculty_image WHERE faculty_id = ?';
+
+      pool.query(deleteQuery, [faculty_id], (err, deleteResult) => {
+        if (err) {
+          return res.status(500).json({ message: 'Error deleting the faculty image record', error: err });
+        }
+
+        if (deleteResult.affectedRows === 0) {
+          return res.status(404).json({ message: 'Failed to delete faculty image record' });
+        }
+
+        res.status(200).json({ message: 'Faculty image and record deleted successfully' });
+      });
+    });
+  });
+};
+
+

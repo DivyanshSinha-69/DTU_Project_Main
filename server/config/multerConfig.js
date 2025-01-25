@@ -8,7 +8,6 @@ import { dirname } from 'path';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Set up Multer storage for research papers
-// Multer storage for research papers
 const researchPaperStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     const faculty_id = req.body.faculty_id;
@@ -25,7 +24,6 @@ const researchPaperStorage = multer.diskStorage({
   },
 });
 
-
 // Set up Multer storage for faculty images
 const facultyImageStorage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -37,7 +35,7 @@ const facultyImageStorage = multer.diskStorage({
     cb(null, uploadPath); // Upload destination path
   },
   filename: (req, file, cb) => {
-    const faculty_id = req.body.faculty_id; // Use faculty_id for file name
+    const faculty_id = req.params.faculty_id; // Using faculty_id from the route parameter
     if (!faculty_id) {
       return cb(new Error('Faculty ID is required to save the image'), null);
     }
