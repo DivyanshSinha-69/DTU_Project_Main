@@ -162,16 +162,16 @@ const PhDsAwarded = ({ setBlurActive }) => {
   
   
 
-  const TABLE_HEAD = ["Mentee Name", "Roll No", "Passing Year", "Actions"];
+  const TABLE_HEAD = ["Name of the Student", "Roll No", "Year PhD was Awarded", "Actions"];
 
   return (
     <div>
       <div className="h-auto p-10">
         <div className="flex flex-row justify-between pr-5 pl-5">
           <p className="p-3 text-2xl font1 border-top my-auto">
-            PhDs Awarded <br />
+            PhD Guidance Details <br />
             <span className="text-lg text-red-600">
-              (Details of PhDs awarded)
+              (Mention your students who have completed their Phd )
             </span>
           </p>
           <button
@@ -292,7 +292,7 @@ const PhDsAwarded = ({ setBlurActive }) => {
         className="mx-auto my-auto p-2"
         closeOnDocumentClick
       >
-        <div className="h-[550px] w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.8] rounded-[12%] top-10 fixed inset-5 md:inset-20 flex items-center justify-center">
+        <div >
           {isAddPhD ? (
             <PhDPopUp
               menteeName=""

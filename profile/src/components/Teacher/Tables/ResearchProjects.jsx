@@ -98,7 +98,7 @@ const ResearchProjects = ({ setBlurActive }) => {
             closeOnDocumentClick
           >
             {(close) => (
-              <div className="h-[650px] w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.8] rounded-[12%] top-10 fixed inset-10 md:inset-20 flex items-center justify-center">
+              <div>
                 <ResearchProjectPopup
                   closeModal={close}
                   saveProject={saveProject}

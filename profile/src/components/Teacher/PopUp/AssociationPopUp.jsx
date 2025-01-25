@@ -18,34 +18,34 @@ const AssociationPopUp = ({ currentDetails, onUpdate, closeModal }) => {
     };
 
     const handleSubmit = (e) => {
-        e.preventDefault();
-    
-        let updatedData = { ...formData };
-    
-        // Ensure only relevant fields are included
-        if (updatedData.highestDesignation !== "Professor") {
-            updatedData.associateProfessorStartDate = null;
-            updatedData.associateProfessorEndDate = null;
-        }
-    
-        if (
-            updatedData.highestDesignation !== "Professor" &&
-            updatedData.highestDesignation !== "Associate Professor"
-        ) {
-            updatedData.assistantProfessorStartDate = null;
-            updatedData.assistantProfessorEndDate = null;
-        }
-    
-        console.log("🚀 Cleaned Payload Before Sending:", updatedData);
-    
-        if (!updatedData.highestDesignation || !updatedData.highestDesignationDate) {
-            toast.error("Please fill in all required fields.");
-            return;
-        }
-    
-        onUpdate(updatedData);
-    };
-    
+    e.preventDefault();
+
+    let updatedData = { ...formData };
+
+    // Ensure only relevant fields are included
+    if (updatedData.highestDesignation !== "Professor") {
+        updatedData.associateProfessorStartDate = null;
+        updatedData.associateProfessorEndDate = null;
+    }
+
+    if (
+        updatedData.highestDesignation !== "Professor" &&
+        updatedData.highestDesignation !== "Associate Professor"
+    ) {
+        updatedData.assistantProfessorStartDate = null;
+        updatedData.assistantProfessorEndDate = null;
+    }
+
+    console.log("🚀 Cleaned Payload Before Sending:", updatedData);
+
+    if (!updatedData.highestDesignation || !updatedData.highestDesignationDate) {
+        toast.error("Please fill in all required fields.");
+        return;
+    }
+
+    onUpdate(updatedData);
+};
+
     
 
     return (
@@ -55,7 +55,7 @@ const AssociationPopUp = ({ currentDetails, onUpdate, closeModal }) => {
                 shadow={false}
                 className="w-[90%] max-w-[700px] h-auto p-8 bg-gray-900 rounded-[20px]"
             >
-                <form className="text-white flex flex-col space-y-6" onSubmit={handleSubmit}>
+                <form className="text-white flex flex-col space-y-6 " onSubmit={handleSubmit}>
                     <div className="relative z-0 w-full group">
                         <label htmlFor="highestDesignation" className="block text-sm">
                             Highest Designation

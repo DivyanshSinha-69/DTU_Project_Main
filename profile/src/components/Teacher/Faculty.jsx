@@ -7,7 +7,6 @@ import BookRecordsPublished from "./Tables/BookRecords.jsx";
 import Association from "./Tables/Association";
 import Visits from "./Tables/Visits";
 import FacultyDevelopmentProgram from "./Tables/FDP";
-import PhdGuidance from "./Tables/PhdGuidance";
 import PhDsAwarded from "./Tables/PhDsAwarded";
 import SponsoredResearch from "./Tables/SponsoredResearch";
 import "../../styles/popup.css";

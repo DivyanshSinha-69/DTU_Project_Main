@@ -47,6 +47,7 @@ const SponsoredResearch = ({ setBlurActive }) => {
             amount: record.amount_sponsored,
             duration: record.research_duration,
             startDate: record.start_date,
+          end_date: record.end_date,
             sponsorship_id: record.sponsorship_id,
           }))
         );
@@ -90,6 +91,7 @@ const SponsoredResearch = ({ setBlurActive }) => {
         amount_sponsored: newResearch.amount,
         research_duration: newResearch.duration,
         start_date: newResearch.startDate,
+        end_date: newResearch.endDate || null,
       };
     
       axios
@@ -110,6 +112,8 @@ const SponsoredResearch = ({ setBlurActive }) => {
         amount_sponsored: newResearch.amount,
         research_duration: newResearch.duration,
         start_date: newResearch.startDate,
+        end_date: newResearch.endDate || null,
+
       };
   
       axios
@@ -144,9 +148,9 @@ const SponsoredResearch = ({ setBlurActive }) => {
   };
   
 
-  const TABLE_HEAD = ["Project Title", "Funding Agency", "Amount Sponsored", "Duration (Years)", "Start Date", "Actions"];
+  const TABLE_HEAD = ["Project Title", "Funding Agency", "Amount Sponsored", "Duration (Years)", "Start Date", "End Date", "Actions"];
   const formatDateForInput = (date) => {
-    const [date1, time] = date.split('T');
+    const [date1, time] = date?.split('T');
 
     const [day, month, year] = date1.split('-');
     return `${day}-${month}-${year}`; // yyyy-MM-dd
@@ -206,7 +210,8 @@ const SponsoredResearch = ({ setBlurActive }) => {
                     agency = research.funding_agency,
                     amount = research.amount_sponsored,
                     duration = research.research_duration,
-                    startDate = research.start_date } = research;
+                    startDate = research.start_date ,
+                    endDate = research.end_date} = research;
                   const isLast = index === researchDetails.length - 1;
                   const classes = isLast
                     ? "p-4"
@@ -260,6 +265,15 @@ const SponsoredResearch = ({ setBlurActive }) => {
 
                         </Typography>
                       </td>
+                      <td className={classes}>
+                        <Typography
+                          variant="small"
+                          color="blue-gray"
+                          className="font-normal"
+                        >
+                          {endDate? new Date(endDate)?.toLocaleDateString("en-GB"): "-"}
+                        </Typography>
+                      </td>
                       <td className={`${classes} text-right`}>
                         <div className="flex justify-end gap-2">
                           <button
@@ -296,7 +310,7 @@ const SponsoredResearch = ({ setBlurActive }) => {
         className="mx-auto my-auto p-2"
         closeOnDocumentClick
       >
-        <div className="h-[550px] w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.8] rounded-[12%] top-10 fixed inset-5 md:inset-20 flex items-center justify-center">
+        <div >
           {isAddResearch ? (
             <SponsoredResearchPopUp
               title=""
@@ -304,6 +318,7 @@ const SponsoredResearch = ({ setBlurActive }) => {
               amount=""
               duration=""
               startDate=""
+              endDate="" 
               closeModal={closePopup}
               handleAddResearch={handleAddResearch}
             />
@@ -314,7 +329,8 @@ const SponsoredResearch = ({ setBlurActive }) => {
                 agency={selectedResearch.agency}
                 amount={selectedResearch.amount}
                 duration={selectedResearch.duration}
-                startDate={formatDateForInput(selectedResearch.startDate)}
+                  startDate={formatDateForInput(selectedResearch.startDate)}
+                  endDate={selectedResearch.endDate? formatDateForInput(selectedResearch?.endDate): ""} 
                 closeModal={closePopup}
                 handleAddResearch={handleAddResearch}
               />

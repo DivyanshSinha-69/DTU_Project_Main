@@ -9,12 +9,7 @@ import deleteImg from "../../../assets/delete.svg";
 import axios from "axios";
 
 
-// Dummy data for testing
-const dummyConsultancyDetails = [
-  { title: "Business Strategy", client: "ABC Corp", amount: 50000, duration: 6, startDate: "2021-06-15" },
-  { title: "Marketing Plan", client: "XYZ Ltd", amount: 75000, duration: 3, startDate: "2022-01-10" },
-  { title: "Tech Consultation", client: "Tech Innovators", amount: 100000, duration: 12, startDate: "2020-09-20" }
-];
+
 
 const ConsultancyDetails = ({ setBlurActive }) => {
   const [consultancyDetails, setConsultancyDetails] = useState([]);
@@ -44,6 +39,7 @@ const ConsultancyDetails = ({ setBlurActive }) => {
           amount_sponsored: record.amount_sponsored,
           research_duration: record.research_duration,
           start_date: record.start_date,
+          end_date: record.end_date,
           consultancy_id: record.consultancy_id,
         }))
       );
@@ -81,6 +77,7 @@ const ConsultancyDetails = ({ setBlurActive }) => {
           amount_sponsored: newConsultancy.amount || 0, // Default to 0 if not provided
           research_duration: newConsultancy.duration || null, // Optional field
           start_date: newConsultancy.startDate, // Required field
+          end_date: newConsultancy.endDate || null,
         });
       } else {
         // Update existing consultancy
@@ -93,6 +90,7 @@ const ConsultancyDetails = ({ setBlurActive }) => {
             amount_sponsored: newConsultancy.amount ,
             research_duration: newConsultancy.duration ,
             start_date: newConsultancy.startDate,
+            end_date: newConsultancy.endDate || null,
           }
         );
       }
@@ -118,7 +116,7 @@ const ConsultancyDetails = ({ setBlurActive }) => {
   };
   
 
-  const TABLE_HEAD = ["Consultancy Title", "Agency Name", "Amount Charged", "Duration (Years)", "Start Date", "Actions"];
+  const TABLE_HEAD = ["Consultancy Title", "Agency Name", "Funding Amount", "Duration (Years)", "Start Date", "End Date", "Actions"];
   const formatDateForInput = (date) => {
     const [date1, time] = date?.split('T');
 
@@ -171,7 +169,7 @@ const ConsultancyDetails = ({ setBlurActive }) => {
               </thead>
               <tbody>
                 {consultancyDetails.map((consultancy, index) => {
-                  const { consultancy_id, project_title, funding_agency, amount_sponsored, research_duration, start_date } = consultancy;
+                  const { consultancy_id, project_title, funding_agency, amount_sponsored, research_duration, start_date, end_date} = consultancy;
                   const isLast = index === consultancyDetails.length - 1;
                   const classes = isLast
                     ? "p-4"
@@ -224,6 +222,16 @@ const ConsultancyDetails = ({ setBlurActive }) => {
                           {new Date(start_date)?.toLocaleDateString("en-GB")}
                         </Typography>
                       </td>
+                      <td className={classes}>
+                        <Typography
+                          variant="small"
+                          color="blue-gray"
+                          className="font-normal"
+                        >
+                          {end_date? new Date(end_date)?.toLocaleDateString("en-GB"): "-"}
+                        </Typography>
+                      </td>
+
                       <td className={`${classes} text-right`}>
                         <div className="flex justify-end gap-2">
                           <button
@@ -256,7 +264,7 @@ const ConsultancyDetails = ({ setBlurActive }) => {
         className="mx-auto my-auto p-2"
         closeOnDocumentClick
       >
-        <div className="h-[550px] w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.8] rounded-[12%] top-10 fixed inset-5 md:inset-20 flex items-center justify-center">
+        <div >
           {isAddConsultancy ? (
             <ConsultancyDetailsPopUp
               title=""
@@ -264,6 +272,7 @@ const ConsultancyDetails = ({ setBlurActive }) => {
               amount=""
               duration=""
               startDate=""
+              endDate="" 
               closeModal={closePopup}
               handleAddConsultancy={handleAddConsultancy}
             />
@@ -274,7 +283,8 @@ const ConsultancyDetails = ({ setBlurActive }) => {
                 client={selectedConsultancy.funding_agency}
                 amount={selectedConsultancy.amount_sponsored}
                 duration={selectedConsultancy.research_duration}
-                startDate={formatDateForInput(selectedConsultancy.start_date)}
+                  startDate={formatDateForInput(selectedConsultancy.start_date)}
+                  endDate={selectedConsultancy.end_date? formatDateForInput(selectedConsultancy?.end_date): ""} 
                 closeModal={closePopup}
                 handleAddConsultancy={handleAddConsultancy}
               />

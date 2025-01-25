@@ -31,7 +31,6 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
           toast.error(result.message || "Failed to fetch FDP details");
         }
       } catch (err) {
-        console.error(err.message);
         toast.error("Error while fetching FDP details");
       }
     };
@@ -262,7 +261,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
         className="mx-auto my-auto p-2"
         closeOnDocumentClick
       >
-        <div className="h-[550px] w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.8] rounded-[12%] top-10 fixed inset-5 md:inset-20 flex items-center justify-center">
+        <div >
           {isAddFDP ? (
             <FDPPopUp
               programName=""

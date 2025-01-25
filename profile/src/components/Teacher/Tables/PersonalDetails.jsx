@@ -159,7 +159,7 @@ const PersonalDetails = ({ setBlurActive }) => {
             className="mx-auto my-auto p-2"
             closeOnDocumentClick
           >
-            <div className="h-[550px] w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.8] rounded-[12%] top-10 fixed inset-5 md:inset-20 flex items-center justify-center">
+            <div >
               <PersonalDetailPopup
                 closeModal={closePopup}
                 name={personalDetails.name}

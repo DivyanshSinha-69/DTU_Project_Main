@@ -8,29 +8,7 @@ import addImg from "../../../assets/add.svg";
 import deleteImg from "../../../assets/delete.svg";
 
 // Dummy data for testing
-const dummyVisitDetails = [
-  {
-    visitType: "Visiting",
-    institutionName: "University of Oxford",
-    courses: "AI and Machine Learning",
-    year_of_visit: 2022,
-    hours_taught: 30,
-  },
-  {
-    visitType: "Adjunct",
-    institutionName: "Stanford University",
-    courses: "Advanced Algorithms",
-    year_of_visit: 2023,
-    hours_taught: 20,
-  },
-  {
-    visitType: "Emeritus",
-    institutionName: "MIT",
-    courses: "Quantum Computing",
-    year_of_visit: 2021,
-    hours_taught: 25,
-  },
-];
+
 
 const Visits = ({ setBlurActive }) => {
   const visitTypeMap = { Visiting: 1, Adjunct: 2, Emeritus: 3 };
@@ -157,7 +135,7 @@ const Visits = ({ setBlurActive }) => {
   const TABLE_HEAD = [
     "Visit Type",
     "Institution Name",
-    "Courses",
+    "Names of Courses Taught",
     "Month of Visit",
     "Year of Visit",
     "Hours Taught",
@@ -169,7 +147,7 @@ const Visits = ({ setBlurActive }) => {
       <div className="h-auto p-10">
         <div className="flex flex-row justify-between pr-5 pl-5">
           <p className="p-3 text-2xl font1 border-top my-auto">
-            Teacher Visit Details <br />
+            Interaction with the Outside World as Guest Faculty<br />
             <span className="text-lg text-red-600">
               (Details of academic visits)
             </span>
@@ -321,7 +299,7 @@ const Visits = ({ setBlurActive }) => {
         className="mx-auto my-auto p-2"
         closeOnDocumentClick
       >
-        <div className="h-[550px] w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.8] rounded-[12%] top-10 fixed inset-5 md:inset-20 flex items-center justify-center">
+        <div>
           {isAddVisit ? (
             <VisitsPopUp
               visitType=""
