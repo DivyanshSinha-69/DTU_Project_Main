@@ -489,23 +489,30 @@ export const deleteResearchPaper = (req, res) => {
 
 
 export const getFDPRecords = (req, res) => {
-  const { faculty_id } = req.params;  // Get faculty_id from route parameters (if provided)
+  const { faculty_id } = req.params;
 
-  let query = 'SELECT * FROM faculty_FDP';
+  let query = "SELECT * FROM faculty_FDP";
   let params = [];
 
+  // If a faculty_id is provided, filter results by faculty_id
   if (faculty_id) {
-    query += ' WHERE faculty_id = ?';
+    query += " WHERE faculty_id = ?";
     params.push(faculty_id);
   }
 
   pool.query(query, params, (err, results) => {
     if (err) {
-      console.error('Error fetching FDP records:', err);
-      return res.status(500).json({ message: 'Error fetching FDP records', error: err });
+      console.error("Error fetching FDP details:", err);
+      return res.status(500).json({ message: "Error fetching FDP details", error: err });
     }
-    res.status(200).json({ message: 'FDP records fetched successfully', data: results });
-    console.log("fdb backend",data);
+
+    // If no results found, send a message
+    if (results.length === 0) {
+      return res.status(404).json({ message: "No FDP details found" });
+    }
+
+    // Successfully fetched the FDP records
+    res.status(200).json({ message: "FDP details fetched successfully", data: results });
   });
 };
 
@@ -571,7 +578,6 @@ export const deleteFDPRecord = (req, res) => {
     res.status(200).json({ message: 'FDP record deleted successfully' });
   });
 };
-
 
 
 export const getVAERecords = (req, res) => {
