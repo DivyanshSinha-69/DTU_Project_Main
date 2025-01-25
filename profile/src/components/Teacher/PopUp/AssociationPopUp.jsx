@@ -19,12 +19,34 @@ const AssociationPopUp = ({ currentDetails, onUpdate, closeModal }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!formData.highestDesignation || !formData.highestDesignationDate) {
+    
+        let updatedData = { ...formData };
+    
+        // Ensure only relevant fields are included
+        if (updatedData.highestDesignation !== "Professor") {
+            updatedData.associateProfessorStartDate = null;
+            updatedData.associateProfessorEndDate = null;
+        }
+    
+        if (
+            updatedData.highestDesignation !== "Professor" &&
+            updatedData.highestDesignation !== "Associate Professor"
+        ) {
+            updatedData.assistantProfessorStartDate = null;
+            updatedData.assistantProfessorEndDate = null;
+        }
+    
+        console.log("🚀 Cleaned Payload Before Sending:", updatedData);
+    
+        if (!updatedData.highestDesignation || !updatedData.highestDesignationDate) {
             toast.error("Please fill in all required fields.");
             return;
         }
-        onUpdate(formData);
+    
+        onUpdate(updatedData);
     };
+    
+    
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-80">

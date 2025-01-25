@@ -21,16 +21,21 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
     const fetchFDPDetails = async () => {
       try {
         const response = await fetch(`http://localhost:3001/fdp-records/${faculty_id}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const result = await response.json();
-        if (response.ok && Array.isArray(result.data)) {
-          setFdpDetails(result.data); // Only set if the response is an array
+        if (Array.isArray(result.data)) {
+          setFdpDetails(result.data);
         } else {
           toast.error(result.message || "Failed to fetch FDP details");
         }
       } catch (err) {
+        console.error(err.message);
         toast.error("Error while fetching FDP details");
       }
     };
+    
   
     fetchFDPDetails();
   }, []);
@@ -50,61 +55,42 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
 
   const handleAddFDP = async (newFDP) => {
     const { programName, year, month, days } = newFDP;
-    const faculty_id = "FAC001"; // Placeholder faculty ID
-  
+    const url = isAddFDP 
+      ? "http://localhost:3001/fdp-records" 
+      : `http://localhost:3001/fdp-records/${selectedFDP?.FDP_id}`;
+
+    const method = isAddFDP ? "POST" : "PUT";
+    const body = isAddFDP
+      ? { faculty_id, FDP_name: programName, year_conducted: year, month_conducted: month, days_contributed: days }
+      : { ...selectedFDP, year_conducted: year, month_conducted: month, days_contributed: days };
+
     try {
-      const response = isAddFDP
-      ? await fetch('http://localhost:3001/fdp-records', {
-        method: "POST", // For adding a new FDP
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              faculty_id,
-              FDP_name: programName,
-              year_conducted: year,
-              month_conducted: month,
-              days_contributed: days,
-            }),
-          })
-          : await fetch(`http://localhost:3001/fdp-records/${selectedFDP.FDP_id}`, {
-            method: "PUT", // For updating the FDP
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              faculty_id,
-              FDP_name: selectedFDP.FDP_name, // The FDP name to identify the record to update
-              year_conducted: year,
-              month_conducted: month,
-              days_contributed: days,
-            }),
-          });
-  
-      const data = await response.json();
-      if (response.ok) {
-        console.log("FDP record successfully added/updated", data);
-        
-        setFdpDetails((prevDetails) =>
-          isAddFDP
-            ? [...prevDetails, { ...newFDP, FDP_name: programName, year_conducted: year, month_conducted: month, days_contributed: days }]
-            : prevDetails.map((fdp) =>
-                fdp.FDP_name === selectedFDP.FDP_name
-                  ? { ...newFDP, FDP_name: programName, year_conducted: year, month_conducted: month, days_contributed: days }
-                  : fdp
-              )
-        );
-        
-        closePopup();
-      } else {
-        console.error("Error:", data.message);
-        toast.error(data.message || "Something went wrong");
-      }
-    } catch (err) {
-      console.error("Request failed", err);
-      toast.error("Error while adding/updating FDP");
+        const response = await fetch(url, {
+            method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (response.ok) {
+            toast.success("FDP record successfully added/updated");
+            // Reload the FDP records after the update
+            setFdpDetails((prev) =>
+                isAddFDP
+                    ? [...prev, { ...body }]
+                    : prev.map((fdp) =>
+                        fdp.FDP_id === selectedFDP.FDP_id ? { ...body } : fdp
+                    )
+            );
+            closePopup();
+        } else {
+            toast.error(data.message || "Failed to save FDP record.");
+        }
+    } catch (error) {
+        console.error(error);
+        toast.error("Error connecting to the server.");
     }
-  };
+};
+
   
   
 
