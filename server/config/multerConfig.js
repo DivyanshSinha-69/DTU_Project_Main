@@ -39,8 +39,13 @@ const facultyImageStorage = multer.diskStorage({
     if (!faculty_id) {
       return cb(new Error('Faculty ID is required to save the image'), null);
     }
+
+    // Generate a unique filename based on the faculty_id and timestamp
     const fileExtension = path.extname(file.originalname); // Extract the file extension
-    cb(null, `${faculty_id}${fileExtension}`); // Save file as faculty_id.extension
+    const timestamp = Date.now(); // Add a timestamp to ensure uniqueness
+    const uniqueFilename = `${faculty_id}_${timestamp}${fileExtension}`; // Save as faculty_id_timestamp.extension
+
+    cb(null, uniqueFilename); // Use the unique filename
   },
 });
 

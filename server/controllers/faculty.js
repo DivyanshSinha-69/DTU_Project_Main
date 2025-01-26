@@ -1300,77 +1300,63 @@ export const getFacultyImage = (req, res) => {
   });
 };
 
-export const addFacultyImage = (req, res) => {
-  const { faculty_id } = req.body;
 
-  if (!req.file) {
-    return res.status(400).json({ message: 'No image file uploaded' });
-  }
-
-  const imagePath = `public/Faculty/images/${faculty_id}.${req.file.originalname.split('.').pop()}`;
-
-  const query = `
-    INSERT INTO faculty_image (faculty_id, faculty_image)
-    VALUES (?, ?)
-  `;
-
-  pool.query(query, [faculty_id, imagePath], (err, result) => {
-    if (err) {
-      return res.status(500).json({ message: 'Error adding faculty image', error: err });
-    }
-
-    res.status(201).json({ message: 'Faculty image added successfully', data: result });
-  });
-};
-
-export const updateFacultyImage = (req, res) => {
+export const updateFacultyImage = async (req, res) => {
   const { faculty_id } = req.params;
 
   if (!req.file) {
     return res.status(400).json({ message: 'No image file uploaded' });
   }
 
-  // Define the new image path for storage
-  const fileExtension = path.extname(req.file.originalname);
-  const newImagePath = `Faculty/images/${faculty_id}${fileExtension}`;
+  // Define the image path for storage (use the filename provided by Multer)
+  const newImageFilename = req.file.filename; // Multer has already assigned a unique name
+  const newImagePath = `Faculty/images/${newImageFilename}`;
 
-  // Get the old image path from the database
-  const getQuery = 'SELECT faculty_image FROM faculty_image WHERE faculty_id = ?';
-
-  pool.query(getQuery, [faculty_id], (err, result) => {
-    if (err) {
-      return res.status(500).json({ message: 'Error retrieving faculty image', error: err });
-    }
+  try {
+    // Get the old image path from the database
+    const getQuery = 'SELECT faculty_image FROM faculty_image WHERE faculty_id = ?';
+    const [result] = await pool.promise().query(getQuery, [faculty_id]);
 
     const oldImagePath = result.length > 0 ? result[0].faculty_image : null;
 
     // Delete the old image if it exists
     if (oldImagePath) {
       const fullOldImagePath = path.join(__dirname, '..', 'public', oldImagePath);
-      fs.unlink(fullOldImagePath, (err) => {
-        if (err) {
-          console.log('Error deleting old image:', err);
-        }
-      });
+      try {
+        await fs.promises.unlink(fullOldImagePath);
+      } catch {
+        // Continue even if the old file deletion fails
+      }
     }
 
-    // Insert or update the new image path in the database
+    // Ensure the folder exists
+    const uploadDir = path.join(__dirname, '..', 'public', 'Faculty', 'images');
+    if (!fs.existsSync(uploadDir)) {
+      await fs.promises.mkdir(uploadDir, { recursive: true });
+    }
+
+    // Move the uploaded file to the destination
+    const destPath = path.join(uploadDir, newImageFilename);
+    const tempFilePath = req.file.path;
+
+    if (tempFilePath !== destPath) {
+      await fs.promises.rename(tempFilePath, destPath);
+    }
+
+    // Update the faculty_image field in the database
     const updateQuery = `
-      INSERT INTO faculty_image (faculty_id, faculty_image)
-      VALUES (?, ?)
-      ON DUPLICATE KEY UPDATE faculty_image = ?
+      UPDATE faculty_image 
+      SET faculty_image = ? 
+      WHERE faculty_id = ?
     `;
+    await pool.promise().query(updateQuery, [newImagePath, faculty_id]);
 
-    pool.query(updateQuery, [faculty_id, newImagePath, newImagePath], (err, updateResult) => {
-      if (err) {
-        return res.status(500).json({ message: 'Error updating faculty image', error: err });
-      }
-
-      // Return a success response
-      res.status(200).json({ message: 'Faculty image updated successfully' });
-    });
-  });
+    res.status(200).json({ message: 'Faculty image updated successfully' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error updating faculty image', error: err });
+  }
 };
+
 
 
 export const deleteFacultyImage = (req, res) => {
@@ -1396,30 +1382,33 @@ export const deleteFacultyImage = (req, res) => {
     }
 
     // Construct the full path for the image
-    const fullImagePath = path.join(__dirname, '..', imagePath); // Full path of the image
+    const fullImagePath = path.join(__dirname, '..', 'public', imagePath);
 
-    // Try to delete the image file from the filesystem
-    fs.unlink(fullImagePath, (err) => {
-      if (err) {
-        return res.status(500).json({ message: 'Error deleting the image file', error: err });
+    // Check if the file exists before trying to delete it
+    fs.access(fullImagePath, fs.constants.F_OK, (err) => {
+      if (!err) {
+        // If the file exists, try to delete it
+        fs.unlink(fullImagePath, (err) => {
+          if (err) {
+            return res.status(500).json({ message: 'Error deleting the image file', error: err });
+          }
+        });
       }
 
-      // Proceed with deleting the record from the database after deleting the image
-      const deleteQuery = 'DELETE FROM faculty_image WHERE faculty_id = ?';
+      // Proceed with updating the faculty_image column to NULL in the database
+      const updateQuery = 'UPDATE faculty_image SET faculty_image = NULL WHERE faculty_id = ?';
 
-      pool.query(deleteQuery, [faculty_id], (err, deleteResult) => {
+      pool.query(updateQuery, [faculty_id], (err, updateResult) => {
         if (err) {
-          return res.status(500).json({ message: 'Error deleting the faculty image record', error: err });
+          return res.status(500).json({ message: 'Error updating faculty image record', error: err });
         }
 
-        if (deleteResult.affectedRows === 0) {
-          return res.status(404).json({ message: 'Failed to delete faculty image record' });
+        if (updateResult.affectedRows === 0) {
+          return res.status(404).json({ message: 'Failed to update faculty image record' });
         }
 
-        res.status(200).json({ message: 'Faculty image and record deleted successfully' });
+        res.status(200).json({ message: 'Faculty image deleted and record updated successfully' });
       });
     });
   });
 };
-
-
