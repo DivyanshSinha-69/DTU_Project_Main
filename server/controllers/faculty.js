@@ -764,6 +764,7 @@ export const getPhDAwardedRecords = (req, res) => {
   });
 };
 
+
 /**
  * Get all PhD mentee names for a specific faculty_id
  */
@@ -771,7 +772,7 @@ export const getPhDAwardedRecordsByFacultyId = (req, res) => {
   const { faculty_id } = req.params;
 
   const query = `
-    SELECT PHD_id, mentee_name, mentee_rn, passing_year 
+    SELECT PHD_id, mentee_name, mentee_rn, passing_year, passing_month 
     FROM faculty_PhD_awarded 
     WHERE faculty_id = ?
   `;
@@ -787,18 +788,19 @@ export const getPhDAwardedRecordsByFacultyId = (req, res) => {
   });
 };
 
+
 /**
  * Add a new PhD awarded record
  */
 export const addPhDAwardedRecord = (req, res) => {
-  const { faculty_id, mentee_name, mentee_rn, passing_year } = req.body;
+  const { faculty_id, mentee_name, mentee_rn, passing_year, passing_month } = req.body;
 
   const query = `
-    INSERT INTO faculty_PhD_awarded (faculty_id, mentee_name, mentee_rn, passing_year)
-    VALUES (?, ?, ?, ?)
+    INSERT INTO faculty_PhD_awarded (faculty_id, mentee_name, mentee_rn, passing_year, passing_month)
+    VALUES (?, ?, ?, ?, ?)
   `;
 
-  const queryParams = [faculty_id, mentee_name, mentee_rn, passing_year];
+  const queryParams = [faculty_id, mentee_name, mentee_rn, passing_year, passing_month];
 
   pool.query(query, queryParams, (err, result) => {
     if (err) {
@@ -808,6 +810,7 @@ export const addPhDAwardedRecord = (req, res) => {
   });
 };
 
+
 /**
  * Update an existing PhD record using PHD_id
  */
@@ -815,7 +818,7 @@ export const addPhDAwardedRecord = (req, res) => {
  * Update an existing PhD record using PHD_id
  */
 export const updatePhDAwardedRecord = (req, res) => {
-  const { mentee_name, passing_year, mentee_rn } = req.body; // Include mentee_rn in the request body
+  const { mentee_name, passing_year, passing_month, mentee_rn } = req.body;
   const { PHD_id } = req.params;
 
   if (!PHD_id) {
@@ -824,11 +827,11 @@ export const updatePhDAwardedRecord = (req, res) => {
 
   const query = `
     UPDATE faculty_PhD_awarded
-    SET mentee_name = ?, passing_year = ?, mentee_rn = ?
+    SET mentee_name = ?, passing_year = ?, passing_month = ?, mentee_rn = ?
     WHERE PHD_id = ?
   `;
 
-  const queryParams = [mentee_name, passing_year, mentee_rn, PHD_id];
+  const queryParams = [mentee_name, passing_year, passing_month, mentee_rn, PHD_id];
 
   pool.query(query, queryParams, (err, result) => {
     if (err) {
@@ -840,6 +843,7 @@ export const updatePhDAwardedRecord = (req, res) => {
     res.status(200).json({ message: "PhD awarded record updated successfully" });
   });
 };
+
 
 
 /**
@@ -860,6 +864,7 @@ export const deletePhDAwardedRecord = (req, res) => {
     res.status(200).json({ message: 'PhD awarded record deleted successfully' });
   });
 };
+
 
 
 export const getSponsoredResearchByFaculty = (req, res) => {
