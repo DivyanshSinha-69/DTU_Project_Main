@@ -73,9 +73,12 @@ router.delete("/facultyassociation/:faculty_id", deleteFacultyAssociation);
 
 // Research Paper Route
 router.post('/researchpaper', uploadResearchPaper, addResearchPaper);
-router.get('/researchpapers/:faculty_id', getResearchPapersByFaculty);
-router.put('/researchpaper/:faculty_id/:title_of_paper', uploadResearchPaper, updateResearchPaper);
-router.delete('/researchpaper/:faculty_id/:title_of_paper', deleteResearchPaper);
+router.get('/researchpaper/:faculty_id', getResearchPapersByFaculty);
+// Route to update a research paper by research_id
+router.put('/researchpaper/:research_id', uploadResearchPaper, updateResearchPaper);
+
+// Route to delete a research paper by research_id
+router.delete('/researchpaper/:research_id', deleteResearchPaper);
 
 // FDP routes
 router.get('/fdp-records', getFDPRecords);
