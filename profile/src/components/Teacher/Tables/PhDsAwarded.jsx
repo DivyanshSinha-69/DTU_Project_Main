@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, Typography } from "@material-tailwind/react";
 import Popup from "reactjs-popup";
 import PhDPopUp from "../PopUp/PhDsAwardedPopUp";
@@ -22,9 +22,8 @@ const PhDsAwarded = ({ setBlurActive }) => {
   useEffect(() => {
     fetchPhDs();
   }, []);
-  
-  const API_BASE_URL = "http://localhost:3001/ece/faculty";
 
+  const API_BASE_URL = "http://localhost:3001/ece/faculty";
 
   const fetchPhDs = async () => {
     try {
@@ -36,7 +35,7 @@ const PhDsAwarded = ({ setBlurActive }) => {
         }
         throw new Error("Failed to fetch data");
       }
-  
+
       const data = await response.json();
       setPhdDetails(
         data.map((record) => ({
@@ -44,14 +43,14 @@ const PhDsAwarded = ({ setBlurActive }) => {
           menteeName: record.mentee_name,
           rollNo: record.mentee_rn,
           passingYear: record.passing_year,
-        }))
+        })),
       );
     } catch (error) {
       console.error("Error fetching PhD awarded records:", error);
       setPhdDetails([]);
     }
   };
-  
+
   const addPhD = async (newPhD) => {
     try {
       const response = await fetch(`${API_BASE_URL}/phd-awarded`, {
@@ -72,7 +71,7 @@ const PhDsAwarded = ({ setBlurActive }) => {
       console.error("Error adding new PhD record:", error);
     }
   };
-  
+
   const updatePhD = async (updatedPhD) => {
     try {
       console.log("phd id", updatedPhD.PHD_id);
@@ -86,7 +85,7 @@ const PhDsAwarded = ({ setBlurActive }) => {
             passing_year: updatedPhD.passingYear,
             mentee_rn: updatedPhD.rollNo, // 👈 Include rollNo
           }),
-        }
+        },
       );
       if (!response.ok) {
         throw new Error("Failed to update the record");
@@ -96,7 +95,7 @@ const PhDsAwarded = ({ setBlurActive }) => {
       console.error("Error updating PhD record:", error);
     }
   };
-  
+
   const deletePhD = async (PHD_id) => {
     try {
       const response = await fetch(`${API_BASE_URL}/phd-awarded/${PHD_id}`, {
@@ -110,9 +109,6 @@ const PhDsAwarded = ({ setBlurActive }) => {
       console.error("Error deleting PhD record:", error);
     }
   };
-  
- 
-
 
   const openPopup = (phd) => {
     console.log("phd", phd);
@@ -132,15 +128,13 @@ const PhDsAwarded = ({ setBlurActive }) => {
       // Update existing record
       console.log(newPhD);
       await addPhD(newPhD);
-      
     } else {
       // Add new record
-      console.log("newphd",newPhD)
+      console.log("newphd", newPhD);
       await updatePhD(newPhD);
     }
     closePopup();
   };
-  
 
   const handleDeletePhD = async (indexToDelete) => {
     const { PHD_id } = phdDetails[indexToDelete];
@@ -150,7 +144,7 @@ const PhDsAwarded = ({ setBlurActive }) => {
       if (response.ok) {
         // Update the state to remove the deleted row
         setPhdDetails((prevDetails) =>
-          prevDetails.filter((_, index) => index !== indexToDelete)
+          prevDetails.filter((_, index) => index !== indexToDelete),
         );
       } else {
         console.error("Failed to delete record");
@@ -159,10 +153,13 @@ const PhDsAwarded = ({ setBlurActive }) => {
       console.error("Error deleting PhD record:", error);
     }
   };
-  
-  
 
-  const TABLE_HEAD = ["Name of the Student", "Roll No", "Year PhD was Awarded", "Actions"];
+  const TABLE_HEAD = [
+    "Name of the Student",
+    "Roll No",
+    "Year PhD was Awarded",
+    "Actions",
+  ];
 
   return (
     <div>
@@ -254,15 +251,10 @@ const PhDsAwarded = ({ setBlurActive }) => {
                               setIsAddPhD(false);
                               setSelectedPhD(phd);
                               openPopup(phd);
-                              
                             }}
                             className="bg-green-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
                           >
-                            <img
-                              src={editImg}
-                              alt="edit"
-                              className="h-5 w-5"
-                            />
+                            <img src={editImg} alt="edit" className="h-5 w-5" />
                           </button>
                           <button
                             onClick={() => handleDeletePhD(index)}
@@ -292,7 +284,7 @@ const PhDsAwarded = ({ setBlurActive }) => {
         className="mx-auto my-auto p-2"
         closeOnDocumentClick
       >
-        <div >
+        <div>
           {isAddPhD ? (
             <PhDPopUp
               menteeName=""
@@ -302,16 +294,14 @@ const PhDsAwarded = ({ setBlurActive }) => {
               handleAddPhD={handleAddPhD}
             />
           ) : (
-            (
-              <PhDPopUp
-                menteeName={selectedPhD?.menteeName}
-                rollNo={selectedPhD?.rollNo}
-                  passingYear={selectedPhD?.passingYear}
-                PHD_id = {selectedPhD?.PHD_id}
-                closeModal={closePopup}
-                handleAddPhD={handleAddPhD}
-              />
-            )
+            <PhDPopUp
+              menteeName={selectedPhD?.menteeName}
+              rollNo={selectedPhD?.rollNo}
+              passingYear={selectedPhD?.passingYear}
+              PHD_id={selectedPhD?.PHD_id}
+              closeModal={closePopup}
+              handleAddPhD={handleAddPhD}
+            />
           )}
         </div>
       </Popup>

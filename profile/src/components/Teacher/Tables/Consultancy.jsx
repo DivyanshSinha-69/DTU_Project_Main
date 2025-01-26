@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, Typography } from "@material-tailwind/react";
 import Popup from "reactjs-popup";
 import ConsultancyDetailsPopUp from "../PopUp/ConsultancyPopUp";
@@ -8,9 +8,6 @@ import addImg from "../../../assets/add.svg";
 import deleteImg from "../../../assets/delete.svg";
 import axios from "axios";
 
-
-
-
 const ConsultancyDetails = ({ setBlurActive }) => {
   const [consultancyDetails, setConsultancyDetails] = useState([]);
   const [isPopupOpen, setPopupOpen] = useState(false);
@@ -19,8 +16,10 @@ const ConsultancyDetails = ({ setBlurActive }) => {
 
   const fetchConsultancyDetails = async () => {
     try {
-      const response = await fetch(`http://localhost:3001/ece/faculty/consultancy/FAC001`); // Replace FAC001 with dynamic facultyId if needed
-  
+      const response = await fetch(
+        `http://localhost:3001/ece/faculty/consultancy/FAC001`,
+      ); // Replace FAC001 with dynamic facultyId if needed
+
       if (!response.ok) {
         // Handle 404 response (no records found)
         if (response.status === 404) {
@@ -29,9 +28,9 @@ const ConsultancyDetails = ({ setBlurActive }) => {
         }
         throw new Error("Failed to fetch consultancy data");
       }
-  
+
       const data = await response.json();
-  
+
       setConsultancyDetails(
         data.map((record) => ({
           project_title: record.project_title,
@@ -41,19 +40,18 @@ const ConsultancyDetails = ({ setBlurActive }) => {
           start_date: record.start_date,
           end_date: record.end_date,
           consultancy_id: record.consultancy_id,
-        }))
+        })),
       );
     } catch (error) {
       console.error("Error fetching consultancy records:", error);
       setConsultancyDetails([]); // Fallback to an empty array in case of errors
     }
   };
-  
-  
+
   useEffect(() => {
     fetchConsultancyDetails();
   }, []);
-  
+
   const openPopup = (consultancy) => {
     setSelectedConsultancy(consultancy);
     setPopupOpen(true);
@@ -86,15 +84,15 @@ const ConsultancyDetails = ({ setBlurActive }) => {
           {
             faculty_id: "FAC001", // Hardcoded for now
             project_title: newConsultancy.title,
-            funding_agency: newConsultancy.client ,
-            amount_sponsored: newConsultancy.amount ,
-            research_duration: newConsultancy.duration ,
+            funding_agency: newConsultancy.client,
+            amount_sponsored: newConsultancy.amount,
+            research_duration: newConsultancy.duration,
             start_date: newConsultancy.startDate,
             end_date: newConsultancy.endDate || null,
-          }
+          },
         );
       }
-  
+
       // Refresh consultancy details after adding/updating
       fetchConsultancyDetails();
       closePopup();
@@ -102,34 +100,44 @@ const ConsultancyDetails = ({ setBlurActive }) => {
       console.error("Error adding/updating consultancy:", error);
     }
   };
-  
 
   const handleDeleteConsultancy = async (indexToDelete) => {
     const consultancyToDelete = consultancyDetails[indexToDelete];
     try {
-      await axios.delete(`http://localhost:3001/ece/faculty/consultancy/${consultancyToDelete.consultancy_id}`);
+      await axios.delete(
+        `http://localhost:3001/ece/faculty/consultancy/${consultancyToDelete.consultancy_id}`,
+      );
       // Refresh consultancy details after deleting
       fetchConsultancyDetails();
     } catch (error) {
       console.error("Error deleting consultancy:", error);
     }
   };
-  
 
-  const TABLE_HEAD = ["Consultancy Title", "Agency Name", "Funding Amount", "Duration (Years)", "Start Date", "End Date", "Actions"];
+  const TABLE_HEAD = [
+    "Consultancy Title",
+    "Agency Name",
+    "Funding Amount",
+    "Duration (Years)",
+    "Start Date",
+    "End Date",
+    "Actions",
+  ];
   const formatDateForInput = (date) => {
-    const [date1, time] = date?.split('T');
+    const [date1, time] = date?.split("T");
 
-    const [day, month, year] = date1.split('-');
+    const [day, month, year] = date1.split("-");
     return `${day}-${month}-${year}`; // yyyy-MM-dd
-
   };
   return (
     <div>
       <div className="h-auto p-10">
         <div className="flex flex-row justify-between pr-5 pl-5">
           <p className="p-3 text-2xl font1 border-top my-auto">
-            Consultancy Details <br /><span className="text-lg text-red-600">(Details of consultancy projects)</span>
+            Consultancy Details <br />
+            <span className="text-lg text-red-600">
+              (Details of consultancy projects)
+            </span>
           </p>
           <button
             onClick={() => {
@@ -169,7 +177,15 @@ const ConsultancyDetails = ({ setBlurActive }) => {
               </thead>
               <tbody>
                 {consultancyDetails.map((consultancy, index) => {
-                  const { consultancy_id, project_title, funding_agency, amount_sponsored, research_duration, start_date, end_date} = consultancy;
+                  const {
+                    consultancy_id,
+                    project_title,
+                    funding_agency,
+                    amount_sponsored,
+                    research_duration,
+                    start_date,
+                    end_date,
+                  } = consultancy;
                   const isLast = index === consultancyDetails.length - 1;
                   const classes = isLast
                     ? "p-4"
@@ -228,7 +244,9 @@ const ConsultancyDetails = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {end_date? new Date(end_date)?.toLocaleDateString("en-GB"): "-"}
+                          {end_date
+                            ? new Date(end_date)?.toLocaleDateString("en-GB")
+                            : "-"}
                         </Typography>
                       </td>
 
@@ -244,7 +262,11 @@ const ConsultancyDetails = ({ setBlurActive }) => {
                             onClick={() => handleDeleteConsultancy(index)}
                             className="bg-red-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
                           >
-                            <img src={deleteImg} alt="delete" className="h-5 w-5 filter brightness-0 invert" />
+                            <img
+                              src={deleteImg}
+                              alt="delete"
+                              className="h-5 w-5 filter brightness-0 invert"
+                            />
                           </button>
                         </div>
                       </td>
@@ -264,7 +286,7 @@ const ConsultancyDetails = ({ setBlurActive }) => {
         className="mx-auto my-auto p-2"
         closeOnDocumentClick
       >
-        <div >
+        <div>
           {isAddConsultancy ? (
             <ConsultancyDetailsPopUp
               title=""
@@ -272,7 +294,7 @@ const ConsultancyDetails = ({ setBlurActive }) => {
               amount=""
               duration=""
               startDate=""
-              endDate="" 
+              endDate=""
               closeModal={closePopup}
               handleAddConsultancy={handleAddConsultancy}
             />
@@ -283,8 +305,12 @@ const ConsultancyDetails = ({ setBlurActive }) => {
                 client={selectedConsultancy.funding_agency}
                 amount={selectedConsultancy.amount_sponsored}
                 duration={selectedConsultancy.research_duration}
-                  startDate={formatDateForInput(selectedConsultancy.start_date)}
-                  endDate={selectedConsultancy.end_date? formatDateForInput(selectedConsultancy?.end_date): ""} 
+                startDate={formatDateForInput(selectedConsultancy.start_date)}
+                endDate={
+                  selectedConsultancy.end_date
+                    ? formatDateForInput(selectedConsultancy?.end_date)
+                    : ""
+                }
                 closeModal={closePopup}
                 handleAddConsultancy={handleAddConsultancy}
               />

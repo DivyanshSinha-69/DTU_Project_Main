@@ -16,21 +16,17 @@ export const UserPersonalDetails = createSlice({
     updatePersonalDetails: (state, action) => {
       state.PersonalDetails = action.payload;
     },
-    
 
     removePersonalDetails: (state, action) => {
-        state.PersonalDetails = [];
+      state.PersonalDetails = [];
     },
   },
 });
-
-
 
 export const {
   setPersonalDetails,
   removePersonalDetails,
   updatePersonalDetails,
-
 } = UserPersonalDetails.actions;
 
 export default UserPersonalDetails.reducer;

@@ -57,8 +57,8 @@ const ResearchProjects = ({ setBlurActive }) => {
       // Update the existing project
       setResearchProjectsDetails((prevDetails) =>
         prevDetails.map((p, index) =>
-          index === researchProjectsDetails.indexOf(editProject) ? project : p
-        )
+          index === researchProjectsDetails.indexOf(editProject) ? project : p,
+        ),
       );
     } else {
       // Add a new project
@@ -70,7 +70,7 @@ const ResearchProjects = ({ setBlurActive }) => {
   // Function to handle row deletion
   const deleteProject = (index) => {
     setResearchProjectsDetails((prevDetails) =>
-      prevDetails.filter((_, i) => i !== index)
+      prevDetails.filter((_, i) => i !== index),
     );
   };
 
@@ -142,10 +142,9 @@ const ResearchProjects = ({ setBlurActive }) => {
                     PublishedDate,
                     Document,
                   },
-                  index
+                  index,
                 ) => {
-                  const isLast =
-                    index === researchProjectsDetails.length - 1;
+                  const isLast = index === researchProjectsDetails.length - 1;
                   const classes = isLast
                     ? "p-4"
                     : "p-4 border-b border-blue-gray-50";
@@ -212,7 +211,9 @@ const ResearchProjects = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {Document ? Document.name || "Uploaded" : "Not Uploaded"}
+                          {Document
+                            ? Document.name || "Uploaded"
+                            : "Not Uploaded"}
                         </Typography>
                       </td>
                       <td className={classes}>
@@ -246,7 +247,7 @@ const ResearchProjects = ({ setBlurActive }) => {
                       </td>
                     </tr>
                   );
-                }
+                },
               )}
             </tbody>
           </table>

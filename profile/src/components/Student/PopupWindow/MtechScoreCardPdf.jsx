@@ -1,5 +1,3 @@
-
-
 // Install axios if not already installed: npm install axios
 
 import React, { useState } from "react";
@@ -30,7 +28,6 @@ const MtechScoreCardPdf = ({ setPdfSrc }) => {
   const handleUpload = async (e) => {
     e.preventDefault();
     if (file) {
-
       if (file.size > 500 * 1024) {
         toast.error("file size should be 500KB or below");
         return;
@@ -48,7 +45,7 @@ const MtechScoreCardPdf = ({ setPdfSrc }) => {
             headers: {
               "Content-Type": "multipart/form-data",
             },
-          }
+          },
         );
       } catch (error) {
         console.error("Error uploading PDF: ", error);
@@ -57,13 +54,8 @@ const MtechScoreCardPdf = ({ setPdfSrc }) => {
       setFile(null);
       setIsFileSelected(false);
 
-      
-
       axios
-        .post(
-          `http://localhost:3001/ece/student/getscorecard`,
-          { id: RollNo },
-        )
+        .post(`http://localhost:3001/ece/student/getscorecard`, { id: RollNo })
         .then((response) => {
           setPdfSrc(response.data.gateScoreCard);
         })

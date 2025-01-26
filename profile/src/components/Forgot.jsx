@@ -12,7 +12,6 @@ const Forgot = () => {
   const dispatch = useDispatch();
   const [rollno, setRollno] = useState("");
 
-
   const handleForgot = async (e) => {
     e.preventDefault();
 
@@ -25,7 +24,7 @@ const Forgot = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
 
       // Assuming the server returns user details upon successful login
@@ -43,7 +42,7 @@ const Forgot = () => {
         navigate("/student/portal");
       } else if (userDetails.user.Position === "teacher") {
         navigate("/teacher/portal");
-      }  else {
+      } else {
         navigate("/unauthorized");
       }
     } catch (error) {

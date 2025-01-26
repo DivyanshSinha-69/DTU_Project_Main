@@ -9,7 +9,6 @@ import deleteImg from "../../../assets/delete.svg";
 
 // Dummy data for testing
 
-
 const Visits = ({ setBlurActive }) => {
   const visitTypeMap = { Visiting: 1, Adjunct: 2, Emeritus: 3 };
   const visitTypeReverseMap = { 1: "Visiting", 2: "Adjunct", 3: "Emeritus" };
@@ -38,7 +37,9 @@ const Visits = ({ setBlurActive }) => {
   useEffect(() => {
     const fetchVisits = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/vae?faculty_id=${FACULTY_ID}`);
+        const response = await fetch(
+          `${API_BASE_URL}/vae?faculty_id=${FACULTY_ID}`,
+        );
         const data = await response.json();
         setVisitDetails(data.data || []);
       } catch (error) {
@@ -94,11 +95,14 @@ const Visits = ({ setBlurActive }) => {
         ]);
       } else {
         // UPDATE existing visit
-        response = await fetch(`${API_BASE_URL}/vae/${selectedVisit.visit_id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formattedVisit),
-        });
+        response = await fetch(
+          `${API_BASE_URL}/vae/${selectedVisit.visit_id}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(formattedVisit),
+          },
+        );
 
         if (!response.ok) {
           console.log("Failed to update visit", formattedVisit);
@@ -107,8 +111,10 @@ const Visits = ({ setBlurActive }) => {
 
         setVisitDetails(
           visitDetails.map((visit) =>
-            visit.visit_id === selectedVisit.visit_id ? { ...visit, ...formattedVisit } : visit
-          )
+            visit.visit_id === selectedVisit.visit_id
+              ? { ...visit, ...formattedVisit }
+              : visit,
+          ),
         );
       }
 
@@ -126,7 +132,9 @@ const Visits = ({ setBlurActive }) => {
 
       if (!response.ok) throw new Error("Failed to delete visit");
 
-      setVisitDetails(visitDetails.filter((visit) => visit.visit_id !== visitId));
+      setVisitDetails(
+        visitDetails.filter((visit) => visit.visit_id !== visitId),
+      );
     } catch (error) {
       console.error("Error deleting visit:", error);
     }
@@ -147,7 +155,8 @@ const Visits = ({ setBlurActive }) => {
       <div className="h-auto p-10">
         <div className="flex flex-row justify-between pr-5 pl-5">
           <p className="p-3 text-2xl font1 border-top my-auto">
-            Interaction with the Outside World as Guest Faculty<br />
+            Interaction with the Outside World as Guest Faculty
+            <br />
             <span className="text-lg text-red-600">
               (Details of academic visits)
             </span>
@@ -237,7 +246,11 @@ const Visits = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {visit.month_of_visit ? Object.keys(monthMap).find(key => monthMap[key] === visit.month_of_visit) : ""}
+                          {visit.month_of_visit
+                            ? Object.keys(monthMap).find(
+                                (key) => monthMap[key] === visit.month_of_visit,
+                              )
+                            : ""}
                         </Typography>
                       </td>
 
@@ -265,11 +278,7 @@ const Visits = ({ setBlurActive }) => {
                             onClick={() => openPopup(visit)}
                             className="bg-green-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
                           >
-                            <img
-                              src={editImg}
-                              alt="edit"
-                              className="h-5 w-5"
-                            />
+                            <img src={editImg} alt="edit" className="h-5 w-5" />
                           </button>
                           <button
                             onClick={() => handleDeleteVisit(visit.visit_id)}
@@ -318,7 +327,13 @@ const Visits = ({ setBlurActive }) => {
                 institutionName={selectedVisit?.institution || ""}
                 courses={selectedVisit?.course_taught || ""}
                 year_of_visit={selectedVisit?.year_of_visit || ""}
-                month_of_visit={selectedVisit.month_of_visit ? Object.keys(monthMap).find(key => monthMap[key] === selectedVisit.month_of_visit) : "" || ""}
+                month_of_visit={
+                  selectedVisit.month_of_visit
+                    ? Object.keys(monthMap).find(
+                        (key) => monthMap[key] === selectedVisit.month_of_visit,
+                      )
+                    : "" || ""
+                }
                 hours_taught={selectedVisit?.hours_taught || ""}
                 closeModal={closePopup}
                 handleAddVisit={handleAddOrUpdateVisit}

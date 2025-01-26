@@ -8,7 +8,7 @@ import img from "../../../assets/delete.svg";
 import addImg from "../../../assets/add.svg";
 import axios from "axios";
 import { deleteProfessionalSkill } from "../../../redux/reducers/UserProfessionalSkills.jsx";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 
 const StudentProfessionalSkills = ({ setBlurActive }) => {
   const ProfessionalSkills = useSelector((state) => state.professionalSkills);
@@ -48,14 +48,12 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
             ID: ID,
           },
           withCredentials: true,
-        }
+        },
       );
 
-  
       toast.success(response.data.message);
       dispatch(deleteProfessionalSkill({ ID }));
     } catch (error) {
-   
       console.error(error);
     }
   };
@@ -65,7 +63,11 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
       <div className="h-auto p-10 ">
         <div className="flex flex-row justify-between pr-5 pl-5">
           <p className="p-3 text-2xl font1 border-top my-auto">
-            Professional Activities <br /> <span className="text-lg text-red-600">( Provide information on all the events organized by your society. )</span>
+            Professional Activities <br />{" "}
+            <span className="text-lg text-red-600">
+              ( Provide information on all the events organized by your society.
+              )
+            </span>
           </p>
           <button
             onClick={openPopup}
@@ -114,7 +116,7 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
               {TABLE_ROWS.map(
                 (
                   { ID, EventName, Position, Organisation, EventDate, RollNo },
-                  index
+                  index,
                 ) => {
                   const isLast = index === TABLE_ROWS.length - 1;
                   const classes = isLast
@@ -204,7 +206,7 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
                       </td>
                     </tr>
                   );
-                }
+                },
               )}
             </tbody>
           </table>

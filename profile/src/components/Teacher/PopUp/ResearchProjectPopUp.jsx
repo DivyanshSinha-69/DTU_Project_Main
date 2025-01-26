@@ -2,7 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Card } from "@material-tailwind/react";
 import toast from "react-hot-toast";
 
-export default function ResearchProjectPopup({ closeModal, saveProject, project }) {
+export default function ResearchProjectPopup({
+  closeModal,
+  saveProject,
+  project,
+}) {
   const [formData, setFormData] = useState({
     title: "",
     typeOfPaper: "Conference", // Default value
@@ -12,7 +16,16 @@ export default function ResearchProjectPopup({ closeModal, saveProject, project 
     document: null,
   });
 
-  const domainOptions = ["Signal Processing", "Artificial Intelligence", "Optical, Wireless and Mobile Communication","Machine Learning", "Radio Frequency and Microwave", "Cybersecurity", "Blockchain", "IoT"];
+  const domainOptions = [
+    "Signal Processing",
+    "Artificial Intelligence",
+    "Optical, Wireless and Mobile Communication",
+    "Machine Learning",
+    "Radio Frequency and Microwave",
+    "Cybersecurity",
+    "Blockchain",
+    "IoT",
+  ];
 
   // Pre-fill form with existing data if editing
   useEffect(() => {
@@ -84,9 +97,14 @@ export default function ResearchProjectPopup({ closeModal, saveProject, project 
         shadow={false}
         className="w-[90%] max-w-[700px] p-8 bg-gray-900 rounded-[20px]"
       >
-        <form onSubmit={handleSubmit} className="text-white flex flex-col space-y-6">
+        <form
+          onSubmit={handleSubmit}
+          className="text-white flex flex-col space-y-6"
+        >
           <div className="relative z-0 w-full group">
-            <label htmlFor="title" className="block text-sm">Title</label>
+            <label htmlFor="title" className="block text-sm">
+              Title
+            </label>
             <input
               type="text"
               name="title"
@@ -99,7 +117,9 @@ export default function ResearchProjectPopup({ closeModal, saveProject, project 
           </div>
 
           <div className="relative z-0 w-full group">
-            <label htmlFor="typeOfPaper" className="block text-sm">Type of Paper</label>
+            <label htmlFor="typeOfPaper" className="block text-sm">
+              Type of Paper
+            </label>
             <select
               name="typeOfPaper"
               className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -115,7 +135,9 @@ export default function ResearchProjectPopup({ closeModal, saveProject, project 
           </div>
 
           <div className="relative z-0 w-full group">
-            <label htmlFor="domain" className="block text-sm">Domain</label>
+            <label htmlFor="domain" className="block text-sm">
+              Domain
+            </label>
             <select
               name="domain"
               className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -124,13 +146,17 @@ export default function ResearchProjectPopup({ closeModal, saveProject, project 
               value={formData.domain}
             >
               {domainOptions.map((domain) => (
-                <option key={domain} value={domain}>{domain}</option>
+                <option key={domain} value={domain}>
+                  {domain}
+                </option>
               ))}
             </select>
           </div>
 
           <div className="relative z-0 w-full group">
-            <label htmlFor="publicationName" className="block text-sm">Publication Name</label>
+            <label htmlFor="publicationName" className="block text-sm">
+              Publication Name
+            </label>
             <input
               type="text"
               name="publicationName"
@@ -143,7 +169,9 @@ export default function ResearchProjectPopup({ closeModal, saveProject, project 
           </div>
 
           <div className="relative z-0 w-full group">
-            <label htmlFor="publishedDate" className="block text-sm">Published Date</label>
+            <label htmlFor="publishedDate" className="block text-sm">
+              Published Date
+            </label>
             <input
               type="date"
               name="publishedDate"
@@ -155,7 +183,9 @@ export default function ResearchProjectPopup({ closeModal, saveProject, project 
           </div>
 
           <div className="relative z-0 w-full group">
-            <label htmlFor="document" className="block text-sm">Upload Document</label>
+            <label htmlFor="document" className="block text-sm">
+              Upload Document
+            </label>
             <input
               type="file"
               name="document"

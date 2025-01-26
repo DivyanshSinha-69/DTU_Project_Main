@@ -55,8 +55,15 @@ export default function PhDsAwardedPopUp({
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-80">
-      <Card color="transparent" shadow={false} className="w-[90%] max-w-[700px] h-auto p-8 bg-gray-900 rounded-[20px]">
-        <form className="text-white flex flex-col space-y-6" onSubmit={handlePopupSubmit}>
+      <Card
+        color="transparent"
+        shadow={false}
+        className="w-[90%] max-w-[700px] h-auto p-8 bg-gray-900 rounded-[20px]"
+      >
+        <form
+          className="text-white flex flex-col space-y-6"
+          onSubmit={handlePopupSubmit}
+        >
           {/* Mentee Name */}
           <div className="relative z-0 w-full group">
             <label htmlFor="menteeName" className="block text-sm">

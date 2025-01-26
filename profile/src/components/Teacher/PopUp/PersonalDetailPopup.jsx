@@ -53,7 +53,10 @@ export default function PersonalDetailPopup({
         shadow={false}
         className="w-[90%] max-w-[700px] h-auto p-8 bg-gray-900 rounded-[20px]"
       >
-        <form className="text-white flex flex-col space-y-6" onSubmit={handleSubmit}>
+        <form
+          className="text-white flex flex-col space-y-6"
+          onSubmit={handleSubmit}
+        >
           <div className="relative z-0 w-full group">
             <label htmlFor="name" className="block text-sm">
               Name

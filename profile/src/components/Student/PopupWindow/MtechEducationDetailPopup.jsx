@@ -53,9 +53,12 @@ export default function MtechEducationDetailPopup(props) {
           }
 
           // Check if gateMarks contains only digits and is less than or equal to 100
-          if (!/^\d+(\.\d+)?$/.test(formData.gateMarks) ||parseFloat(formData.gateMarks) > 100) {
+          if (
+            !/^\d+(\.\d+)?$/.test(formData.gateMarks) ||
+            parseFloat(formData.gateMarks) > 100
+          ) {
             toast.error(
-              "Gate Marks should only contain digits and be less than or equal to 100"
+              "Gate Marks should only contain digits and be less than or equal to 100",
             );
             return;
           }
@@ -75,7 +78,7 @@ export default function MtechEducationDetailPopup(props) {
           },
           {
             withCredentials: true,
-          }
+          },
         );
 
         const updateddata = {
@@ -104,7 +107,7 @@ export default function MtechEducationDetailPopup(props) {
           },
           {
             withCredentials: true,
-          }
+          },
         );
 
         const updateddata = {

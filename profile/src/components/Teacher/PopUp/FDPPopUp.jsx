@@ -70,12 +70,19 @@ export default function FacultyDevelopmentPopUp({
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-80">
-      <Card color="transparent" shadow={false} className="w-[90%] max-w-[700px] h-auto p-8 bg-gray-900 rounded-[20px]">
-        <form className="text-white flex flex-col space-y-6" onSubmit={handlePopupSubmit}>
+      <Card
+        color="transparent"
+        shadow={false}
+        className="w-[90%] max-w-[700px] h-auto p-8 bg-gray-900 rounded-[20px]"
+      >
+        <form
+          className="text-white flex flex-col space-y-6"
+          onSubmit={handlePopupSubmit}
+        >
           {/* Program Name */}
           <div className="relative z-0 w-full group">
             <label htmlFor="programName" className="block text-sm">
-              Program Name
+              Title of Faculty development/training activities
             </label>
             <input
               type="text"
@@ -91,7 +98,8 @@ export default function FacultyDevelopmentPopUp({
           {/* Year Conducted Dropdown */}
           <div className="relative z-0 w-full group">
             <label htmlFor="year" className="block text-sm">
-              Year Conducted
+    Year of Participation
+    
             </label>
             <select
               name="year"
@@ -109,7 +117,8 @@ export default function FacultyDevelopmentPopUp({
           {/* Month Conducted Dropdown */}
           <div className="relative z-0 w-full group">
             <label htmlFor="month" className="block text-sm">
-              Month Conducted
+            Month of Participation
+           
             </label>
             <select
               name="month"
@@ -131,7 +140,7 @@ export default function FacultyDevelopmentPopUp({
           {/* Days Contributed */}
           <div className="relative z-0 w-full group">
             <label htmlFor="days" className="block text-sm">
-              Days Contributed
+            Duration of Participation(in days) 
             </label>
             <input
               type="number"

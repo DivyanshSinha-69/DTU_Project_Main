@@ -30,8 +30,22 @@ export default function VisitsPopUp({
 
   const handlepopup = async (e) => {
     e.preventDefault();
-    const { visitType, institutionName, courses, year_of_visit, month_of_visit, hours_taught } = formData;
-    if (!visitType || !institutionName || !courses || !year_of_visit || !month_of_visit || !hours_taught) {
+    const {
+      visitType,
+      institutionName,
+      courses,
+      year_of_visit,
+      month_of_visit,
+      hours_taught,
+    } = formData;
+    if (
+      !visitType ||
+      !institutionName ||
+      !courses ||
+      !year_of_visit ||
+      !month_of_visit ||
+      !hours_taught
+    ) {
       toast.error("Please fill in all required fields.");
       return;
     }
@@ -57,8 +71,15 @@ export default function VisitsPopUp({
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-80">
-      <Card color="transparent" shadow={false} className="w-[90%] max-w-[700px] h-auto p-8 bg-gray-900 rounded-[20px]">
-        <form className="text-white flex flex-col space-y-6" onSubmit={handlepopup}>
+      <Card
+        color="transparent"
+        shadow={false}
+        className="w-[90%] max-w-[700px] h-auto p-8 bg-gray-900 rounded-[20px]"
+      >
+        <form
+          className="text-white flex flex-col space-y-6"
+          onSubmit={handlepopup}
+        >
           {/* Visit Type Dropdown */}
           <div className="relative z-0 w-full group">
             <label htmlFor="visitType" className="block text-sm">

@@ -12,7 +12,7 @@ export const UserEntrepreneurDetails = createSlice({
     setEntrepreneurDetails: (state, action) => {
       state.EntrepreneurDetails = action.payload;
     },
-   
+
     // addPlacement: (state, action) => {
     //   const newPlacement = [...state.Placement, action.payload];
     //   state.Placement = newPlacement;
@@ -24,7 +24,7 @@ export const UserEntrepreneurDetails = createSlice({
 
     //   state.Placement = updatedPlacement;
     // },
-    
+
     removeEntrepreneurDetails: (state, action) => {
       state.EntrepreneurDetails = [];
     },
@@ -33,10 +33,10 @@ export const UserEntrepreneurDetails = createSlice({
 
 export const {
   setEntrepreneurDetails,
-//   deletePlacement,
+  //   deletePlacement,
 
-removeEntrepreneurDetails
-//   addPlacement,
+  removeEntrepreneurDetails,
+  //   addPlacement,
 } = UserEntrepreneurDetails.actions;
 
 export default UserEntrepreneurDetails.reducer;

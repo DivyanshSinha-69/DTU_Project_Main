@@ -6,27 +6,27 @@ import { useSelector } from "react-redux";
 import { Input } from "@material-tailwind/react";
 import toast from "react-hot-toast";
 
-const PlacementPdf = ({ setPdfSrc,setId }) => {
+const PlacementPdf = ({ setPdfSrc, setId }) => {
   const { RollNo } = useSelector((state) => state.auth.user);
   const [file, setFile] = useState(null);
   const [isFileSelected, setIsFileSelected] = useState(false);
 
-//   useEffect(() => {
+  //   useEffect(() => {
 
-//     axios
-//       .post(
-//         `http://localhost:3001/ece/student/getpdf`,
-//         { id: id },
-//         { responseType: "arraybuffer" }
-//       )
-//       .then((response) => {
-//         const base64PDF = arrayBufferToBase64(response.data);
-//         // setImgSrc(`data:application/pdf;base64,${base64PDF}`);
-//       })
-//       .catch((error) => {
-//         console.error("Error fetching PDF: ", error);
-//       });
-//   }, [RollNo]);
+  //     axios
+  //       .post(
+  //         `http://localhost:3001/ece/student/getpdf`,
+  //         { id: id },
+  //         { responseType: "arraybuffer" }
+  //       )
+  //       .then((response) => {
+  //         const base64PDF = arrayBufferToBase64(response.data);
+  //         // setImgSrc(`data:application/pdf;base64,${base64PDF}`);
+  //       })
+  //       .catch((error) => {
+  //         console.error("Error fetching PDF: ", error);
+  //       });
+  //   }, [RollNo]);
 
   const arrayBufferToBase64 = (buffer) => {
     let binary = "";
@@ -44,11 +44,10 @@ const PlacementPdf = ({ setPdfSrc,setId }) => {
 
   const handleUpload = async (e) => {
     e.preventDefault();
-    let modifiedRollNo = RollNo.replace(/\//g, '-');
+    let modifiedRollNo = RollNo.replace(/\//g, "-");
     const id = `${modifiedRollNo}-${Date.now()}`;
     setId(id);
     if (file && id) {
-
       if (file.size > 500 * 1024) {
         toast.error("file size should be 500KB or below");
         return;
@@ -58,7 +57,6 @@ const PlacementPdf = ({ setPdfSrc,setId }) => {
       formData.append("pdf", file);
       formData.append("id", id);
       formData.append("rollNo", RollNo);
-      
 
       try {
         const response = await axios.post(
@@ -68,7 +66,7 @@ const PlacementPdf = ({ setPdfSrc,setId }) => {
             headers: {
               "Content-Type": "multipart/form-data",
             },
-          }
+          },
         );
       } catch (error) {
         console.error("Error uploading PDF: ", error);
@@ -77,13 +75,8 @@ const PlacementPdf = ({ setPdfSrc,setId }) => {
       setFile(null);
       setIsFileSelected(false);
 
-      
-
       axios
-        .post(
-          `http://localhost:3001/ece/student/getpdf`,
-          { id: id },
-        )
+        .post(`http://localhost:3001/ece/student/getpdf`, { id: id })
         .then((response) => {
           setPdfSrc(response.data.appointmentLetter);
         })

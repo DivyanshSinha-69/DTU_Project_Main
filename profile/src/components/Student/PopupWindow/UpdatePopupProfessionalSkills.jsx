@@ -3,10 +3,19 @@ import React, { useState } from "react";
 import { Card, Input, Button, Typography } from "@material-tailwind/react";
 import { useDispatch } from "react-redux";
 import { updateProfessionalSkill } from "../../../redux/reducers/UserProfessionalSkills";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 
 export default function PopupProfessionalSkills(props) {
-  const { closeModal,id, eventname, position, organisation, date, roll ,name} = props;
+  const {
+    closeModal,
+    id,
+    eventname,
+    position,
+    organisation,
+    date,
+    roll,
+    name,
+  } = props;
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     organisation: organisation,
@@ -26,23 +35,27 @@ export default function PopupProfessionalSkills(props) {
   };
 
   const handlepopup = async () => {
-    if (!formData.organisation || !formData.position || !formData.eventname || !formData.date) {
+    if (
+      !formData.organisation ||
+      !formData.position ||
+      !formData.eventname ||
+      !formData.date
+    ) {
       toast.error("Please fill in all required fields");
       return;
     } else {
       // Check if the date is in the format YYYY-MM-DD
       const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    
+
       if (!dateRegex.test(formData.date)) {
         toast.error("Please enter the date in the format YYYY-MM-DD");
         return;
       }
-    
+
       // Your code for further processing when all conditions are met
     }
-    
+
     try {
-      
       const response = await axios.put(
         "http://localhost:3001/ece/student/updateprofessionalskills",
         {
@@ -55,9 +68,9 @@ export default function PopupProfessionalSkills(props) {
         },
         {
           withCredentials: true,
-        }
+        },
       );
-  
+
       const updateddata = {
         ID: formData.id,
         Organisation: formData.organisation,
@@ -67,11 +80,10 @@ export default function PopupProfessionalSkills(props) {
         RollNo: formData.roll,
       };
       dispatch(updateProfessionalSkill({ id, updateddata }));
-      if(response.status==200){
+      if (response.status == 200) {
         toast.success(response.data.message);
         closeModal();
       }
-      
     } catch (error) {
       // Handle error, e.g., show an error message
       console.error(error);
