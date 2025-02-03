@@ -39,12 +39,14 @@ const PhDsAwarded = ({ setBlurActive }) => {
       const data = await response.json();
       setPhdDetails(
         data.map((record) => ({
-          PHD_id: record.PHD_id, // 👈 Store PHD_id
+          PHD_id: record.PHD_id,
           menteeName: record.mentee_name,
           rollNo: record.mentee_rn,
           passingYear: record.passing_year,
-        })),
+          passingMonth: record.passing_month, // 👈 Add this
+        }))
       );
+      
     } catch (error) {
       console.error("Error fetching PhD awarded records:", error);
       setPhdDetails([]);
@@ -57,11 +59,13 @@ const PhDsAwarded = ({ setBlurActive }) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          faculty_id: "FAC001",
-          mentee_name: newPhD.menteeName,
-          mentee_rn: newPhD.rollNo,
-          passing_year: newPhD.passingYear,
-        }),
+  faculty_id: "FAC001",
+  mentee_name: newPhD.menteeName,
+  mentee_rn: newPhD.rollNo,
+  passing_year: newPhD.passingYear,
+  passing_month: newPhD.passingMonth, // 👈 Add this
+}),
+
       });
       if (!response.ok) {
         throw new Error("Failed to add new record");
@@ -81,10 +85,12 @@ const PhDsAwarded = ({ setBlurActive }) => {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            mentee_name: updatedPhD.menteeName,
-            passing_year: updatedPhD.passingYear,
-            mentee_rn: updatedPhD.rollNo, // 👈 Include rollNo
-          }),
+  mentee_name: updatedPhD.menteeName,
+  passing_year: updatedPhD.passingYear,
+  passing_month: updatedPhD.passingMonth, // 👈 Add this
+  mentee_rn: updatedPhD.rollNo,
+}),
+
         },
       );
       if (!response.ok) {
@@ -158,8 +164,10 @@ const PhDsAwarded = ({ setBlurActive }) => {
     "Name of the Student",
     "Roll No",
     "Year PhD was Awarded",
+    "Month PhD was Awarded", // 👈 Add this
     "Actions",
   ];
+  
 
   return (
     <div>
@@ -209,7 +217,7 @@ const PhDsAwarded = ({ setBlurActive }) => {
               </thead>
               <tbody>
                 {phdDetails.map((phd, index) => {
-                  const { menteeName, rollNo, passingYear } = phd;
+                  const { menteeName, rollNo, passingYear, passingMonth } = phd;
                   const isLast = index === phdDetails.length - 1;
                   const classes = isLast
                     ? "p-4"
@@ -235,6 +243,12 @@ const PhDsAwarded = ({ setBlurActive }) => {
                           {rollNo}
                         </Typography>
                       </td>
+                      <td className={classes}>
+  <Typography variant="small" color="blue-gray" className="font-normal">
+    {passingMonth}
+  </Typography>
+</td>
+
                       <td className={classes}>
                         <Typography
                           variant="small"
@@ -295,13 +309,15 @@ const PhDsAwarded = ({ setBlurActive }) => {
             />
           ) : (
             <PhDPopUp
-              menteeName={selectedPhD?.menteeName}
-              rollNo={selectedPhD?.rollNo}
-              passingYear={selectedPhD?.passingYear}
-              PHD_id={selectedPhD?.PHD_id}
-              closeModal={closePopup}
-              handleAddPhD={handleAddPhD}
-            />
+  menteeName={selectedPhD?.menteeName}
+  rollNo={selectedPhD?.rollNo}
+  passingYear={selectedPhD?.passingYear}
+  passingMonth={selectedPhD?.passingMonth} // 👈 Add this
+  PHD_id={selectedPhD?.PHD_id}
+  closeModal={closePopup}
+  handleAddPhD={handleAddPhD}
+/>
+
           )}
         </div>
       </Popup>

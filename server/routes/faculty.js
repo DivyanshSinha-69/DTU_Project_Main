@@ -52,7 +52,6 @@ import {
   addSpecialization,
   updateSpecialization,
   deleteSpecialization,
-  addFacultyImage,
   getFacultyImage,
   updateFacultyImage,
   deleteFacultyImage,
@@ -77,10 +76,7 @@ router.delete("/facultyassociation/:faculty_id", deleteFacultyAssociation);
 // Research Paper Route
 router.post('/researchpaper', uploadResearchPaper, addResearchPaper);
 router.get('/researchpaper/:faculty_id', getResearchPapersByFaculty);
-// Route to update a research paper by research_id
 router.put('/researchpaper/:research_id', uploadResearchPaper, updateResearchPaper);
-
-// Route to delete a research paper by research_id
 router.delete('/researchpaper/:research_id', deleteResearchPaper);
 
 // FDP routes
@@ -137,9 +133,8 @@ router.put("/specializations/:specialization_id", updateSpecialization);
 router.delete("/specializations/:specialization_id", deleteSpecialization);
 
 // Faculty Image Routes
-router.post("/facultyimage/:faculty_id", uploadFacultyImage, addFacultyImage); // Route to upload faculty image
-router.get("/facultyimage/:faculty_id", getFacultyImage); // Route to get faculty image
-router.put("/facultyimage/:faculty_id", uploadFacultyImage, updateFacultyImage); // Route to update faculty image
-router.delete("/facultyimage/:faculty_id", deleteFacultyImage); // Route to delete faculty image
+router.get('/facultyimage/:faculty_id', getFacultyImage); // Route to get faculty image
+router.put('/facultyimage/:faculty_id', uploadFacultyImage, updateFacultyImage); // Route to update faculty image
+router.delete('/facultyimage/:faculty_id', deleteFacultyImage); // Route to delete faculty image
 
 export default router;

@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 export default function PhDsAwardedPopUp({
   menteeName,
   rollNo,
+  passingMonth,
   passingYear,
   PHD_id,
   closeModal,
@@ -15,6 +16,7 @@ export default function PhDsAwardedPopUp({
     rollNo: rollNo || "",
     passingYear: passingYear || "",
     PHD_id: PHD_id || "",
+    passingMonth: passingMonth || ""
   });
 
   const handleChange = (e) => {
@@ -27,9 +29,9 @@ export default function PhDsAwardedPopUp({
 
   const handlePopupSubmit = (e) => {
     e.preventDefault();
-    const { menteeName, rollNo, passingYear, PHD_id } = formData;
+    const { menteeName, rollNo,passingMonth, passingYear, PHD_id } = formData;
 
-    if (!menteeName || !rollNo || !passingYear) {
+    if (!menteeName || !rollNo || !passingYear || !passingMonth) {
       toast.error("Please fill in all required fields.");
       return;
     }
@@ -94,6 +96,20 @@ export default function PhDsAwardedPopUp({
               value={formData.rollNo}
               required
             />
+          </div>
+          <div className="relative z-0 w-full group">
+            <label htmlFor="passingYear" className="block text-sm">
+              Passing Month
+            </label>
+            <input
+              name="passingMonth"
+              id="passingMonth"
+              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={handleChange}
+              value={formData.passingMonth}
+              required
+            >
+            </input>
           </div>
 
           {/* Passing Year Dropdown */}

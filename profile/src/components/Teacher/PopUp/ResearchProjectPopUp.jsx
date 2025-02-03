@@ -9,11 +9,12 @@ export default function ResearchProjectPopup({
 }) {
   const [formData, setFormData] = useState({
     title: "",
-    typeOfPaper: "Conference", // Default value
-    domain: "AI", // Default value
+    typeOfPaper: "Conference",
+    domain: "AI",
     publicationName: "",
     publishedDate: "",
     document: null,
+    citation: "", // Add this line
   });
 
   const domainOptions = [
@@ -36,8 +37,8 @@ export default function ResearchProjectPopup({
         domain: project.Domain || "AI",
         publicationName: project.PublicationName || "",
         publishedDate: project.PublishedDate || "",
-        publishedLink: project.PublishedLink || "",
         document: project.Document || null,
+        citation: project.Citation || "", // Add this line
       });
     }
   }, [project]);
@@ -80,6 +81,7 @@ export default function ResearchProjectPopup({
       PublicationName: formData.publicationName,
       PublishedDate: formData.publishedDate,
       Document: formData.document,
+      Citation: formData.citation, // Add this line
     };
 
     // Call the function to save the project (either add or edit)
@@ -181,20 +183,34 @@ export default function ResearchProjectPopup({
               value={formData.publishedDate}
             />
           </div>
+          <div className="flex gap-4"> {/* Add this flex container */}
+  <div className="relative z-0 w-1/2 group"> {/* Citation field */}
+    <label htmlFor="citation" className="block text-sm">
+      Citation
+    </label>
+    <input
+      type="text"
+      name="citation"
+      className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+      placeholder=" "
+      onChange={handleChange}
+      value={formData.citation}
+    />
+  </div>
 
-          <div className="relative z-0 w-full group">
-            <label htmlFor="document" className="block text-sm">
-              Upload Document
-            </label>
-            <input
-              type="file"
-              name="document"
-              accept=".pdf,.docx"
-              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onChange={handleFileChange}
-            />
-          </div>
-
+  <div className="relative z-0 w-1/2 group"> {/* Upload Document field */}
+    <label htmlFor="document" className="block text-sm">
+      Upload Document
+    </label>
+    <input
+      type="file"
+      name="document"
+      accept=".pdf,.docx"
+      className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+      onChange={handleFileChange}
+    />
+  </div>
+</div>
           <div className="flex items-center justify-between mt-5">
             <button
               type="submit"

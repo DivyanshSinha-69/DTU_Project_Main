@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { Card, Typography } from "@material-tailwind/react";
 import Popup from "reactjs-popup";
 import addImg from "../../../assets/add.svg";
@@ -7,24 +7,37 @@ import deleteImg from "../../../assets/delete.svg"; // Import the delete icon
 import ResearchProjectPopup from "../PopUp/ResearchProjectPopUp"; // Assume this popup component exists
 
 const ResearchProjects = ({ setBlurActive }) => {
-  const [researchProjectsDetails, setResearchProjectsDetails] = useState([
-    {
-      TypeOfPaper: "Conference",
-      Title: "Machine Learning for Healthcare",
-      Domain: "AI",
-      PublicationName: "AI Journal",
-      PublishedDate: "2022-05-12",
-      Document: null,
-    },
-    {
-      TypeOfPaper: "Journal",
-      Title: "Data Science in Education",
-      Domain: "Data Science",
-      PublicationName: "Data Science Review",
-      PublishedDate: "2023-01-20",
-      Document: null,
-    },
-  ]);
+  const [researchProjectsDetails, setResearchProjectsDetails] = useState([]);
+  const API_BASE_URL = "http://localhost:3001/ece/faculty";
+
+useEffect(() => {
+  fetch(`${API_BASE_URL}/researchpaper/FAC001`) // Replace 123 with the actual faculty_id
+    .then((response) => response.json())
+    .then((data) => {
+      if (Array.isArray(data)) {
+        setResearchProjectsDetails(
+          data.map((item) => ({
+            research_id: item.research_id,
+            TypeOfPaper: getPaperType(item.paper_type), // Convert integer to string
+            Title: item.title_of_paper,
+            Domain: item.domain,
+            PublicationName: item.publication_name,
+            PublishedDate: item.published_date,
+            Document: item.pdf_path ? { name: "Uploaded" } : null,
+            Citation: item.citation,
+          }))
+        );
+      } else {
+        console.error("Unexpected API response:", data);
+      }
+    });
+    
+}, []);
+const getPaperType = (type) => {
+  const types = ["Conference", "Journal", "Book Chapter", "Other"];
+  return types[type - 1] || "Unknown";
+};
+
 
   const TABLE_HEAD = [
     "Serial No",
@@ -34,6 +47,7 @@ const ResearchProjects = ({ setBlurActive }) => {
     "Name of Conference/Journal/Book Chapter/Other",
     "Published Date",
     "Document",
+    "Citation", // Add this line
     "Actions",
   ];
 
@@ -41,10 +55,11 @@ const ResearchProjects = ({ setBlurActive }) => {
   const [editProject, setEditProject] = useState(null); // Holds the project data for editing
 
   const openPopup = (project = null) => {
-    setEditProject(project); // If editing, pre-fill the form with the selected project
+    setEditProject(project ? { ...project } : null);
     setPopupOpen(true);
     setBlurActive(true);
   };
+  
 
   const closePopup = () => {
     setPopupOpen(false);
@@ -53,26 +68,70 @@ const ResearchProjects = ({ setBlurActive }) => {
 
   // Function to handle the addition of a new research project or editing an existing one
   const saveProject = (project) => {
-    if (editProject) {
-      // Update the existing project
-      setResearchProjectsDetails((prevDetails) =>
-        prevDetails.map((p, index) =>
-          index === researchProjectsDetails.indexOf(editProject) ? project : p,
-        ),
-      );
-    } else {
-      // Add a new project
-      setResearchProjectsDetails((prevDetails) => [...prevDetails, project]);
-    }
-    closePopup();
+    const method = editProject ? "PUT" : "POST";
+    const url = editProject
+      ? `${API_BASE_URL}/researchpaper/${editProject.research_id}`
+      : `${API_BASE_URL}/researchpaper`;
+  
+    const requestData = {
+      faculty_id: "FAC001", // Replace with dynamic ID
+      paper_type: getPaperTypeId(project.TypeOfPaper),
+      title_of_paper: project.Title,
+      domain: project.Domain,
+      publication_name: project.PublicationName,
+      published_date: project.PublishedDate,
+      pdf_path: project.Document ? project.Document.name : null,
+      citation: project.Citation,
+    };
+  
+    fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestData),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.message.includes("successfully")) {
+          setResearchProjectsDetails((prevDetails) => {
+            if (editProject) {
+              return prevDetails.map((p) =>
+                p.research_id === editProject.research_id ? { ...requestData, research_id: editProject.research_id } : p
+              );
+            } else {
+              return [...prevDetails, { ...requestData, research_id: data.data.insertId }];
+            }
+          });
+          closePopup();
+        }
+      })
+      .catch((error) => console.error("Error saving research paper:", error));
   };
-
+  
+  
+  const getPaperTypeId = (type) => {
+    const types = { "Conference": 1, "Journal": 2, "Book Chapter": 3, "Other": 4 };
+    return types[type] || 4;
+  };
+  
   // Function to handle row deletion
-  const deleteProject = (index) => {
-    setResearchProjectsDetails((prevDetails) =>
-      prevDetails.filter((_, i) => i !== index),
-    );
+  const deleteProject = (research_id) => {
+    fetch(`${API_BASE_URL}/researchpaper/${research_id}`, {
+      method: "DELETE",
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.message.includes("successfully")) {
+          setResearchProjectsDetails((prevDetails) =>
+            prevDetails.filter((project) => project.research_id !== research_id) // ✅ Corrected filtering
+          );
+        }
+      })
+      .catch((error) => console.error("Error deleting research paper:", error));
   };
+  
+  
 
   return (
     <div>
@@ -111,8 +170,10 @@ const ResearchProjects = ({ setBlurActive }) => {
 
         <hr className="mb-7" />
 
-        <Card className="h-auto w-full pl-10 pr-10 overflow-x-scroll md:overflow-hidden">
-          <table className="w-full min-w-auto lg:min-w-max table-auto text-left">
+        <Card className="h-auto w-full pl-10 pr-10">
+  <div className="overflow-x-auto">
+    <table className="w-full min-w-auto lg:min-w-max table-auto text-left">
+
             <thead>
               <tr>
                 {TABLE_HEAD.map((head) => (
@@ -132,18 +193,7 @@ const ResearchProjects = ({ setBlurActive }) => {
               </tr>
             </thead>
             <tbody>
-              {researchProjectsDetails.map(
-                (
-                  {
-                    TypeOfPaper,
-                    Title,
-                    Domain,
-                    PublicationName,
-                    PublishedDate,
-                    Document,
-                  },
-                  index,
-                ) => {
+            {researchProjectsDetails.map(({ research_id, TypeOfPaper, Title, Domain, PublicationName, PublishedDate, Document, Citation }, index) =>               {
                   const isLast = index === researchProjectsDetails.length - 1;
                   const classes = isLast
                     ? "p-4"
@@ -217,24 +267,27 @@ const ResearchProjects = ({ setBlurActive }) => {
                         </Typography>
                       </td>
                       <td className={classes}>
+  <Typography
+    variant="small"
+    color="blue-gray"
+    className="font-normal truncate max-w-[150px] overflow-hidden whitespace-nowrap"
+    title={Citation} // Tooltip to show full text on hover
+  >
+    {Citation ? (Citation.length > 50 ? Citation.substring(0, 50) + "..." : Citation) : "N/A"}
+  </Typography>
+</td>
+
+                      <td className={classes}>
                         <div className="flex justify-end gap-2">
+                        <button
+  onClick={() => openPopup({ research_id, TypeOfPaper, Title, Domain, PublicationName, PublishedDate, Document, Citation })} // ✅ Pass project data
+  className="bg-green-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
+>
+  <img src={editImg} alt="edit" className="h-5 w-5" />
+</button>
+
                           <button
-                            onClick={() =>
-                              openPopup({
-                                TypeOfPaper,
-                                Title,
-                                Domain,
-                                PublicationName,
-                                PublishedDate,
-                                Document,
-                              })
-                            }
-                            className="bg-green-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
-                          >
-                            <img src={editImg} alt="edit" className="h-5 w-5" />
-                          </button>
-                          <button
-                            onClick={() => deleteProject(index)}
+                            onClick={() => deleteProject(research_id)}
                             className="bg-red-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
                           >
                             <img
@@ -250,7 +303,8 @@ const ResearchProjects = ({ setBlurActive }) => {
                 },
               )}
             </tbody>
-          </table>
+            </table>
+            </div>
         </Card>
       </div>
     </div>
