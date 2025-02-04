@@ -1,5 +1,10 @@
 import "./App.css";
-import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Navigate,
+} from "react-router-dom";
 import StickyNavbar from "./components/Website/Header";
 import Footer from "./components/Website/Footer";
 import Home from "./components/Homepage/Home";
@@ -20,7 +25,6 @@ import Loader from "./components/Loader";
 import AdminLogin from "./components/AdminLogin";
 
 function App() {
-
   const navigate = Navigate;
   const dispatch = useDispatch();
   const { role } = useSelector((state) => state.user);
@@ -55,7 +59,6 @@ function App() {
 
   return (
     <>
-      
       <Router>
         <StickyNavbar />
         <Routes>
@@ -63,23 +66,22 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/login/admin" element={<AdminLogin />} />
           <Route path="/faculty/portal" element={<Faculty />} />
-          
+
           {role === "student" ? (
             <Route path="/student/portal" element={<Student />} />
-            
-          /*) : role === "teacher" ? (
+          ) : /*) : role === "teacher" ? (
             <Route path="/teacher/portal" element={<Teacher />} />*/
-          ) : role==="admin"? (<Route path="/admin/portal" element={<Dashboard />} />): (
+          role === "admin" ? (
+            <Route path="/admin/portal" element={<Dashboard />} />
+          ) : (
             <Route path="/login" element={<Login />} />
           )}
           <Route path="/parents" element={<Parents />} />
           <Route path="/loader" element={<Loader />} />
           <Route path="/alumini" element={<Alumini />} />
           <Route path="/forgot" element={<Forgot />} />
-         
-          
+
           <Route path="*" element={<Unaithorized />} />
-          
         </Routes>
         <Footer />
       </Router>

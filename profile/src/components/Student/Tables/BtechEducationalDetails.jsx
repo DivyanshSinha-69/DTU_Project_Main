@@ -1,16 +1,14 @@
 import React, { useState } from "react";
 import { Card, Typography } from "@material-tailwind/react";
 import Popup from "reactjs-popup";
-import '../../../styles/popup.css';
+import "../../../styles/popup.css";
 import { useSelector } from "react-redux";
-import editImg from "../../../assets/edit.svg"
+import editImg from "../../../assets/edit.svg";
 import MtechEducationDetailPopup from "../PopupWindow/MtechEducationDetailPopup";
 import BtechEducationDetailPopup from "../PopupWindow/BtechEducationDetailPopup";
 
-const BtechEducationDetails = ({  setBlurActive }) => {
-    
-    
-  const btechEducation = useSelector(state=>state.btechEducation);
+const BtechEducationDetails = ({ setBlurActive }) => {
+  const btechEducation = useSelector((state) => state.btechEducation);
   // console.log(PersonalDetails);
   const [isPopupOpen, setPopupOpen] = useState(false);
   const openPopup = () => {
@@ -23,9 +21,8 @@ const BtechEducationDetails = ({  setBlurActive }) => {
     setBlurActive(false); // Deactivate blur when closing the popup
   };
 
-  const TABLE_HEAD = ["Admitted Through","All India Rank(General Rank)"];
-  const TABLE_ROWS = btechEducation.BtechEducation||[];
-
+  const TABLE_HEAD = ["Admitted Through", "All India Rank(General Rank)"];
+  const TABLE_ROWS = btechEducation.BtechEducation || [];
 
   return (
     <div>
@@ -34,8 +31,11 @@ const BtechEducationDetails = ({  setBlurActive }) => {
           <p className="p-3 text-2xl font1 border-top my-auto">
             Educational Details
           </p>
-          <button onClick={openPopup} className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full  hover:invert hover:scale-[130%] transition-transform ease-in">
-            <img src={editImg} alt="hello" className="h-5 w-5"/>
+          <button
+            onClick={openPopup}
+            className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full  hover:invert hover:scale-[130%] transition-transform ease-in"
+          >
+            <img src={editImg} alt="hello" className="h-5 w-5" />
           </button>
 
           <Popup
@@ -47,11 +47,10 @@ const BtechEducationDetails = ({  setBlurActive }) => {
           >
             <div className="h-[450px] w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.8] rounded-[12%] top-10 fixed inset-5 md:inset-20 flex items-center justify-center">
               <BtechEducationDetailPopup
-              
-              air={TABLE_ROWS.length > 0 ? TABLE_ROWS[0].air : ""}
-              
-              closeModal={closePopup} 
-              name={"UPDATE"} />
+                air={TABLE_ROWS.length > 0 ? TABLE_ROWS[0].air : ""}
+                closeModal={closePopup}
+                name={"UPDATE"}
+              />
             </div>
           </Popup>
         </div>
@@ -59,32 +58,28 @@ const BtechEducationDetails = ({  setBlurActive }) => {
 
         {/* table */}
         <div className="">
-        <Card className="h-auto w-full pl-10 pr-10 overflow-x-scroll md:overflow-hidden">
-          <table className="w-full min-w-auto lg:min-w-max table-auto text-left">
-            <thead>
-              <tr>
-                {TABLE_HEAD.map((head) => (
-                  <th
-                    key={head}
-                    className="border-b border-blue-gray-100 bg-blue-gray-50 p-4"
-                  >
-                    <Typography
-                      variant="small"
-                      color="blue-gray"
-                      className="font-normal leading-none opacity-70"
+          <Card className="h-auto w-full pl-10 pr-10 overflow-x-scroll md:overflow-hidden">
+            <table className="w-full min-w-auto lg:min-w-max table-auto text-left">
+              <thead>
+                <tr>
+                  {TABLE_HEAD.map((head) => (
+                    <th
+                      key={head}
+                      className="border-b border-blue-gray-100 bg-blue-gray-50 p-4"
                     >
-                      {head}
-                    </Typography>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {TABLE_ROWS.map(
-                (
-                  {RollNo,admittedThrough, air},
-                  index
-                ) => {
+                      <Typography
+                        variant="small"
+                        color="blue-gray"
+                        className="font-normal leading-none opacity-70"
+                      >
+                        {head}
+                      </Typography>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {TABLE_ROWS.map(({ RollNo, admittedThrough, air }, index) => {
                   const isLast = index === TABLE_ROWS.length - 1;
                   const classes = isLast
                     ? "p-4"
@@ -110,14 +105,12 @@ const BtechEducationDetails = ({  setBlurActive }) => {
                           {air}
                         </Typography>
                       </td>
-                      
                     </tr>
                   );
-                }
-              )}
-            </tbody>
-          </table>
-        </Card>
+                })}
+              </tbody>
+            </table>
+          </Card>
         </div>
       </div>
     </div>
@@ -125,8 +118,3 @@ const BtechEducationDetails = ({  setBlurActive }) => {
 };
 
 export default BtechEducationDetails;
-
-
-
-  
-

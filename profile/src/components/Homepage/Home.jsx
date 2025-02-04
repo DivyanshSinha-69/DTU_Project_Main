@@ -2,8 +2,6 @@ import React from "react";
 import homebg from "../../assets/dtu3.png";
 import Carousal from "./Carousal";
 const Home = () => {
- 
-  
   return (
     <div className="bg-gray-700">
       <div

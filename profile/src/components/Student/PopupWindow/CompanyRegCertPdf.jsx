@@ -1,5 +1,3 @@
-
-
 // Install axios if not already installed: npm install axios
 
 import React, { useState } from "react";
@@ -30,7 +28,6 @@ const CompanyRegCertPdf = ({ setPdfSrc }) => {
   const handleUpload = async (e) => {
     e.preventDefault();
     if (file) {
-
       if (file.size > 500 * 1024) {
         toast.error("file size should be 500KB or below");
         return;
@@ -49,7 +46,7 @@ const CompanyRegCertPdf = ({ setPdfSrc }) => {
               "Content-Type": "multipart/form-data",
             },
             withCredentials: true,
-          }
+          },
         );
       } catch (error) {
         console.error("Error uploading PDF: ", error);
@@ -58,8 +55,6 @@ const CompanyRegCertPdf = ({ setPdfSrc }) => {
       setFile(null);
       setIsFileSelected(false);
 
-      
-
       axios
         .post(
           `http://localhost:3001/ece/student/getcompanyregcert`,
@@ -67,12 +62,10 @@ const CompanyRegCertPdf = ({ setPdfSrc }) => {
           // { responseType: "arraybuffer" }
         )
         .then((response) => {
-          
           // const base64PDF = arrayBufferToBase64(response.data);
           // console.log(`data:application/pdf;base64,${base64PDF}`)
           // console.log(base64PDF);
           setPdfSrc(response.data.companyRegCertificate);
-          
         })
         .catch((error) => {
           console.error("Error fetching PDF: ", error);

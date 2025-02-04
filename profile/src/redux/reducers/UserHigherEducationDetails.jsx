@@ -12,7 +12,7 @@ export const UserHigherEducationDetails = createSlice({
     setHigherEducationDetails: (state, action) => {
       state.HigherEducationDetails = action.payload;
     },
-   
+
     // addPlacement: (state, action) => {
     //   const newPlacement = [...state.Placement, action.payload];
     //   state.Placement = newPlacement;
@@ -24,7 +24,7 @@ export const UserHigherEducationDetails = createSlice({
 
     //   state.Placement = updatedPlacement;
     // },
-    
+
     removeHigherEducationDetails: (state, action) => {
       state.HigherEducationDetails = [];
     },
@@ -33,10 +33,10 @@ export const UserHigherEducationDetails = createSlice({
 
 export const {
   setHigherEducationDetails,
-//   deletePlacement,
+  //   deletePlacement,
 
-removeHigherEducationDetails
-//   addPlacement,
+  removeHigherEducationDetails,
+  //   addPlacement,
 } = UserHigherEducationDetails.actions;
 
 export default UserHigherEducationDetails.reducer;

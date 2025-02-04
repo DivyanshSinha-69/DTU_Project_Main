@@ -7,7 +7,7 @@ import addImg from "../../../assets/add.svg";
 import axios from "axios";
 import AddPlacementsPopup from "../PopupWindow/AddPlacementsPopup.jsx";
 import { deleteInterInstitute } from "../../../redux/reducers/UserInterInstituteDetails.jsx";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 import AddInterInstitutePopup from "../PopupWindow/AddInterInstitutePopup.jsx";
 
 const Activities = ({ setBlurActive }) => {
@@ -44,7 +44,7 @@ const Activities = ({ setBlurActive }) => {
             ID: ID,
           },
           withCredentials: true,
-        }
+        },
       );
 
       toast.success(response.data.message);
@@ -54,12 +54,13 @@ const Activities = ({ setBlurActive }) => {
     }
   };
 
-  
   return (
     <div>
       <div className="h-auto p-10 ">
         <div className="flex flex-row justify-between pr-5 pl-5">
-          <p className="p-3 text-2xl font1 border-top my-auto">Inter-Institute Events</p>
+          <p className="p-3 text-2xl font1 border-top my-auto">
+            Inter-Institute Events
+          </p>
           <button
             onClick={openPopup}
             className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full hover:invert hover:scale-[130%] transition-transform ease-in"
@@ -115,7 +116,7 @@ const Activities = ({ setBlurActive }) => {
                     position,
                     certificate,
                   },
-                  index
+                  index,
                 ) => {
                   const isLast = index === TABLE_ROWS.length - 1;
                   const classes = isLast
@@ -191,7 +192,7 @@ const Activities = ({ setBlurActive }) => {
                       </td>
                     </tr>
                   );
-                }
+                },
               )}
             </tbody>
           </table>
@@ -202,4 +203,3 @@ const Activities = ({ setBlurActive }) => {
 };
 
 export default Activities;
-

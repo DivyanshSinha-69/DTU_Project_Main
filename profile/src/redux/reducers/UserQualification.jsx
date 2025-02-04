@@ -18,9 +18,7 @@ export const UserQualifications = createSlice({
   },
 });
 
-export const {
-  setUserQualifications,
-  addUserQualification,
-} = UserQualifications.actions;
+export const { setUserQualifications, addUserQualification } =
+  UserQualifications.actions;
 
 export default UserQualifications.reducer;

@@ -13,7 +13,7 @@ const Dashboard = () => {
     year2: "2K25",
   });
   const [loader, setLoader] = useState(true);
-  const [clicked,setClicked] = useState(false);
+  const [clicked, setClicked] = useState(false);
 
   const handleDownloadExcel = () => {
     // Create a copy of TABLE_ROWS to avoid modifying the original data
@@ -44,11 +44,13 @@ const Dashboard = () => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Sheet 1");
 
-    if(formData.info ==="mtecheducationaldetails" && formData.courseGroup==="Btech"){
+    if (
+      formData.info === "mtecheducationaldetails" &&
+      formData.courseGroup === "Btech"
+    ) {
       XLSX.writeFile(wb, `btecheducationaldetails.xlsx`);
-    }
-    else{
-    XLSX.writeFile(wb, `${formData.info}.xlsx`);
+    } else {
+      XLSX.writeFile(wb, `${formData.info}.xlsx`);
     }
   };
 
@@ -95,7 +97,7 @@ const Dashboard = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
 
       if (response.data.data.length > 0) {
@@ -107,7 +109,6 @@ const Dashboard = () => {
         setTABLE_ROWS([]);
         setClicked(false);
       }
-      
     } catch (error) {
       console.error(error);
       setLoader(false);
@@ -486,7 +487,7 @@ const Dashboard = () => {
                               id="vertical-list-react"
                               type="radio"
                               name="info"
-                              value="interInstituteEventDetails"                
+                              value="interInstituteEventDetails"
                               onChange={handleChange}
                               class="before:content[''] peer relative h-5 w-5 cursor-pointer appearance-none rounded-md border border-blue-gray-200 transition-all before:absolute before:top-2/4 before:left-2/4 before:block before:h-12 before:w-12 before:-translate-y-2/4 before:-translate-x-2/4 before:rounded-full before:bg-blue-gray-500 before:opacity-0 before:transition-opacity checked:border-gray-900 checked:bg-gray-900 checked:before:bg-gray-900 hover:before:opacity-0"
                             />
@@ -532,7 +533,7 @@ const Dashboard = () => {
                               id="vertical-list-react"
                               type="radio"
                               name="info"
-                              value="defaulters"                
+                              value="defaulters"
                               onChange={handleChange}
                               class="before:content[''] peer relative h-5 w-5 cursor-pointer appearance-none rounded-md border border-blue-gray-200 transition-all before:absolute before:top-2/4 before:left-2/4 before:block before:h-12 before:w-12 before:-translate-y-2/4 before:-translate-x-2/4 before:rounded-full before:bg-blue-gray-500 before:opacity-0 before:transition-opacity checked:border-gray-900 checked:bg-gray-900 checked:before:bg-gray-900 hover:before:opacity-0"
                             />
@@ -556,7 +557,7 @@ const Dashboard = () => {
                         </div>
                       </div>
                       <p class="block font-sans text-base antialiased font-medium leading-relaxed text-blue-gray-900">
-                        Defaulters  
+                        Defaulters
                       </p>
                     </label>
                   </div>
@@ -690,9 +691,8 @@ const Dashboard = () => {
           </div>
         </div>
         {loader && clicked ? (
-          <div className="mx-auto "
-          >
-          <Loader/>
+          <div className="mx-auto ">
+            <Loader />
           </div>
         ) : (
           <>

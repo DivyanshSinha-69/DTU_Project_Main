@@ -12,7 +12,7 @@ export const UserMtechEducationalDetails = createSlice({
     setMtechEducation: (state, action) => {
       state.MtechEducation = action.payload;
     },
-  
+
     removeMtechEducation: (state, action) => {
       state.MtechEducation = [];
     },
@@ -21,10 +21,10 @@ export const UserMtechEducationalDetails = createSlice({
 
 export const {
   setMtechEducation,
-//   deletePlacement,
+  //   deletePlacement,
 
-removeMtechEducation
-//   addPlacement,
+  removeMtechEducation,
+  //   addPlacement,
 } = UserMtechEducationalDetails.actions;
 
 export default UserMtechEducationalDetails.reducer;

@@ -19,7 +19,7 @@ export const UserResearchPaper = createSlice({
       const updatedPapers = state.researchPapers.map((paper) =>
         paper.PublicationID === action.payload.PublicationID
           ? { ...paper, ...action.payload }
-          : paper
+          : paper,
       );
       state.researchPapers = updatedPapers;
     },
@@ -27,7 +27,7 @@ export const UserResearchPaper = createSlice({
     // Delete a research paper from the user's list
     deleteUserResearchPaper: (state, action) => {
       const remainingPapers = state.researchPapers.filter(
-        (paper) => paper.PublicationID !== action.payload
+        (paper) => paper.PublicationID !== action.payload,
       );
       state.researchPapers = remainingPapers;
     },
