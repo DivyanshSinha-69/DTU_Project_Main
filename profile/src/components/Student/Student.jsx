@@ -43,7 +43,7 @@ const Student = () => {
         // Fetch personal details
 
         const personalDetailsResponse = await axios.post(
-          "https://64.227.135.99:3001/ece/student/personaldetails",
+          "http://64.227.135.99:3001/ece/student/personaldetails",
           {
             rollno: RollNo,
           },
@@ -55,7 +55,7 @@ const Student = () => {
         dispatch(setPersonalDetails(personalDetailsResponse.data.user));
 
         const response = await axios.post(
-          "https://64.227.135.99:3001/ece/student/profskills",
+          "http://64.227.135.99:3001/ece/student/profskills",
           {
             rollno: RollNo,
           },
@@ -66,7 +66,7 @@ const Student = () => {
         dispatch(setProfessionalSkills(response.data.user));
 
         const interInstituteData = await axios.post(
-          "https://64.227.135.99:3001/ece/student/getinterinstituteactivity",
+          "http://64.227.135.99:3001/ece/student/getinterinstituteactivity",
           {
             rollno: RollNo,
           },
@@ -81,7 +81,7 @@ const Student = () => {
         if (Course === "Mtech") {
           try {
             const mtechEducationDetailsResponse = await axios.post(
-              "https://64.227.135.99:3001/ece/student/getmtecheducationdetails",
+              "http://64.227.135.99:3001/ece/student/getmtecheducationdetails",
               {
                 rollno: RollNo,
               },
@@ -100,7 +100,7 @@ const Student = () => {
         if (Course === "Btech") {
           try {
             const btechEducationDetailsResponse = await axios.post(
-              "https://64.227.135.99:3001/ece/student/getbtecheducationdetails",
+              "http://64.227.135.99:3001/ece/student/getbtecheducationdetails",
               {
                 rollno: RollNo,
               },
@@ -118,7 +118,7 @@ const Student = () => {
         }
 
         const entrepreneurDetails = await axios.post(
-          "https://64.227.135.99:3001/ece/student/getentrepreneurdetails",
+          "http://64.227.135.99:3001/ece/student/getentrepreneurdetails",
           {
             rollno: RollNo,
           },
@@ -129,7 +129,7 @@ const Student = () => {
         dispatch(setEntrepreneurDetails(entrepreneurDetails.data.user));
 
         const higherEducationDetails = await axios.post(
-          "https://64.227.135.99:3001/ece/student/gethighereducationdetails",
+          "http://64.227.135.99:3001/ece/student/gethighereducationdetails",
           {
             rollno: RollNo,
           },
@@ -140,7 +140,7 @@ const Student = () => {
         dispatch(setHigherEducationDetails(higherEducationDetails.data.user));
 
         const publicationDetails = await axios.post(
-          "https://64.227.135.99:3001/ece/student/publication",
+          "http://64.227.135.99:3001/ece/student/publication",
           {
             rollno: RollNo,
           },
@@ -151,7 +151,7 @@ const Student = () => {
         dispatch(setPublicationDetails(publicationDetails.data.user));
 
         const placementresponse = await axios.post(
-          "https://64.227.135.99:3001/ece/student/placement",
+          "http://64.227.135.99:3001/ece/student/placement",
           {
             rollno: RollNo,
           },

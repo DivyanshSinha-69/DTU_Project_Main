@@ -19,7 +19,7 @@ const Login = () => {
     try {
       // Make a POST request to your server with login credentials
       const response = await axios.post(
-        "https://64.227.135.99:3001/login",
+        "http://64.227.135.99:3001/login",
         {
           email: email,
           password: password,

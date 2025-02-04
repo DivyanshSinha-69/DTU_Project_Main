@@ -8,7 +8,7 @@ import ResearchProjectPopup from "../PopUp/ResearchProjectPopUp"; // Assume this
 
 const ResearchProjects = ({ setBlurActive }) => {
   const [researchProjectsDetails, setResearchProjectsDetails] = useState([]);
-  const API_BASE_URL = "https://64.227.135.99:3001/ece/faculty";
+  const API_BASE_URL = "http://64.227.135.99:3001/ece/faculty";
 
 useEffect(() => {
   fetch(`${API_BASE_URL}/researchpaper/FAC001`) // Replace 123 with the actual faculty_id
