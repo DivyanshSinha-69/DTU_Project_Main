@@ -26,12 +26,12 @@ const Faculty = () => {
   const fetchFacultyImage = async () => {
     if (isOperationInProgress) return;
     try {
-      const response = await axios.get(`https://64.227.135.99:3001/ece/faculty/facultyimage/FAC001`);
+      const response = await axios.get(`http://64.227.135.99:3001/ece/faculty/facultyimage/FAC001`);
       console.log("called");
   
       if (response.data && response.data.faculty_image) {
         // Assuming the API returns the relative path to the image
-        const imagePath = `https://64.227.135.99:3001/public/${response.data.faculty_image}`;
+        const imagePath = `http://64.227.135.99:3001/public/${response.data.faculty_image}`;
         console.log("Fetched image path:", imagePath);
         setSelectedImage(imagePath);
         console.log("Selected image state after setting:", imagePath);
@@ -81,14 +81,14 @@ const Faculty = () => {
         if (selectedImage) {
           // Update the image if it already exists
           response = await axios.put(
-            `https://64.227.135.99:3001/ece/faculty/facultyimage/FAC001`,
+            `http://64.227.135.99:3001/ece/faculty/facultyimage/FAC001`,
             formData,
             { headers: { "Content-Type": "multipart/form-data" } }
           );
         } else {
           // Upload the image for the first time
           response = await axios.post(
-            `https://64.227.135.99:3001/ece/faculty/facultyimage/FAC001`,
+            `http://64.227.135.99:3001/ece/faculty/facultyimage/FAC001`,
             formData,
             { headers: { "Content-Type": "multipart/form-data" } }
           );
@@ -126,7 +126,7 @@ const Faculty = () => {
   const handleDeleteImage = async () => {
     setOperationInProgress(true);
     try {
-      const response = await axios.delete(`https://64.227.135.99:3001/ece/faculty/facultyimage/FAC001`);
+      const response = await axios.delete(`http://64.227.135.99:3001/ece/faculty/facultyimage/FAC001`);
       
       if (response.data && response.data.message === "Faculty image and record deleted successfully") {
         setSelectedImage(null); // Clear the image from UI

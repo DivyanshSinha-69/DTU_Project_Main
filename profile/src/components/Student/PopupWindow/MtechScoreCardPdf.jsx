@@ -39,7 +39,7 @@ const MtechScoreCardPdf = ({ setPdfSrc }) => {
 
       try {
         const response = await axios.post(
-          "https://64.227.135.99:3001/ece/student/uploadscorecard",
+          "http://64.227.135.99:3001/ece/student/uploadscorecard",
           formData,
           {
             headers: {
@@ -55,7 +55,7 @@ const MtechScoreCardPdf = ({ setPdfSrc }) => {
       setIsFileSelected(false);
 
       axios
-        .post(`https://64.227.135.99:3001/ece/student/getscorecard`, { id: RollNo })
+        .post(`http://64.227.135.99:3001/ece/student/getscorecard`, { id: RollNo })
         .then((response) => {
           setPdfSrc(response.data.gateScoreCard);
         })

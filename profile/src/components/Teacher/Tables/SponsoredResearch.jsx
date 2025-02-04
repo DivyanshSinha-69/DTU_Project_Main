@@ -44,7 +44,7 @@ const SponsoredResearch = ({ setBlurActive }) => {
   const fetchResearchDetails = async () => {
     try {
       const response = await fetch(
-        `https://64.227.135.99:3001/ece/faculty/sponsored-research/${facultyId}`,
+        `http://64.227.135.99:3001/ece/faculty/sponsored-research/${facultyId}`,
       );
       if (!response.ok) {
         // If the response is not OK (e.g., 404), handle it gracefully
@@ -111,7 +111,7 @@ const SponsoredResearch = ({ setBlurActive }) => {
 
       axios
         .post(
-          "https://64.227.135.99:3001/ece/faculty/sponsored-research",
+          "http://64.227.135.99:3001/ece/faculty/sponsored-research",
           requestPayload,
         )
         .then((response) => {
@@ -137,7 +137,7 @@ const SponsoredResearch = ({ setBlurActive }) => {
 
       axios
         .put(
-          `https://64.227.135.99:3001/ece/faculty/sponsored-research/${selectedResearch.sponsorship_id}`,
+          `http://64.227.135.99:3001/ece/faculty/sponsored-research/${selectedResearch.sponsorship_id}`,
           updatedResearch,
         )
         .then(() => {
@@ -160,7 +160,7 @@ const SponsoredResearch = ({ setBlurActive }) => {
   const handleDeleteResearch = (sponsorshipId) => {
     axios
       .delete(
-        `https://64.227.135.99:3001/ece/faculty/sponsored-research/${sponsorshipId}`,
+        `http://64.227.135.99:3001/ece/faculty/sponsored-research/${sponsorshipId}`,
       )
       .then(() => {
         setResearchDetails((prevDetails) =>

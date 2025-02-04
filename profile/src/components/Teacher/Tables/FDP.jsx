@@ -18,7 +18,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
       const fetchFDPDetails = async () => {
         try {
           const response = await fetch(
-            `https://64.227.135.99:3001/ece/faculty/fdp-records/${faculty_id}`,
+            `http://64.227.135.99:3001/ece/faculty/fdp-records/${faculty_id}`,
           );
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -61,8 +61,8 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
   const handleAddFDP = async (newFDP) => {
     const { programName, year, month, days } = newFDP;
     const url = isAddFDP
-      ? "https://64.227.135.99:3001/ece/faculty/fdp-records"
-      : `https://64.227.135.99:3001/ece/faculty/fdp-records/${selectedFDP?.FDP_id}`; // Use FDP_id for updates
+      ? "http://64.227.135.99:3001/ece/faculty/fdp-records"
+      : `http://64.227.135.99:3001/ece/faculty/fdp-records/${selectedFDP?.FDP_id}`; // Use FDP_id for updates
   
     const method = isAddFDP ? "POST" : "PUT";
     const body = isAddFDP
@@ -113,7 +113,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
   const handleDeleteFDP = async (fdpId) => {
     try {
       const response = await fetch(
-        `https://64.227.135.99:3001/ece/faculty/fdp-records/${fdpId}`,
+        `http://64.227.135.99:3001/ece/faculty/fdp-records/${fdpId}`,
         {
           method: "DELETE",
         },
