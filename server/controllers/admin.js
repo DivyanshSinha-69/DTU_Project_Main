@@ -16,7 +16,7 @@ export const getall = (req, res) => {
 export const getData = (req, res) => {
   let { info, courseGroup, year1, year2 } = req.body;
 
-  if (info === "mtecheducationaldetails" && courseGroup === "Btech") {
+  if (info === "mtechEducationalDetails" && courseGroup === "Btech") {
     info = "btechEducationalDetails";
   }
 
@@ -31,7 +31,7 @@ export const getData = (req, res) => {
     let educationalTable = "";
 
     if (courseGroup === "Mtech") {
-      educationalTable = "MtechEducationalDetails";
+      educationalTable = "mtechEducationalDetails";
     } else {
       educationalTable = "btechEducationalDetails";
     }
