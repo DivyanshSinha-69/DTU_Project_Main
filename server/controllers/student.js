@@ -356,7 +356,7 @@ export const deletePlacement = (req, res) => {
       if (appointmentLetter) {
         // Extract the relative file path from the link
         const relativeFilePath = appointmentLetter.replace(
-          "http://localhost:3001/public",
+          "http://64.227.135.99:3001/public",
           "",
         );
 
@@ -513,7 +513,7 @@ export const uploadPdf = (req, res) => {
       }
 
       // Insert into the database without checking if RollNo exists
-      const baseUrl = "http://localhost:3001/public";
+      const baseUrl = "http://64.227.135.99:3001/public";
       const appointmentLettersLink = `${baseUrl}/appointmentLetters/${modifiedRollNo}/${fileName}`;
 
       const insertQuery =
@@ -786,7 +786,7 @@ export const uploadScoreCard = (req, res) => {
           console.error("Error checking RollNo existence: " + checkErr.stack);
           res.status(500).send("Internal Server Error");
         } else {
-          const baseUrl = "http://localhost:3001/public";
+          const baseUrl = "http://64.227.135.99:3001/public";
           const gateScoreCardLink = `${baseUrl}/scoreCards/${fileName}`;
 
           if (checkResult.length === 0) {
@@ -924,7 +924,7 @@ export const getCompanyRegCert = (req, res) => {
       // Check if a link is present
       if (companyRegCertificate) {
         // Construct the full URL using the local server's base URL and the stored link
-        // const baseUrl = 'http://localhost:3001/public';
+        // const baseUrl = 'http://64.227.135.99:3001/public';
         // const fullUrl = `${baseUrl}${companyRegCertificate}`;
 
         // Send the PDF link as the response
@@ -982,7 +982,7 @@ export const uploadCompanyRegCert = (req, res) => {
           console.error("Error checking RollNo existence: " + checkErr.stack);
           res.status(500).send("Internal Server Error");
         } else {
-          const baseUrl = "http://localhost:3001/public";
+          const baseUrl = "http://64.227.135.99:3001/public";
           const certificateLink = `${baseUrl}/companyCertificates/${fileName}`;
 
           if (checkResult.length === 0) {
@@ -1134,7 +1134,7 @@ export const uploadofferletter = (req, res) => {
           console.error("Error checking RollNo existence: " + checkErr.stack);
           res.status(500).send("Internal Server Error");
         } else {
-          const baseUrl = "http://localhost:3001/public";
+          const baseUrl = "http://64.227.135.99:3001/public";
           const offerLetterLink = `${baseUrl}/offerLetters/${fileName}`;
 
           if (checkResult.length === 0) {
@@ -1199,7 +1199,7 @@ export const deletePublication = (req, res) => {
       if (manuscript) {
         // Extract the relative file path from the link
         const relativeFilePath = manuscript.replace(
-          "http://localhost:3001/public",
+          "http://64.227.135.99:3001/public",
           "",
         );
 
@@ -1363,7 +1363,7 @@ export const uploadManuscript = (req, res) => {
       }
 
       // Insert into the database without checking if RollNo exists
-      const baseUrl = "http://localhost:3001/public";
+      const baseUrl = "http://64.227.135.99:3001/public";
       const manuscriptLink = `${baseUrl}/manuscripts/${modifiedRollNo}/${fileName}`;
 
       const insertQuery =
@@ -1502,7 +1502,7 @@ export const uploadCertificate = (req, res) => {
       }
 
       // Insert into the database without checking if RollNo exists
-      const baseUrl = "http://localhost:3001/public";
+      const baseUrl = "http://64.227.135.99:3001/public";
       const certificateLink = `${baseUrl}/certificates/${modifiedRollNo}/${fileName}`;
 
       const insertQuery =
@@ -1574,7 +1574,7 @@ export const deleteInterInstituteActivity = (req, res) => {
       if (certificate) {
         // Extract the relative file path from the link
         const relativeFilePath = certificate.replace(
-          "http://localhost:3001/public",
+          "http://64.227.135.99:3001/public",
           "",
         );
 
