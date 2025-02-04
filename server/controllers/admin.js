@@ -17,7 +17,7 @@ export const getData = (req, res) => {
   let { info, courseGroup, year1, year2 } = req.body;
 
   if (info === "mtecheducationaldetails" && courseGroup === "Btech") {
-    info = "btecheducationaldetails";
+    info = "btechEducationalDetails";
   }
 
   // Make sure to sanitize the table name to prevent SQL injection
