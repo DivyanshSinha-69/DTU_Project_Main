@@ -15,7 +15,7 @@ const PlacementPdf = ({ setPdfSrc, setId }) => {
 
   //     axios
   //       .post(
-  //         `http://64.227.135.99:3001/ece/student/getpdf`,
+  //         `https://64.227.135.99:3001/ece/student/getpdf`,
   //         { id: id },
   //         { responseType: "arraybuffer" }
   //       )
@@ -60,7 +60,7 @@ const PlacementPdf = ({ setPdfSrc, setId }) => {
 
       try {
         const response = await axios.post(
-          "http://64.227.135.99:3001/ece/student/uploadpdf",
+          "https://64.227.135.99:3001/ece/student/uploadpdf",
           formData,
           {
             headers: {
@@ -76,7 +76,7 @@ const PlacementPdf = ({ setPdfSrc, setId }) => {
       setIsFileSelected(false);
 
       axios
-        .post(`http://64.227.135.99:3001/ece/student/getpdf`, { id: id })
+        .post(`https://64.227.135.99:3001/ece/student/getpdf`, { id: id })
         .then((response) => {
           setPdfSrc(response.data.appointmentLetter);
         })

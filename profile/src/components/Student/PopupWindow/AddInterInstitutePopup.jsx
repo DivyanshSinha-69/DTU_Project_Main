@@ -50,7 +50,7 @@ export default function AddInterInstitutePopup(props) {
 
     try {
       const response = await axios.post(
-        "http://64.227.135.99:3001/ece/student/addinterinstituteactivity",
+        "https://64.227.135.99:3001/ece/student/addinterinstituteactivity",
         {
           collegeName: formData.collegeName,
           eventName: formData.eventName,
