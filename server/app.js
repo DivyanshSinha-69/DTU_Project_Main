@@ -24,10 +24,15 @@ const buildPath = path.join(_dirname, "../profile/build");
 
 app.use(express.static(buildPath));
 
+const allowedOrigins = [
+  "https://dtu-project-main-git-main-divyansh-sinhas-projects.vercel.app",
+  "http://localhost:3000",
+];
+
 // Using Middlewares
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: allowedOrigins,
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   }),
