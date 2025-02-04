@@ -5,10 +5,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { addPlacement } from "../../../redux/reducers/UserPlacementDetail";
 import ManuscriptPdf from "./ManuscriptPdf";
 import { addPublicationDetails } from "../../../redux/reducers/UserPublicationDetails";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 
 export default function AddPlacementsPopup(props) {
-  const { closeModal, name} = props;
+  const { closeModal, name } = props;
   const { RollNo } = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
   const [pdfSrc, setPdfSrc] = useState("");
@@ -19,7 +19,7 @@ export default function AddPlacementsPopup(props) {
     publishedArticleLink: "",
   });
 
-  const[id,setId]=useState(null);
+  const [id, setId] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -30,20 +30,25 @@ export default function AddPlacementsPopup(props) {
   };
 
   const handlepopup = async () => {
-    
-
-    if (!formData.publishedIn || !formData.publicationDoi || !formData.publishedArticleLink || !formData.articleTitle) {
+    if (
+      !formData.publishedIn ||
+      !formData.publicationDoi ||
+      !formData.publishedArticleLink ||
+      !formData.articleTitle
+    ) {
       toast.error("Please fill in all required fields");
       return;
     } else {
       // Check if the publishedArticleLink is a valid URL
       const urlRegex = /^(ftp|http|https):\/\/[^ "]+$/;
-    
+
       if (!urlRegex.test(formData.publishedArticleLink)) {
-        toast.error("Please enter a valid website link for the published article");
+        toast.error(
+          "Please enter a valid website link for the published article",
+        );
         return;
       }
-    
+
       // Your code for further processing when all conditions are met
     }
 
@@ -54,27 +59,26 @@ export default function AddPlacementsPopup(props) {
           publishedIn: formData.publishedIn,
           articleTitle: formData.articleTitle,
           publishedArticleLink: formData.publishedArticleLink,
-          publicationDoi:formData.publicationDoi,
+          publicationDoi: formData.publicationDoi,
           roll: RollNo,
           ID: id,
         },
         {
           withCredentials: true,
-        }
+        },
       );
-
 
       // Handle success, e.g., show a success message or update state
       const updateddata = {
         publishedIn: formData.publishedIn,
         articleTitle: formData.articleTitle,
         publishedArticleLink: formData.publishedArticleLink,
-        publicationDoi:formData.publicationDoi,
-        RollNo: RollNo,      
-        manuscript:pdfSrc,
-        ID:id,
+        publicationDoi: formData.publicationDoi,
+        RollNo: RollNo,
+        manuscript: pdfSrc,
+        ID: id,
       };
-    //   {console.log(pdfSrc)}
+      //   {console.log(pdfSrc)}
       dispatch(addPublicationDetails(updateddata));
 
       if (response.status == 201) {
@@ -85,7 +89,6 @@ export default function AddPlacementsPopup(props) {
       // Handle error, e.g., show an error message
       console.error(error);
     }
-      
   };
 
   return (
@@ -151,7 +154,7 @@ export default function AddPlacementsPopup(props) {
           <Typography variant="h6" color="blue-gray" className="-mb-3 flex">
             Manuscript<p className="pl-1 text-red-600">*</p>
           </Typography>
-          <ManuscriptPdf setId={setId} setPdfSrc={setPdfSrc}/>
+          <ManuscriptPdf setId={setId} setPdfSrc={setPdfSrc} />
         </div>
 
         <Button
@@ -165,5 +168,3 @@ export default function AddPlacementsPopup(props) {
     </Card>
   );
 }
-
-

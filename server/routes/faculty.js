@@ -1,5 +1,8 @@
 import express from "express";
-import { uploadResearchPaper, uploadFacultyImage } from '../config/multerConfig.js';
+import {
+  uploadResearchPaper,
+  uploadFacultyImage,
+} from "../config/multerConfig.js";
 
 import {
   getFacultyCredentials,
@@ -77,18 +80,18 @@ router.put('/researchpaper/:research_id', uploadResearchPaper, updateResearchPap
 router.delete('/researchpaper/:research_id', deleteResearchPaper);
 
 // FDP routes
-router.get('/fdp-records', getFDPRecords);
-router.get('/fdp-records/:faculty_id', getFDPRecords);
-router.post('/fdp-records', addFDPRecord);
-router.put('/fdp-records/:FDP_id', updateFDPRecord);
-router.delete('/fdp-records/:FDP_id', deleteFDPRecord);
+router.get("/fdp-records", getFDPRecords);
+router.get("/fdp-records/:faculty_id", getFDPRecords);
+router.post("/fdp-records", addFDPRecord);
+router.put("/fdp-records/:FDP_id", updateFDPRecord);
+router.delete("/fdp-records/:FDP_id", deleteFDPRecord);
 
 // VAE routes
-router.get('/vae', getVAERecords);
-router.get('/vae/:faculty_id', getVAERecords);
-router.post('/vae', addVAERecord);
-router.put('/vae/:visit_id', updateVAERecord);
-router.delete('/vae/:visit_id', deleteVAERecord);
+router.get("/vae", getVAERecords);
+router.get("/vae/:faculty_id", getVAERecords);
+router.post("/vae", addVAERecord);
+router.put("/vae/:visit_id", updateVAERecord);
+router.delete("/vae/:visit_id", deleteVAERecord);
 
 // Book routes
 router.get("/books/:faculty_id?", getBookRecords);
@@ -97,32 +100,30 @@ router.put("/books/:Book_id", updateBookRecord);
 router.delete("/books/:Book_id", deleteBookRecord);
 
 // PHD awarded routes
-router.get('/phd-awarded', getPhDAwardedRecords);
-router.get('/phd-awarded/:faculty_id', getPhDAwardedRecordsByFacultyId);
-router.post('/phd-awarded', addPhDAwardedRecord);
-router.put('/phd-awarded/:PHD_id', updatePhDAwardedRecord);
-router.delete('/phd-awarded/:PHD_id', deletePhDAwardedRecord);
-
+router.get("/phd-awarded", getPhDAwardedRecords);
+router.get("/phd-awarded/:faculty_id", getPhDAwardedRecordsByFacultyId);
+router.post("/phd-awarded", addPhDAwardedRecord);
+router.put("/phd-awarded/:PHD_id", updatePhDAwardedRecord);
+router.delete("/phd-awarded/:PHD_id", deletePhDAwardedRecord);
 
 // Sponsored Research Routes
-router.get('/sponsored-research/:faculty_id', getSponsoredResearchByFaculty);
-router.post('/sponsored-research', addSponsoredResearch);
-router.put('/sponsored-research/:sponsorship_id', updateSponsoredResearch);
-router.delete('/sponsored-research/:sponsorship_id', deleteSponsoredResearch);
-
+router.get("/sponsored-research/:faculty_id", getSponsoredResearchByFaculty);
+router.post("/sponsored-research", addSponsoredResearch);
+router.put("/sponsored-research/:sponsorship_id", updateSponsoredResearch);
+router.delete("/sponsored-research/:sponsorship_id", deleteSponsoredResearch);
 
 // Consultancy Routes
-router.get('/consultancy/:faculty_id', getConsultancyByFaculty);
-router.post('/consultancy', addConsultancy);
-router.put('/consultancy/:consultancy_id', updateConsultancy);
-router.delete('/consultancy/:consultancy_id', deleteConsultancy);
+router.get("/consultancy/:faculty_id", getConsultancyByFaculty);
+router.post("/consultancy", addConsultancy);
+router.put("/consultancy/:consultancy_id", updateConsultancy);
+router.delete("/consultancy/:consultancy_id", deleteConsultancy);
 
 // Faculty Details Routes
-router.get('/faculty/:faculty_id', getFacultyDetails);
-router.get('/faculty', getFacultyDetails);
-router.post('/faculty', addFaculty);
-router.put('/faculty/:faculty_id', updateFacultyDetails);
-router.delete('/faculty/:faculty_id', deleteFaculty);
+router.get("/faculty/:faculty_id", getFacultyDetails);
+router.get("/faculty", getFacultyDetails);
+router.post("/faculty", addFaculty);
+router.put("/faculty/:faculty_id", updateFacultyDetails);
+router.delete("/faculty/:faculty_id", deleteFaculty);
 
 // Specialization Routes
 router.get("/specializations", getSpecializations);

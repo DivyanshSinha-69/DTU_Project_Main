@@ -15,16 +15,19 @@ export const UserVAErecords = createSlice({
     updateVAERecord: (state, action) => {
       const updatedRecord = action.payload;
       state.records = state.records.map((record) =>
-        record.visit_id === updatedRecord.visit_id ? updatedRecord : record
+        record.visit_id === updatedRecord.visit_id ? updatedRecord : record,
       ); // Updates a specific record
     },
     deleteVAERecord: (state, action) => {
       const visit_id = action.payload;
-      state.records = state.records.filter((record) => record.visit_id !== visit_id); // Removes a record by visit_id
+      state.records = state.records.filter(
+        (record) => record.visit_id !== visit_id,
+      ); // Removes a record by visit_id
     },
   },
 });
 
-export const { setVAERecords, updateVAERecord, deleteVAERecord } = UserVAErecords.actions;
+export const { setVAERecords, updateVAERecord, deleteVAERecord } =
+  UserVAErecords.actions;
 
 export default UserVAErecords.reducer;

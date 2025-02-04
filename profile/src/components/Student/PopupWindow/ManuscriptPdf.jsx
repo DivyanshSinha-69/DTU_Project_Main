@@ -6,27 +6,27 @@ import { useSelector } from "react-redux";
 import { Input } from "@material-tailwind/react";
 import toast from "react-hot-toast";
 
-const ManuscriptPdf = ({ setPdfSrc,setId }) => {
+const ManuscriptPdf = ({ setPdfSrc, setId }) => {
   const { RollNo } = useSelector((state) => state.auth.user);
   const [file, setFile] = useState(null);
   const [isFileSelected, setIsFileSelected] = useState(false);
 
-//   useEffect(() => {
+  //   useEffect(() => {
 
-//     axios
-//       .post(
-//         `http://localhost:3001/ece/student/getpdf`,
-//         { id: id },
-//         { responseType: "arraybuffer" }
-//       )
-//       .then((response) => {
-//         const base64PDF = arrayBufferToBase64(response.data);
-//         // setImgSrc(`data:application/pdf;base64,${base64PDF}`);
-//       })
-//       .catch((error) => {
-//         console.error("Error fetching PDF: ", error);
-//       });
-//   }, [RollNo]);
+  //     axios
+  //       .post(
+  //         `http://localhost:3001/ece/student/getpdf`,
+  //         { id: id },
+  //         { responseType: "arraybuffer" }
+  //       )
+  //       .then((response) => {
+  //         const base64PDF = arrayBufferToBase64(response.data);
+  //         // setImgSrc(`data:application/pdf;base64,${base64PDF}`);
+  //       })
+  //       .catch((error) => {
+  //         console.error("Error fetching PDF: ", error);
+  //       });
+  //   }, [RollNo]);
 
   const arrayBufferToBase64 = (buffer) => {
     let binary = "";
@@ -44,11 +44,10 @@ const ManuscriptPdf = ({ setPdfSrc,setId }) => {
 
   const handleUpload = async (e) => {
     e.preventDefault();
-    const modifiedRollNo=RollNo.replace(/\//g,'-');
+    const modifiedRollNo = RollNo.replace(/\//g, "-");
     const id = `${modifiedRollNo}-${Date.now()}`;
     setId(id);
     if (file && id) {
-
       if (file.size > 500 * 1024) {
         toast.error("file size should be 500KB or below");
         return;
@@ -67,7 +66,7 @@ const ManuscriptPdf = ({ setPdfSrc,setId }) => {
             headers: {
               "Content-Type": "multipart/form-data",
             },
-          }
+          },
         );
       } catch (error) {
         console.error("Error uploading PDF: ", error);
@@ -76,16 +75,9 @@ const ManuscriptPdf = ({ setPdfSrc,setId }) => {
       setFile(null);
       setIsFileSelected(false);
 
-      
-
       axios
-        .post(
-          `http://localhost:3001/ece/student/getmanuscript`,
-          { id: id },
-        
-        )
+        .post(`http://localhost:3001/ece/student/getmanuscript`, { id: id })
         .then((response) => {
-          
           setPdfSrc(response.data.manuscript);
         })
         .catch((error) => {

@@ -7,7 +7,6 @@ import { setUserImage } from "../../redux/reducers/UserImage";
 import uploadImg from "../../assets/upload.svg";
 import toast from "react-hot-toast";
 const Test = () => {
-
   const { RollNo } = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
   const [file, setFile] = useState(null);
@@ -23,7 +22,7 @@ const Test = () => {
       .post(
         `http://localhost:3001/ece/student/getImage`,
         { rollNo: imageId },
-        { responseType: "arraybuffer" }
+        { responseType: "arraybuffer" },
       )
       .then((response) => {
         // Convert the array buffer to base64
@@ -45,19 +44,13 @@ const Test = () => {
     return btoa(binary);
   };
 
-
-
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
     setIsFileSelected(true);
   };
 
   const handleUpload = async () => {
-
-
-
     if (file && RollNo) {
-
       if (file.size > 500 * 1024) {
         toast.error("Image size should be 500KB or below");
         return;
@@ -75,7 +68,7 @@ const Test = () => {
             headers: {
               "Content-Type": "multipart/form-data", // Set the content type
             },
-          }
+          },
         );
       } catch (error) {
         console.error("Error uploading image: ", error);
@@ -91,7 +84,7 @@ const Test = () => {
         .post(
           `http://localhost:3001/ece/student/getImage`,
           { rollNo: imageId },
-          { responseType: "arraybuffer" }
+          { responseType: "arraybuffer" },
         )
         .then((response) => {
           // Convert the array buffer to base64
@@ -108,27 +101,34 @@ const Test = () => {
 
   return (
     <div>
-      <label for="files" class="btn"> 
-                <img
-                  src={uploadImg}
-                  alt="+"
-                  className="p-2 !h-[40px] w-10 bg-gray-800 rounded-full cursor-pointer hover:invert hover:scale-[130%] transition-transform ease-in "
-                />
-              </label>
-               <input
-                id="files"
-                accept="image/*"
-                style={{ visibility: "hidden" }}
-                onChange={handleFileChange}
-                type="file"
-                className="w-[100px]"
-              />
-              {isFileSelected && 
-              <>
-              <p className="text-sm font-bold w-[150px] text-red-700 translate-x-[-115px] translate-y-[-35px]">max-size : 500Kb</p>
-              <button onClick={handleUpload} className="bg-gray-600 rounded-lg text-white hover:invert p-2 font1 hover:scale-[110%] transition-transform ease-in translate-x-[-95px] translate-y-[-30px]">Upload</button>
-              </>
-              }
+      <label for="files" class="btn">
+        <img
+          src={uploadImg}
+          alt="+"
+          className="p-2 !h-[40px] w-10 bg-gray-800 rounded-full cursor-pointer hover:invert hover:scale-[130%] transition-transform ease-in "
+        />
+      </label>
+      <input
+        id="files"
+        accept="image/*"
+        style={{ visibility: "hidden" }}
+        onChange={handleFileChange}
+        type="file"
+        className="w-[100px]"
+      />
+      {isFileSelected && (
+        <>
+          <p className="text-sm font-bold w-[150px] text-red-700 translate-x-[-115px] translate-y-[-35px]">
+            max-size : 500Kb
+          </p>
+          <button
+            onClick={handleUpload}
+            className="bg-gray-600 rounded-lg text-white hover:invert p-2 font1 hover:scale-[110%] transition-transform ease-in translate-x-[-95px] translate-y-[-30px]"
+          >
+            Upload
+          </button>
+        </>
+      )}
     </div>
   );
 };

@@ -4,10 +4,10 @@ import { Card, Input, Button, Typography } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
 import { addPlacement } from "../../../redux/reducers/UserPlacementDetail";
 import PlacementPdf from "./PlacementPdf";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 
 export default function AddPlacementsPopup(props) {
-  const { closeModal, name} = props;
+  const { closeModal, name } = props;
   const { RollNo } = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
   const [pdfSrc, setPdfSrc] = useState("");
@@ -18,7 +18,7 @@ export default function AddPlacementsPopup(props) {
     appointmentLetter: "",
   });
 
-  const[id,setId]=useState(null);
+  const [id, setId] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -29,22 +29,24 @@ export default function AddPlacementsPopup(props) {
   };
 
   const handlepopup = async () => {
-    
-
-    if (!formData.companyName || !formData.placementType || !formData.joiningDate) {
+    if (
+      !formData.companyName ||
+      !formData.placementType ||
+      !formData.joiningDate
+    ) {
       toast.error("Please fill in all required fields");
     } else {
       // Check if the joiningDate is in the format YYYY-MM-DD
       const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    
+
       if (!dateRegex.test(formData.joiningDate)) {
         toast.error("Please enter the joining date in the format YYYY-MM-DD");
         return;
       }
-    
+
       // Your code for further processing when all conditions are met
     }
-    
+
     try {
       const response = await axios.post(
         "http://localhost:3001/ece/student/addplacement",
@@ -57,20 +59,19 @@ export default function AddPlacementsPopup(props) {
         },
         {
           withCredentials: true,
-        }
+        },
       );
-
 
       // Handle success, e.g., show a success message or update state
       const updateddata = {
         companyName: formData.companyName,
         placementType: formData.placementType,
         joiningDate: formData.joiningDate,
-        RollNo: RollNo,      
-        appointmentLetter:pdfSrc,
-        ID:id,
+        RollNo: RollNo,
+        appointmentLetter: pdfSrc,
+        ID: id,
       };
-    //   {console.log(pdfSrc)}
+      //   {console.log(pdfSrc)}
       dispatch(addPlacement(updateddata));
 
       if (response.status == 201) {
@@ -81,7 +82,6 @@ export default function AddPlacementsPopup(props) {
       // Handle error, e.g., show an error message
       console.error(error);
     }
-      
   };
 
   return (
@@ -124,7 +124,7 @@ export default function AddPlacementsPopup(props) {
             placeholder="YYYY-MM-DD"
             value={formData.eventname}
             onChange={handleChange}
-            oninput={()=>validateInput(this)}
+            oninput={() => validateInput(this)}
             name="joiningDate"
             className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 !h-[40px]"
             labelProps={{
@@ -145,7 +145,7 @@ export default function AddPlacementsPopup(props) {
               className: "before:content-none after:content-none",
             }}
           /> */}
-          <PlacementPdf id={id} setId={setId} setPdfSrc={setPdfSrc}/>
+          <PlacementPdf id={id} setId={setId} setPdfSrc={setPdfSrc} />
         </div>
 
         <Button
@@ -158,18 +158,16 @@ export default function AddPlacementsPopup(props) {
       </form>
     </Card>
   );
-  
 }
 
 function validateInput(inputElement) {
-  const errorMessageElement = document.getElementById('errorMessage');
+  const errorMessageElement = document.getElementById("errorMessage");
   const inputValue = inputElement.value;
 
   // Check if the input matches the pattern (only numbers)
   if (!/^[0-9]*$/.test(inputValue)) {
-    errorMessageElement.textContent = 'Please enter numbers only.';
+    errorMessageElement.textContent = "Please enter numbers only.";
   } else {
-    errorMessageElement.textContent = '';
+    errorMessageElement.textContent = "";
   }
 }
-

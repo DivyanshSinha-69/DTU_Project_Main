@@ -6,10 +6,7 @@ import "../../../styles/popup.css";
 import editImg from "../../../assets/edit.svg";
 import addImg from "../../../assets/add.svg";
 import deleteImg from "../../../assets/delete.svg";
-import { toast } from 'react-hot-toast';
-
-
-
+import { toast } from "react-hot-toast";
 
 const FacultyDevelopmentProgram = ({ setBlurActive }) => {
   const [fdpDetails, setFdpDetails] = useState([]);
@@ -17,24 +14,38 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
   const [selectedFDP, setSelectedFDP] = useState([]);
   const [isAddFDP, setIsAddFDP] = useState(false);
   const faculty_id = "FAC001"; // Placeholder faculty ID
-  useEffect(() => {
-    const fetchFDPDetails = async () => {
-      try {
-        const response = await fetch(`http://localhost:3001/fdp-records/${faculty_id}`);
-        const result = await response.json();
-        if (response.ok && Array.isArray(result.data)) {
-          setFdpDetails(result.data); // Only set if the response is an array
-        } else {
-          toast.error(result.message || "Failed to fetch FDP details");
+    useEffect(() => {
+      const fetchFDPDetails = async () => {
+        try {
+          const response = await fetch(
+            `http://localhost:3001/ece/faculty/fdp-records/${faculty_id}`,
+          );
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const result = await response.json();
+          if (Array.isArray(result.data)) {
+            setFdpDetails(result.data.map((fdp) => ({
+              FDP_id: fdp.FDP_id, // Include FDP_id
+              FDP_name: fdp.FDP_name,
+              year_conducted: fdp.year_conducted,
+              month_conducted: fdp.month_conducted,
+              days_contributed: fdp.days_contributed,
+            })));
+          } else {
+            toast.error(result.message || "Failed to fetch FDP details");
+          }
+        } catch (err) {
+          toast.error("Error while fetching FDP details");
         }
-      } catch (err) {
-        toast.error("Error while fetching FDP details");
-      }
-    };
-  
-    fetchFDPDetails();
-  }, []);
-  
+      };
+    
+      fetchFDPDetails();
+    }, []);
+    
+
+   
+
   const openPopup = (fdp) => {
     setSelectedFDP(fdp);
     setPopupOpen(true);
@@ -47,89 +58,72 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
     setBlurActive(false);
   };
 
-
   const handleAddFDP = async (newFDP) => {
     const { programName, year, month, days } = newFDP;
-    const faculty_id = "FAC001"; // Placeholder faculty ID
+    const url = isAddFDP
+      ? "http://localhost:3001/ece/faculty/fdp-records"
+      : `http://localhost:3001/ece/faculty/fdp-records/${selectedFDP?.FDP_id}`; // Use FDP_id for updates
   
-    try {
-      const response = isAddFDP
-      ? await fetch('http://localhost:3001/fdp-records', {
-        method: "POST", // For adding a new FDP
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              faculty_id,
-              FDP_name: programName,
-              year_conducted: year,
-              month_conducted: month,
-              days_contributed: days,
-            }),
-          })
-          : await fetch(`http://localhost:3001/fdp-records/${selectedFDP.FDP_id}`, {
-            method: "PUT", // For updating the FDP
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              faculty_id,
-              FDP_name: selectedFDP.FDP_name, // The FDP name to identify the record to update
-              year_conducted: year,
-              month_conducted: month,
-              days_contributed: days,
-            }),
-          });
-  
-      const data = await response.json();
-      if (response.ok) {
-        console.log("FDP record successfully added/updated", data);
-        
-        setFdpDetails((prevDetails) =>
-          isAddFDP
-            ? [...prevDetails, { ...newFDP, FDP_name: programName, year_conducted: year, month_conducted: month, days_contributed: days }]
-            : prevDetails.map((fdp) =>
-                fdp.FDP_name === selectedFDP.FDP_name
-                  ? { ...newFDP, FDP_name: programName, year_conducted: year, month_conducted: month, days_contributed: days }
-                  : fdp
-              )
-        );
-        
-        closePopup();
-      } else {
-        console.error("Error:", data.message);
-        toast.error(data.message || "Something went wrong");
-      }
-    } catch (err) {
-      console.error("Request failed", err);
-      toast.error("Error while adding/updating FDP");
-    }
-  };
-  
-  
-
-  const handleDeleteFDP = async (programNameToDelete) => {
-    const faculty_id = "FAC001"; // Placeholder faculty ID
-    
-    try {
-      const response = await fetch(`http://localhost:3001/fdp-records/${selectedFDP.FDP_id}`, {
-        method: "DELETE", // For deleting an FDP
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+    const method = isAddFDP ? "POST" : "PUT";
+    const body = isAddFDP
+      ? {
           faculty_id,
-          FDP_name: programNameToDelete, // Pass the program name to delete the record
-        }),
+          FDP_name: programName,
+          year_conducted: year,
+          month_conducted: month,
+          days_contributed: days,
+        }
+      : {
+          FDP_id: selectedFDP.FDP_id, // Pass FDP_id for updates
+          faculty_id,
+          FDP_name: programName,
+          year_conducted: year,
+          month_conducted: month,
+          days_contributed: days,
+        };
+  
+    try {
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
       });
   
       const data = await response.json();
       if (response.ok) {
-        console.log("FDP record deleted successfully", data);
-        // Remove the FDP record based on programName
-        setFdpDetails(fdpDetails.filter(fdp => fdp.FDP_name !== programNameToDelete));
+        toast.success("FDP record successfully added/updated");
+        setFdpDetails((prev) =>
+          isAddFDP
+            ? [...prev, { ...body, FDP_id: data.data.id }] // Include the generated FDP_id
+            : prev.map((fdp) =>
+                fdp.FDP_id === selectedFDP.FDP_id ? { ...body } : fdp,
+              ),
+        );
+        closePopup();
       } else {
-        console.error("Error:", data.message);
+        toast.error(data.message || "Failed to save FDP record.");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Error connecting to the server.");
+    }
+  };
+  
+
+  const handleDeleteFDP = async (fdpId) => {
+    try {
+      const response = await fetch(
+        `http://localhost:3001/ece/faculty/fdp-records/${fdpId}`,
+        {
+          method: "DELETE",
+        },
+      );
+  
+      const data = await response.json();
+      if (response.ok) {
+        toast.success("FDP record deleted successfully");
+        setFdpDetails((prev) => prev.filter((fdp) => fdp.FDP_id !== fdpId)); // Filter by FDP_id
+      } else {
         toast.error(data.message || "Something went wrong");
       }
     } catch (err) {
@@ -138,15 +132,23 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
     }
   };
   
-  
-  const TABLE_HEAD = ["Program Name", "Year Conducted", "Month Conducted", "Days Contributed", "Actions"];
-  
+  const TABLE_HEAD = [
+    "Title of Faculty development/training activities/STTP",
+    "Year of Participation",
+    "Month of Participation",
+    "Duration of Participation(in days)",
+    "Actions",
+  ];
+
   return (
     <div>
       <div className="h-auto p-10">
         <div className="flex flex-row justify-between pr-5 pl-5">
           <p className="p-3 text-2xl font1 border-top my-auto">
-            Faculty Development Program <br /><span className="text-lg text-red-600">(Details of FDPs conducted or attended)</span>
+            Participation in Faculty development/Training activities/STTP <br />
+            <span className="text-lg text-red-600">
+              (Details of FDPs conducted or attended)
+            </span>
           </p>
           <button
             onClick={() => {
@@ -187,12 +189,12 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
               </thead>
               <tbody>
                 {fdpDetails?.map((fdp, index) => {
-                  const { 
-                  FDP_name: programName, 
-                  year_conducted: year, 
-                  month_conducted: month, 
-                  days_contributed: days 
-                } = fdp;
+                  const {
+                    FDP_name: programName,
+                    year_conducted: year,
+                    month_conducted: month,
+                    days_contributed: days,
+                  } = fdp;
                   const isLast = index === fdpDetails.length - 1;
                   const classes = isLast
                     ? "p-4"
@@ -243,20 +245,22 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
                               setIsAddFDP(false); // This indicates it's an edit operation
                               setPopupOpen(true);
                               setBlurActive(true);
-                              setSelectedFDP(fdp); 
-                              console.log(selectedFDP)
-                            }
-                              
-                            }
+                              setSelectedFDP(fdp);
+                              console.log(selectedFDP);
+                            }}
                             className="bg-green-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
                           >
                             <img src={editImg} alt="edit" className="h-5 w-5" />
                           </button>
                           <button
-                            onClick={() => handleDeleteFDP(programName)}
+                            onClick={() => handleDeleteFDP(fdp.FDP_id)}
                             className="bg-red-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
                           >
-                            <img src={deleteImg} alt="delete" className="h-5 w-5 filter brightness-0 invert" />
+                            <img
+                              src={deleteImg}
+                              alt="delete"
+                              className="h-5 w-5 filter brightness-0 invert"
+                            />
                           </button>
                         </div>
                       </td>
@@ -276,7 +280,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
         className="mx-auto my-auto p-2"
         closeOnDocumentClick
       >
-        <div className="h-[550px] w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.8] rounded-[12%] top-10 fixed inset-5 md:inset-20 flex items-center justify-center">
+        <div>
           {isAddFDP ? (
             <FDPPopUp
               programName=""
@@ -295,7 +299,6 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
                 days={selectedFDP.days_contributed}
                 closeModal={closePopup}
                 handleAddFDP={handleAddFDP}
-                
               />
             )
           )}

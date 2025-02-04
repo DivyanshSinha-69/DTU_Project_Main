@@ -13,7 +13,6 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -27,7 +26,7 @@ const Login = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
 
       // Assuming the server returns user details upon successful login
@@ -45,7 +44,7 @@ const Login = () => {
         navigate("/student/portal");
       } else if (userDetails.user.Position === "teacher") {
         navigate("/teacher/portal");
-      }  else {
+      } else {
         navigate("/unauthorized");
       }
     } catch (error) {

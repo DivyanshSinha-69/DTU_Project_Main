@@ -15,7 +15,8 @@ export const UserAssociation = createSlice({
     updateUserAssociation: (state, action) => {
       const updatedAssociation = action.payload;
       const index = state.associations.findIndex(
-        (association) => association.faculty_id === updatedAssociation.faculty_id
+        (association) =>
+          association.faculty_id === updatedAssociation.faculty_id,
       );
       if (index !== -1) {
         state.associations[index] = updatedAssociation; // Update the specific association by faculty_id
@@ -24,9 +25,7 @@ export const UserAssociation = createSlice({
   },
 });
 
-export const {
-  setUserAssociations,
-  updateUserAssociation,
-} = UserAssociation.actions;
+export const { setUserAssociations, updateUserAssociation } =
+  UserAssociation.actions;
 
 export default UserAssociation.reducer;

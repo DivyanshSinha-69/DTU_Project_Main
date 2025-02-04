@@ -12,18 +12,12 @@ export const UserImage = createSlice({
     setUserImage: (state, action) => {
       state.image = action.payload;
     },
-    removeUserImage: (state,action) => {
-        state.image = null;
-    }
+    removeUserImage: (state, action) => {
+      state.image = null;
+    },
   },
 });
 
-
-
-export const {
-  setUserImage,
-    removeUserImage
-
-} = UserImage.actions;
+export const { setUserImage, removeUserImage } = UserImage.actions;
 
 export default UserImage.reducer;

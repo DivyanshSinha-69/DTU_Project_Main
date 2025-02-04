@@ -12,7 +12,6 @@ const AdminLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -26,7 +25,7 @@ const AdminLogin = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
 
       // Assuming the server returns user details upon successful login
@@ -41,10 +40,9 @@ const AdminLogin = () => {
       dispatch(login(userDetails));
       dispatch(setRole(userDetails.Position));
       // dispatch(setRole("admin"));
-      // dispatch(login("admin"));   
+      // dispatch(login("admin"));
       // Redirect to the desired page after successful login
-        navigate("/admin/portal");
-
+      navigate("/admin/portal");
     } catch (error) {
       // Handle login error
       console.error("Login failed:", error.message);

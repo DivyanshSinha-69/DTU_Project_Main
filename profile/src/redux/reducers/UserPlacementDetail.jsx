@@ -12,7 +12,7 @@ export const UserPlacement = createSlice({
     setPlacement: (state, action) => {
       state.Placement = action.payload;
     },
-   
+
     addPlacement: (state, action) => {
       const newPlacement = [...state.Placement, action.payload];
       state.Placement = newPlacement;
@@ -24,7 +24,7 @@ export const UserPlacement = createSlice({
 
       state.Placement = updatedPlacement;
     },
-    
+
     removePlacement: (state, action) => {
       state.Placement = [];
     },

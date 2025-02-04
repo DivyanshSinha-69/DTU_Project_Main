@@ -4,10 +4,10 @@ import { Card, Input, Button, Typography } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
 import OfferLetterPdf from "./OfferLetterPdf";
 import { setHigherEducationDetails } from "../../../redux/reducers/UserHigherEducationDetails";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 
 export default function HigherEducationPopup(props) {
-  const { closeModal,name, examName, instituteName} = props;
+  const { closeModal, name, examName, instituteName } = props;
   const { RollNo } = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
   const [pdfSrc, setPdfSrc] = useState("");
@@ -26,10 +26,7 @@ export default function HigherEducationPopup(props) {
 
   const handlepopup = async () => {
     try {
-      if (
-        !formData.examName ||
-        !formData.instituteName
-      ) {
+      if (!formData.examName || !formData.instituteName) {
         toast.error("Please fill in all required fields");
         return;
       }
@@ -43,7 +40,7 @@ export default function HigherEducationPopup(props) {
         },
         {
           withCredentials: true,
-        }
+        },
       );
 
       const updateddata = {
@@ -98,7 +95,7 @@ export default function HigherEducationPopup(props) {
           <Typography variant="h6" color="blue-gray" className="-mb-3 flex">
             Offer Letter<p className="pl-1 text-red-600">*</p>
           </Typography>
-          
+
           <OfferLetterPdf setPdfSrc={setPdfSrc} />
         </div>
 

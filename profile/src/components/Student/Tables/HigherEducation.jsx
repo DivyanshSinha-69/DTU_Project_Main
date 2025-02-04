@@ -8,7 +8,7 @@ import HigherEducationPopup from "../PopupWindow/HigherEducationPopup";
 
 const HigherEducation = ({ setBlurActive }) => {
   const HigherEducationDetails = useSelector(
-    (state) => state.higherEducationDetails
+    (state) => state.higherEducationDetails,
   );
   // console.log(PersonalDetails);
   const [isPopupOpen, setPopupOpen] = useState(false);
@@ -142,7 +142,7 @@ const HigherEducation = ({ setBlurActive }) => {
                         </td>
                       </tr>
                     );
-                  }
+                  },
                 )}
               </tbody>
             </table>
