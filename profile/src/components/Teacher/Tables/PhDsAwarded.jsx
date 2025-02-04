@@ -23,7 +23,7 @@ const PhDsAwarded = ({ setBlurActive }) => {
     fetchPhDs();
   }, []);
 
-  const API_BASE_URL = "http://localhost:3001/ece/faculty";
+  const API_BASE_URL = "http://64.227.135.99:3001/ece/faculty";
 
   const fetchPhDs = async () => {
     try {

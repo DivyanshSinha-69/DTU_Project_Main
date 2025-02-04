@@ -18,7 +18,7 @@ const Forgot = () => {
     try {
       // Make a POST request to your server with login credentials
       const response = await axios.post(
-        "http://localhost:3001/forgot",
+        "http://64.227.135.99:3001/forgot",
         {
           rollno: rollno,
         },

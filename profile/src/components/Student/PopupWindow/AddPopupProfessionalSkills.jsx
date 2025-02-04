@@ -49,7 +49,7 @@ export default function AddPopupProfessionalSkills(props) {
     const id = RollNo + Date.now();
     try {
       const response = await axios.post(
-        "http://localhost:3001/ece/student/addprofessionalskills",
+        "http://64.227.135.99:3001/ece/student/addprofessionalskills",
         {
           organisation: formData.organisation,
           position: formData.position,

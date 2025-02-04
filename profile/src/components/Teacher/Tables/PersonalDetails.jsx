@@ -35,7 +35,7 @@ const PersonalDetails = ({ setBlurActive }) => {
   const fetchSpecializations = async () => {
     try {
       const response = await fetch(
-        `http://localhost:3001/ece/faculty/specializations/FAC001`,
+        `http://64.227.135.99:3001/ece/faculty/specializations/FAC001`,
       );
       const data = await response.json();
       setSpecializations(data.data);
@@ -52,7 +52,7 @@ const PersonalDetails = ({ setBlurActive }) => {
 
     try {
       const response = await fetch(
-        "http://localhost:3001/ece/faculty/specializations",
+        "http://64.227.135.99:3001/ece/faculty/specializations",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -82,7 +82,7 @@ const PersonalDetails = ({ setBlurActive }) => {
   const deleteSpecialization = async (specialization_id) => {
     try {
       const response = await fetch(
-        `http://localhost:3001/ece/faculty/specializations/${specialization_id}`,
+        `http://64.227.135.99:3001/ece/faculty/specializations/${specialization_id}`,
         {
           method: "DELETE",
         },
