@@ -25,19 +25,27 @@ const buildPath = path.join(_dirname, "../profile/build");
 app.use(express.static(buildPath));
 
 const allowedOrigins = [
-  "https://dtu-project-main-git-main-divyansh-sinhas-projects.vercel.app",
   "http://localhost:3000",
+  "https://dtu-project-main.vercel.app"
 ];
 
-// Using Middlewares
 app.use(
   cors({
-    origin: allowedOrigins,
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
-  }),
+  })
 );
-app.options("*", cors());
+
+app.options("*", cors()); // Allow preflight requests
+
 app.use(express.json());
 app.use(cookieParser());
 
