@@ -1,9 +1,9 @@
-import { connectDB } from "../data/database.js";
+import { pool } from "../data/database.js";
 import { sendCookie } from "../utils/featues.js";
 import exceljs from "exceljs";
 
 export const getall = (req, res) => {
-  connectDB.query("SELECT * FROM admin_data", (error, results) => {
+  pool.query("SELECT * FROM admin_data", (error, results) => {
     if (error) {
       console.error("Error querying database: " + error.stack);
       res.status(500).json({ error: "Internal Server Error" });
@@ -21,7 +21,7 @@ export const getData = (req, res) => {
   }
 
   // Make sure to sanitize the table name to prevent SQL injection
-  const sanitizedInfo = connectDB.escapeId(info);
+  const sanitizedInfo = pool.escapeId(info);
 
   let sql = "";
 
@@ -58,7 +58,7 @@ export const getData = (req, res) => {
   }
 
   // Assuming you're using a library that supports parameterized queries (to prevent SQL injection)
-  connectDB.query(sql, [year1, year2, courseGroup], (error, results) => {
+  pool.query(sql, [year1, year2, courseGroup], (error, results) => {
     if (error) {
       console.error(error);
       return res.status(500).json({ error: "Internal Server Error" });

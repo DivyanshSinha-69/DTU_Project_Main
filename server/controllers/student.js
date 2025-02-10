@@ -1,4 +1,4 @@
-import { connectDB } from "../data/database.js";
+import { pool } from "../data/database.js";
 import multer from "multer";
 import path, { resolve } from "path";
 
@@ -20,7 +20,7 @@ export const uploadImage = (req, res) => {
     // Check if the rollNo already exists in the database
     const checkQuery = "SELECT * FROM images WHERE rollNo = ?";
 
-    connectDB.query(checkQuery, [rollNo], (checkErr, checkResult) => {
+    pool.query(checkQuery, [rollNo], (checkErr, checkResult) => {
       if (checkErr) {
         console.error("Error checking database: " + checkErr.stack);
         res.status(500).send("Internal Server Error");
@@ -30,7 +30,7 @@ export const uploadImage = (req, res) => {
           const updateQuery =
             "UPDATE images SET originalname = ?, image_data = ? WHERE rollNo = ?";
 
-          connectDB.query(
+          pool.query(
             updateQuery,
             [originalname, base64Image, rollNo],
             (updateErr, updateResult) => {
@@ -47,7 +47,7 @@ export const uploadImage = (req, res) => {
           const insertQuery =
             "INSERT INTO images (rollNo, originalname, image_data) VALUES (?, ?, ?)";
 
-          connectDB.query(
+          pool.query(
             insertQuery,
             [rollNo, originalname, base64Image],
             (insertErr, insertResult) => {
@@ -71,7 +71,7 @@ export const getImage = (req, res) => {
   const { rollNo } = req.body; // Assuming you send the 'id' in the request body
   // Retrieve image data from the database based on the provided 'id'
   const query = "SELECT image_data, originalname FROM images WHERE rollNo = ?";
-  connectDB.query(query, [rollNo], (err, result) => {
+  pool.query(query, [rollNo], (err, result) => {
     if (err) {
       console.error("Error querying database: " + err.stack);
       res.status(500).send("Internal Server Error");
@@ -101,7 +101,7 @@ export const getImage = (req, res) => {
 };
 
 export const getall = (req, res) => {
-  connectDB.query("SELECT * FROM student_data", (error, results) => {
+  pool.query("SELECT * FROM student_data", (error, results) => {
     if (error) {
       console.error("Error querying database: " + error.stack);
       res.status(500).json({ error: "Internal Server Error" });
@@ -114,7 +114,7 @@ export const getall = (req, res) => {
 export const getProfessionalSkills = (req, res) => {
   const { rollno } = req.body;
   const sql = "SELECT * FROM EventDetails WHERE RollNo = ?";
-  connectDB.query(sql, [rollno], (err, results) => {
+  pool.query(sql, [rollno], (err, results) => {
     if (err) {
       console.error("Error executing fetch query:", err);
       res.status(500).json({ error: "Internal Server Error" });
@@ -136,7 +136,7 @@ export const updateProfessionalSkills = (req, res) => {
   const sql =
     "UPDATE EventDetails SET Organisation = ?, Position = ?, EventName = ?, EventDate = ? ,RollNo = ? WHERE ID = ?";
 
-  connectDB.query(
+  pool.query(
     sql,
     [organisation, position, eventname, date, roll, id],
     (err, result) => {
@@ -163,7 +163,7 @@ export const deleteProfessionalSkills = (req, res) => {
   const { ID } = req.body;
   const sql = "DELETE FROM EventDetails WHERE ID = ?";
 
-  connectDB.query(sql, [ID], (err, result) => {
+  pool.query(sql, [ID], (err, result) => {
     if (err) {
       console.error("Error executing delete query:", err);
       res.status(500).json({ error: "Internal Server Error" });
@@ -187,7 +187,7 @@ export const addProfessionalSkills = (req, res) => {
   const sql =
     "INSERT INTO EventDetails (Organisation, Position, EventName, EventDate, RollNo ,ID) VALUES (?, ?, ?, ?, ? ,?)";
 
-  connectDB.query(
+  pool.query(
     sql,
     [organisation, position, eventname, date, roll, ID],
     (err, result) => {
@@ -213,7 +213,7 @@ export const addProfessionalSkills = (req, res) => {
 export const getPersonalDetails = (req, res) => {
   const { rollno } = req.body;
   const sql = "SELECT * FROM studentPersonalDetails where RollNo = ?";
-  connectDB.query(sql, [rollno], (err, results) => {
+  pool.query(sql, [rollno], (err, results) => {
     if (err) {
       console.error("Error executing fetch query:", err);
       res.status(500).json({ error: "Internal Server Error" });
@@ -243,7 +243,7 @@ export const updatePersonalDetails = (req, res) => {
   // Check if the record exists in the database
   const checkQuery = "SELECT * FROM studentPersonalDetails WHERE RollNo = ?";
 
-  connectDB.query(checkQuery, [id], (checkErr, checkResult) => {
+  pool.query(checkQuery, [id], (checkErr, checkResult) => {
     if (checkErr) {
       console.error("Error checking database:", checkErr);
       res.status(500).json({ error: "Internal Server Error" });
@@ -255,7 +255,7 @@ export const updatePersonalDetails = (req, res) => {
       const updateQuery =
         "UPDATE studentPersonalDetails SET motherName = ?, fatherName = ?, personalContactNo = ?, parentContactNo = ?, personalEmail = ?, dtuEmail = ? WHERE RollNo = ?";
 
-      connectDB.query(
+      pool.query(
         updateQuery,
         [
           motherName,
@@ -283,7 +283,7 @@ export const updatePersonalDetails = (req, res) => {
       const insertQuery =
         "INSERT INTO studentPersonalDetails (RollNo, motherName, fatherName, personalContactNo, parentContactNo, personalEmail, dtuEmail) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
-      connectDB.query(
+      pool.query(
         insertQuery,
         [
           id,
@@ -316,7 +316,7 @@ export const updatePersonalDetails = (req, res) => {
 //   const { ID } = req.body;
 //   const sql = "DELETE FROM placementData WHERE ID = ?";
 
-//   connectDB.query(sql, [ID], (err, result) => {
+//   pool.query(sql, [ID], (err, result) => {
 //     if (err) {
 //       console.error("Error executing delete query:", err);
 //       res.status(500).json({ error: "Internal Server Error" });
@@ -340,7 +340,7 @@ export const deletePlacement = (req, res) => {
 
   // Retrieve PDF link from the database based on the provided 'ID'
   const pdfQuery = "SELECT appointmentLetter FROM placementData WHERE ID = ?";
-  connectDB.query(pdfQuery, [ID], (pdfErr, pdfResult) => {
+  pool.query(pdfQuery, [ID], (pdfErr, pdfResult) => {
     if (pdfErr) {
       console.error(
         "Error querying PDF link from the database: " + pdfErr.stack,
@@ -380,7 +380,7 @@ export const deletePlacement = (req, res) => {
 
           // Proceed with deleting the database entry after the file deletion
           const deleteQuery = "DELETE FROM placementData WHERE ID = ?";
-          connectDB.query(deleteQuery, [ID], (deleteErr, result) => {
+          pool.query(deleteQuery, [ID], (deleteErr, result) => {
             if (deleteErr) {
               console.error("Error executing delete query:", deleteErr);
               res.status(500).json({ error: "Internal Server Error" });
@@ -400,7 +400,7 @@ export const deletePlacement = (req, res) => {
       } else {
         // Proceed with deleting the database entry if no PDF link is associated
         const deleteQuery = "DELETE FROM placementData WHERE ID = ?";
-        connectDB.query(deleteQuery, [ID], (deleteErr, result) => {
+        pool.query(deleteQuery, [ID], (deleteErr, result) => {
           if (deleteErr) {
             console.error("Error executing delete query:", deleteErr);
             res.status(500).json({ error: "Internal Server Error" });
@@ -431,7 +431,7 @@ export const addPlacement = (req, res) => {
     "UPDATE placementData SET companyName = ?, placementType = ?, joiningDate = ?, RollNo = ? WHERE ID = ?";
   // console.log(ID);
 
-  connectDB.query(
+  pool.query(
     sql,
     [companyName, placementType, joiningDate, roll, ID],
     (err, result) => {
@@ -457,7 +457,7 @@ export const addPlacement = (req, res) => {
 export const getPlacement = (req, res) => {
   const { rollno } = req.body;
   const sql = "SELECT * FROM placementData where RollNo = ?";
-  connectDB.query(sql, [rollno], (err, results) => {
+  pool.query(sql, [rollno], (err, results) => {
     if (err) {
       console.error("Error executing fetch query:", err);
       res.status(500).json({ error: "Internal Server Error" });
@@ -518,7 +518,7 @@ export const uploadPdf = (req, res) => {
 
       const insertQuery =
         "INSERT INTO placementData (id, appointmentLetter) VALUES (?, ?)";
-      connectDB.query(
+      pool.query(
         insertQuery,
         [id, appointmentLettersLink],
         (insertErr, insertResult) => {
@@ -539,7 +539,7 @@ export const getPdf = (req, res) => {
 
   // Retrieve PDF data from the database based on the provided 'id'
   const query = "SELECT appointmentLetter FROM placementData WHERE ID = ?";
-  connectDB.query(query, [id], (err, result) => {
+  pool.query(query, [id], (err, result) => {
     if (err) {
       console.error("Error querying database: " + err.stack);
       res.status(500).send("Internal Server Error");
@@ -565,7 +565,7 @@ export const getPdf = (req, res) => {
 export const getMtechEducationDetails = (req, res) => {
   const { rollno } = req.body;
   const sql = "SELECT * FROM mtechEducationalDetails where RollNo = ?";
-  connectDB.query(sql, [rollno], (err, results) => {
+  pool.query(sql, [rollno], (err, results) => {
     if (err) {
       console.error("Error executing fetch query:", err);
       res.status(500).json({ error: "Internal Server Error" });
@@ -590,7 +590,7 @@ export const updateMtechEducationDetails = (req, res) => {
   let sqlCheckUserExists =
     "SELECT * FROM mtechEducationalDetails WHERE RollNo = ?";
 
-  connectDB.query(sqlCheckUserExists, [RollNo], (checkErr, checkResult) => {
+  pool.query(sqlCheckUserExists, [RollNo], (checkErr, checkResult) => {
     if (checkErr) {
       console.error("Error checking user existence:", checkErr);
       res.status(500).json({ error: "Internal Server Error" });
@@ -608,7 +608,7 @@ export const updateMtechEducationDetails = (req, res) => {
           "UPDATE mtechEducationalDetails SET admittedThrough = ?, gateRollNo = ?, gateAir = ?, gateMarks = ?, gateScoreCard = null WHERE RollNo = ?";
       }
 
-      connectDB.query(
+      pool.query(
         sqlUpdate,
         [admittedThrough, gateRollNo, gateAir, gateMarks, RollNo],
         (updateErr, updateResult) => {
@@ -634,7 +634,7 @@ export const updateMtechEducationDetails = (req, res) => {
         sqlInsert =
           "INSERT INTO mtechEducationalDetails (RollNo, admittedThrough, gateRollNo, gateAir, gateMarks, gateScoreCard) VALUES (?, ?, ?, ?, ?, null)";
 
-        connectDB.query(
+        pool.query(
           sqlInsert,
           [RollNo, admittedThrough, gateRollNo, gateAir, gateMarks],
           (insertErr, insertResult) => {
@@ -657,7 +657,7 @@ export const updateMtechEducationDetails = (req, res) => {
 export const getBtechEducationDetails = (req, res) => {
   const { rollno } = req.body;
   const sql = "SELECT * FROM btechEducationalDetails where RollNo = ?";
-  connectDB.query(sql, [rollno], (err, results) => {
+  pool.query(sql, [rollno], (err, results) => {
     if (err) {
       console.error("Error executing fetch query:", err);
       res.status(500).json({ error: "Internal Server Error" });
@@ -682,7 +682,7 @@ export const updateBtechEducationDetails = (req, res) => {
   let sqlCheckUserExists =
     "SELECT * FROM btechEducationalDetails WHERE RollNo = ?";
 
-  connectDB.query(sqlCheckUserExists, [RollNo], (checkErr, checkResult) => {
+  pool.query(sqlCheckUserExists, [RollNo], (checkErr, checkResult) => {
     if (checkErr) {
       console.error("Error checking user existence:", checkErr);
       res.status(500).json({ error: "Internal Server Error" });
@@ -701,7 +701,7 @@ export const updateBtechEducationDetails = (req, res) => {
         air = null;
       }
 
-      connectDB.query(
+      pool.query(
         sqlUpdate,
         [admittedThrough, air, RollNo],
         (updateErr, updateResult) => {
@@ -731,7 +731,7 @@ export const updateBtechEducationDetails = (req, res) => {
           "INSERT INTO btechEducationalDetails (RollNo, admittedThrough, air) VALUES (?, ?, ?)";
       }
 
-      connectDB.query(
+      pool.query(
         sqlInsert,
         [RollNo, admittedThrough, air],
         (insertErr, insertResult) => {
@@ -781,7 +781,7 @@ export const uploadScoreCard = (req, res) => {
       const checkQuery =
         "SELECT * FROM mtechEducationalDetails WHERE RollNo = ?";
 
-      connectDB.query(checkQuery, [rollNo], (checkErr, checkResult) => {
+      pool.query(checkQuery, [rollNo], (checkErr, checkResult) => {
         if (checkErr) {
           console.error("Error checking RollNo existence: " + checkErr.stack);
           res.status(500).send("Internal Server Error");
@@ -793,7 +793,7 @@ export const uploadScoreCard = (req, res) => {
             // RollNo does not exist, insert
             const insertQuery =
               "INSERT INTO mtechEducationalDetails (RollNo, gateScoreCard) VALUES (?, ?)";
-            connectDB.query(
+            pool.query(
               insertQuery,
               [rollNo, gateScoreCardLink],
               (insertErr, insertResult) => {
@@ -811,7 +811,7 @@ export const uploadScoreCard = (req, res) => {
             // RollNo exists, update
             const updateQuery =
               "UPDATE mtechEducationalDetails SET gateScoreCard = ? WHERE RollNo = ?";
-            connectDB.query(
+            pool.query(
               updateQuery,
               [gateScoreCardLink, rollNo],
               (updateErr, updateResult) => {
@@ -836,7 +836,7 @@ export const getScoreCard = (req, res) => {
   // Retrieve the stored link from the database based on the provided 'id'
   const query =
     "SELECT gateScoreCard FROM mtechEducationalDetails WHERE RollNO = ?";
-  connectDB.query(query, [id], (err, result) => {
+  pool.query(query, [id], (err, result) => {
     if (err) {
       console.error("Error querying database: " + err.stack);
       res.status(500).send("Internal Server Error");
@@ -862,7 +862,7 @@ export const getScoreCard = (req, res) => {
 export const getEntrepreneurDetails = (req, res) => {
   const { rollno } = req.body;
   const sql = "SELECT * FROM entrepreneurDetails WHERE RollNo = ?";
-  connectDB.query(sql, [rollno], (err, results) => {
+  pool.query(sql, [rollno], (err, results) => {
     if (err) {
       console.error("Error executing fetch query:", err);
       res.status(500).json({ error: "Internal Server Error" });
@@ -882,7 +882,7 @@ export const updateEntrepreneurDetails = (req, res) => {
   let sql =
     "UPDATE entrepreneurDetails SET companyName = ?, cinNumber = ?, companyLink = ?  WHERE RollNo = ?";
 
-  connectDB.query(
+  pool.query(
     sql,
     [companyName, cinNumber, companyLink, RollNo],
     (err, result) => {
@@ -911,7 +911,7 @@ export const getCompanyRegCert = (req, res) => {
   // Retrieve the stored link from the database based on the provided 'id'
   const query =
     "SELECT companyRegCertificate FROM entrepreneurDetails WHERE RollNO = ?";
-  connectDB.query(query, [id], (err, result) => {
+  pool.query(query, [id], (err, result) => {
     if (err) {
       console.error("Error querying database: " + err.stack);
       res.status(500).send("Internal Server Error");
@@ -977,7 +977,7 @@ export const uploadCompanyRegCert = (req, res) => {
       // Check if RollNo exists
       const checkQuery = "SELECT * FROM entrepreneurDetails WHERE RollNo = ?";
 
-      connectDB.query(checkQuery, [rollNo], (checkErr, checkResult) => {
+      pool.query(checkQuery, [rollNo], (checkErr, checkResult) => {
         if (checkErr) {
           console.error("Error checking RollNo existence: " + checkErr.stack);
           res.status(500).send("Internal Server Error");
@@ -989,7 +989,7 @@ export const uploadCompanyRegCert = (req, res) => {
             // RollNo does not exist, insert
             const insertQuery =
               "INSERT INTO entrepreneurDetails (RollNo, companyRegCertificate) VALUES (?, ?)";
-            connectDB.query(
+            pool.query(
               insertQuery,
               [rollNo, certificateLink],
               (insertErr, insertResult) => {
@@ -1007,7 +1007,7 @@ export const uploadCompanyRegCert = (req, res) => {
             // RollNo exists, update
             const updateQuery =
               "UPDATE entrepreneurDetails SET companyRegCertificate = ? WHERE RollNo = ?";
-            connectDB.query(
+            pool.query(
               updateQuery,
               [certificateLink, rollNo],
               (updateErr, updateResult) => {
@@ -1029,7 +1029,7 @@ export const uploadCompanyRegCert = (req, res) => {
 export const getHigherEducationDetails = (req, res) => {
   const { rollno } = req.body;
   const sql = "SELECT * FROM higherEducationDetails WHERE RollNo = ?";
-  connectDB.query(sql, [rollno], (err, results) => {
+  pool.query(sql, [rollno], (err, results) => {
     if (err) {
       console.error("Error executing fetch query:", err);
       res.status(500).json({ error: "Internal Server Error" });
@@ -1050,7 +1050,7 @@ export const updateHigherEducationDetails = (req, res) => {
   let sql =
     "UPDATE higherEducationDetails SET examName = ?, instituteName = ? WHERE RollNo = ?";
 
-  connectDB.query(sql, [examName, instituteName, RollNo], (err, result) => {
+  pool.query(sql, [examName, instituteName, RollNo], (err, result) => {
     if (err) {
       console.error("Error executing update query:", err);
       res.status(500).json({ error: "Internal Server Error" });
@@ -1075,7 +1075,7 @@ export const getOfferLetter = (req, res) => {
   // Retrieve the stored link from the database based on the provided 'id'
   const query =
     "SELECT offerLetter FROM higherEducationDetails WHERE RollNO = ?";
-  connectDB.query(query, [id], (err, result) => {
+  pool.query(query, [id], (err, result) => {
     if (err) {
       console.error("Error querying database: " + err.stack);
       res.status(500).send("Internal Server Error");
@@ -1129,7 +1129,7 @@ export const uploadofferletter = (req, res) => {
       const checkQuery =
         "SELECT * FROM higherEducationDetails WHERE RollNo = ?";
 
-      connectDB.query(checkQuery, [rollNo], (checkErr, checkResult) => {
+      pool.query(checkQuery, [rollNo], (checkErr, checkResult) => {
         if (checkErr) {
           console.error("Error checking RollNo existence: " + checkErr.stack);
           res.status(500).send("Internal Server Error");
@@ -1141,7 +1141,7 @@ export const uploadofferletter = (req, res) => {
             // RollNo does not exist, insert
             const insertQuery =
               "INSERT INTO higherEducationDetails (RollNo, offerLetter) VALUES (?, ?)";
-            connectDB.query(
+            pool.query(
               insertQuery,
               [rollNo, offerLetterLink],
               (insertErr, insertResult) => {
@@ -1159,7 +1159,7 @@ export const uploadofferletter = (req, res) => {
             // RollNo exists, update
             const updateQuery =
               "UPDATE higherEducationDetails SET offerLetter = ? WHERE RollNo = ?";
-            connectDB.query(
+            pool.query(
               updateQuery,
               [offerLetterLink, rollNo],
               (updateErr, updateResult) => {
@@ -1183,7 +1183,7 @@ export const deletePublication = (req, res) => {
 
   // Retrieve PDF link from the database based on the provided 'ID'
   const pdfQuery = "SELECT manuscript FROM publicationDetails WHERE ID = ?";
-  connectDB.query(pdfQuery, [ID], (pdfErr, pdfResult) => {
+  pool.query(pdfQuery, [ID], (pdfErr, pdfResult) => {
     if (pdfErr) {
       console.error(
         "Error querying PDF link from the database: " + pdfErr.stack,
@@ -1223,7 +1223,7 @@ export const deletePublication = (req, res) => {
 
           // Proceed with deleting the database entry after the file deletion
           const deleteQuery = "DELETE FROM publicationDetails WHERE ID = ?";
-          connectDB.query(deleteQuery, [ID], (deleteErr, result) => {
+          pool.query(deleteQuery, [ID], (deleteErr, result) => {
             if (deleteErr) {
               console.error("Error executing delete query:", deleteErr);
               res.status(500).json({ error: "Internal Server Error" });
@@ -1243,7 +1243,7 @@ export const deletePublication = (req, res) => {
       } else {
         // Proceed with deleting the database entry if no PDF link is associated
         const deleteQuery = "DELETE FROM publicationDetails WHERE ID = ?";
-        connectDB.query(deleteQuery, [ID], (deleteErr, result) => {
+        pool.query(deleteQuery, [ID], (deleteErr, result) => {
           if (deleteErr) {
             console.error("Error executing delete query:", deleteErr);
             res.status(500).json({ error: "Internal Server Error" });
@@ -1281,7 +1281,7 @@ export const addPublication = (req, res) => {
     "UPDATE publicationDetails SET publishedIn = ?, articleTitle = ?, publicationDoi = ?, publishedArticleLink  = ?,RollNo = ? WHERE ID = ?";
   // console.log(ID);
 
-  connectDB.query(
+  pool.query(
     sql,
     [publishedIn, articleTitle, publicationDoi, publishedArticleLink, roll, ID],
     (err, result) => {
@@ -1307,7 +1307,7 @@ export const addPublication = (req, res) => {
 export const getPublication = (req, res) => {
   const { rollno } = req.body;
   const sql = "SELECT * FROM publicationDetails where RollNo = ?";
-  connectDB.query(sql, [rollno], (err, results) => {
+  pool.query(sql, [rollno], (err, results) => {
     if (err) {
       console.error("Error executing fetch query:", err);
       res.status(500).json({ error: "Internal Server Error" });
@@ -1368,7 +1368,7 @@ export const uploadManuscript = (req, res) => {
 
       const insertQuery =
         "INSERT INTO publicationDetails (id, manuscript) VALUES (?, ?)";
-      connectDB.query(
+      pool.query(
         insertQuery,
         [id, manuscriptLink],
         (insertErr, insertResult) => {
@@ -1389,7 +1389,7 @@ export const getManuscript = (req, res) => {
 
   // Retrieve PDF data from the database based on the provided 'id'
   const query = "SELECT manuscript FROM publicationDetails WHERE ID = ?";
-  connectDB.query(query, [id], (err, result) => {
+  pool.query(query, [id], (err, result) => {
     if (err) {
       console.error("Error querying database: " + err.stack);
       res.status(500).send("Internal Server Error");
@@ -1420,7 +1420,7 @@ export const addInterInstituteActivity = (req, res) => {
     "UPDATE interInstituteEventDetails SET collegeName = ?, eventName = ?, eventDate = ?, RollNo = ?,position = ? WHERE ID = ?";
   // console.log(ID);
 
-  connectDB.query(
+  pool.query(
     sql,
     [collegeName, eventName, eventDate, roll, position, ID],
     (err, result) => {
@@ -1446,7 +1446,7 @@ export const addInterInstituteActivity = (req, res) => {
 export const getInterInstituteActivity = (req, res) => {
   const { rollno } = req.body;
   const sql = "SELECT * FROM interInstituteEventDetails where RollNo = ?";
-  connectDB.query(sql, [rollno], (err, results) => {
+  pool.query(sql, [rollno], (err, results) => {
     if (err) {
       console.error("Error executing fetch query:", err);
       res.status(500).json({ error: "Internal Server Error" });
@@ -1507,7 +1507,7 @@ export const uploadCertificate = (req, res) => {
 
       const insertQuery =
         "INSERT INTO  interInstituteEventDetails (id, certificate) VALUES (?, ?)";
-      connectDB.query(
+      pool.query(
         insertQuery,
         [id, certificateLink],
         (insertErr, insertResult) => {
@@ -1529,7 +1529,7 @@ export const getCertificate = (req, res) => {
   // Retrieve PDF data from the database based on the provided 'id'
   const query =
     "SELECT certificate FROM interInstituteEventDetails WHERE ID = ?";
-  connectDB.query(query, [id], (err, result) => {
+  pool.query(query, [id], (err, result) => {
     if (err) {
       console.error("Error querying database: " + err.stack);
       res.status(500).send("Internal Server Error");
@@ -1558,7 +1558,7 @@ export const deleteInterInstituteActivity = (req, res) => {
   // Retrieve PDF link from the database based on the provided 'ID'
   const pdfQuery =
     "SELECT certificate FROM interInstituteEventDetails WHERE ID = ?";
-  connectDB.query(pdfQuery, [ID], (pdfErr, pdfResult) => {
+  pool.query(pdfQuery, [ID], (pdfErr, pdfResult) => {
     if (pdfErr) {
       console.error(
         "Error querying PDF link from the database: " + pdfErr.stack,
@@ -1599,7 +1599,7 @@ export const deleteInterInstituteActivity = (req, res) => {
           // Proceed with deleting the database entry after the file deletion
           const deleteQuery =
             "DELETE FROM interInstituteEventDetails WHERE ID = ?";
-          connectDB.query(deleteQuery, [ID], (deleteErr, result) => {
+          pool.query(deleteQuery, [ID], (deleteErr, result) => {
             if (deleteErr) {
               console.error("Error executing delete query:", deleteErr);
               res.status(500).json({ error: "Internal Server Error" });
@@ -1620,7 +1620,7 @@ export const deleteInterInstituteActivity = (req, res) => {
         // Proceed with deleting the database entry if no PDF link is associated
         const deleteQuery =
           "DELETE FROM interInstituteEventDetails WHERE ID = ?";
-        connectDB.query(deleteQuery, [ID], (deleteErr, result) => {
+        pool.query(deleteQuery, [ID], (deleteErr, result) => {
           if (deleteErr) {
             console.error("Error executing delete query:", deleteErr);
             res.status(500).json({ error: "Internal Server Error" });
@@ -1664,7 +1664,7 @@ export const getAcknowledgement = async (req, res) => {
 
   const checkRollNoInTable = (table) => {
     const query = `SELECT 1 FROM \`${table}\` WHERE RollNo = ? LIMIT 1`;
-    connectDB.query(query, [rollNo], (err, result) => {
+    pool.query(query, [rollNo], (err, result) => {
       if (err) {
         console.error("Error querying database: " + err.stack);
         return;

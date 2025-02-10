@@ -1,7 +1,6 @@
 // Required Imports
 import express from "express";
-import { connectDB } from "../data/database.js"; // Ensure this points to your database connection file
-import pool from "../data/database.js";
+import { pool } from "../data/database.js"; // Ensure this points to your database connection file
 import multer from "multer";
 import fs from "fs";
 import path from "path";
@@ -14,7 +13,7 @@ const __dirname = path.dirname(__filename);
 
 export const getFacultyCredentials = (req, res) => {
   const sql = "SELECT * FROM faculty_credentials";
-  connectDB.query(sql, (err, results) => {
+  pool.query(sql, (err, results) => {
     if (err) {
       console.error("Error executing fetch query:", err);
       res.status(500).json({ error: "Internal Server Error" });
@@ -40,7 +39,7 @@ export const getFacultyCredentialsById = (req, res) => {
       WHERE faculty_id = ?
   `;
 
-  connectDB.query(sql, [faculty_id], (err, results) => {
+  pool.query(sql, [faculty_id], (err, results) => {
     if (err) {
       console.error("Error executing fetch query:", err);
       res.status(500).json({ error: "Internal Server Error" });
@@ -71,7 +70,7 @@ export const addFacultyCredentials = (req, res) => {
       VALUES (?, ?, ?, ?)
   `;
 
-  connectDB.query(
+  pool.query(
     sql,
     [faculty_id, faculty_name, mobile_number, pass],
     (err) => {
@@ -106,7 +105,7 @@ export const updateFacultyCredentials = (req, res) => {
       WHERE faculty_id = ?
   `;
 
-  connectDB.query(
+  pool.query(
     sql,
     [faculty_name, mobile_number, pass, faculty_id],
     (err, results) => {
@@ -137,7 +136,7 @@ export const deleteFacultyCredentials = (req, res) => {
       WHERE faculty_id = ?
   `;
 
-  connectDB.query(sql, [faculty_id], (err, results) => {
+  pool.query(sql, [faculty_id], (err, results) => {
     if (err) {
       console.error("Error executing delete query:", err);
       res.status(500).json({ error: "Internal Server Error" });
@@ -160,7 +159,7 @@ export const deleteFacultyCredentials = (req, res) => {
 // 1. Get All Faculty Associations
 export const getFacultyAssociations = (req, res) => {
   const sql = "SELECT * FROM faculty_association";
-  connectDB.query(sql, (err, results) => {
+  pool.query(sql, (err, results) => {
     if (err) {
       console.error("Error executing fetch query:", err);
       res.status(500).json({ error: "Internal Server Error" });
@@ -180,7 +179,7 @@ export const getFacultyAssociationById = (req, res) => {
   const { faculty_id } = req.params; // Get faculty_id from the request parameters
   const sql = "SELECT * FROM faculty_association WHERE faculty_id = ?";
 
-  connectDB.query(sql, [faculty_id], (err, results) => {
+  pool.query(sql, [faculty_id], (err, results) => {
     if (err) {
       console.error("Error executing fetch query:", err);
       res.status(500).json({ error: "Internal Server Error" });
@@ -216,7 +215,7 @@ export const addFacultyAssociation = (req, res) => {
   // Check if faculty_id exists in faculty_details
   const checkSql =
     "SELECT COUNT(*) AS count FROM faculty_details WHERE faculty_id = ?";
-  connectDB.query(checkSql, [faculty_id], (err, results) => {
+  pool.query(checkSql, [faculty_id], (err, results) => {
     if (err) {
       console.error("Error checking faculty_id:", err);
       res.status(500).json({ error: "Internal Server Error" });
@@ -237,7 +236,7 @@ export const addFacultyAssociation = (req, res) => {
           VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
-    connectDB.query(
+    pool.query(
       insertSql,
       [
         faculty_id,
@@ -290,7 +289,7 @@ export const updateFacultyAssociation = (req, res) => {
       WHERE faculty_id = ?
   `;
 
-  connectDB.query(
+  pool.query(
     sql,
     [
       designation,
@@ -327,7 +326,7 @@ export const deleteFacultyAssociation = (req, res) => {
   const { faculty_id } = req.params;
 
   const sql = "DELETE FROM faculty_association WHERE faculty_id = ?";
-  connectDB.query(sql, [faculty_id], (err, results) => {
+  pool.query(sql, [faculty_id], (err, results) => {
     if (err) {
       console.error("Error executing delete query:", err);
       res.status(500).json({ error: "Internal Server Error" });
@@ -1499,7 +1498,7 @@ export const getSpecializations = (req, res) => {
     params.push(faculty_id);
   }
 
-  connectDB.query(query, params, (err, results) => {
+  pool.query(query, params, (err, results) => {
     if (err) {
       console.error("Error fetching specializations:", err);
       return res
@@ -1518,7 +1517,7 @@ export const addSpecialization = (req, res) => {
   // Check if the faculty_id exists in faculty_details
   const checkQuery =
     "SELECT COUNT(*) AS count FROM faculty_details WHERE faculty_id = ?";
-  connectDB.query(checkQuery, [faculty_id], (err, results) => {
+  pool.query(checkQuery, [faculty_id], (err, results) => {
     if (err) {
       console.error("Error checking faculty_id:", err);
       return res.status(500).json({ message: "Internal Server Error" });
@@ -1535,7 +1534,7 @@ export const addSpecialization = (req, res) => {
       INSERT INTO faculty_specialization (faculty_id, specialization)
       VALUES (?, ?)
     `;
-    connectDB.query(
+    pool.query(
       insertQuery,
       [faculty_id, specialization],
       (err, result) => {
@@ -1562,7 +1561,7 @@ export const updateSpecialization = (req, res) => {
     SET specialization = ?
     WHERE specialization_id = ?
   `;
-  connectDB.query(query, [specialization, specialization_id], (err, result) => {
+  pool.query(query, [specialization, specialization_id], (err, result) => {
     if (err) {
       console.error("Error updating specialization:", err);
       return res.status(500).json({ message: "Internal Server Error" });
@@ -1583,7 +1582,7 @@ export const deleteSpecialization = (req, res) => {
 
   const query =
     "DELETE FROM faculty_specialization WHERE specialization_id = ?";
-  connectDB.query(query, [specialization_id], (err, result) => {
+  pool.query(query, [specialization_id], (err, result) => {
     if (err) {
       console.error("Error deleting specialization:", err);
       return res.status(500).json({ message: "Internal Server Error" });

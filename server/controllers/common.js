@@ -1,4 +1,4 @@
-import { connectDB } from "../data/database.js";
+import { pool } from "../data/database.js";
 import { sendCookie } from "../utils/featues.js";
 
 export const adminLogin = (req, res) => {
@@ -9,7 +9,7 @@ export const adminLogin = (req, res) => {
   // Query to check login credentials
   const sql = "SELECT * FROM adminTable WHERE email = ? AND Pass = ?";
   // Execute the query
-  connectDB.query(sql, [email, password], (err, results) => {
+  pool.query(sql, [email, password], (err, results) => {
     if (err) {
       console.error("Error executing login query:", err);
       res.status(500).json({ error: "Internal Server Error" });
@@ -33,7 +33,7 @@ export const login = (req, res) => {
   // Query to check login credentials
   const sql = "SELECT * FROM Student_data WHERE RollNo = ? AND Pass = ?";
   // Execute the query
-  connectDB.query(sql, [email, password], (err, results) => {
+  pool.query(sql, [email, password], (err, results) => {
     if (err) {
       console.error("Error executing login query:", err);
       res.status(500).json({ error: "Internal Server Error" });
