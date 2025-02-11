@@ -1,7 +1,6 @@
 // Required Imports
 import express from "express";
 import { pool } from "../data/database.js"; // Ensure this points to your database connection file
-import multer from "multer";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
