@@ -6,9 +6,7 @@ import { pool } from "../data/database.js";
 
 // Environment variables
 const SECRET_KEY = process.env.JWT_SECRET;
-const RESET_TOKEN_EXPIRY = process.env.RESET_TOKEN_EXPIRY
-    ? parseInt(process.env.RESET_TOKEN_EXPIRY) * 60 * 1000
-    : 1 * 60 * 60 * 1000;
+const RESET_TOKEN_EXPIRY = Number(process.env.RESET_TOKEN_EXPIRY) * 60 * 1000 || 60 * 60 * 1000;
 
 // Configure Nodemailer
 const transporter = nodemailer.createTransport({
@@ -24,16 +22,18 @@ export const requestPasswordReset = async (req, res) => {
     try {
         const { email } = req.body;
 
-        // Check if the user exists
-        const result = await pool.execute("SELECT * FROM faculty_auth WHERE email = ?", [email]);
-        console.log("Query Result:", result);
+        // Check if the user exists (using faculty_details.email_id)
+        const [rows] = await pool.execute(
+            `SELECT faculty_auth.* 
+             FROM faculty_auth 
+             JOIN faculty_details ON faculty_auth.faculty_id = faculty_details.faculty_id
+             WHERE faculty_details.email_id = ?`, 
+            [email]
+        );
 
-        if (!Array.isArray(result) || result.length === 0 || !Array.isArray(result[0])) {
-            return res.status(404).json({ message: "User not found." });
-        }
+        console.log("Query Result:", rows); // Debugging
 
-        const [rows] = result;
-        if (rows.length === 0) return res.status(404).json({ message: "User not found." });
+        if (!rows.length) return res.status(404).json({ message: "User not found." });
 
         const faculty = rows[0];
 
@@ -42,10 +42,14 @@ export const requestPasswordReset = async (req, res) => {
         const tokenExpiry = new Date(Date.now() + RESET_TOKEN_EXPIRY);
 
         // Save token in the database
-        await pool.execute(
-            "UPDATE faculty_auth SET reset_token = ?, token_expiry = ? WHERE email = ?",
-            [resetToken, tokenExpiry, email]
+        const [updateResult] = await pool.execute(
+            "UPDATE faculty_auth SET reset_token = ?, token_expiry = ? WHERE faculty_id = ?",
+            [resetToken, tokenExpiry, faculty.faculty_id]
         );
+
+        if (updateResult.affectedRows === 0) {
+            return res.status(500).json({ message: "Error updating database." });
+        }
 
         // Generate reset link
         const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}&email=${email}`;
@@ -66,15 +70,21 @@ export const requestPasswordReset = async (req, res) => {
     }
 };
 
-
 // Reset Password (Step 2)
 export const resetPassword = async (req, res) => {
     try {
         const { email, token, newPassword } = req.body;
 
         // Fetch user details
-        const [rows] = await pool.execute("SELECT * FROM faculty_auth WHERE email = ?", [email]);
-        if (rows.length === 0) return res.status(404).json({ message: "User not found." });
+        const [rows] = await pool.execute(
+            `SELECT faculty_auth.* 
+             FROM faculty_auth 
+             JOIN faculty_details ON faculty_auth.faculty_id = faculty_details.faculty_id
+             WHERE faculty_details.email_id = ?`, 
+            [email]
+        );
+
+        if (!rows.length) return res.status(404).json({ message: "User not found." });
 
         const faculty = rows[0];
 
@@ -89,10 +99,14 @@ export const resetPassword = async (req, res) => {
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 
         // Update password and clear reset token
-        await pool.execute(
-            "UPDATE faculty_auth SET password = ?, reset_token = NULL, token_expiry = NULL WHERE email = ?",
-            [hashedPassword, email]
+        const [updateResult] = await pool.execute(
+            "UPDATE faculty_auth SET password = ?, reset_token = NULL, token_expiry = NULL WHERE faculty_id = ?",
+            [hashedPassword, faculty.faculty_id]
         );
+
+        if (updateResult.affectedRows === 0) {
+            return res.status(500).json({ message: "Error updating password." });
+        }
 
         res.json({ message: "Password successfully reset." });
     } catch (error) {
