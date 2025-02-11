@@ -17,7 +17,7 @@ const ConsultancyDetails = ({ setBlurActive }) => {
   const fetchConsultancyDetails = async () => {
     try {
       const response = await fetch(
-        `http://64.227.135.99:3001/ece/faculty/consultancy/FAC001`,
+        `http://localhost:3001/ece/faculty/consultancy/FAC001`,
       ); // Replace FAC001 with dynamic facultyId if needed
 
       if (!response.ok) {
@@ -68,7 +68,7 @@ const ConsultancyDetails = ({ setBlurActive }) => {
     try {
       if (isAddConsultancy) {
         // Add new consultancy
-        await axios.post("http://64.227.135.99:3001/ece/faculty/consultancy", {
+        await axios.post("http://localhost:3001/ece/faculty/consultancy", {
           faculty_id: "FAC001", // Hardcoded for now
           project_title: newConsultancy.title,
           funding_agency: newConsultancy.client || null, // Optional field
@@ -80,7 +80,7 @@ const ConsultancyDetails = ({ setBlurActive }) => {
       } else {
         // Update existing consultancy
         await axios.put(
-          `http://64.227.135.99:3001/ece/faculty/consultancy/${selectedConsultancy.consultancy_id}`,
+          `http://localhost:3001/ece/faculty/consultancy/${selectedConsultancy.consultancy_id}`,
           {
             faculty_id: "FAC001", // Hardcoded for now
             project_title: newConsultancy.title,
@@ -105,7 +105,7 @@ const ConsultancyDetails = ({ setBlurActive }) => {
     const consultancyToDelete = consultancyDetails[indexToDelete];
     try {
       await axios.delete(
-        `http://64.227.135.99:3001/ece/faculty/consultancy/${consultancyToDelete.consultancy_id}`,
+        `http://localhost:3001/ece/faculty/consultancy/${consultancyToDelete.consultancy_id}`,
       );
       // Refresh consultancy details after deleting
       fetchConsultancyDetails();

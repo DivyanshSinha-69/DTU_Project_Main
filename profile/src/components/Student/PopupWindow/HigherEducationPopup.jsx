@@ -32,7 +32,7 @@ export default function HigherEducationPopup(props) {
       }
 
       const response = await axios.put(
-        "http://64.227.135.99:3001/ece/student/updatehighereducationdetails",
+        "http://localhost:3001/ece/student/updatehighereducationdetails",
         {
           examName: formData.examName,
           instituteName: formData.instituteName,

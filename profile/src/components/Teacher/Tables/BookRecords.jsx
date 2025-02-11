@@ -41,7 +41,7 @@ const BookRecordsPublished = ({ setBlurActive }) => {
   const fetchBookRecords = async () => {
     try {
       const response = await fetch(
-        `http://64.227.135.99:3001/ece/faculty/books/FAC001`,
+        `http://localhost:3001/ece/faculty/books/FAC001`,
       );
       if (!response.ok) {
         if (response.status === 404) {
@@ -97,7 +97,7 @@ const BookRecordsPublished = ({ setBlurActive }) => {
       if (isAddBook) {
         // Add new book record
         const response = await fetch(
-          `http://64.227.135.99:3001/ece/faculty/books`,
+          `http://localhost:3001/ece/faculty/books`,
           {
             method: "POST",
             headers: {
@@ -114,7 +114,7 @@ const BookRecordsPublished = ({ setBlurActive }) => {
       } else {
         // Update existing book record
         const response = await fetch(
-          `http://64.227.135.99:3001/ece/faculty/books/${selectedBook.Book_id}`,
+          `http://localhost:3001/ece/faculty/books/${selectedBook.Book_id}`,
           {
             method: "PUT",
             headers: {
@@ -147,7 +147,7 @@ const BookRecordsPublished = ({ setBlurActive }) => {
 
   const handleDeleteBook = async (Book_id) => {
     const response = await fetch(
-      `http://64.227.135.99:3001/ece/faculty/books/${Book_id}`,
+      `http://localhost:3001/ece/faculty/books/${Book_id}`,
       {
         method: "DELETE",
       },

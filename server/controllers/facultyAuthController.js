@@ -1,12 +1,10 @@
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import crypto from "crypto";
-import nodemailer from "nodemailer";
 import { pool } from "../data/database.js";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+import dotenv from "dotenv";
+import nodemailer from "nodemailer";
 
-// Environment variables
-const SECRET_KEY = process.env.JWT_SECRET;
-const RESET_TOKEN_EXPIRY = Number(process.env.RESET_TOKEN_EXPIRY) * 60 * 1000 || 60 * 60 * 1000;
+dotenv.config();
 
 // Configure Nodemailer
 const transporter = nodemailer.createTransport({
@@ -17,100 +15,79 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-// Request Password Reset (Step 1)
-export const requestPasswordReset = async (req, res) => {
+// ==================== Forgot Password Controller ====================
+export const forgotPassword = async (req, res) => {
+    const { email } = req.body;
+
     try {
-        const { email } = req.body;
+        pool.query("SELECT * FROM faculty_auth WHERE email = ?", [email], async (err, result) => {
+            if (err) return res.status(500).json({ error: err.message });
+            if (result.length === 0) return res.status(404).json({ message: "Faculty not found" });
 
-        // Check if the user exists (using faculty_details.email_id)
-        const [rows] = await pool.execute(
-            `SELECT faculty_auth.* 
-             FROM faculty_auth 
-             JOIN faculty_details ON faculty_auth.faculty_id = faculty_details.faculty_id
-             WHERE faculty_details.email_id = ?`, 
-            [email]
-        );
+            // Generate JWT Reset Token
+            const resetToken = jwt.sign(
+                { email },
+                process.env.JWT_SECRET,
+                { expiresIn: `${process.env.TOKEN_EXPIRY}m`, algorithm: "HS256" }
+            );
 
-        console.log("Query Result:", rows); // Debugging
+            const expiryTime = new Date(Date.now() + process.env.TOKEN_EXPIRY * 60000);
 
-        if (!rows.length) return res.status(404).json({ message: "User not found." });
+            pool.query(
+                "UPDATE faculty_auth SET reset_token = ?, token_expiry = ? WHERE email = ?",
+                [resetToken, expiryTime, email],
+                (updateErr) => {
+                    if (updateErr) return res.status(500).json({ error: updateErr.message });
 
-        const faculty = rows[0];
+                    // Send Reset Email
+                    const resetLink = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+                    const mailOptions = {
+                        from: process.env.EMAIL_USER,
+                        to: email,
+                        subject: "Password Reset Request",
+                        text: `Click the link below to reset your password (valid for ${process.env.TOKEN_EXPIRY} minutes):\n\n${resetLink}`,
+                    };
 
-        // Generate reset token
-        const resetToken = crypto.randomBytes(32).toString("hex");
-        const tokenExpiry = new Date(Date.now() + RESET_TOKEN_EXPIRY);
-
-        // Save token in the database
-        const [updateResult] = await pool.execute(
-            "UPDATE faculty_auth SET reset_token = ?, token_expiry = ? WHERE faculty_id = ?",
-            [resetToken, tokenExpiry, faculty.faculty_id]
-        );
-
-        if (updateResult.affectedRows === 0) {
-            return res.status(500).json({ message: "Error updating database." });
-        }
-
-        // Generate reset link
-        const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}&email=${email}`;
-
-        // Send email
-        await transporter.sendMail({
-            from: process.env.EMAIL_USER,
-            to: email,
-            subject: "Password Reset Request",
-            html: `<p>You requested a password reset. Click <a href="${resetLink}">here</a> to reset your password.</p>
-                   <p>If you did not request this, please ignore this email.</p>`,
+                    transporter.sendMail(mailOptions, (error) => {
+                        if (error) return res.status(500).json({ error: error.message });
+                        res.json({ message: "Reset link sent to email" });
+                    });
+                }
+            );
         });
-
-        res.json({ message: "Password reset link sent to your email." });
     } catch (error) {
-        console.error("Error in requestPasswordReset:", error);
-        res.status(500).json({ message: "Internal Server Error. Please try again later." });
+        res.status(500).json({ error: error.message });
     }
 };
 
-// Reset Password (Step 2)
+// ==================== Reset Password Controller ====================
 export const resetPassword = async (req, res) => {
+    const { token } = req.params;
+    const { newPassword } = req.body;
+
     try {
-        const { email, token, newPassword } = req.body;
+        // Verify JWT Token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const email = decoded.email;
 
-        // Fetch user details
-        const [rows] = await pool.execute(
-            `SELECT faculty_auth.* 
-             FROM faculty_auth 
-             JOIN faculty_details ON faculty_auth.faculty_id = faculty_details.faculty_id
-             WHERE faculty_details.email_id = ?`, 
-            [email]
-        );
+        pool.query("SELECT * FROM faculty_auth WHERE email = ? AND reset_token = ?", [email, token], async (err, result) => {
+            if (err) return res.status(500).json({ error: err.message });
+            if (result.length === 0) return res.status(400).json({ error: "Invalid or expired token" });
 
-        if (!rows.length) return res.status(404).json({ message: "User not found." });
+            // Hash the new password
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-        const faculty = rows[0];
-
-        // Validate token
-        if (!faculty.reset_token || faculty.reset_token !== token)
-            return res.status(400).json({ message: "Invalid or expired token." });
-
-        if (new Date() > new Date(faculty.token_expiry))
-            return res.status(400).json({ message: "Token has expired. Please request a new reset link." });
-
-        // Hash new password
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-        // Update password and clear reset token
-        const [updateResult] = await pool.execute(
-            "UPDATE faculty_auth SET password = ?, reset_token = NULL, token_expiry = NULL WHERE faculty_id = ?",
-            [hashedPassword, faculty.faculty_id]
-        );
-
-        if (updateResult.affectedRows === 0) {
-            return res.status(500).json({ message: "Error updating password." });
-        }
-
-        res.json({ message: "Password successfully reset." });
+            // Update password and remove reset token
+            pool.query(
+                "UPDATE faculty_auth SET password = ?, reset_token = NULL, token_expiry = NULL WHERE email = ?",
+                [hashedPassword, email],
+                (updateErr) => {
+                    if (updateErr) return res.status(500).json({ error: updateErr.message });
+                    res.json({ message: "Password reset successful" });
+                }
+            );
+        });
     } catch (error) {
-        console.error("Error in resetPassword:", error);
-        res.status(500).json({ message: "Internal Server Error. Please try again later." });
+        res.status(400).json({ error: "Invalid or expired token" });
     }
 };
