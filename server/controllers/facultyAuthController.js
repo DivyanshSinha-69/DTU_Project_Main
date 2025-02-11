@@ -25,7 +25,14 @@ export const requestPasswordReset = async (req, res) => {
         const { email } = req.body;
 
         // Check if the user exists
-        const [rows] = await pool.execute("SELECT * FROM faculty_auth WHERE email = ?", [email]);
+        const result = await pool.execute("SELECT * FROM faculty_auth WHERE email = ?", [email]);
+        console.log("Query Result:", result);
+
+        if (!Array.isArray(result) || result.length === 0 || !Array.isArray(result[0])) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        const [rows] = result;
         if (rows.length === 0) return res.status(404).json({ message: "User not found." });
 
         const faculty = rows[0];
@@ -58,6 +65,7 @@ export const requestPasswordReset = async (req, res) => {
         res.status(500).json({ message: "Internal Server Error. Please try again later." });
     }
 };
+
 
 // Reset Password (Step 2)
 export const resetPassword = async (req, res) => {
