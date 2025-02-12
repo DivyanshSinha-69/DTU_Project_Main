@@ -39,6 +39,8 @@ import {
   getBtechEducationDetails,
   updateBtechEducationDetails,
   getAcknowledgement,
+  forgotPasswordStudent,
+  resetPasswordStudent,
 } from "../controllers/student.js";
 // import { isAuthenticated } from "../middlewares/auth.js";
 
@@ -96,5 +98,8 @@ router.post("/getcertificate", getCertificate);
 router.post("/uploadcertificate", uploadCertificate);
 router.post("/getacknowledgement", getAcknowledgement);
 // router.get("/me", isAuthenticated, getMyProfile);
+
+router.post("/forgotpassword", forgotPasswordStudent);
+router.post("/resetpassword/:token", resetPasswordStudent);
 
 export default router;

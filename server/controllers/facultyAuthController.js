@@ -18,7 +18,7 @@ const transporter = nodemailer.createTransport({
 // 🔹 Generate Access Token (Short-lived)
 const generateAccessToken = (faculty_id) => {
     return jwt.sign({ faculty_id }, process.env.JWT_SECRET, {
-        expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "15m",
+        expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
     });
 };
 
