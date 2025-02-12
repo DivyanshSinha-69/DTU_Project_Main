@@ -87,13 +87,13 @@ export default function StickyNavbar() {
           color="blue-gray"
           className="p-1 font-normal hover:translate-y-[-5px] transition-transform ease-in"
         >
-          <HashLink
-            to="/login"
-            className="flex flex-row items-center lg:flex-col"
-          >
-            <img src={img2} alt="student" height={30} width={30} />
-            <p className="lg:ml-0 ml-4">Student</p>
-          </HashLink>
+          <HashLink to="/login?role=student" className="flex flex-row items-center lg:flex-col">
+  <img src={img2} alt="student" height={30} width={30} />
+  <p className="lg:ml-0 ml-4">Student</p>
+</HashLink>
+
+
+
         </Typography>
       )}
 
@@ -104,13 +104,10 @@ export default function StickyNavbar() {
           color="blue-gray"
           className="p-1 font-normal hover:translate-y-[-5px] transition-transform ease-in"
         >
-          <HashLink
-            to="/login"
-            className="flex flex-row items-center lg:flex-col"
-          >
-            <img src={img1} alt="teacher" height={30} width={30} />
-            <p className="lg:ml-0 ml-4">Teacher/techStaff</p>
-          </HashLink>
+          <HashLink to="/login?role=faculty" className="flex flex-row items-center lg:flex-col">
+  <img src={img1} alt="teacher" height={30} width={30} />
+  <p className="lg:ml-0 ml-4">Faculty</p>
+</HashLink>
         </Typography>
       )}
 
