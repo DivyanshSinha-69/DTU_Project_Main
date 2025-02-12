@@ -38,7 +38,7 @@ const Activities = ({ setBlurActive }) => {
   const handledelete = async (ID) => {
     try {
       const response = await axios.delete(
-        "http://64.227.135.99:3001/ece/student/deleteinterinstituteactivity",
+        "http://localhost:3001/ece/student/deleteinterinstituteactivity",
         {
           data: {
             ID: ID,

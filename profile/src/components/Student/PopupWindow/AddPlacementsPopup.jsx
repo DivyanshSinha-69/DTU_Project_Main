@@ -49,7 +49,7 @@ export default function AddPlacementsPopup(props) {
 
     try {
       const response = await axios.post(
-        "http://64.227.135.99:3001/ece/student/addplacement",
+        "http://localhost:3001/ece/student/addplacement",
         {
           companyName: formData.companyName,
           placementType: formData.placementType,

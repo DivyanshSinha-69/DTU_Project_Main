@@ -25,7 +25,7 @@ const Association = ({ setBlurActive }) => {
     const fetchAssociationDetails = async () => {
       try {
         const response = await fetch(
-          "http://64.227.135.99:3001/ece/faculty/facultyassociation/FAC001",
+          "http://localhost:3001/ece/faculty/facultyassociation/FAC001",
         );
         const data = await response.json();
 
@@ -102,7 +102,7 @@ const Association = ({ setBlurActive }) => {
       );
 
       const response = await fetch(
-        "http://64.227.135.99:3001/ece/faculty/facultyassociation/FAC001",
+        "http://localhost:3001/ece/faculty/facultyassociation/FAC001",
         {
           method: "PUT",
           headers: {

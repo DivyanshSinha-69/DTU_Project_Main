@@ -25,7 +25,7 @@ const params = new URLSearchParams(location.search);
     try {
       // Make a POST request to your server with login credentials
       const response = await axios.post(
-        "http://64.227.135.99:3001/login",
+        "http://localhost:3001/login",
         {
           email: rollNo,
           password: password,

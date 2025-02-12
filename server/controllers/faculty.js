@@ -1,7 +1,6 @@
 // Required Imports
 import express from "express";
 import { pool } from "../data/database.js"; // Ensure this points to your database connection file
-import multer from "multer";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -1735,3 +1734,111 @@ export const deleteFacultyImage = (req, res) => {
     });
   });
 };
+
+
+// Get all faculty patents
+export const getFacultyPatents = (req, res) => {
+  const { faculty_id } = req.params; // Get faculty_id from route parameters (if provided)
+
+  let query = "SELECT * FROM faculty_patents";
+  let params = [];
+
+  if (faculty_id) {
+    query += " WHERE faculty_id = ?";
+    params.push(faculty_id);
+  }
+
+  pool.query(query, params, (err, results) => {
+    if (err) {
+      console.error("Error fetching patents:", err);
+      return res
+        .status(500)
+        .json({ message: "Error fetching patents", error: err });
+    }
+    res
+      .status(200)
+      .json({ message: "Patents fetched successfully", data: results });
+  });
+};
+
+
+// Add a new faculty patent
+export const addFacultyPatent = (req, res) => {
+  const { faculty_id, patent_name, patent_publish, patent_filed, patent_award_date } = req.body;
+
+  // Check if the faculty_id exists in faculty_details
+  const checkQuery = "SELECT COUNT(*) AS count FROM faculty_details WHERE faculty_id = ?";
+  pool.query(checkQuery, [faculty_id], (err, results) => {
+    if (err) {
+      console.error("Error checking faculty_id:", err);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+
+    if (results[0].count === 0) {
+      return res.status(400).json({ message: "faculty_id does not exist in faculty_details" });
+    }
+
+    // Insert the patent
+    const insertQuery = `
+      INSERT INTO faculty_patents (faculty_id, patent_name, patent_publish, patent_filed, patent_award_date)
+      VALUES (?, ?, ?, ?, ?)
+    `;
+    pool.query(insertQuery, [faculty_id, patent_name, patent_publish, patent_filed || null, patent_award_date || null], (err, result) => {
+      if (err) {
+        console.error("Error adding patent:", err);
+        return res.status(500).json({ message: "Internal Server Error" });
+      }
+      res.status(201).json({
+        message: "Patent added successfully",
+        success: true,
+        id: result.insertId,
+      });
+    });
+  });
+};
+
+
+// Update an existing faculty patent
+export const updateFacultyPatent = (req, res) => {
+  const { patent_id } = req.params; // Patent ID
+  const { faculty_id, patent_name, patent_publish, patent_filed, patent_award_date } = req.body;
+
+  const query = `
+    UPDATE faculty_patents
+    SET faculty_id = ?, patent_name = ?, patent_publish = ?, patent_filed = ?, patent_award_date = ?
+    WHERE patent_id = ?
+  `;
+  pool.query(query, [faculty_id, patent_name, patent_publish, patent_filed || null, patent_award_date || null, patent_id], (err, result) => {
+    if (err) {
+      console.error("Error updating patent:", err);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Patent not found" });
+    }
+
+    res.status(200).json({ message: "Patent updated successfully", success: true });
+  });
+};
+
+
+// Delete a faculty patent
+export const deleteFacultyPatent = (req, res) => {
+  const { patent_id } = req.params; // Patent ID
+
+  const query = "DELETE FROM faculty_patents WHERE patent_id = ?";
+  pool.query(query, [patent_id], (err, result) => {
+    if (err) {
+      console.error("Error deleting patent:", err);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Patent not found" });
+    }
+
+    res.status(200).json({ message: "Patent deleted successfully", success: true });
+  });
+};
+

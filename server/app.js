@@ -10,8 +10,10 @@ import adminRouter from "./routes/admin.js";
 import professorRouter from "./routes/faculty.js";
 import studentRouter from "./routes/student.js";
 import commonRouter from "./routes/common.js";
+import authRouter from "./routes/facultyAuthRoutes.js"; // Added Forgot Password Routes
 
 import { errorMiddleware } from "./middlewares/error.js";
+
 // Load environment variables
 config({ path: "./essentials.env" });
 
@@ -56,6 +58,7 @@ app.use("/ece/admin", adminRouter);
 app.use("/ece/faculty", professorRouter);
 app.use("/ece/student", studentRouter);
 app.use("/", commonRouter);
+app.use("/ece/facultyauth", authRouter); // <-- Added this for forgot password functionality
 
 // Serve React Frontend
 app.get("/*", function (req, res) {
@@ -66,6 +69,4 @@ app.get("/*", function (req, res) {
   });
 });
 
-
 app.use(errorMiddleware);
-
