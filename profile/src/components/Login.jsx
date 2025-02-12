@@ -11,9 +11,9 @@ import { HashLink } from "react-router-hash-link";
 
 const Login = () => {
   const location = useLocation();
-const params = new URLSearchParams(location.search);
+  const params = new URLSearchParams(location.search);
   const role = params.get("role") || "student"; // Default to student
-  
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [rollNo, setRollNo] = useState("");
@@ -70,33 +70,32 @@ const params = new URLSearchParams(location.search);
         }}
       >
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-        <h2 className="text-center text-4xl tracking-widest font-bold leading-9 text-gray-800 ">
-  {role ? `${role.charAt(0).toUpperCase() + role.slice(1)} Login` : "LOGIN"}
-</h2>
-
+          <h2 className="text-center text-4xl tracking-widest font-bold leading-9 text-gray-800 ">
+            {role
+              ? `${role.charAt(0).toUpperCase() + role.slice(1)} Login`
+              : "LOGIN"}
+          </h2>
         </div>
 
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
           <form className="space-y-6" onSubmit={handleLogin}>
             <div>
-            <label
-  htmlFor="rollNo"
-  className="block font-bold text-lg font-large leading-6 text-white"
->
-  {role === "faculty" ? "Faculty ID" : "Roll Number"}
-</label>
+              <label
+                htmlFor="rollNo"
+                className="block font-bold text-lg font-large leading-6 text-white"
+              >
+                {role === "faculty" ? "Faculty ID" : "Roll Number"}
+              </label>
 
               <div className="mt-2">
                 <input
                   id="rollNo"
-name="rollNo"
-autoComplete="username"
-value={rollNo}
-
+                  name="rollNo"
+                  autoComplete="username"
+                  value={rollNo}
                   required
                   className="block w-full p-2 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-onChange={(e) => setRollNo(e.target.value)}
-                  
+                  onChange={(e) => setRollNo(e.target.value)}
                 />
               </div>
             </div>
@@ -133,14 +132,14 @@ onChange={(e) => setRollNo(e.target.value)}
             </div>
 
             <div>
-            <div className="text-sm">
-  <HashLink
-    to="/forgot"
-    className="font-semibold text-md text-gray-800 hover:text-indigo-500"
-  >
-    Forgot password?
-  </HashLink>
-</div>
+              <div className="text-sm">
+                <HashLink
+                  to="/forgot"
+                  className="font-semibold text-md text-gray-800 hover:text-indigo-500"
+                >
+                  Forgot password?
+                </HashLink>
+              </div>
 
               <button
                 type="submit"

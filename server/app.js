@@ -29,8 +29,13 @@ const buildPath = path.join(__dirname, "../profile/build");
 app.use(express.static(buildPath));
 
 // CORS Configuration
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:3000,https://dtu-project-main.vercel.app").split(",");
-const corsMethods = (process.env.CORS_METHODS || "GET,POST,PUT,DELETE,OPTIONS").split(",");
+const allowedOrigins = (
+  process.env.ALLOWED_ORIGINS ||
+  "http://localhost:3000,https://dtu-project-main.vercel.app"
+).split(",");
+const corsMethods = (
+  process.env.CORS_METHODS || "GET,POST,PUT,DELETE,OPTIONS"
+).split(",");
 
 app.use(
   cors({
@@ -44,7 +49,7 @@ app.use(
     methods: corsMethods,
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
-  })
+  }),
 );
 
 app.options("*", cors()); // Allow preflight requests

@@ -26,9 +26,11 @@ const Faculty = () => {
   const fetchFacultyImage = async () => {
     if (isOperationInProgress) return;
     try {
-      const response = await axios.get(`http://localhost:3001/ece/faculty/facultyimage/FAC001`);
+      const response = await axios.get(
+        `http://localhost:3001/ece/faculty/facultyimage/FAC001`,
+      );
       console.log("called");
-  
+
       if (response.data && response.data.faculty_image) {
         // Assuming the API returns the relative path to the image
         const imagePath = `http://localhost:3001/public/${response.data.faculty_image}`;
@@ -44,36 +46,31 @@ const Faculty = () => {
       toast.error("Failed to fetch faculty image.");
     }
   };
-  
 
-  
-  
   useEffect(() => {
     fetchFacultyImage(); // Fetch image on mount
   }, []);
-  
-  
-  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const handleImageUploadOrUpdate = async (event) => {
     setOperationInProgress(true);
     if (!event.target.files || event.target.files.length === 0) return;
-  
+
     const file = event.target.files[0];
     const fileExtension = file.name.split(".").pop().toLowerCase();
     const allowedExtensions = ["jpg", "jpeg"];
-  
+
     // Validate file type
     if (!allowedExtensions.includes(fileExtension)) {
       toast.error("Only JPG or JPEG images are allowed.");
       return;
     }
-  
+
     const formData = new FormData();
     formData.append("faculty_image", file);
     formData.append("faculty_id", "FAC001");
-  
+
     setIsUploadingImage(true); // Show uploading indicator
     setTimeout(async () => {
       try {
@@ -83,17 +80,17 @@ const Faculty = () => {
           response = await axios.put(
             `http://localhost:3001/ece/faculty/facultyimage/FAC001`,
             formData,
-            { headers: { "Content-Type": "multipart/form-data" } }
+            { headers: { "Content-Type": "multipart/form-data" } },
           );
         } else {
           // Upload the image for the first time
           response = await axios.post(
             `http://localhost:3001/ece/faculty/facultyimage/FAC001`,
             formData,
-            { headers: { "Content-Type": "multipart/form-data" } }
+            { headers: { "Content-Type": "multipart/form-data" } },
           );
         }
-  
+
         if (
           response.data &&
           (response.data.message === "Faculty image added successfully" ||
@@ -101,7 +98,9 @@ const Faculty = () => {
         ) {
           setSelectedImage(URL.createObjectURL(file)); // Update UI with the new image preview
           toast.success(
-            selectedImage ? "Image updated successfully!" : "Image uploaded successfully!"
+            selectedImage
+              ? "Image updated successfully!"
+              : "Image uploaded successfully!",
           );
           setTimeout(() => {
             fetchFacultyImage(); // Fetch the latest data after delay
@@ -118,17 +117,19 @@ const Faculty = () => {
     }, 2000); // 2-second delay before making the API call
     setOperationInProgress(false);
   };
-  
-  
-  
-  
-  
+
   const handleDeleteImage = async () => {
     setOperationInProgress(true);
     try {
-      const response = await axios.delete(`http://localhost:3001/ece/faculty/facultyimage/FAC001`);
-      
-      if (response.data && response.data.message === "Faculty image and record deleted successfully") {
+      const response = await axios.delete(
+        `http://localhost:3001/ece/faculty/facultyimage/FAC001`,
+      );
+
+      if (
+        response.data &&
+        response.data.message ===
+          "Faculty image and record deleted successfully"
+      ) {
         setSelectedImage(null); // Clear the image from UI
         toast.success("Image deleted successfully!");
       } else {
@@ -140,9 +141,6 @@ const Faculty = () => {
     }
     setOperationInProgress(false);
   };
-  
-  
-
 
   // Dummy data for the teacher (replace with actual data later)
   const teacherData = {
@@ -165,33 +163,32 @@ const Faculty = () => {
         <>
           <div className="bg-[#FAFAFA] pt-10">
             <div className="h-auto w-full flex flex-wrap justify-center mx-auto">
-            <div className="img-container m-2 relative">
-  <img
-    className={`rounded-xl h-[175px] w-[175px] ${isUploadingImage ? "opacity-50" : ""}`}
-    src={selectedImage ? selectedImage : teacherImg} // Display fetched image if available
-    alt="Teacher profile"
-  />
-  {isUploadingImage && (
-    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-xl">
-      <div className="loader border-t-transparent border-4 border-white rounded-full w-8 h-8 animate-spin"></div>
-    </div>
-  )}
+              <div className="img-container m-2 relative">
+                <img
+                  className={`rounded-xl h-[175px] w-[175px] ${isUploadingImage ? "opacity-50" : ""}`}
+                  src={selectedImage ? selectedImage : teacherImg} // Display fetched image if available
+                  alt="Teacher profile"
+                />
+                {isUploadingImage && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-xl">
+                    <div className="loader border-t-transparent border-4 border-white rounded-full w-8 h-8 animate-spin"></div>
+                  </div>
+                )}
 
-  <label
-    htmlFor="imageUpload"
-    className="absolute bottom-2 right-2 cursor-pointer bg-gray-800 text-white p-2 rounded-full flex items-center justify-center"
-  >
-    <img src={UploadIcon} alt="Upload Icon" className="w-6 h-6" />
-  </label>
-  <input
-    id="imageUpload"
-    type="file"
-    accept="image/*"
-    className="hidden"
-    onChange={handleImageUploadOrUpdate}
-  />
-</div>
-
+                <label
+                  htmlFor="imageUpload"
+                  className="absolute bottom-2 right-2 cursor-pointer bg-gray-800 text-white p-2 rounded-full flex items-center justify-center"
+                >
+                  <img src={UploadIcon} alt="Upload Icon" className="w-6 h-6" />
+                </label>
+                <input
+                  id="imageUpload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageUploadOrUpdate}
+                />
+              </div>
 
               <div className="details-container m-2">
                 <h1 className="font-extrabold text-3xl">{teacherData.name}</h1>

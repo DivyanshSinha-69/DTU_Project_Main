@@ -14,37 +14,36 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
   const [selectedFDP, setSelectedFDP] = useState([]);
   const [isAddFDP, setIsAddFDP] = useState(false);
   const faculty_id = "FAC001"; // Placeholder faculty ID
-    useEffect(() => {
-      const fetchFDPDetails = async () => {
-        try {
-          const response = await fetch(
-            `http://localhost:3001/ece/faculty/fdp-records/${faculty_id}`,
-          );
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          const result = await response.json();
-          if (Array.isArray(result.data)) {
-            setFdpDetails(result.data.map((fdp) => ({
+  useEffect(() => {
+    const fetchFDPDetails = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:3001/ece/faculty/fdp-records/${faculty_id}`,
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const result = await response.json();
+        if (Array.isArray(result.data)) {
+          setFdpDetails(
+            result.data.map((fdp) => ({
               FDP_id: fdp.FDP_id, // Include FDP_id
               FDP_name: fdp.FDP_name,
               year_conducted: fdp.year_conducted,
               month_conducted: fdp.month_conducted,
               days_contributed: fdp.days_contributed,
-            })));
-          } else {
-            toast.error(result.message || "Failed to fetch FDP details");
-          }
-        } catch (err) {
-          toast.error("Error while fetching FDP details");
+            })),
+          );
+        } else {
+          toast.error(result.message || "Failed to fetch FDP details");
         }
-      };
-    
-      fetchFDPDetails();
-    }, []);
-    
+      } catch (err) {
+        toast.error("Error while fetching FDP details");
+      }
+    };
 
-   
+    fetchFDPDetails();
+  }, []);
 
   const openPopup = (fdp) => {
     setSelectedFDP(fdp);
@@ -63,7 +62,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
     const url = isAddFDP
       ? "http://localhost:3001/ece/faculty/fdp-records"
       : `http://localhost:3001/ece/faculty/fdp-records/${selectedFDP?.FDP_id}`; // Use FDP_id for updates
-  
+
     const method = isAddFDP ? "POST" : "PUT";
     const body = isAddFDP
       ? {
@@ -81,14 +80,14 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
           month_conducted: month,
           days_contributed: days,
         };
-  
+
     try {
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-  
+
       const data = await response.json();
       if (response.ok) {
         toast.success("FDP record successfully added/updated");
@@ -108,7 +107,6 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
       toast.error("Error connecting to the server.");
     }
   };
-  
 
   const handleDeleteFDP = async (fdpId) => {
     try {
@@ -118,7 +116,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
           method: "DELETE",
         },
       );
-  
+
       const data = await response.json();
       if (response.ok) {
         toast.success("FDP record deleted successfully");
@@ -131,7 +129,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
       toast.error("Error while deleting FDP");
     }
   };
-  
+
   const TABLE_HEAD = [
     "Title of Faculty development/training activities/STTP",
     "Year of Participation",

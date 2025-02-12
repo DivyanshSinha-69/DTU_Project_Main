@@ -98,8 +98,7 @@ export default function FacultyDevelopmentPopUp({
           {/* Year Conducted Dropdown */}
           <div className="relative z-0 w-full group">
             <label htmlFor="year" className="block text-sm">
-    Year of Participation
-    
+              Year of Participation
             </label>
             <select
               name="year"
@@ -117,8 +116,7 @@ export default function FacultyDevelopmentPopUp({
           {/* Month Conducted Dropdown */}
           <div className="relative z-0 w-full group">
             <label htmlFor="month" className="block text-sm">
-            Month of Participation
-           
+              Month of Participation
             </label>
             <select
               name="month"
@@ -140,7 +138,7 @@ export default function FacultyDevelopmentPopUp({
           {/* Days Contributed */}
           <div className="relative z-0 w-full group">
             <label htmlFor="days" className="block text-sm">
-            Duration of Participation(in days) 
+              Duration of Participation(in days)
             </label>
             <input
               type="number"

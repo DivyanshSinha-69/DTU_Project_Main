@@ -16,7 +16,7 @@ export default function PhDsAwardedPopUp({
     rollNo: rollNo || "",
     passingYear: passingYear || "",
     PHD_id: PHD_id || "",
-    passingMonth: passingMonth || ""
+    passingMonth: passingMonth || "",
   });
 
   const handleChange = (e) => {
@@ -29,7 +29,7 @@ export default function PhDsAwardedPopUp({
 
   const handlePopupSubmit = (e) => {
     e.preventDefault();
-    const { menteeName, rollNo,passingMonth, passingYear, PHD_id } = formData;
+    const { menteeName, rollNo, passingMonth, passingYear, PHD_id } = formData;
 
     if (!menteeName || !rollNo || !passingYear || !passingMonth) {
       toast.error("Please fill in all required fields.");
@@ -108,8 +108,7 @@ export default function PhDsAwardedPopUp({
               onChange={handleChange}
               value={formData.passingMonth}
               required
-            >
-            </input>
+            ></input>
           </div>
 
           {/* Passing Year Dropdown */}

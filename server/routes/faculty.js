@@ -78,10 +78,14 @@ router.put("/facultyassociation/:faculty_id", updateFacultyAssociation);
 router.delete("/facultyassociation/:faculty_id", deleteFacultyAssociation);
 
 // Research Paper Route
-router.post('/researchpaper', uploadResearchPaper, addResearchPaper);
-router.get('/researchpaper/:faculty_id', getResearchPapersByFaculty);
-router.put('/researchpaper/:research_id', uploadResearchPaper, updateResearchPaper);
-router.delete('/researchpaper/:research_id', deleteResearchPaper);
+router.post("/researchpaper", uploadResearchPaper, addResearchPaper);
+router.get("/researchpaper/:faculty_id", getResearchPapersByFaculty);
+router.put(
+  "/researchpaper/:research_id",
+  uploadResearchPaper,
+  updateResearchPaper,
+);
+router.delete("/researchpaper/:research_id", deleteResearchPaper);
 
 // FDP routes
 router.get("/fdp-records", getFDPRecords);
@@ -137,14 +141,14 @@ router.put("/specializations/:specialization_id", updateSpecialization);
 router.delete("/specializations/:specialization_id", deleteSpecialization);
 
 // Faculty Image Routes
-router.get('/facultyimage/:faculty_id', getFacultyImage); // Route to get faculty image
-router.put('/facultyimage/:faculty_id', uploadFacultyImage, updateFacultyImage); // Route to update faculty image
-router.delete('/facultyimage/:faculty_id', deleteFacultyImage); // Route to delete faculty image
+router.get("/facultyimage/:faculty_id", getFacultyImage); // Route to get faculty image
+router.put("/facultyimage/:faculty_id", uploadFacultyImage, updateFacultyImage); // Route to update faculty image
+router.delete("/facultyimage/:faculty_id", deleteFacultyImage); // Route to delete faculty image
 
 // Faculty Patent Routes
-router.get('/patent', getFacultyPatents);           // Get all patents
-router.post('/patent', addFacultyPatent);             // Add a new patent
-router.put('/patent/:patent_id', updateFacultyPatent); // Update a patent
-router.delete('/patent/:patent_id', deleteFacultyPatent); // Delete a patent
+router.get("/patent", getFacultyPatents); // Get all patents
+router.post("/patent", addFacultyPatent); // Add a new patent
+router.put("/patent/:patent_id", updateFacultyPatent); // Update a patent
+router.delete("/patent/:patent_id", deleteFacultyPatent); // Delete a patent
 
 export default router;
