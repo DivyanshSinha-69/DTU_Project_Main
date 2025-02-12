@@ -4,30 +4,34 @@ import { pool } from "../data/database.js"; // Ensure this points to your databa
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import dotenv from "dotenv";
 
 const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 // Controller for faculty_credentials table
 
-export const getFacultyCredentials = (req, res) => {
-  const sql = "SELECT * FROM faculty_credentials";
-  pool.query(sql, (err, results) => {
-    if (err) {
-      console.error("Error executing fetch query:", err);
-      res.status(500).json({ error: "Internal Server Error" });
-      return;
-    }
 
-    // Always return an array, even if it's empty
-    const credentials = results || [];
+dotenv.config();
+
+
+export const getFacultyCredentials = async (req, res) => {
+  try {
+    const sql = "SELECT * FROM faculty_credentials";
+    
+    // Using `await` to fetch data
+    const [results] = await pool.query(sql);
 
     res.status(200).json({
-      credentials,
+      credentials: results || [], // Ensures it's always an array
       success: true,
     });
-  });
+  } catch (err) {
+    console.error("Error executing fetch query:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 };
+
 
 export const getFacultyCredentialsById = (req, res) => {
   const { faculty_id } = req.params;
@@ -61,40 +65,33 @@ export const getFacultyCredentialsById = (req, res) => {
   });
 };
 
-export const addFacultyCredentials = (req, res) => {
+export const addFacultyCredentials = async (req, res) => {
   const { faculty_id, faculty_name, mobile_number, pass } = req.body;
-
   const sql = `
       INSERT INTO faculty_credentials (faculty_id, faculty_name, mobile_number, pass) 
       VALUES (?, ?, ?, ?)
   `;
 
-  pool.query(
-    sql,
-    [faculty_id, faculty_name, mobile_number, pass],
-    (err) => {
-      if (err) {
-        console.error("Error executing insert query:", err);
+  try {
+    await pool.query(sql, [faculty_id, faculty_name, mobile_number, pass]);
+    res.status(201).json({
+      message: "Faculty credential added successfully",
+      success: true,
+    });
+  } catch (err) {
+    console.error("Error executing insert query:", err);
 
-        if (err.code === "ER_NO_REFERENCED_ROW_2") {
-          return res.status(400).json({
-            error: "Invalid faculty_id. Ensure it exists in faculty_details.",
-          });
-        }
-
-        res.status(500).json({ error: "Internal Server Error" });
-        return;
-      }
-
-      res.status(201).json({
-        message: "Faculty credential added successfully",
-        success: true,
+    if (err.code === "ER_NO_REFERENCED_ROW_2") {
+      return res.status(400).json({
+        error: "Invalid faculty_id. Ensure it exists in faculty_details.",
       });
-    },
-  );
+    }
+
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 };
 
-export const updateFacultyCredentials = (req, res) => {
+export const updateFacultyCredentials = async (req, res) => {
   const { faculty_id } = req.params;
   const { faculty_name, mobile_number, pass } = req.body;
 
@@ -104,30 +101,24 @@ export const updateFacultyCredentials = (req, res) => {
       WHERE faculty_id = ?
   `;
 
-  pool.query(
-    sql,
-    [faculty_name, mobile_number, pass, faculty_id],
-    (err, results) => {
-      if (err) {
-        console.error("Error executing update query:", err);
-        res.status(500).json({ error: "Internal Server Error" });
-        return;
-      }
+  try {
+    const [results] = await pool.query(sql, [faculty_name, mobile_number, pass, faculty_id]);
 
-      if (results.affectedRows === 0) {
-        res.status(404).json({ error: "Faculty credential not found" });
-        return;
-      }
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: "Faculty credential not found" });
+    }
 
-      res.status(200).json({
-        message: "Faculty credential updated successfully",
-        success: true,
-      });
-    },
-  );
+    res.status(200).json({
+      message: "Faculty credential updated successfully",
+      success: true,
+    });
+  } catch (err) {
+    console.error("Error executing update query:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 };
 
-export const deleteFacultyCredentials = (req, res) => {
+export const deleteFacultyCredentials = async (req, res) => {
   const { faculty_id } = req.params;
 
   const sql = `
@@ -135,23 +126,21 @@ export const deleteFacultyCredentials = (req, res) => {
       WHERE faculty_id = ?
   `;
 
-  pool.query(sql, [faculty_id], (err, results) => {
-    if (err) {
-      console.error("Error executing delete query:", err);
-      res.status(500).json({ error: "Internal Server Error" });
-      return;
-    }
+  try {
+    const [results] = await pool.query(sql, [faculty_id]);
 
     if (results.affectedRows === 0) {
-      res.status(404).json({ error: "Faculty credential not found" });
-      return;
+      return res.status(404).json({ error: "Faculty credential not found" });
     }
 
     res.status(200).json({
       message: "Faculty credential deleted successfully",
       success: true,
     });
-  });
+  } catch (err) {
+    console.error("Error executing delete query:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 };
 
 // Fetch all faculty associations
@@ -1632,7 +1621,7 @@ export const updateFacultyImage = async (req, res) => {
   try {
     // Get the old image path from the database
     const getQuery = 'SELECT faculty_image FROM faculty_image WHERE faculty_id = ?';
-    const [result] = await pool.promise().query(getQuery, [faculty_id]);
+    const [result] = await pool.query(getQuery, [faculty_id]);
 
     const oldImagePath = result.length > 0 ? result[0].faculty_image : null;
 
@@ -1666,7 +1655,7 @@ export const updateFacultyImage = async (req, res) => {
       SET faculty_image = ? 
       WHERE faculty_id = ?
     `;
-    await pool.promise().query(updateQuery, [newImagePath, faculty_id]);
+    await pool.query(updateQuery, [newImagePath, faculty_id]);
 
     res.status(200).json({ message: 'Faculty image updated successfully' });
   } catch (err) {
