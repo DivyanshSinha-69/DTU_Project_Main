@@ -55,6 +55,10 @@ import {
   getFacultyImage,
   updateFacultyImage,
   deleteFacultyImage,
+  getFacultyPatents,
+  addFacultyPatent,
+  updateFacultyPatent,
+  deleteFacultyPatent,
 } from "../controllers/faculty.js";
 
 const router = express.Router();
@@ -136,5 +140,11 @@ router.delete("/specializations/:specialization_id", deleteSpecialization);
 router.get('/facultyimage/:faculty_id', getFacultyImage); // Route to get faculty image
 router.put('/facultyimage/:faculty_id', uploadFacultyImage, updateFacultyImage); // Route to update faculty image
 router.delete('/facultyimage/:faculty_id', deleteFacultyImage); // Route to delete faculty image
+
+// Faculty Patent Routes
+router.get('/patent', getFacultyPatents);           // Get all patents
+router.post('/patent', addFacultyPatent);             // Add a new patent
+router.put('/patent/:patent_id', updateFacultyPatent); // Update a patent
+router.delete('/patent/:patent_id', deleteFacultyPatent); // Delete a patent
 
 export default router;
