@@ -3,6 +3,8 @@ import {
   uploadResearchPaper,
   uploadFacultyImage,
 } from "../config/multerConfig.js";
+import { authenticateToken } from "../middlewares/auth.js";
+
 
 import {
   getFacultyCredentials,
@@ -62,6 +64,10 @@ import {
 } from "../controllers/faculty.js";
 
 const router = express.Router();
+
+
+
+router.use(authenticateToken);
 
 // Credentials Route
 router.get("/facultycredentials", getFacultyCredentials);
