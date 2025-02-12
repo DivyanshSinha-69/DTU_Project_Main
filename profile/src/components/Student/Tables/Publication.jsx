@@ -7,8 +7,8 @@ import addImg from "../../../assets/add.svg";
 import axios from "axios";
 import AddPublicationPopup from "../PopupWindow/AddPublicationPopup.jsx";
 import { deletePublicationDetails } from "../../../redux/reducers/UserPublicationDetails.jsx";
-import linkImg from "../../../assets/hyperlink.svg"
-import toast from 'react-hot-toast';
+import linkImg from "../../../assets/hyperlink.svg";
+import toast from "react-hot-toast";
 
 const Publication = ({ setBlurActive }) => {
   const PublicationDetails = useSelector((state) => state.publicationDetails);
@@ -44,7 +44,7 @@ const Publication = ({ setBlurActive }) => {
             ID: ID,
           },
           withCredentials: true,
-        }
+        },
       );
 
       toast.success(response.data.message);
@@ -62,16 +62,22 @@ const Publication = ({ setBlurActive }) => {
       }
     };
   };
-  
+
   return (
     <div>
       <div className="h-auto p-10 ">
         <div className="flex flex-row justify-between pr-5 pl-5">
-          <p className="p-3 text-2xl font1 border-top my-auto">Publication Details
-          
-          <br /> <span className="text-lg text-red-600">(If You have recived the acceptance and paper is not yet published <br/>enter DOI as "In Progress" and add a drive link of paper in place of article link. )</span>
+          <p className="p-3 text-2xl font1 border-top my-auto">
+            Publication Details
+            <br />{" "}
+            <span className="text-lg text-red-600">
+              (If You have recived the acceptance and paper is not yet published{" "}
+              <br />
+              enter DOI as "In Progress" and add a drive link of paper in place
+              of article link. )
+            </span>
           </p>
-          
+
           <button
             onClick={openPopup}
             className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full hover:invert hover:scale-[130%] transition-transform ease-in"
@@ -125,9 +131,9 @@ const Publication = ({ setBlurActive }) => {
                     articleTitle,
                     publicationDoi,
                     publishedArticleLink,
-                    manuscript
+                    manuscript,
                   },
-                  index
+                  index,
                 ) => {
                   const isLast = index === TABLE_ROWS.length - 1;
                   const classes = isLast
@@ -169,7 +175,17 @@ const Publication = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          <a href={publishedArticleLink} target="blank" className="hover:underline"><img className=" md:ml-[50px] h-5 w-10 hover:invert hover:scale-125 transition-transform ease-in " src={linkImg} alt="link"></img></a>
+                          <a
+                            href={publishedArticleLink}
+                            target="blank"
+                            className="hover:underline"
+                          >
+                            <img
+                              className=" md:ml-[50px] h-5 w-10 hover:invert hover:scale-125 transition-transform ease-in "
+                              src={linkImg}
+                              alt="link"
+                            ></img>
+                          </a>
                         </Typography>
                       </td>
                       <td className={classes}>
@@ -203,7 +219,7 @@ const Publication = ({ setBlurActive }) => {
                       </td>
                     </tr>
                   );
-                }
+                },
               )}
             </tbody>
           </table>

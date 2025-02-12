@@ -8,14 +8,13 @@ import toast from "react-hot-toast";
 import { setBtechEducation } from "../../../redux/reducers/UserBtechEducationalDetails";
 
 export default function BtechEducationDetailPopup(props) {
-  const { closeModal, name, air, admittedThrough } =
-    props;
+  const { closeModal, name, air, admittedThrough } = props;
   const { RollNo } = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
-  
+
   const [formData, setFormData] = useState({
     admittedThrough: admittedThrough,
-    air: air
+    air: air,
   });
 
   const [admissionMethod, setAdmissionMethod] = useState("");
@@ -36,10 +35,7 @@ export default function BtechEducationDetailPopup(props) {
   const handlepopup = async () => {
     try {
       if (formData.admittedThrough == "JEE") {
-        if (
-          !formData.admittedThrough ||
-          !formData.air 
-        ) {
+        if (!formData.admittedThrough || !formData.air) {
           toast.error("Please fill in all required fields");
           return;
         } else {
@@ -48,8 +44,6 @@ export default function BtechEducationDetailPopup(props) {
             toast.error(" Air field should only contain digits");
             return;
           }
-
-          
         }
 
         const response = await axios.put(
@@ -61,7 +55,7 @@ export default function BtechEducationDetailPopup(props) {
           },
           {
             withCredentials: true,
-          }
+          },
         );
 
         const updateddata = {
@@ -80,17 +74,17 @@ export default function BtechEducationDetailPopup(props) {
           "http://localhost:3001/ece/student/updatebtecheducationdetails",
           {
             admittedThrough: formData.admittedThrough,
-            air:null,
+            air: null,
             RollNo: RollNo,
           },
           {
             withCredentials: true,
-          }
+          },
         );
 
         const updateddata = {
           admittedThrough: formData.admittedThrough,
-          air:null,
+          air: null,
           RollNo: RollNo,
         };
 
@@ -132,7 +126,7 @@ export default function BtechEducationDetailPopup(props) {
         {admissionMethod === "JEE" && (
           <div className="mb-1 flex flex-col gap-6">
             <Typography variant="h6" color="blue-gray" className="-mb-3 flex">
-            All India Rank(General Rank)<p className="pl-1 text-red-600">*</p>
+              All India Rank(General Rank)<p className="pl-1 text-red-600">*</p>
             </Typography>
             <Input
               size="lg"

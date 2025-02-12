@@ -4,10 +4,10 @@ import { Card, Input, Button, Typography } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
 import { setEntrepreneurDetails } from "../../../redux/reducers/UserEntrepreneurDetails";
 import CompanyRegCertPdf from "./CompanyRegCertPdf";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 
 export default function EntrepreneurPopup(props) {
-  const { closeModal,name, companyName, cinNumber, companyLink } = props;
+  const { closeModal, name, companyName, cinNumber, companyLink } = props;
   const { RollNo } = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
   const [pdfSrc, setPdfSrc] = useState("");
@@ -27,21 +27,24 @@ export default function EntrepreneurPopup(props) {
 
   const handlepopup = async () => {
     try {
-      if (!formData.companyName || !formData.companyLink || !formData.cinNumber) {
+      if (
+        !formData.companyName ||
+        !formData.companyLink ||
+        !formData.cinNumber
+      ) {
         toast.error("Please fill in all required fields");
         return;
       } else {
         // Check if the companyLink is a valid URL
         const urlRegex = /^(ftp|http|https):\/\/[^ "]+$/;
-      
+
         if (!urlRegex.test(formData.companyLink)) {
           toast.error("Please enter a valid website link for the company");
           return;
         }
-      
+
         // Your code for further processing when all conditions are met
       }
-      
 
       const response = await axios.put(
         "http://localhost:3001/ece/student/updateentrepreneurdetails",
@@ -53,9 +56,9 @@ export default function EntrepreneurPopup(props) {
         },
         {
           withCredentials: true,
-        }
+        },
       );
-     
+
       const updateddata = {
         companyName: formData.companyName,
         cinNumber: formData.cinNumber,
@@ -123,7 +126,7 @@ export default function EntrepreneurPopup(props) {
           <Typography variant="h6" color="blue-gray" className="-mb-3 flex">
             Registration Certificate<p className="pl-1 text-red-600">*</p>
           </Typography>
-          
+
           <CompanyRegCertPdf setPdfSrc={setPdfSrc} />
         </div>
 

@@ -3,11 +3,11 @@ import React, { useState } from "react";
 import { Card, Input, Button, Typography } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
 import { addInterInstitute } from "../../../redux/reducers/UserInterInstituteDetails";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 import InterInstituteCertificates from "./InterInstitutecertificates";
 
 export default function AddInterInstitutePopup(props) {
-  const { closeModal, name} = props;
+  const { closeModal, name } = props;
   const { RollNo } = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
   const [pdfSrc, setPdfSrc] = useState("");
@@ -18,7 +18,7 @@ export default function AddInterInstitutePopup(props) {
     position: "",
   });
 
-  const[id,setId]=useState(null);
+  const [id, setId] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -29,22 +29,25 @@ export default function AddInterInstitutePopup(props) {
   };
 
   const handlepopup = async () => {
-    
-
-    if (!formData.collegeName || !formData.eventName || !formData.eventDate || !formData.position) {
+    if (
+      !formData.collegeName ||
+      !formData.eventName ||
+      !formData.eventDate ||
+      !formData.position
+    ) {
       toast.error("Please fill in all required fields");
     } else {
       // Check if the joiningDate is in the format YYYY-MM-DD
       const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    
+
       if (!dateRegex.test(formData.eventDate)) {
         toast.error("Please enter the event date in the format YYYY-MM-DD");
         return;
       }
-    
+
       // Your code for further processing when all conditions are met
     }
-    
+
     try {
       const response = await axios.post(
         "http://localhost:3001/ece/student/addinterinstituteactivity",
@@ -52,27 +55,26 @@ export default function AddInterInstitutePopup(props) {
           collegeName: formData.collegeName,
           eventName: formData.eventName,
           eventDate: formData.eventDate,
-          position:formData.position,
+          position: formData.position,
           roll: RollNo,
           ID: id,
         },
         {
           withCredentials: true,
-        }
+        },
       );
-
 
       // Handle success, e.g., show a success message or update state
       const updateddata = {
         collegeName: formData.collegeName,
         eventName: formData.eventName,
         eventDate: formData.eventDate,
-        position:formData.position,
-        RollNo: RollNo,      
-        certificate:pdfSrc,
-        ID:id,
+        position: formData.position,
+        RollNo: RollNo,
+        certificate: pdfSrc,
+        ID: id,
       };
-    //   {console.log(pdfSrc)}
+      //   {console.log(pdfSrc)}
       dispatch(addInterInstitute(updateddata));
 
       if (response.status == 201) {
@@ -83,7 +85,6 @@ export default function AddInterInstitutePopup(props) {
       // Handle error, e.g., show an error message
       console.error(error);
     }
-      
   };
 
   return (
@@ -126,14 +127,14 @@ export default function AddInterInstitutePopup(props) {
             placeholder="YYYY-MM-DD"
             value={formData.eventDate}
             onChange={handleChange}
-            oninput={()=>validateInput(this)}
+            oninput={() => validateInput(this)}
             name="eventDate"
             className=" !border-t-blue-gray-200 focus:!border-t-gray-900 pl-2 !h-[40px]"
             labelProps={{
               className: "before:content-none after:content-none",
             }}
           />
-          
+
           <Typography variant="h6" color="blue-gray" className="-mb-3 flex">
             Position<p className="pl-1 text-red-600">*</p>
           </Typography>
@@ -166,7 +167,11 @@ export default function AddInterInstitutePopup(props) {
               className: "before:content-none after:content-none",
             }}
           /> */}
-          <InterInstituteCertificates id={id} setId={setId} setPdfSrc={setPdfSrc}/>
+          <InterInstituteCertificates
+            id={id}
+            setId={setId}
+            setPdfSrc={setPdfSrc}
+          />
         </div>
 
         <Button
@@ -179,18 +184,16 @@ export default function AddInterInstitutePopup(props) {
       </form>
     </Card>
   );
-  
 }
 
 function validateInput(inputElement) {
-  const errorMessageElement = document.getElementById('errorMessage');
+  const errorMessageElement = document.getElementById("errorMessage");
   const inputValue = inputElement.value;
 
   // Check if the input matches the pattern (only numbers)
   if (!/^[0-9]*$/.test(inputValue)) {
-    errorMessageElement.textContent = 'Please enter numbers only.';
+    errorMessageElement.textContent = "Please enter numbers only.";
   } else {
-    errorMessageElement.textContent = '';
+    errorMessageElement.textContent = "";
   }
 }
-

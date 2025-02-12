@@ -1,16 +1,15 @@
-import { connectDB } from "../data/database.js";
+import { pool } from "../data/database.js";
 import { sendCookie } from "../utils/featues.js";
 
 export const adminLogin = (req, res) => {
-
   //console.log(req.body);
   console.log("received a login");
   const { email, password } = req.body;
-  
+
   // Query to check login credentials
   const sql = "SELECT * FROM adminTable WHERE email = ? AND Pass = ?";
   // Execute the query
-  connectDB.query(sql, [email, password], (err, results) => {
+  pool.query(sql, [email, password], (err, results) => {
     if (err) {
       console.error("Error executing login query:", err);
       res.status(500).json({ error: "Internal Server Error" });
@@ -30,11 +29,11 @@ export const adminLogin = (req, res) => {
 export const login = (req, res) => {
   console.log("received a login");
   const { email, password } = req.body;
-  
+
   // Query to check login credentials
   const sql = "SELECT * FROM Student_data WHERE RollNo = ? AND Pass = ?";
   // Execute the query
-  connectDB.query(sql, [email, password], (err, results) => {
+  pool.query(sql, [email, password], (err, results) => {
     if (err) {
       console.error("Error executing login query:", err);
       res.status(500).json({ error: "Internal Server Error" });
@@ -63,7 +62,7 @@ export const logout = (req, res) => {
     });
 };
 
-export const forgot = (req,res) => {
-  const {rollno} = req.body;
-  console.log("roll no milgya :->"+rollno);
+export const forgot = (req, res) => {
+  const { rollno } = req.body;
+  console.log("roll no milgya :->" + rollno);
 };

@@ -2,26 +2,43 @@ import React, { useState, useEffect } from "react";
 import { Card } from "@material-tailwind/react";
 import toast from "react-hot-toast";
 
-export default function ResearchProjectPopup({ closeModal, saveProject, project }) {
+export default function ResearchProjectPopup({
+  closeModal,
+  saveProject,
+  project,
+}) {
   const [formData, setFormData] = useState({
     title: "",
-    serialNo: "",
-    domain: "",
+    typeOfPaper: "Conference",
+    domain: "AI",
     publicationName: "",
     publishedDate: "",
-    publishedLink: "",
+    document: null,
+    citation: "", // Add this line
   });
+
+  const domainOptions = [
+    "Signal Processing",
+    "Artificial Intelligence",
+    "Optical, Wireless and Mobile Communication",
+    "Machine Learning",
+    "Radio Frequency and Microwave",
+    "Cybersecurity",
+    "Blockchain",
+    "IoT",
+  ];
 
   // Pre-fill form with existing data if editing
   useEffect(() => {
     if (project) {
       setFormData({
         title: project.Title || "",
-        serialNo: project.SerialNo || "",
-        domain: project.Domain || "",
+        typeOfPaper: project.TypeOfPaper || "Conference",
+        domain: project.Domain || "AI",
         publicationName: project.PublicationName || "",
         publishedDate: project.PublishedDate || "",
-        publishedLink: project.PublishedLink || "",
+        document: project.Document || null,
+        citation: project.Citation || "", // Add this line
       });
     }
   }, [project]);
@@ -34,17 +51,23 @@ export default function ResearchProjectPopup({ closeModal, saveProject, project 
     }));
   };
 
+  const handleFileChange = (e) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      document: e.target.files[0],
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     // Validation: Ensure all fields are filled
     if (
       !formData.title ||
-      !formData.serialNo ||
+      !formData.typeOfPaper ||
       !formData.domain ||
       !formData.publicationName ||
-      !formData.publishedDate ||
-      !formData.publishedLink
+      !formData.publishedDate
     ) {
       toast.error("Please fill in all required fields");
       return;
@@ -52,12 +75,13 @@ export default function ResearchProjectPopup({ closeModal, saveProject, project 
 
     // Create project data object
     const newProject = {
-      SerialNo: formData.serialNo,
       Title: formData.title,
+      TypeOfPaper: formData.typeOfPaper,
       Domain: formData.domain,
       PublicationName: formData.publicationName,
       PublishedDate: formData.publishedDate,
-      PublishedLink: formData.publishedLink,
+      Document: formData.document,
+      Citation: formData.citation, // Add this line
     };
 
     // Call the function to save the project (either add or edit)
@@ -69,112 +93,141 @@ export default function ResearchProjectPopup({ closeModal, saveProject, project 
   };
 
   return (
-    <Card color="transparent" shadow={false} className="w-[auto] p-5">
-      <form onSubmit={handleSubmit} className="max-w-md mx-auto text-white">
-        <div className="relative z-0 w-full mb-5 group">
-          <input
-            type="text"
-            name="title"
-            className="block py-2.5 px-0 w-full text-sm bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-            placeholder=" "
-            required
-            onChange={handleChange}
-            value={formData.title}
-          />
-          <label
-            className="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:text-blue-600"
-          >
-            Title
-          </label>
-        </div>
-        <div className="relative z-0 w-full mb-5 group">
-          <input
-            type="text"
-            name="serialNo"
-            className="block py-2.5 px-0 w-full text-sm bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-            placeholder=" "
-            required
-            onChange={handleChange}
-            value={formData.serialNo}
-          />
-          <label
-            className="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:text-blue-600"
-          >
-            Serial Number
-          </label>
-        </div>
-        <div className="relative z-0 w-full mb-5 group">
-          <input
-            type="text"
-            name="domain"
-            className="block py-2.5 px-0 w-full text-sm bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-            placeholder=" "
-            required
-            onChange={handleChange}
-            value={formData.domain}
-          />
-          <label
-            className="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:text-blue-600"
-          >
-            Domain
-          </label>
-        </div>
-        <div className="relative z-0 w-full mb-5 group">
-          <input
-            type="text"
-            name="publicationName"
-            className="block py-2.5 px-0 w-full text-sm bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-            placeholder=" "
-            required
-            onChange={handleChange}
-            value={formData.publicationName}
-          />
-          <label
-            className="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:text-blue-600"
-          >
-            Publication Name
-          </label>
-        </div>
-        <div className="relative z-0 w-full mb-5 group">
-          <input
-            type="date"
-            name="publishedDate"
-            className="block py-2.5 px-0 w-full text-sm bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-            required
-            onChange={handleChange}
-            value={formData.publishedDate}
-          />
-          <label
-            className="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:text-blue-600"
-          >
-            Published Date
-          </label>
-        </div>
-        <div className="relative z-0 w-full mb-5 group">
-        <label htmlFor="contactNo" className="block text-sm">
-            Published Link
-          </label>
-          <input
-            type="url"
-            name="publishedLink"
-            className="block py-2.5 px-0 w-full text-sm bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-            placeholder=" "
-            required
-            onChange={handleChange}
-            value={formData.publishedLink}
-          />
-          
-        </div>
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-80">
+      <Card
+        color="transparent"
+        shadow={false}
+        className="w-[90%] max-w-[700px] p-8 bg-gray-900 rounded-[20px]"
+      >
+        <form
+          onSubmit={handleSubmit}
+          className="text-white flex flex-col space-y-6"
+        >
+          <div className="relative z-0 w-full group">
+            <label htmlFor="title" className="block text-sm">
+              Title
+            </label>
+            <input
+              type="text"
+              name="title"
+              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder=" "
+              required
+              onChange={handleChange}
+              value={formData.title}
+            />
+          </div>
 
-        <div className="flex items-center justify-between mt-5">
+          <div className="relative z-0 w-full group">
+            <label htmlFor="typeOfPaper" className="block text-sm">
+              Type of Paper
+            </label>
+            <select
+              name="typeOfPaper"
+              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+              onChange={handleChange}
+              value={formData.typeOfPaper}
+            >
+              <option value="Conference">Conference</option>
+              <option value="Journal">Journal</option>
+              <option value="Book Chapter">Book Chapter</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div className="relative z-0 w-full group">
+            <label htmlFor="domain" className="block text-sm">
+              Domain
+            </label>
+            <select
+              name="domain"
+              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+              onChange={handleChange}
+              value={formData.domain}
+            >
+              {domainOptions.map((domain) => (
+                <option key={domain} value={domain}>
+                  {domain}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="relative z-0 w-full group">
+            <label htmlFor="publicationName" className="block text-sm">
+              Publication Name
+            </label>
+            <input
+              type="text"
+              name="publicationName"
+              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder=" "
+              required
+              onChange={handleChange}
+              value={formData.publicationName}
+            />
+          </div>
+
+          <div className="relative z-0 w-full group">
+            <label htmlFor="publishedDate" className="block text-sm">
+              Published Date
+            </label>
+            <input
+              type="date"
+              name="publishedDate"
+              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+              onChange={handleChange}
+              value={formData.publishedDate}
+            />
+          </div>
+          <div className="flex gap-4"> {/* Add this flex container */}
+  <div className="relative z-0 w-1/2 group"> {/* Citation field */}
+    <label htmlFor="citation" className="block text-sm">
+      Citation
+    </label>
+    <input
+      type="text"
+      name="citation"
+      className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+      placeholder=" "
+      onChange={handleChange}
+      value={formData.citation}
+    />
+  </div>
+
+  <div className="relative z-0 w-1/2 group"> {/* Upload Document field */}
+    <label htmlFor="document" className="block text-sm">
+      Upload Document
+    </label>
+    <input
+      type="file"
+      name="document"
+      accept=".pdf,.docx"
+      className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+      onChange={handleFileChange}
+    />
+  </div>
+</div>
+          <div className="flex items-center justify-between mt-5">
+            <button
+              type="submit"
+              className="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            >
+              Save Project
+            </button>
+          </div>
           <button
-            type="submit"
-            className="text-white bg-blue-600 hover:bg-blue-700 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
+            type="button"
+            onClick={closeModal}
+            className="w-full px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 mt-4"
           >
-            Save Project
+            Cancel
           </button>
-        </div>
-      </form>
-    </Card>
+        </form>
+      </Card>
+    </div>
   );
 }

@@ -2,157 +2,290 @@ import React, { useState, useEffect } from "react";
 import { Card, Typography } from "@material-tailwind/react";
 import Popup from "reactjs-popup";
 import AssociationPopUp from "../PopUp/AssociationPopUp";
-import '../../../styles/popup.css';
+import "../../../styles/popup.css";
 import editImg from "../../../assets/edit.svg";
 
 const Association = ({ setBlurActive }) => {
-    const [isPopupOpen, setPopupOpen] = useState(false);
-    const [associationDetails, setAssociationDetails] = useState({
-        highestDesignation: "",
-        highestDesignationDate: "",
-        associateProfessorStartDate: "",
-        associateProfessorEndDate: "",
-        assistantProfessorStartDate: "",
-        assistantProfessorEndDate: "",
-    });
+  const [isPopupOpen, setPopupOpen] = useState(false);
+  const [associationDetails, setAssociationDetails] = useState({
+    highestDesignation: "",
+    highestDesignationDate: "",
+    associateProfessorStartDate: "",
+    associateProfessorEndDate: "",
+    assistantProfessorStartDate: "",
+    assistantProfessorEndDate: "",
+  });
+  const formatDateForInput = (isoDate) => {
+    if (!isoDate) return ""; // Handle null/undefined cases
+    const date = new Date(isoDate);
+    return date.toLocaleDateString("en-GB"); // "dd/mm/yyyy" format
+  };
+  // Load data from localStorage on mount or set dummy data
+  useEffect(() => {
+    const fetchAssociationDetails = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:3001/ece/faculty/facultyassociation/FAC001",
+        );
+        const data = await response.json();
 
-    // Load data from localStorage on mount or set dummy data
-    useEffect(() => {
-        const savedData = JSON.parse(localStorage.getItem("associationDetails"));
-        
-        // If no saved data, initialize with dummy data
-        if (savedData) {
-            setAssociationDetails(savedData);
-        } else {
-            const dummyData = {
-                highestDesignation: "Professor",
-                highestDesignationDate: "2020-01-15",
-                associateProfessorStartDate: "2016-08-01",
-                associateProfessorEndDate: "2019-12-31",
-                assistantProfessorStartDate: "2010-09-10",
-                assistantProfessorEndDate: "2016-07-31",
-            };
-            setAssociationDetails(dummyData);
-            localStorage.setItem("associationDetails", JSON.stringify(dummyData));
+        if (data.success) {
+          setAssociationDetails({
+            highestDesignation:
+              data.association.designation === 1
+                ? "Professor"
+                : data.association.designation === 2
+                  ? "Associate Professor"
+                  : "Assistant Professor",
+            highestDesignationDate:
+              formatDateForInput(data.association.date_asg_prof) ||
+              formatDateForInput(data.association.date_asg_asoprof) ||
+              formatDateForInput(data.association.date_asg_astprof) ||
+              "",
+            associateProfessorStartDate:
+              formatDateForInput(data.association.date_asg_asoprof) || "",
+            associateProfessorEndDate:
+              formatDateForInput(data.association.date_end_asoprof) || "",
+            assistantProfessorStartDate:
+              formatDateForInput(data.association.date_asg_astprof) || "",
+            assistantProfessorEndDate:
+              formatDateForInput(data.association.date_end_astprof) || "",
+          });
         }
-    }, []);
-
-    // Function to open popup
-    const openPopup = () => {
-        setPopupOpen(true);
-        setBlurActive(true);
+      } catch (error) {
+        console.error("Error fetching faculty association details:", error);
+      }
     };
 
-    // Function to close popup
-    const closePopup = () => {
-        setPopupOpen(false);
-        setBlurActive(false);
-    };
+    fetchAssociationDetails();
+  }, []);
 
-    // Function to update data and save to localStorage
-    const updateAssociationDetails = (data) => {
-        setAssociationDetails(data);
-        localStorage.setItem("associationDetails", JSON.stringify(data));
+  // Function to open popup
+  const openPopup = () => {
+    setPopupOpen(true);
+    setBlurActive(true);
+  };
+
+  // Function to close popup
+  const closePopup = () => {
+    setPopupOpen(false);
+    setBlurActive(false);
+  };
+
+  // Function to update data and save to localStorage
+  const updateAssociationDetails = async (data) => {
+    try {
+      const payload = {
+        faculty_id: "FAC001",
+        designation:
+          data.highestDesignation === "Professor"
+            ? 1
+            : data.highestDesignation === "Associate Professor"
+              ? 2
+              : 3,
+        date_asg_prof:
+          data.highestDesignation === "Professor"
+            ? data.highestDesignationDate
+            : null,
+        date_asg_asoprof:
+          data.highestDesignation === "Associate Professor"
+            ? data.highestDesignationDate
+            : data.associateProfessorStartDate,
+        date_end_asoprof: data.associateProfessorEndDate,
+        date_asg_astprof: data.assistantProfessorStartDate,
+        date_end_astprof: data.assistantProfessorEndDate,
+      };
+
+      console.log(
+        "📤 Sending Update Payload:",
+        JSON.stringify(payload, null, 2),
+      );
+
+      const response = await fetch(
+        "http://localhost:3001/ece/faculty/facultyassociation/FAC001",
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        },
+      );
+
+      const result = await response.json();
+      console.log("📥 API Response:", result);
+
+      if (result.success) {
+        setAssociationDetails(data); // Update UI with new data
         closePopup();
-    };
-
-    // Prepare table data based on designation logic
-    const TABLE_HEAD = ["Designation", "Date Attained", "Start Date", "End Date"];
-    const TABLE_ROWS = [];
-
-    const { highestDesignation, highestDesignationDate, associateProfessorStartDate, associateProfessorEndDate, assistantProfessorStartDate, assistantProfessorEndDate } = associationDetails;
-
-    if (highestDesignation === "Professor") {
-        TABLE_ROWS.push(
-            { designation: "Professor", date: highestDesignationDate },
-            { designation: "Associate Professor", startDate: associateProfessorStartDate, endDate: associateProfessorEndDate },
-            { designation: "Assistant Professor", startDate: assistantProfessorStartDate, endDate: assistantProfessorEndDate }
-        );
-    } else if (highestDesignation === "Associate Professor") {
-        TABLE_ROWS.push(
-            { designation: "Associate Professor", date: highestDesignationDate },
-            { designation: "Assistant Professor", startDate: assistantProfessorStartDate, endDate: assistantProfessorEndDate }
-        );
-    } else if (highestDesignation === "Assistant Professor") {
-        TABLE_ROWS.push(
-            { designation: "Assistant Professor", date: highestDesignationDate }
-        );
+      } else {
+        console.error("⚠️ Update Failed:", result.error);
+      }
+    } catch (error) {
+      console.error("❌ Error in update request:", error);
     }
+  };
 
-    return (
-        <div>
-            <div className="h-auto p-10">
-                <div className="flex flex-row justify-between pr-5 pl-5">
-                    <p className="p-3 text-2xl font1 border-top my-auto">
-                        Teacher Designation Details <br /><span className="text-lg text-red-600">(As per official records)</span>
-                    </p>
+  // Prepare table data based on designation logic
+  const TABLE_HEAD = [
+    "Designation",
+    "Date Attained",
+    "Start Date",
+    "Last Date",
+  ];
+  const TABLE_ROWS = [];
 
-                    <button onClick={openPopup} className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full hover:invert hover:scale-[130%] transition-transform ease-in">
-                        <img src={editImg} alt="Edit" className="h-5 w-5"/>
-                    </button>
+  const {
+    highestDesignation,
+    highestDesignationDate,
+    associateProfessorStartDate,
+    associateProfessorEndDate,
+    assistantProfessorStartDate,
+    assistantProfessorEndDate,
+  } = associationDetails;
 
-                    <Popup open={isPopupOpen} onClose={closePopup} className="mx-auto my-auto p-2" closeOnDocumentClick>
-                        <div className="h-[550px] w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.8] rounded-[12%] top-10 fixed inset-5 md:inset-20 flex items-center justify-center">
-                            <AssociationPopUp
-                                currentDetails={associationDetails}
-                                onUpdate={updateAssociationDetails}
-                                closeModal={closePopup}
-                            />
-                        </div>
-                    </Popup>
-                </div>
-                <hr className="mb-7"></hr>
-
-                {/* Table */}
-                <Card className="h-auto w-full pl-10 pr-10 overflow-x-scroll md:overflow-hidden">
-                    <table className="w-full min-w-auto lg:min-w-max table-auto text-left">
-                        <thead>
-                            <tr>
-                                {TABLE_HEAD.map((head) => (
-                                    <th key={head} className="border-b border-blue-gray-100 bg-blue-gray-50 p-4">
-                                        <Typography variant="small" color="blue-gray" className="font-normal leading-none opacity-70">
-                                            {head}
-                                        </Typography>
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {TABLE_ROWS.map(({ designation, date, startDate, endDate }, index) => {
-                                const isLast = index === TABLE_ROWS.length - 1;
-                                const classes = isLast ? "p-4" : "p-4 border-b border-blue-gray-50";
-
-                                return (
-                                    <tr key={designation}>
-                                        <td className={classes}>
-                                            <Typography variant="small" color="blue-gray" className="font-normal">
-                                                {designation}
-                                            </Typography>
-                                        </td>
-                                        <td className={classes}>
-                                            <Typography variant="small" color="blue-gray" className="font-normal">
-                                                {date || "-"}
-                                            </Typography>
-                                        </td>
-                                        <td className={classes}>
-                                            <Typography variant="small" color="blue-gray" className="font-normal">
-                                                {startDate || "-"}
-                                            </Typography>
-                                        </td>
-                                        <td className={classes}>
-                                            <Typography variant="small" color="blue-gray" className="font-normal">
-                                                {endDate || "-"}
-                                            </Typography>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
-                </Card>
-            </div>
-        </div>
+  if (highestDesignation === "Professor") {
+    TABLE_ROWS.push(
+      { designation: "Professor", date: highestDesignationDate },
+      {
+        designation: "Associate Professor",
+        startDate: associateProfessorStartDate,
+        endDate: associateProfessorEndDate,
+      },
+      {
+        designation: "Assistant Professor",
+        startDate: assistantProfessorStartDate,
+        endDate: assistantProfessorEndDate,
+      },
     );
+  } else if (highestDesignation === "Associate Professor") {
+    TABLE_ROWS.push(
+      { designation: "Associate Professor", date: highestDesignationDate },
+      {
+        designation: "Assistant Professor",
+        startDate: assistantProfessorStartDate,
+        endDate: assistantProfessorEndDate,
+      },
+    );
+  } else if (highestDesignation === "Assistant Professor") {
+    TABLE_ROWS.push({
+      designation: "Assistant Professor",
+      date: highestDesignationDate,
+    });
+  }
+
+  return (
+    <div>
+      <div className="h-auto p-10">
+        <div className="flex flex-row justify-between pr-5 pl-5">
+          <p className="p-3 text-2xl font1 border-top my-auto">
+            Teacher Designation Details <br />
+            <span className="text-lg text-red-600">
+              (As per official records)
+            </span>
+          </p>
+
+          <button
+            onClick={openPopup}
+            className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full hover:invert hover:scale-[130%] transition-transform ease-in"
+          >
+            <img src={editImg} alt="Edit" className="h-5 w-5" />
+          </button>
+
+          <Popup
+            open={isPopupOpen}
+            onClose={closePopup}
+            className="mx-auto my-auto p-2"
+            closeOnDocumentClick
+          >
+            <div>
+              <AssociationPopUp
+                currentDetails={associationDetails}
+                onUpdate={updateAssociationDetails}
+                closeModal={closePopup}
+              />
+            </div>
+          </Popup>
+        </div>
+        <hr className="mb-7"></hr>
+
+        {/* Table */}
+        <Card className="h-auto w-full pl-10 pr-10 overflow-x-scroll md:overflow-hidden">
+          <table className="w-full min-w-auto lg:min-w-max table-auto text-left">
+            <thead>
+              <tr>
+                {TABLE_HEAD.map((head) => (
+                  <th
+                    key={head}
+                    className="border-b border-blue-gray-100 bg-blue-gray-50 p-4"
+                  >
+                    <Typography
+                      variant="small"
+                      color="blue-gray"
+                      className="font-normal leading-none opacity-70"
+                    >
+                      {head}
+                    </Typography>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {TABLE_ROWS.map(
+                ({ designation, date, startDate, endDate }, index) => {
+                  const isLast = index === TABLE_ROWS.length - 1;
+                  const classes = isLast
+                    ? "p-4"
+                    : "p-4 border-b border-blue-gray-50";
+
+                  return (
+                    <tr key={designation}>
+                      <td className={classes}>
+                        <Typography
+                          variant="small"
+                          color="blue-gray"
+                          className="font-normal"
+                        >
+                          {designation}
+                        </Typography>
+                      </td>
+                      <td className={classes}>
+                        <Typography
+                          variant="small"
+                          color="blue-gray"
+                          className="font-normal"
+                        >
+                          {date || "-"}
+                        </Typography>
+                      </td>
+                      <td className={classes}>
+                        <Typography
+                          variant="small"
+                          color="blue-gray"
+                          className="font-normal"
+                        >
+                          {startDate || "-"}
+                        </Typography>
+                      </td>
+                      <td className={classes}>
+                        <Typography
+                          variant="small"
+                          color="blue-gray"
+                          className="font-normal"
+                        >
+                          {endDate || "-"}
+                        </Typography>
+                      </td>
+                    </tr>
+                  );
+                },
+              )}
+            </tbody>
+          </table>
+        </Card>
+      </div>
+    </div>
+  );
 };
 
 export default Association;

@@ -7,7 +7,7 @@ import addImg from "../../../assets/add.svg";
 import axios from "axios";
 import AddPlacementsPopup from "../PopupWindow/AddPlacementsPopup.jsx";
 import { deletePlacement } from "../../../redux/reducers/UserPlacementDetail.jsx";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 
 const Placement = ({ setBlurActive }) => {
   const Placement = useSelector((state) => state.placement);
@@ -42,7 +42,7 @@ const Placement = ({ setBlurActive }) => {
             ID: ID,
           },
           withCredentials: true,
-        }
+        },
       );
 
       toast.success(response.data.message);
@@ -60,7 +60,7 @@ const Placement = ({ setBlurActive }) => {
       }
     };
   };
-  
+
   return (
     <div>
       <div className="h-auto p-10 ">
@@ -120,7 +120,7 @@ const Placement = ({ setBlurActive }) => {
                     joiningDate,
                     appointmentLetter,
                   },
-                  index
+                  index,
                 ) => {
                   const isLast = index === TABLE_ROWS.length - 1;
                   const classes = isLast
@@ -187,7 +187,7 @@ const Placement = ({ setBlurActive }) => {
                       </td>
                     </tr>
                   );
-                }
+                },
               )}
             </tbody>
           </table>

@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Card, Input, Button, Typography } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
 import { addProfessionalSkill } from "../../../redux/reducers/UserProfessionalSkills";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 
 export default function AddPopupProfessionalSkills(props) {
   const { closeModal, name } = props;
@@ -25,25 +25,28 @@ export default function AddPopupProfessionalSkills(props) {
     }));
   };
 
-
   const handlepopup = async () => {
-
-    if (!formData.organisation || !formData.position || !formData.eventname || !formData.date) {
+    if (
+      !formData.organisation ||
+      !formData.position ||
+      !formData.eventname ||
+      !formData.date
+    ) {
       toast.error("Please fill in all required fields");
       return;
     } else {
       // Check if the date is in the format YYYY-MM-DD
       const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    
+
       if (!dateRegex.test(formData.date)) {
         toast.error("Please enter the date in the format YYYY-MM-DD");
         return;
       }
-    
+
       // Your code for further processing when all conditions are met
     }
-    
-    const id = RollNo+Date.now();
+
+    const id = RollNo + Date.now();
     try {
       const response = await axios.post(
         "http://localhost:3001/ece/student/addprofessionalskills",
@@ -57,7 +60,7 @@ export default function AddPopupProfessionalSkills(props) {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       // Handle success, e.g., show a success message or update state
       const updateddata = {
@@ -66,7 +69,7 @@ export default function AddPopupProfessionalSkills(props) {
         EventName: formData.eventname,
         EventDate: formData.date,
         RollNo: RollNo,
-        ID:id,
+        ID: id,
       };
       dispatch(addProfessionalSkill(updateddata));
       if (response.status == 201) {
