@@ -16,6 +16,7 @@ import ConsultancyDetails from "./Tables/Consultancy";
 import UploadIcon from "../../assets/uploadImage.svg";
 import { toast } from "react-hot-toast";
 import "react-toastify/dist/ReactToastify.css";
+import { store } from "../../redux/Store.jsx";
 
 const Faculty = () => {
   const [isBlurActive, setBlurActive] = useState(false);
@@ -25,12 +26,22 @@ const Faculty = () => {
 
   const fetchFacultyImage = async () => {
     if (isOperationInProgress) return;
+  
     try {
+      // Get the access token from Redux store
+      const accessToken = store.getState().auth.accessToken;
+  
       const response = await axios.get(
         `http://localhost:3001/ece/faculty/facultyimage/FAC001`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`, // 🔹 Include JWT token here
+          },
+        }
       );
-      console.log("called");
-
+  
+      console.log("API called for faculty image");
+  
       if (response.data && response.data.faculty_image) {
         // Assuming the API returns the relative path to the image
         const imagePath = `http://localhost:3001/public/${response.data.faculty_image}`;
@@ -42,10 +53,11 @@ const Faculty = () => {
         setSelectedImage(null);
       }
     } catch (error) {
-      console.error("Error fetching faculty image:", error);
-      toast.error("Failed to fetch faculty image.");
+      console.error("❌ Error fetching faculty image:", error);
+      toast.error("⚠️ Failed to fetch faculty image.");
     }
   };
+  
 
   useEffect(() => {
     fetchFacultyImage(); // Fetch image on mount
@@ -200,15 +212,15 @@ const Faculty = () => {
               </div>
             </div>
 
-            <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
+            {/* <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
               <PersonalDetails setBlurActive={setBlurActive} />
-            </div>
+            </div> */}
 
             <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
               <Association setBlurActive={setBlurActive} />
             </div>
 
-            <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
+            {/* <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
               <ResearchProjects setBlurActive={setBlurActive} />
             </div>
 
@@ -234,7 +246,7 @@ const Faculty = () => {
 
             <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
               <ConsultancyDetails setBlurActive={setBlurActive} />
-            </div>
+            </div> */}
 
             <Toaster
               toastOptions={{

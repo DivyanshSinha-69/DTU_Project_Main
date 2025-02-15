@@ -196,6 +196,10 @@ export const facultyLogin = (req, res) => {
                             message: "Login successful!",
                             accessToken,
                             refreshToken,
+                            user: {
+                                faculty_id: user.faculty_id,
+                                Position: "faculty"
+                            }
                         });
                     }
                 );
@@ -216,15 +220,15 @@ export const refreshToken = (req, res) => {
         [refreshToken],
         (err, results) => {
             if (err) return res.status(500).json({ message: "Server error!" });
-            if (results.length === 0) return res.status(403).json({ message: "Invalid refresh token!" });
+            if (results.length === 0) return res.status(401).json({ message: "Invalid refresh token!" });
 
             const tokenExpiry = new Date(results[0].refresh_token_expiry);
             if (tokenExpiry < new Date()) {
-                return res.status(403).json({ message: "Refresh token expired!" });
+                return res.status(401).json({ message: "Refresh token expired!" });
             }
 
             jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err, decoded) => {
-                if (err) return res.status(403).json({ message: "Invalid or expired refresh token!" });
+                if (err) return res.status(401).json({ message: "Invalid or expired refresh token!" });
                 res.json({ accessToken: generateAccessToken(decoded.faculty_id) });
             });
         }

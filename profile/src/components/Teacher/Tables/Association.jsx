@@ -4,8 +4,11 @@ import Popup from "reactjs-popup";
 import AssociationPopUp from "../PopUp/AssociationPopUp";
 import "../../../styles/popup.css";
 import editImg from "../../../assets/edit.svg";
-
+import { useSelector } from "react-redux";
+import API from "../../../utils/API";
+import { store } from "../../../redux/Store";
 const Association = ({ setBlurActive }) => {
+  const facultyId = useSelector((state) => state.user.facultyId);
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [associationDetails, setAssociationDetails] = useState({
     highestDesignation: "",
@@ -21,44 +24,50 @@ const Association = ({ setBlurActive }) => {
     return date.toLocaleDateString("en-GB"); // "dd/mm/yyyy" format
   };
   // Load data from localStorage on mount or set dummy data
-  useEffect(() => {
-    const fetchAssociationDetails = async () => {
-      try {
-        const response = await fetch(
-          "http://localhost:3001/ece/faculty/facultyassociation/FAC001",
-        );
-        const data = await response.json();
 
-        if (data.success) {
-          setAssociationDetails({
-            highestDesignation:
-              data.association.designation === 1
-                ? "Professor"
-                : data.association.designation === 2
-                  ? "Associate Professor"
-                  : "Assistant Professor",
-            highestDesignationDate:
-              formatDateForInput(data.association.date_asg_prof) ||
-              formatDateForInput(data.association.date_asg_asoprof) ||
-              formatDateForInput(data.association.date_asg_astprof) ||
-              "",
-            associateProfessorStartDate:
-              formatDateForInput(data.association.date_asg_asoprof) || "",
-            associateProfessorEndDate:
-              formatDateForInput(data.association.date_end_asoprof) || "",
-            assistantProfessorStartDate:
-              formatDateForInput(data.association.date_asg_astprof) || "",
-            assistantProfessorEndDate:
-              formatDateForInput(data.association.date_end_astprof) || "",
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching faculty association details:", error);
+
+useEffect(() => {
+  if (!facultyId) return; // Prevent API call if facultyId is null
+
+  const fetchAssociationDetails = async () => {
+    const url = `/ece/faculty/facultyassociation/${facultyId}`;
+    console.log("Fetching data from:", url); // Debugging API URL
+
+    try {
+      const response = await API.get(url);
+      const data = response.data;
+
+      if (data.success) {
+        setAssociationDetails({
+          highestDesignation:
+            data.association.designation === 1
+              ? "Professor"
+              : data.association.designation === 2
+                ? "Associate Professor"
+                : "Assistant Professor",
+          highestDesignationDate:
+            formatDateForInput(data.association.date_asg_prof) ||
+            formatDateForInput(data.association.date_asg_asoprof) ||
+            formatDateForInput(data.association.date_asg_astprof) ||
+            "",
+          associateProfessorStartDate:
+            formatDateForInput(data.association.date_asg_asoprof) || "",
+          associateProfessorEndDate:
+            formatDateForInput(data.association.date_end_asoprof) || "",
+          assistantProfessorStartDate:
+            formatDateForInput(data.association.date_asg_astprof) || "",
+          assistantProfessorEndDate:
+            formatDateForInput(data.association.date_end_astprof) || "",
+        });
       }
-    };
+    } catch (error) {
+      console.error("Error fetching faculty association details:", error);
+    }
+  };
 
-    fetchAssociationDetails();
-  }, []);
+  fetchAssociationDetails();
+}, [facultyId]); // Added facultyId as a dependency
+
 
   // Function to open popup
   const openPopup = () => {
@@ -73,59 +82,53 @@ const Association = ({ setBlurActive }) => {
   };
 
   // Function to update data and save to localStorage
-  const updateAssociationDetails = async (data) => {
-    try {
-      const payload = {
-        faculty_id: "FAC001",
-        designation:
-          data.highestDesignation === "Professor"
-            ? 1
-            : data.highestDesignation === "Associate Professor"
-              ? 2
-              : 3,
-        date_asg_prof:
-          data.highestDesignation === "Professor"
-            ? data.highestDesignationDate
-            : null,
-        date_asg_asoprof:
-          data.highestDesignation === "Associate Professor"
-            ? data.highestDesignationDate
-            : data.associateProfessorStartDate,
-        date_end_asoprof: data.associateProfessorEndDate,
-        date_asg_astprof: data.assistantProfessorStartDate,
-        date_end_astprof: data.assistantProfessorEndDate,
-      };
 
-      console.log(
-        "📤 Sending Update Payload:",
-        JSON.stringify(payload, null, 2),
-      );
+const updateAssociationDetails = async (data) => {
+  try {
+    const payload = {
+      faculty_id: facultyId,
+      designation:
+        data.highestDesignation === "Professor"
+          ? 1
+          : data.highestDesignation === "Associate Professor"
+          ? 2
+          : 3,
+      date_asg_prof:
+        data.highestDesignation === "Professor" ? data.highestDesignationDate : null,
+      date_asg_asoprof: data.highestDesignation === "Associate Professor" ?
+        data.highestDesignationDate : data.associateProfessorStartDate,
+      date_end_asoprof: data.associateProfessorEndDate,
+      date_asg_astprof: data.assistantProfessorStartDate,
+      date_end_astprof: data.assistantProfessorEndDate,
+    };
 
-      const response = await fetch(
-        "http://localhost:3001/ece/faculty/facultyassociation/FAC001",
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        },
-      );
+    console.log("📤 Sending Update Payload:", JSON.stringify(payload, null, 2));
 
-      const result = await response.json();
-      console.log("📥 API Response:", result);
+    const url = `http://localhost:3001/ece/faculty/facultyassociation/${facultyId}`;
 
-      if (result.success) {
-        setAssociationDetails(data); // Update UI with new data
-        closePopup();
-      } else {
-        console.error("⚠️ Update Failed:", result.error);
-      }
-    } catch (error) {
-      console.error("❌ Error in update request:", error);
+    const response = await API.put(url, payload); // 🔹 Use API (Axios instance)
+
+    console.log("📥 API Response:", response.data);
+
+    if (response.data.success) {
+      setAssociationDetails(data); // Update UI with new data
+      closePopup();
+    } else {
+      console.error("⚠️ Update Failed:", response.data.error);
     }
-  };
+  } catch (error) {
+    console.error("❌ Error in update request:", error);
 
+    if (error.response) {
+      console.error("🔴 Server Response:", error.response.data);
+      if (error.response.status === 401 || error.response.status === 403) {
+        console.warn("🔄 Token might be expired. Trying refresh...");
+      }
+    }
+  }
+};
+
+  
   // Prepare table data based on designation logic
   const TABLE_HEAD = [
     "Designation",

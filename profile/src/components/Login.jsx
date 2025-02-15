@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import axios from "axios";
 import { login } from "../redux/reducers/AuthSlice";
-import { setRole } from "../redux/reducers/UserSlice";
+import { setRole,setFacultyId } from "../redux/reducers/UserSlice";
 import { useLocation } from "react-router-dom";
 
 import { HashLink } from "react-router-hash-link";
@@ -21,43 +21,61 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
+  
     try {
-      // Make a POST request to your server with login credentials
+      const endpoint =
+        role === "faculty"
+          ? "http://localhost:3001/ece/facultyauth/login"
+          : "http://localhost:3001/login";
+  
       const response = await axios.post(
-        "http://localhost:3001/login",
+        endpoint,
         {
-          email: rollNo,
+          faculty_id: role !== "faculty" ? undefined : rollNo, // Use faculty_id for faculty login
+          email: role !== "faculty" ? rollNo : undefined, // Use email for student login
           password: password,
         },
-        {
-          withCredentials: true,
-        },
+        { withCredentials: true }
       );
-
-      // Assuming the server returns user details upon successful login
-      const userDetails = response.data;
-
-      // Do something with the user details, e.g., store in state or context
-      // console.log("User Details:", userDetails);
-      // console.log(userDetails.role);
-      // Example: Dispatching an action with user details
-      dispatch(login(userDetails.user));
-      dispatch(setRole(userDetails.user.Position));
-
-      // Redirect to the desired page after successful login
-      if (userDetails.user.Position === "student") {
+  
+      console.log("🔹 Server Response:", response.data);
+  
+      // Extract accessToken from response
+      const { accessToken, refreshToken, user } = response.data;
+  
+      if (!accessToken) {
+        console.error("⚠️ No access token received from the server!");
+        return;
+      }
+  
+      // Store accessToken and refreshToken in Redux
+      dispatch(
+        login({
+          facultyId: user.faculty_id, // Store faculty_id
+          accessToken: accessToken, // Store access token
+          refreshToken: refreshToken, // Store refresh token
+        })
+      );
+  
+      dispatch(setRole(user.Position));
+  
+      if (role === "faculty") {
+        dispatch(setFacultyId(user.faculty_id)); // Store faculty ID for faculty login
+      }
+  
+      // Redirect after successful login
+      if (user.Position === "faculty") {
+        navigate("/faculty/portal");
+      } else if (user.Position === "student") {
         navigate("/student/portal");
-      } else if (userDetails.user.Position === "teacher") {
-        navigate("/teacher/portal");
       } else {
         navigate("/unauthorized");
       }
     } catch (error) {
-      // Handle login error
-      console.error("Login failed:", error.message);
+      console.error("Login failed:", error.response?.data || error.message);
     }
   };
+  
 
   return (
     <>
@@ -84,8 +102,8 @@ const Login = () => {
                 htmlFor="rollNo"
                 className="block font-bold text-lg font-large leading-6 text-white"
               >
-                {role === "faculty" ? "Faculty ID" : "Roll Number"}
-              </label>
+{role === "faculty" ? "Faculty ID" : "Student Roll Number"}
+</label>
 
               <div className="mt-2">
                 <input

@@ -7,18 +7,20 @@ import editImg from "../../../assets/edit.svg";
 import addImg from "../../../assets/add.svg";
 import deleteImg from "../../../assets/delete.svg";
 import axios from "axios";
+import { useSelector } from "react-redux";
 
 const ConsultancyDetails = ({ setBlurActive }) => {
   const [consultancyDetails, setConsultancyDetails] = useState([]);
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [selectedConsultancy, setSelectedConsultancy] = useState(null);
   const [isAddConsultancy, setIsAddConsultancy] = useState(false);
+  const facultyId = useSelector((state) => state.user.facultyId);
 
   const fetchConsultancyDetails = async () => {
     try {
       const response = await fetch(
-        `http://localhost:3001/ece/faculty/consultancy/FAC001`,
-      ); // Replace FAC001 with dynamic facultyId if needed
+        `http://localhost:3001/ece/faculty/consultancy/${facultyId}`,
+      ); 
 
       if (!response.ok) {
         // Handle 404 response (no records found)
@@ -69,7 +71,7 @@ const ConsultancyDetails = ({ setBlurActive }) => {
       if (isAddConsultancy) {
         // Add new consultancy
         await axios.post("http://localhost:3001/ece/faculty/consultancy", {
-          faculty_id: "FAC001", // Hardcoded for now
+          faculty_id: facultyId, // Hardcoded for now
           project_title: newConsultancy.title,
           funding_agency: newConsultancy.client || null, // Optional field
           amount_sponsored: newConsultancy.amount || 0, // Default to 0 if not provided
@@ -82,7 +84,7 @@ const ConsultancyDetails = ({ setBlurActive }) => {
         await axios.put(
           `http://localhost:3001/ece/faculty/consultancy/${selectedConsultancy.consultancy_id}`,
           {
-            faculty_id: "FAC001", // Hardcoded for now
+            faculty_id: facultyId, // Hardcoded for now
             project_title: newConsultancy.title,
             funding_agency: newConsultancy.client,
             amount_sponsored: newConsultancy.amount,
@@ -226,7 +228,7 @@ const ConsultancyDetails = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {research_duration}
+                          {research_duration} years
                         </Typography>
                       </td>
                       <td className={classes}>

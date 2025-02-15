@@ -4,8 +4,10 @@ import Popup from "reactjs-popup";
 import PersonalDetailPopup from "../PopUp/PersonalDetailPopup";
 import "../../../styles/popup.css";
 import editImg from "../../../assets/edit.svg";
+import { useSelector } from "react-redux";
 
 const PersonalDetails = ({ setBlurActive }) => {
+  const facultyId = useSelector((state) => state.user.facultyId);
   const [personalDetails, setPersonalDetails] = useState({
     name: "John Doe",
     highestDegree: "PhD",
@@ -35,7 +37,7 @@ const PersonalDetails = ({ setBlurActive }) => {
   const fetchSpecializations = async () => {
     try {
       const response = await fetch(
-        `http://localhost:3001/ece/faculty/specializations/FAC001`,
+        `http://localhost:3001/ece/faculty/specializations/{facultyId}`,
       );
       const data = await response.json();
       setSpecializations(data.data);
@@ -57,7 +59,7 @@ const PersonalDetails = ({ setBlurActive }) => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            faculty_id: "FAC001",
+            faculty_id: facultyId,
             specialization: newSpecialization,
           }),
         },

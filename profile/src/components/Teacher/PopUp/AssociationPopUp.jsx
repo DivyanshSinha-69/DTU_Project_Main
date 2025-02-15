@@ -32,11 +32,9 @@ const AssociationPopUp = ({ currentDetails, onUpdate, closeModal }) => {
       updatedData.highestDesignation !== "Professor" &&
       updatedData.highestDesignation !== "Associate Professor"
     ) {
-      updatedData.assistantProfessorStartDate = null;
       updatedData.assistantProfessorEndDate = null;
     }
 
-    console.log("🚀 Cleaned Payload Before Sending:", updatedData);
 
     if (
       !updatedData.highestDesignation ||

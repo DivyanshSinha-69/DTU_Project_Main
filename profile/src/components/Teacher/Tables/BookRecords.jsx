@@ -6,28 +6,9 @@ import "../../../styles/popup.css";
 import editImg from "../../../assets/edit.svg";
 import addImg from "../../../assets/add.svg";
 import deleteImg from "../../../assets/delete.svg";
+import { useSelector } from "react-redux";
 
-// Dummy data for testing
-const dummyBookDetails = [
-  {
-    isbn: "978-3-16-148410-0",
-    title: "React for Beginners",
-    publication: "Tech Books",
-    publishedDate: "2023-05-10",
-  },
-  {
-    isbn: "978-1-4028-9462-6",
-    title: "Advanced JavaScript",
-    publication: "Code Press",
-    publishedDate: "2022-08-15",
-  },
-  {
-    isbn: "978-0-1234-5678-9",
-    title: "Mastering CSS",
-    publication: "Design Publishers",
-    publishedDate: "2021-11-01",
-  },
-];
+
 
 const BookRecordsPublished = ({ setBlurActive }) => {
   const [bookDetails, setBookDetails] = useState([]);
@@ -35,13 +16,13 @@ const BookRecordsPublished = ({ setBlurActive }) => {
   const [selectedBook, setSelectedBook] = useState(null);
   const [isAddBook, setIsAddBook] = useState(false);
 
-  const facultyId = "FAC001"; // Keep faculty_id fixed for now
+  const facultyId = useSelector((state) => state.user.facultyId);
 
   // Fetch book records from the backend
   const fetchBookRecords = async () => {
     try {
       const response = await fetch(
-        `http://localhost:3001/ece/faculty/books/FAC001`,
+        `http://localhost:3001/ece/faculty/books/${facultyId}`,
       );
       if (!response.ok) {
         if (response.status === 404) {
@@ -87,7 +68,7 @@ const BookRecordsPublished = ({ setBlurActive }) => {
   const handleAddBook = async (newBook) => {
     const bookData = {
       ISBN: newBook.isbn,
-      faculty_id: "FAC001",
+      faculty_id: facultyId,
       book_title: newBook.title, // Ensure correct API mapping
       publication_name: newBook.publication,
       published_date: newBook.publishedDate,
@@ -122,7 +103,7 @@ const BookRecordsPublished = ({ setBlurActive }) => {
             },
             body: JSON.stringify({
               ISBN: newBook.isbn,
-              faculty_id: "FAC001",
+              faculty_id: facultyId,
               book_title: newBook.title, // Ensure correct API mapping
               publication_name: newBook.publication,
               published_date: newBook.publishedDate,

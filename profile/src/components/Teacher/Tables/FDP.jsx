@@ -7,18 +7,19 @@ import editImg from "../../../assets/edit.svg";
 import addImg from "../../../assets/add.svg";
 import deleteImg from "../../../assets/delete.svg";
 import { toast } from "react-hot-toast";
+import { useSelector } from "react-redux";
 
 const FacultyDevelopmentProgram = ({ setBlurActive }) => {
   const [fdpDetails, setFdpDetails] = useState([]);
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [selectedFDP, setSelectedFDP] = useState([]);
   const [isAddFDP, setIsAddFDP] = useState(false);
-  const faculty_id = "FAC001"; // Placeholder faculty ID
+  const facultyId = useSelector((state) => state.user.facultyId);
   useEffect(() => {
     const fetchFDPDetails = async () => {
       try {
         const response = await fetch(
-          `http://localhost:3001/ece/faculty/fdp-records/${faculty_id}`,
+          `http://localhost:3001/ece/faculty/fdp-records/${facultyId}`,
         );
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -66,7 +67,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
     const method = isAddFDP ? "POST" : "PUT";
     const body = isAddFDP
       ? {
-          faculty_id,
+          facultyId,
           FDP_name: programName,
           year_conducted: year,
           month_conducted: month,
@@ -74,7 +75,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
         }
       : {
           FDP_id: selectedFDP.FDP_id, // Pass FDP_id for updates
-          faculty_id,
+          facultyId,
           FDP_name: programName,
           year_conducted: year,
           month_conducted: month,
@@ -233,7 +234,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {days}
+                          {days} days
                         </Typography>
                       </td>
                       <td className={`${classes} text-right`}>
