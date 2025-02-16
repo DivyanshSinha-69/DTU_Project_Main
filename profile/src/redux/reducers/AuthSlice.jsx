@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
+import axios from "axios";
 
-// Load tokens from localStorage (persists across page reloads)
 const storedAccessToken = localStorage.getItem("accessToken");
 const storedRefreshToken = localStorage.getItem("refreshToken");
 
@@ -8,7 +8,7 @@ const initialState = {
   facultyId: null,
   accessToken: storedAccessToken || null,
   refreshToken: storedRefreshToken || null,
-  isAuthenticated: !!storedAccessToken, // Set authenticated state
+  isAuthenticated: !!storedAccessToken,
 };
 
 export const authSlice = createSlice({
@@ -21,8 +21,6 @@ export const authSlice = createSlice({
       state.accessToken = action.payload.accessToken;
       state.refreshToken = action.payload.refreshToken;
       state.isAuthenticated = true;
-
-      // ✅ Save tokens in localStorage
       localStorage.setItem("accessToken", action.payload.accessToken);
       localStorage.setItem("refreshToken", action.payload.refreshToken);
     },
@@ -31,18 +29,17 @@ export const authSlice = createSlice({
       state.accessToken = null;
       state.refreshToken = null;
       state.isAuthenticated = false;
-
-      // ✅ Remove tokens from localStorage
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
     },
     updateAccessToken: (state, action) => {
       console.log("🔄 Updating Access Token in Redux:", action.payload);
       state.accessToken = action.payload;
-      localStorage.setItem("accessToken", action.payload); // ✅ Update localStorage
+      localStorage.setItem("accessToken", action.payload);
     },
   },
 });
 
 export const { login, logout, updateAccessToken } = authSlice.actions;
 export default authSlice.reducer;
+

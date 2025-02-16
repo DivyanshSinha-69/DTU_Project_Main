@@ -17,6 +17,7 @@ import UploadIcon from "../../assets/uploadImage.svg";
 import { toast } from "react-hot-toast";
 import "react-toastify/dist/ReactToastify.css";
 import { store } from "../../redux/Store.jsx";
+import PatentRecords from "./Tables/Patent.jsx";
 
 const Faculty = () => {
   const [isBlurActive, setBlurActive] = useState(false);
@@ -220,15 +221,19 @@ const Faculty = () => {
               <Association setBlurActive={setBlurActive} />
             </div>
 
-            {/* <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
+              {/* <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
               <ResearchProjects setBlurActive={setBlurActive} />
-            </div>
+            </div>*/}
 
             <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
               <BookRecordsPublished setBlurActive={setBlurActive} />
-            </div>
+              </div>
+              
+              <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
+              <PatentRecords setBlurActive={setBlurActive} />
+              </div>
 
-            <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
+            {/*<div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
               <Visits setBlurActive={setBlurActive} />
             </div>
 

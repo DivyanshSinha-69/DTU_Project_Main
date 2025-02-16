@@ -1,126 +1,124 @@
 import React, { useState, useEffect } from "react";
 import { Card, Typography } from "@material-tailwind/react";
 import Popup from "reactjs-popup";
-import BookPopUp from "../PopUp/BookRecordsPopUp"; // Assuming you have a popup component for books
 import "../../../styles/popup.css";
 import editImg from "../../../assets/edit.svg";
 import addImg from "../../../assets/add.svg";
 import deleteImg from "../../../assets/delete.svg";
 import { useSelector } from "react-redux";
 import API from "../../../utils/API";
+import PatentPopUp from "../PopUp/PatentPopUp";
 
-
-
-const BookRecordsPublished = ({ setBlurActive }) => {
-  const [bookDetails, setBookDetails] = useState([]);
+const PatentRecords = ({ setBlurActive }) => {
+  const [patentDetails, setPatentDetails] = useState([]);
   const [isPopupOpen, setPopupOpen] = useState(false);
-  const [selectedBook, setSelectedBook] = useState(null);
-  const [isAddBook, setIsAddBook] = useState(false);
+  const [selectedPatent, setSelectedPatent] = useState(null);
+  const [isAddPatent, setIsAddPatent] = useState(false);
 
   const facultyId = useSelector((state) => state.user.facultyId);
 
-  // Fetch book records from the backend
-
-const fetchBookRecords = async () => {
-  try {
-    const response = await API.get(`ece/faculty/books/${facultyId}`);
-    setBookDetails(
-      response.data?.map((book) => ({
-        isbn: book.ISBN,
-        faculty_id: book.faculty_id,
-        title: book.book_title,
-        publication_name: book.publication_name,
-        published_date: book.published_date,
-        Book_id: book.Book_id,
-      }))
-    );
-  } catch (error) {
-    console.error("Error fetching book records:", error);
-    setBookDetails([]); // Fallback to empty array
-  }
-};
-
-useEffect(() => {
-  if (!facultyId) return;
-  fetchBookRecords();
-}, [facultyId]);
-
-const handleAddBook = async (newBook) => {
-  const bookData = {
-    ISBN: newBook.isbn,
-    faculty_id: facultyId,
-    book_title: newBook.title,
-    publication_name: newBook.publication,
-    published_date: newBook.publishedDate,
+  // Fetch patent records
+  const fetchPatentRecords = async () => {
+    try {
+      const response = await API.get(`ece/faculty/patent/`,{
+        params: {
+          faculty_id: facultyId, // Add facultyId as a query parameter
+        },
+      });
+        console.log(response.data)
+      setPatentDetails(
+        response.data?.data?.map((patent) => ({
+          patent_id: patent.patent_id,
+          patent_name: patent.patent_name,
+          patent_publish: patent.patent_publish,
+          patent_filed: patent.patent_filed,
+          patent_award_date: patent.patent_award_date,
+        }))
+      );
+    } catch (error) {
+      console.error("Error fetching patent records:", error);
+      setPatentDetails([]);
+    }
   };
 
-  try {
-    if (isAddBook) {
-      await API.post("ece/faculty/books", bookData);
-    } else {
-      await API.put(`ece/faculty/books/${selectedBook.Book_id}`, bookData);
-    }
-    fetchBookRecords();
-    closePopup();
-  } catch (error) {
-    console.error("Error handling book record:", error);
-  }
-};
-
-const handleDeleteBook = async (Book_id) => {
-  try {
-    await API.delete(`/books/${Book_id}`);
-    setBookDetails(bookDetails.filter((book) => book.Book_id !== Book_id));
-  } catch (error) {
-    console.error("Error deleting book record:", error);
-  }
-};
-
-
   useEffect(() => {
-    fetchBookRecords(); // Fetch data on component mount
-  }, []);
-  const openPopup = (book) => {
-    setSelectedBook(book);
+    if (!facultyId) return;
+    fetchPatentRecords();
+  }, [facultyId]);
+
+  // Handle add/update patent
+  const handleAddPatent = async (newPatent) => {
+    const patentData = {
+      patent_name: newPatent.patentName,
+      faculty_id: facultyId,
+      patent_publish: newPatent.patentPublish,
+      patent_filed: newPatent.patentFiled || null,
+      patent_award_date: newPatent.patentAwardDate || null,
+    };
+
+    try {
+      if (isAddPatent) {
+        await API.post("ece/faculty/patent", patentData);
+      } else {
+        await API.put(`ece/faculty/patent/${selectedPatent.patent_id}`, patentData);
+      }
+      fetchPatentRecords();
+      closePopup();
+    } catch (error) {
+      console.error("Error handling patent record:", error);
+    }
+  };
+
+  // Handle delete patent
+  const handleDeletePatent = async (patentId) => {
+    try {
+      await API.delete(`ece/faculty/patent/${patentId}`);
+      setPatentDetails(patentDetails.filter(patent => patent.patent_id !== patentId));
+    } catch (error) {
+      console.error("Error deleting patent:", error);
+    }
+  };
+
+  const openPopup = (patent) => {
+    setSelectedPatent(patent);
     setPopupOpen(true);
     setBlurActive(true);
   };
 
   const closePopup = () => {
     setPopupOpen(false);
-    setIsAddBook(false);
+    setIsAddPatent(false);
     setBlurActive(false);
   };
 
-  
+  const formatDateForInput = (date) => {
+    if (!date) return "";
+    const [datePart] = date.split("T");
+    const [year, month, day] = datePart.split("-");
+    return `${day}-${month}-${year}`;
+  };
 
   const TABLE_HEAD = [
-    "ISBN No.",
-    "Book Title",
-    "Publication Name",
+    "Patent Name",
     "Published Date",
+    "Filed Date",
+    "Award Date",
     "Actions",
   ];
-  const formatDateForInput = (date) => {
-    const [date1, time] = date?.split("T");
-
-    const [year, month, day] = date1?.split("-");
-    return "${day}-${month}-${year}";
-  };
 
   return (
     <div>
       <div className="h-auto p-10">
         <div className="flex flex-row justify-between pr-5 pl-5">
           <p className="p-3 text-2xl font1 border-top my-auto">
-            Book Records Published <br />
+            Patent Records <br />
             <span className="text-lg text-red-600">
-              (Details of books published)
+              (Details of patents filed/awarded)
             </span>
           </p>
           <button
             onClick={() => {
-              setIsAddBook(true);
+              setIsAddPatent(true);
               setPopupOpen(true);
               setBlurActive(true);
             }}
@@ -129,14 +127,14 @@ const handleDeleteBook = async (Book_id) => {
             <img src={addImg} alt="add" className="h-5 w-5" />
           </button>
         </div>
-        <hr className="mb-7"></hr>
+        <hr className="mb-7" />
 
         <div className="">
           <Card className="h-auto w-full pl-10 pr-10 overflow-x-scroll md:overflow-hidden">
             <table className="w-full min-w-auto lg:min-w-max table-auto text-left">
               <thead>
                 <tr>
-                  {TABLE_HEAD?.map((head, index) => (
+                  {TABLE_HEAD.map((head) => (
                     <th
                       key={head}
                       className={`border-b border-blue-gray-100 bg-blue-gray-50 p-4 ${
@@ -155,28 +153,29 @@ const handleDeleteBook = async (Book_id) => {
                 </tr>
               </thead>
               <tbody>
-                {bookDetails?.map((book, index) => {
+                {patentDetails.map((patent, index) => {
                   const {
-                    Book_id,
-                    isbn,
-                    title,
-                    publication_name,
-                    published_date,
-                  } = book;
-                  const isLast = index === bookDetails.length - 1;
+                    patent_id,
+                    patent_name,
+                    patent_publish,
+                    patent_filed,
+                    patent_award_date,
+                  } = patent;
+
+                  const isLast = index === patentDetails.length - 1;
                   const classes = isLast
                     ? "p-4"
                     : "p-4 border-b border-blue-gray-50";
 
                   return (
-                    <tr key={`${isbn}-${index}`}>
+                    <tr key={patent_id}>
                       <td className={classes}>
                         <Typography
                           variant="small"
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {isbn}
+                          {patent_name}
                         </Typography>
                       </td>
                       <td className={classes}>
@@ -185,7 +184,7 @@ const handleDeleteBook = async (Book_id) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {title}
+                          {new Date(patent_publish)?.toLocaleDateString("en-GB")}
                         </Typography>
                       </td>
                       <td className={classes}>
@@ -194,7 +193,9 @@ const handleDeleteBook = async (Book_id) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {publication_name}
+                          {patent_filed
+                            ? new Date(patent_filed)?.toLocaleDateString("en-GB")
+                            : "-"}
                         </Typography>
                       </td>
                       <td className={classes}>
@@ -203,36 +204,31 @@ const handleDeleteBook = async (Book_id) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {new Date(published_date)?.toLocaleDateString(
-                            "en-GB",
-                          )}
+                          {patent_award_date
+                            ? new Date(patent_award_date)?.toLocaleDateString("en-GB")
+                            : "-"}
                         </Typography>
                       </td>
                       <td className={`${classes} text-right`}>
                         <div className="flex justify-end gap-2">
                           <button
                             onClick={() => {
-                              setIsAddBook(false);
-                              setSelectedBook({
-                                isbn: book.ISBN, // Ensure it matches the API response field
-                                faculty_id: book.faculty_id,
-                                book_title: book.book_title, // Change `book_title` to `title` for consistency
-                                publication_name: book.publication_name, // Change `publication_name` to `publication`
-                                published_date: formatDateForInput(
-                                  book.published_date,
-                                ), // Keep consistent naming
-                                Book_id: book.Book_id,
-                              });
-                              openPopup(book);
+                              setIsAddPatent(false);
+                              setSelectedPatent({
+  patentName: patent.patent_name, // Ensure this matches the prop name in PatentPopUp
+  patentPublish: formatDateForInput(patent.patent_publish),
+  patentFiled: formatDateForInput(patent.patent_filed),
+  patentAwardDate: formatDateForInput(patent.patent_award_date),
+  patent_id: patent.patent_id, // Include patent_id for updates
+});
+                              openPopup(patent);
                             }}
                             className="bg-green-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
                           >
                             <img src={editImg} alt="edit" className="h-5 w-5" />
                           </button>
                           <button
-                            onClick={() => {
-                              handleDeleteBook(Book_id);
-                            }}
+                            onClick={() => handleDeletePatent(patent_id)}
                             className="bg-red-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
                           >
                             <img
@@ -252,7 +248,6 @@ const handleDeleteBook = async (Book_id) => {
         </div>
       </div>
 
-      {/* Popup */}
       <Popup
         open={isPopupOpen}
         onClose={closePopup}
@@ -260,26 +255,22 @@ const handleDeleteBook = async (Book_id) => {
         closeOnDocumentClick
       >
         <div>
-          {isAddBook ? (
-            <BookPopUp
-              isbn=""
-              title=""
-              publication=""
-              publishedDate=""
+          {isAddPatent ? (
+            <PatentPopUp
               closeModal={closePopup}
-              handleAddBook={handleAddBook}
+              handleAddPatent={handleAddPatent}
             />
           ) : (
-            selectedBook && (
-              <BookPopUp
-                isbn={selectedBook.isbn}
-                title={selectedBook.title}
-                publication={selectedBook.publication_name}
-                Book_id={selectedBook.Book_id}
-                publishedDate={formatDateForInput(selectedBook.published_date)}
-                closeModal={closePopup}
-                handleAddBook={handleAddBook}
-              />
+            selectedPatent && (
+                <PatentPopUp
+  patentName={selectedPatent.patent_name}
+  patentPublish={selectedPatent.patent_publish}
+  patentFiled={selectedPatent.patent_filed}
+  patentAwardDate={selectedPatent.patent_award_date}
+  patent_id={selectedPatent.patent_id}
+  closeModal={closePopup}
+  handleAddPatent={handleAddPatent}
+/>
             )
           )}
         </div>
@@ -288,4 +279,4 @@ const handleDeleteBook = async (Book_id) => {
   );
 };
 
-export default BookRecordsPublished;
+export default PatentRecords;
