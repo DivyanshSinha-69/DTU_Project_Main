@@ -1,35 +1,39 @@
 import React, { useState } from "react";
 import backgroundImage from "../assets/dtu.png";
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const Forgot = () => {
+const ResetPassword = () => {
+  const { token } = useParams(); // Get the reset token from the URL
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [userType, setUserType] = useState("student"); // Default to student
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  const handleForgot = async (e) => {
+  const handleReset = async (e) => {
     e.preventDefault();
 
-    // Determine the API endpoint based on user type
-    const endpoint =
-      userType === "faculty"
-        ? "http://localhost:3001/ece/facultyauth/forgotpassword"
-        : "http://localhost:3001/forgotpassword";
+    // Check if passwords match
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
 
     try {
-      // Make a POST request to the appropriate endpoint
-      const response = await axios.post(endpoint, {
-        email: email,
-      });
+      // Make a POST request to the reset password endpoint
+      const response = await axios.post(
+        `http://localhost:3001/ece/facultyauth/resetpassword/${token}`,
+        {
+          newPassword,
+        },
+      );
 
       // Display success message
       setMessage(response.data.message);
       setError("");
 
-      // Optionally, redirect to the login page after a delay
+      // Redirect to the login page after a delay
       setTimeout(() => {
         navigate("/login");
       }, 3000);
@@ -52,47 +56,52 @@ const Forgot = () => {
       >
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
           <h2 className="text-center text-4xl tracking-widest font-bold leading-9 text-gray-800">
-            Forgot Password
+            Reset Password
           </h2>
         </div>
 
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-          <form className="space-y-6" onSubmit={handleForgot}>
-            {/* User Type Selection */}
-            <div>
-              <label className="block font-bold text-lg font-large leading-6 text-white">
-                User Type
-              </label>
-              <div className="mt-2">
-                <select
-                  value={userType}
-                  onChange={(e) => setUserType(e.target.value)}
-                  className="block w-full p-2 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                >
-                  <option value="student">Student</option>
-                  <option value="faculty">Faculty</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Email Input */}
+          <form className="space-y-6" onSubmit={handleReset}>
+            {/* New Password Input */}
             <div>
               <label
-                htmlFor="email"
+                htmlFor="newPassword"
                 className="block font-bold text-lg font-large leading-6 text-white"
               >
-                Email
+                New Password
               </label>
               <div className="mt-2">
                 <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
+                  id="newPassword"
+                  name="newPassword"
+                  type="password"
+                  autoComplete="new-password"
                   required
                   className="block w-full p-2 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Confirm Password Input */}
+            <div>
+              <label
+                htmlFor="confirmPassword"
+                className="block font-bold text-lg font-large leading-6 text-white"
+              >
+                Confirm Password
+              </label>
+              <div className="mt-2">
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  className="block w-full p-2 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                 />
               </div>
             </div>
@@ -103,7 +112,7 @@ const Forgot = () => {
                 type="submit"
                 className="flex text-lg w-full justify-center rounded-md bg-gray-800 text-white pr-3 py-1.5 font-semibold leading-6 shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
               >
-                Submit
+                Reset Password
               </button>
             </div>
           </form>
@@ -119,4 +128,4 @@ const Forgot = () => {
   );
 };
 
-export default Forgot;
+export default ResetPassword;

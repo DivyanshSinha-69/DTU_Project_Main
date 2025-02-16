@@ -35,7 +35,6 @@ const AssociationPopUp = ({ currentDetails, onUpdate, closeModal }) => {
       updatedData.assistantProfessorEndDate = null;
     }
 
-
     if (
       !updatedData.highestDesignation ||
       !updatedData.highestDesignationDate

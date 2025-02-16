@@ -20,12 +20,12 @@ const PatentRecords = ({ setBlurActive }) => {
   // Fetch patent records
   const fetchPatentRecords = async () => {
     try {
-      const response = await API.get(`ece/faculty/patent/`,{
+      const response = await API.get(`ece/faculty/patent/`, {
         params: {
           faculty_id: facultyId, // Add facultyId as a query parameter
         },
       });
-        console.log(response.data)
+      console.log(response.data);
       setPatentDetails(
         response.data?.data?.map((patent) => ({
           patent_id: patent.patent_id,
@@ -33,7 +33,7 @@ const PatentRecords = ({ setBlurActive }) => {
           patent_publish: patent.patent_publish,
           patent_filed: patent.patent_filed,
           patent_award_date: patent.patent_award_date,
-        }))
+        })),
       );
     } catch (error) {
       console.error("Error fetching patent records:", error);
@@ -60,7 +60,10 @@ const PatentRecords = ({ setBlurActive }) => {
       if (isAddPatent) {
         await API.post("ece/faculty/patent", patentData);
       } else {
-        await API.put(`ece/faculty/patent/${selectedPatent.patent_id}`, patentData);
+        await API.put(
+          `ece/faculty/patent/${selectedPatent.patent_id}`,
+          patentData,
+        );
       }
       fetchPatentRecords();
       closePopup();
@@ -73,7 +76,9 @@ const PatentRecords = ({ setBlurActive }) => {
   const handleDeletePatent = async (patentId) => {
     try {
       await API.delete(`ece/faculty/patent/${patentId}`);
-      setPatentDetails(patentDetails.filter(patent => patent.patent_id !== patentId));
+      setPatentDetails(
+        patentDetails.filter((patent) => patent.patent_id !== patentId),
+      );
     } catch (error) {
       console.error("Error deleting patent:", error);
     }
@@ -184,7 +189,9 @@ const PatentRecords = ({ setBlurActive }) => {
                           color="blue-gray"
                           className="font-normal"
                         >
-                          {new Date(patent_publish)?.toLocaleDateString("en-GB")}
+                          {new Date(patent_publish)?.toLocaleDateString(
+                            "en-GB",
+                          )}
                         </Typography>
                       </td>
                       <td className={classes}>
@@ -194,7 +201,9 @@ const PatentRecords = ({ setBlurActive }) => {
                           className="font-normal"
                         >
                           {patent_filed
-                            ? new Date(patent_filed)?.toLocaleDateString("en-GB")
+                            ? new Date(patent_filed)?.toLocaleDateString(
+                                "en-GB",
+                              )
                             : "-"}
                         </Typography>
                       </td>
@@ -205,7 +214,9 @@ const PatentRecords = ({ setBlurActive }) => {
                           className="font-normal"
                         >
                           {patent_award_date
-                            ? new Date(patent_award_date)?.toLocaleDateString("en-GB")
+                            ? new Date(patent_award_date)?.toLocaleDateString(
+                                "en-GB",
+                              )
                             : "-"}
                         </Typography>
                       </td>
@@ -215,12 +226,18 @@ const PatentRecords = ({ setBlurActive }) => {
                             onClick={() => {
                               setIsAddPatent(false);
                               setSelectedPatent({
-  patentName: patent.patent_name, // Ensure this matches the prop name in PatentPopUp
-  patentPublish: formatDateForInput(patent.patent_publish),
-  patentFiled: formatDateForInput(patent.patent_filed),
-  patentAwardDate: formatDateForInput(patent.patent_award_date),
-  patent_id: patent.patent_id, // Include patent_id for updates
-});
+                                patentName: patent.patent_name, // Ensure this matches the prop name in PatentPopUp
+                                patentPublish: formatDateForInput(
+                                  patent.patent_publish,
+                                ),
+                                patentFiled: formatDateForInput(
+                                  patent.patent_filed,
+                                ),
+                                patentAwardDate: formatDateForInput(
+                                  patent.patent_award_date,
+                                ),
+                                patent_id: patent.patent_id, // Include patent_id for updates
+                              });
                               openPopup(patent);
                             }}
                             className="bg-green-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
@@ -262,15 +279,15 @@ const PatentRecords = ({ setBlurActive }) => {
             />
           ) : (
             selectedPatent && (
-                <PatentPopUp
-  patentName={selectedPatent.patent_name}
-  patentPublish={selectedPatent.patent_publish}
-  patentFiled={selectedPatent.patent_filed}
-  patentAwardDate={selectedPatent.patent_award_date}
-  patent_id={selectedPatent.patent_id}
-  closeModal={closePopup}
-  handleAddPatent={handleAddPatent}
-/>
+              <PatentPopUp
+                patentName={selectedPatent.patent_name}
+                patentPublish={selectedPatent.patent_publish}
+                patentFiled={selectedPatent.patent_filed}
+                patentAwardDate={selectedPatent.patent_award_date}
+                patent_id={selectedPatent.patent_id}
+                closeModal={closePopup}
+                handleAddPatent={handleAddPatent}
+              />
             )
           )}
         </div>

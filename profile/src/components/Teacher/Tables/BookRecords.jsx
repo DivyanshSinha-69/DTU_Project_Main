@@ -9,8 +9,6 @@ import deleteImg from "../../../assets/delete.svg";
 import { useSelector } from "react-redux";
 import API from "../../../utils/API";
 
-
-
 const BookRecordsPublished = ({ setBlurActive }) => {
   const [bookDetails, setBookDetails] = useState([]);
   const [isPopupOpen, setPopupOpen] = useState(false);
@@ -21,61 +19,60 @@ const BookRecordsPublished = ({ setBlurActive }) => {
 
   // Fetch book records from the backend
 
-const fetchBookRecords = async () => {
-  try {
-    const response = await API.get(`ece/faculty/books/${facultyId}`);
-    setBookDetails(
-      response.data?.map((book) => ({
-        isbn: book.ISBN,
-        faculty_id: book.faculty_id,
-        title: book.book_title,
-        publication_name: book.publication_name,
-        published_date: book.published_date,
-        Book_id: book.Book_id,
-      }))
-    );
-  } catch (error) {
-    console.error("Error fetching book records:", error);
-    setBookDetails([]); // Fallback to empty array
-  }
-};
-
-useEffect(() => {
-  if (!facultyId) return;
-  fetchBookRecords();
-}, [facultyId]);
-
-const handleAddBook = async (newBook) => {
-  const bookData = {
-    ISBN: newBook.isbn,
-    faculty_id: facultyId,
-    book_title: newBook.title,
-    publication_name: newBook.publication,
-    published_date: newBook.publishedDate,
+  const fetchBookRecords = async () => {
+    try {
+      const response = await API.get(`ece/faculty/books/${facultyId}`);
+      setBookDetails(
+        response.data?.map((book) => ({
+          isbn: book.ISBN,
+          faculty_id: book.faculty_id,
+          title: book.book_title,
+          publication_name: book.publication_name,
+          published_date: book.published_date,
+          Book_id: book.Book_id,
+        })),
+      );
+    } catch (error) {
+      console.error("Error fetching book records:", error);
+      setBookDetails([]); // Fallback to empty array
+    }
   };
 
-  try {
-    if (isAddBook) {
-      await API.post("ece/faculty/books", bookData);
-    } else {
-      await API.put(`ece/faculty/books/${selectedBook.Book_id}`, bookData);
-    }
+  useEffect(() => {
+    if (!facultyId) return;
     fetchBookRecords();
-    closePopup();
-  } catch (error) {
-    console.error("Error handling book record:", error);
-  }
-};
+  }, [facultyId]);
 
-const handleDeleteBook = async (Book_id) => {
-  try {
-    await API.delete(`/books/${Book_id}`);
-    setBookDetails(bookDetails.filter((book) => book.Book_id !== Book_id));
-  } catch (error) {
-    console.error("Error deleting book record:", error);
-  }
-};
+  const handleAddBook = async (newBook) => {
+    const bookData = {
+      ISBN: newBook.isbn,
+      faculty_id: facultyId,
+      book_title: newBook.title,
+      publication_name: newBook.publication,
+      published_date: newBook.publishedDate,
+    };
 
+    try {
+      if (isAddBook) {
+        await API.post("ece/faculty/books", bookData);
+      } else {
+        await API.put(`ece/faculty/books/${selectedBook.Book_id}`, bookData);
+      }
+      fetchBookRecords();
+      closePopup();
+    } catch (error) {
+      console.error("Error handling book record:", error);
+    }
+  };
+
+  const handleDeleteBook = async (Book_id) => {
+    try {
+      await API.delete(`/books/${Book_id}`);
+      setBookDetails(bookDetails.filter((book) => book.Book_id !== Book_id));
+    } catch (error) {
+      console.error("Error deleting book record:", error);
+    }
+  };
 
   useEffect(() => {
     fetchBookRecords(); // Fetch data on component mount
@@ -91,8 +88,6 @@ const handleDeleteBook = async (Book_id) => {
     setIsAddBook(false);
     setBlurActive(false);
   };
-
-  
 
   const TABLE_HEAD = [
     "ISBN No.",

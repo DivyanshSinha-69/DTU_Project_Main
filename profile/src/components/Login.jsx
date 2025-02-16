@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import axios from "axios";
 import { login } from "../redux/reducers/AuthSlice";
-import { setRole,setFacultyId } from "../redux/reducers/UserSlice";
+import { setRole, setFacultyId } from "../redux/reducers/UserSlice";
 import { useLocation } from "react-router-dom";
 
 import { HashLink } from "react-router-hash-link";
@@ -21,13 +21,13 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-  
+
     try {
       const endpoint =
         role === "faculty"
           ? "http://localhost:3001/ece/facultyauth/login"
           : "http://localhost:3001/login";
-  
+
       const response = await axios.post(
         endpoint,
         {
@@ -35,34 +35,34 @@ const Login = () => {
           email: role !== "faculty" ? rollNo : undefined, // Use email for student login
           password: password,
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
-  
+
       console.log("🔹 Server Response:", response.data);
-  
+
       // Extract accessToken from response
       const { accessToken, refreshToken, user } = response.data;
-  
+
       if (!accessToken) {
         console.error("⚠️ No access token received from the server!");
         return;
       }
-  
+
       // Store accessToken and refreshToken in Redux
       dispatch(
         login({
           facultyId: user.faculty_id, // Store faculty_id
           accessToken: accessToken, // Store access token
           refreshToken: refreshToken, // Store refresh token
-        })
+        }),
       );
-  
+
       dispatch(setRole(user.Position));
-  
+
       if (role === "faculty") {
         dispatch(setFacultyId(user.faculty_id)); // Store faculty ID for faculty login
       }
-  
+
       // Redirect after successful login
       if (user.Position === "faculty") {
         navigate("/faculty/portal");
@@ -75,7 +75,6 @@ const Login = () => {
       console.error("Login failed:", error.response?.data || error.message);
     }
   };
-  
 
   return (
     <>
@@ -102,8 +101,8 @@ const Login = () => {
                 htmlFor="rollNo"
                 className="block font-bold text-lg font-large leading-6 text-white"
               >
-{role === "faculty" ? "Faculty ID" : "Student Roll Number"}
-</label>
+                {role === "faculty" ? "Faculty ID" : "Student Roll Number"}
+              </label>
 
               <div className="mt-2">
                 <input

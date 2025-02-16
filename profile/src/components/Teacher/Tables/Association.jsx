@@ -25,49 +25,47 @@ const Association = ({ setBlurActive }) => {
   };
   // Load data from localStorage on mount or set dummy data
 
+  useEffect(() => {
+    if (!facultyId) return; // Prevent API call if facultyId is null
 
-useEffect(() => {
-  if (!facultyId) return; // Prevent API call if facultyId is null
+    const fetchAssociationDetails = async () => {
+      const url = `/ece/faculty/facultyassociation/${facultyId}`;
+      console.log("Fetching data from:", url); // Debugging API URL
 
-  const fetchAssociationDetails = async () => {
-    const url = `/ece/faculty/facultyassociation/${facultyId}`;
-    console.log("Fetching data from:", url); // Debugging API URL
+      try {
+        const response = await API.get(url);
+        const data = response.data;
 
-    try {
-      const response = await API.get(url);
-      const data = response.data;
-
-      if (data.success) {
-        setAssociationDetails({
-          highestDesignation:
-            data.association.designation === 1
-              ? "Professor"
-              : data.association.designation === 2
-                ? "Associate Professor"
-                : "Assistant Professor",
-          highestDesignationDate:
-            formatDateForInput(data.association.date_asg_prof) ||
-            formatDateForInput(data.association.date_asg_asoprof) ||
-            formatDateForInput(data.association.date_asg_astprof) ||
-            "",
-          associateProfessorStartDate:
-            formatDateForInput(data.association.date_asg_asoprof) || "",
-          associateProfessorEndDate:
-            formatDateForInput(data.association.date_end_asoprof) || "",
-          assistantProfessorStartDate:
-            formatDateForInput(data.association.date_asg_astprof) || "",
-          assistantProfessorEndDate:
-            formatDateForInput(data.association.date_end_astprof) || "",
-        });
+        if (data.success) {
+          setAssociationDetails({
+            highestDesignation:
+              data.association.designation === 1
+                ? "Professor"
+                : data.association.designation === 2
+                  ? "Associate Professor"
+                  : "Assistant Professor",
+            highestDesignationDate:
+              formatDateForInput(data.association.date_asg_prof) ||
+              formatDateForInput(data.association.date_asg_asoprof) ||
+              formatDateForInput(data.association.date_asg_astprof) ||
+              "",
+            associateProfessorStartDate:
+              formatDateForInput(data.association.date_asg_asoprof) || "",
+            associateProfessorEndDate:
+              formatDateForInput(data.association.date_end_asoprof) || "",
+            assistantProfessorStartDate:
+              formatDateForInput(data.association.date_asg_astprof) || "",
+            assistantProfessorEndDate:
+              formatDateForInput(data.association.date_end_astprof) || "",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching faculty association details:", error);
       }
-    } catch (error) {
-      console.error("Error fetching faculty association details:", error);
-    }
-  };
+    };
 
-  fetchAssociationDetails();
-}, [facultyId]); // Added facultyId as a dependency
-
+    fetchAssociationDetails();
+  }, [facultyId]); // Added facultyId as a dependency
 
   // Function to open popup
   const openPopup = () => {
@@ -83,52 +81,58 @@ useEffect(() => {
 
   // Function to update data and save to localStorage
 
-const updateAssociationDetails = async (data) => {
-  try {
-    const payload = {
-      faculty_id: facultyId,
-      designation:
-        data.highestDesignation === "Professor"
-          ? 1
-          : data.highestDesignation === "Associate Professor"
-          ? 2
-          : 3,
-      date_asg_prof:
-        data.highestDesignation === "Professor" ? data.highestDesignationDate : null,
-      date_asg_asoprof: data.highestDesignation === "Associate Professor" ?
-        data.highestDesignationDate : data.associateProfessorStartDate,
-      date_end_asoprof: data.associateProfessorEndDate,
-      date_asg_astprof: data.assistantProfessorStartDate,
-      date_end_astprof: data.assistantProfessorEndDate,
-    };
+  const updateAssociationDetails = async (data) => {
+    try {
+      const payload = {
+        faculty_id: facultyId,
+        designation:
+          data.highestDesignation === "Professor"
+            ? 1
+            : data.highestDesignation === "Associate Professor"
+              ? 2
+              : 3,
+        date_asg_prof:
+          data.highestDesignation === "Professor"
+            ? data.highestDesignationDate
+            : null,
+        date_asg_asoprof:
+          data.highestDesignation === "Associate Professor"
+            ? data.highestDesignationDate
+            : data.associateProfessorStartDate,
+        date_end_asoprof: data.associateProfessorEndDate,
+        date_asg_astprof: data.assistantProfessorStartDate,
+        date_end_astprof: data.assistantProfessorEndDate,
+      };
 
-    console.log("📤 Sending Update Payload:", JSON.stringify(payload, null, 2));
+      console.log(
+        "📤 Sending Update Payload:",
+        JSON.stringify(payload, null, 2),
+      );
 
-    const url = `http://localhost:3001/ece/faculty/facultyassociation/${facultyId}`;
+      const url = `http://localhost:3001/ece/faculty/facultyassociation/${facultyId}`;
 
-    const response = await API.put(url, payload); // 🔹 Use API (Axios instance)
+      const response = await API.put(url, payload); // 🔹 Use API (Axios instance)
 
-    console.log("📥 API Response:", response.data);
+      console.log("📥 API Response:", response.data);
 
-    if (response.data.success) {
-      setAssociationDetails(data); // Update UI with new data
-      closePopup();
-    } else {
-      console.error("⚠️ Update Failed:", response.data.error);
-    }
-  } catch (error) {
-    console.error("❌ Error in update request:", error);
+      if (response.data.success) {
+        setAssociationDetails(data); // Update UI with new data
+        closePopup();
+      } else {
+        console.error("⚠️ Update Failed:", response.data.error);
+      }
+    } catch (error) {
+      console.error("❌ Error in update request:", error);
 
-    if (error.response) {
-      console.error("🔴 Server Response:", error.response.data);
-      if (error.response.status === 401 || error.response.status === 403) {
-        console.warn("🔄 Token might be expired. Trying refresh...");
+      if (error.response) {
+        console.error("🔴 Server Response:", error.response.data);
+        if (error.response.status === 401 || error.response.status === 403) {
+          console.warn("🔄 Token might be expired. Trying refresh...");
+        }
       }
     }
-  }
-};
+  };
 
-  
   // Prepare table data based on designation logic
   const TABLE_HEAD = [
     "Designation",

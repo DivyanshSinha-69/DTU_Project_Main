@@ -20,7 +20,7 @@ const ConsultancyDetails = ({ setBlurActive }) => {
     try {
       const response = await fetch(
         `http://localhost:3001/ece/faculty/consultancy/${facultyId}`,
-      ); 
+      );
 
       if (!response.ok) {
         // Handle 404 response (no records found)

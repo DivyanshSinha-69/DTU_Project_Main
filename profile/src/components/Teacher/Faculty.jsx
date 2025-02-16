@@ -27,22 +27,22 @@ const Faculty = () => {
 
   const fetchFacultyImage = async () => {
     if (isOperationInProgress) return;
-  
+
     try {
       // Get the access token from Redux store
       const accessToken = store.getState().auth.accessToken;
-  
+
       const response = await axios.get(
         `http://localhost:3001/ece/faculty/facultyimage/FAC001`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`, // 🔹 Include JWT token here
           },
-        }
+        },
       );
-  
+
       console.log("API called for faculty image");
-  
+
       if (response.data && response.data.faculty_image) {
         // Assuming the API returns the relative path to the image
         const imagePath = `http://localhost:3001/public/${response.data.faculty_image}`;
@@ -58,7 +58,6 @@ const Faculty = () => {
       toast.error("⚠️ Failed to fetch faculty image.");
     }
   };
-  
 
   useEffect(() => {
     fetchFacultyImage(); // Fetch image on mount
@@ -221,17 +220,17 @@ const Faculty = () => {
               <Association setBlurActive={setBlurActive} />
             </div>
 
-              {/* <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
+            {/* <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
               <ResearchProjects setBlurActive={setBlurActive} />
             </div>*/}
 
             <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
               <BookRecordsPublished setBlurActive={setBlurActive} />
-              </div>
-              
-              <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
+            </div>
+
+            <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
               <PatentRecords setBlurActive={setBlurActive} />
-              </div>
+            </div>
 
             {/*<div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
               <Visits setBlurActive={setBlurActive} />

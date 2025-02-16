@@ -51,21 +51,21 @@ export default function StickyNavbar() {
   };
   const handleLogout = async (e) => {
     e.preventDefault();
-  
+
     try {
       let logoutUrl = "http://localhost:3001/logout"; // Default logout endpoint
-  
+
       if (role === "faculty") {
         logoutUrl = "http://localhost:3001/ece/facultyauth/logout"; // Faculty-specific logout
       }
-  
+
       // Make a GET request to the correct logout API
       const response = await axios.get(logoutUrl, { withCredentials: true });
-  
+
       // Handle the logout response
       const userDetails = response.data;
       dispatch(logout(userDetails.user));
-  
+
       // Clear additional user-specific data
       dispatch(setRole("null"));
       dispatch(removeProfessionalSkills());
@@ -77,13 +77,13 @@ export default function StickyNavbar() {
       dispatch(removeHigherEducationDetails());
       dispatch(removeInterInstitute());
       dispatch(removeBtechEducation());
-  
+
       navigate("/"); // ✅ Redirect to homepage after logout
     } catch (error) {
       console.error("Logout failed:", error.message);
     }
   };
-  
+
   const navList = (
     <ul className="mt-2  mb-4 flex flex-col gap-4 lg:mb-0 lg:mt-0 lg:flex-row lg:items-center lg:gap-6">
       {isAuthenticated === false && (

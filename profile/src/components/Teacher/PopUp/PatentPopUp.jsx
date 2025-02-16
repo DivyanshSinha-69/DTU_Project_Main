@@ -29,7 +29,8 @@ export default function PatentPopUp({
 
   const handlePopupSubmit = (e) => {
     e.preventDefault();
-    const { patentName, patentPublish, patentFiled, patentAwardDate } = formData;
+    const { patentName, patentPublish, patentFiled, patentAwardDate } =
+      formData;
 
     // Validate required fields
     if (!patentName || !patentPublish) {

@@ -5,7 +5,6 @@ import {
 } from "../config/multerConfig.js";
 import { authenticateToken } from "../middlewares/auth.js";
 
-
 import {
   getFacultyCredentials,
   getFacultyCredentialsById,
@@ -64,8 +63,6 @@ import {
 } from "../controllers/faculty.js";
 
 const router = express.Router();
-
-
 
 router.use(authenticateToken);
 

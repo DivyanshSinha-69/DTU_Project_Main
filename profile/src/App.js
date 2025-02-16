@@ -23,6 +23,7 @@ import { login } from "./redux/reducers/AuthSlice";
 import { setRole } from "./redux/reducers/UserSlice";
 import Loader from "./components/Loader";
 import AdminLogin from "./components/AdminLogin";
+import ResetPassword from "./components/ResetPass";
 
 function App() {
   const navigate = Navigate;
@@ -80,6 +81,7 @@ function App() {
           <Route path="/loader" element={<Loader />} />
           <Route path="/alumini" element={<Alumini />} />
           <Route path="/forgot" element={<Forgot />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
 
           <Route path="*" element={<Unaithorized />} />
         </Routes>

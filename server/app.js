@@ -29,9 +29,14 @@ const buildPath = path.join(__dirname, "../profile/build");
 app.use(express.static(buildPath));
 
 // CORS Configuration
-const corsMethods = (process.env.CORS_METHODS || "GET,POST,PUT,DELETE,OPTIONS").split(",");
+const corsMethods = (
+  process.env.CORS_METHODS || "GET,POST,PUT,DELETE,OPTIONS"
+).split(",");
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS === "*" ? true : process.env.ALLOWED_ORIGINS.split(",");
+const allowedOrigins =
+  process.env.ALLOWED_ORIGINS === "*"
+    ? true
+    : process.env.ALLOWED_ORIGINS.split(",");
 
 app.use(
   cors({
@@ -41,8 +46,6 @@ app.use(
     credentials: true,
   }),
 );
-
-
 
 app.options("*", cors()); // Allow preflight requests
 

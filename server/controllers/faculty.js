@@ -11,14 +11,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 // Controller for faculty_credentials table
 
-
 dotenv.config();
-
 
 export const getFacultyCredentials = async (req, res) => {
   try {
     const sql = "SELECT * FROM faculty_credentials";
-    
+
     // Using `await` to fetch data
     const [results] = await pool.query(sql);
 
@@ -31,7 +29,6 @@ export const getFacultyCredentials = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 
 export const getFacultyCredentialsById = (req, res) => {
   const { faculty_id } = req.params;
@@ -102,7 +99,12 @@ export const updateFacultyCredentials = async (req, res) => {
   `;
 
   try {
-    const [results] = await pool.query(sql, [faculty_name, mobile_number, pass, faculty_id]);
+    const [results] = await pool.query(sql, [
+      faculty_name,
+      mobile_number,
+      pass,
+      faculty_id,
+    ]);
 
     if (results.affectedRows === 0) {
       return res.status(404).json({ error: "Faculty credential not found" });
@@ -361,11 +363,9 @@ export const addResearchPaper = (req, res) => {
       }
 
       if (results.length === 0) {
-        return res
-          .status(400)
-          .json({
-            message: "Faculty ID does not exist in the faculty_details table",
-          });
+        return res.status(400).json({
+          message: "Faculty ID does not exist in the faculty_details table",
+        });
       }
 
       // Now, insert the research paper record into faculty_research_paper table
@@ -389,21 +389,17 @@ export const addResearchPaper = (req, res) => {
         ],
         (insertError, insertResult) => {
           if (insertError) {
-            return res
-              .status(500)
-              .json({
-                message: "Error adding research paper",
-                error: insertError,
-              });
+            return res.status(500).json({
+              message: "Error adding research paper",
+              error: insertError,
+            });
           }
 
           // Respond with a success message and the inserted data
-          res
-            .status(201)
-            .json({
-              message: "Research paper added successfully",
-              data: insertResult,
-            });
+          res.status(201).json({
+            message: "Research paper added successfully",
+            data: insertResult,
+          });
         },
       );
     },
@@ -534,11 +530,9 @@ export const deleteResearchPaper = (req, res) => {
 
     // If no record found
     if (result.length === 0) {
-      return res
-        .status(404)
-        .json({
-          message: "No research paper found with the given research_id",
-        });
+      return res.status(404).json({
+        message: "No research paper found with the given research_id",
+      });
     }
 
     const pdfPath = result[0].pdf_path; // The PDF file path retrieved from the database
@@ -549,12 +543,10 @@ export const deleteResearchPaper = (req, res) => {
 
     pool.query(deleteQuery, [research_id], (err, deleteResult) => {
       if (err) {
-        return res
-          .status(500)
-          .json({
-            message: "Error deleting research paper from database",
-            error: err,
-          });
+        return res.status(500).json({
+          message: "Error deleting research paper from database",
+          error: err,
+        });
       }
 
       if (deleteResult.affectedRows === 0) {
@@ -569,12 +561,10 @@ export const deleteResearchPaper = (req, res) => {
 
         fs.unlink(fullPdfPath, (unlinkErr) => {
           if (unlinkErr) {
-            return res
-              .status(500)
-              .json({
-                message: "Error deleting the PDF file",
-                error: unlinkErr,
-              });
+            return res.status(500).json({
+              message: "Error deleting the PDF file",
+              error: unlinkErr,
+            });
           }
 
           res
@@ -583,12 +573,9 @@ export const deleteResearchPaper = (req, res) => {
         });
       } else {
         // If pdf_path is null, just send success response for record deletion
-        res
-          .status(200)
-          .json({
-            message:
-              "Research paper deleted successfully, no PDF file to remove",
-          });
+        res.status(200).json({
+          message: "Research paper deleted successfully, no PDF file to remove",
+        });
       }
     });
   });
@@ -1668,7 +1655,8 @@ export const updateFacultyImage = async (req, res) => {
 
   try {
     // Get the old image path from the database
-    const getQuery = 'SELECT faculty_image FROM faculty_image WHERE faculty_id = ?';
+    const getQuery =
+      "SELECT faculty_image FROM faculty_image WHERE faculty_id = ?";
     const [result] = await pool.query(getQuery, [faculty_id]);
 
     const oldImagePath = result.length > 0 ? result[0].faculty_image : null;
@@ -1767,12 +1755,10 @@ export const deleteFacultyImage = (req, res) => {
 
       pool.query(updateQuery, [faculty_id], (err, updateResult) => {
         if (err) {
-          return res
-            .status(500)
-            .json({
-              message: "Error updating faculty image record",
-              error: err,
-            });
+          return res.status(500).json({
+            message: "Error updating faculty image record",
+            error: err,
+          });
         }
 
         if (updateResult.affectedRows === 0) {
@@ -1781,11 +1767,9 @@ export const deleteFacultyImage = (req, res) => {
             .json({ message: "Failed to update faculty image record" });
         }
 
-        res
-          .status(200)
-          .json({
-            message: "Faculty image deleted and record updated successfully",
-          });
+        res.status(200).json({
+          message: "Faculty image deleted and record updated successfully",
+        });
       });
     });
   });
