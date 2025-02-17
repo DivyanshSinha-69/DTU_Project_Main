@@ -18,6 +18,8 @@ import { toast } from "react-hot-toast";
 import "react-toastify/dist/ReactToastify.css";
 import { store } from "../../redux/Store.jsx";
 import PatentRecords from "./Tables/Patent.jsx";
+import { useSelector } from "react-redux";
+import API from "../../utils/API.js";
 
 const Faculty = () => {
   const [isBlurActive, setBlurActive] = useState(false);
@@ -25,98 +27,69 @@ const Faculty = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [isOperationInProgress, setOperationInProgress] = useState(false);
 
-  const fetchFacultyImage = async () => {
-    if (isOperationInProgress) return;
+  const facultyId = useSelector((state) => state.user.facultyId);
 
-    try {
-      // Get the access token from Redux store
-      const accessToken = store.getState().auth.accessToken;
+const fetchFacultyImage = async () => {
+  if (isOperationInProgress || !facultyId) return;
 
-      const response = await axios.get(
-        `http://localhost:3001/ece/faculty/facultyimage/FAC001`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`, // 🔹 Include JWT token here
-          },
-        },
-      );
+  try {
+    const response = await API.get(`/ece/faculty/facultyimage/${facultyId}`);
 
-      console.log("API called for faculty image");
+    console.log("API called for faculty image");
 
-      if (response.data && response.data.faculty_image) {
-        // Assuming the API returns the relative path to the image
-        const imagePath = `http://localhost:3001/public/${response.data.faculty_image}`;
-        console.log("Fetched image path:", imagePath);
-        setSelectedImage(imagePath);
-        console.log("Selected image state after setting:", imagePath);
-      } else {
-        console.log(response);
-        setSelectedImage(null);
-      }
-    } catch (error) {
-      console.error("❌ Error fetching faculty image:", error);
-      toast.error("⚠️ Failed to fetch faculty image.");
+    if (response.data && response.data.faculty_image) {
+      const imagePath = `http://localhost:3001/public/${response.data.faculty_image}`;
+      console.log("Fetched image path:", imagePath);
+      setSelectedImage(imagePath);
+    } else {
+      setSelectedImage(null);
     }
-  };
+  } catch (error) {
+    console.error("❌ Error fetching faculty image:", error);
+    toast.error("⚠️ Failed to fetch faculty image.");
+  }
+};
+
 
   useEffect(() => {
     fetchFacultyImage(); // Fetch image on mount
-  }, []);
+  }, [facultyId]);
 
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const handleImageUploadOrUpdate = async (event) => {
+    if (!event.target.files || event.target.files.length === 0 || !facultyId)
+      return;
+  
     setOperationInProgress(true);
-    if (!event.target.files || event.target.files.length === 0) return;
-
     const file = event.target.files[0];
     const fileExtension = file.name.split(".").pop().toLowerCase();
     const allowedExtensions = ["jpg", "jpeg"];
-
-    // Validate file type
+  
     if (!allowedExtensions.includes(fileExtension)) {
       toast.error("Only JPG or JPEG images are allowed.");
+      setOperationInProgress(false);
       return;
     }
-
+  
     const formData = new FormData();
     formData.append("faculty_image", file);
-    formData.append("faculty_id", "FAC001");
-
-    setIsUploadingImage(true); // Show uploading indicator
+    formData.append("faculty_id", facultyId);
+  
+    setIsUploadingImage(true);
+  
     setTimeout(async () => {
       try {
-        let response;
-        if (selectedImage) {
-          // Update the image if it already exists
-          response = await axios.put(
-            `http://localhost:3001/ece/faculty/facultyimage/FAC001`,
-            formData,
-            { headers: { "Content-Type": "multipart/form-data" } },
-          );
-        } else {
-          // Upload the image for the first time
-          response = await axios.post(
-            `http://localhost:3001/ece/faculty/facultyimage/FAC001`,
-            formData,
-            { headers: { "Content-Type": "multipart/form-data" } },
-          );
-        }
-
-        if (
-          response.data &&
-          (response.data.message === "Faculty image added successfully" ||
-            response.data.message === "Faculty image updated successfully")
-        ) {
-          setSelectedImage(URL.createObjectURL(file)); // Update UI with the new image preview
+        const response = selectedImage
+          ? await API.put(`/ece/faculty/facultyimage/${facultyId}`, formData)
+          : await API.post(`/ece/faculty/facultyimage/${facultyId}`, formData);
+  
+        if (response.data?.message?.includes("successfully")) {
+          setSelectedImage(URL.createObjectURL(file));
           toast.success(
-            selectedImage
-              ? "Image updated successfully!"
-              : "Image uploaded successfully!",
+            selectedImage ? "Image updated successfully!" : "Image uploaded successfully!"
           );
-          setTimeout(() => {
-            fetchFacultyImage(); // Fetch the latest data after delay
-          }, 3000);
+          setTimeout(fetchFacultyImage, 3000);
         } else {
           toast.error("Failed to upload or update image.");
         }
@@ -124,25 +97,21 @@ const Faculty = () => {
         console.error("Error uploading/updating image:", error);
         toast.error("Failed to upload or update image.");
       } finally {
-        setIsUploadingImage(false); // Hide uploading indicator
+        setIsUploadingImage(false);
+        setOperationInProgress(false);
       }
-    }, 2000); // 2-second delay before making the API call
-    setOperationInProgress(false);
+    }, 2000);
   };
-
+  
   const handleDeleteImage = async () => {
+    if (!facultyId) return;
+  
     setOperationInProgress(true);
     try {
-      const response = await axios.delete(
-        `http://localhost:3001/ece/faculty/facultyimage/FAC001`,
-      );
-
-      if (
-        response.data &&
-        response.data.message ===
-          "Faculty image and record deleted successfully"
-      ) {
-        setSelectedImage(null); // Clear the image from UI
+      const response = await API.delete(`/ece/faculty/facultyimage/${facultyId}`);
+  
+      if (response.data?.message?.includes("deleted successfully")) {
+        setSelectedImage(null);
         toast.success("Image deleted successfully!");
       } else {
         toast.error("Failed to delete image.");
@@ -150,9 +119,11 @@ const Faculty = () => {
     } catch (error) {
       console.error("Error deleting image:", error);
       toast.error("Failed to delete image.");
+    } finally {
+      setOperationInProgress(false);
     }
-    setOperationInProgress(false);
   };
+  
 
   // Dummy data for the teacher (replace with actual data later)
   const teacherData = {
@@ -212,17 +183,17 @@ const Faculty = () => {
               </div>
             </div>
 
-            {/* <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
+            <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
               <PersonalDetails setBlurActive={setBlurActive} />
-            </div> */}
+            </div> 
 
             <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
               <Association setBlurActive={setBlurActive} />
             </div>
 
-            {/* <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
+            <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
               <ResearchProjects setBlurActive={setBlurActive} />
-            </div>*/}
+            </div>
 
             <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
               <BookRecordsPublished setBlurActive={setBlurActive} />
@@ -232,7 +203,7 @@ const Faculty = () => {
               <PatentRecords setBlurActive={setBlurActive} />
             </div>
 
-            {/*<div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
+              <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
               <Visits setBlurActive={setBlurActive} />
             </div>
 
@@ -240,6 +211,7 @@ const Faculty = () => {
               <FacultyDevelopmentProgram setBlurActive={setBlurActive} />
             </div>
 
+            
             <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
               <PhDsAwarded setBlurActive={setBlurActive} />
             </div>
@@ -250,7 +222,7 @@ const Faculty = () => {
 
             <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
               <ConsultancyDetails setBlurActive={setBlurActive} />
-            </div> */}
+            </div> 
 
             <Toaster
               toastOptions={{

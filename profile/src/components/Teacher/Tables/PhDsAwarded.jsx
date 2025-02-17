@@ -6,6 +6,10 @@ import "../../../styles/popup.css";
 import editImg from "../../../assets/edit.svg";
 import addImg from "../../../assets/add.svg";
 import deleteImg from "../../../assets/delete.svg";
+import API from "../../../utils/API";
+import { useSelector } from "react-redux";
+
+
 
 // Dummy data for testing
 const dummyPhDDetails = [
@@ -19,94 +23,76 @@ const PhDsAwarded = ({ setBlurActive }) => {
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [selectedPhD, setSelectedPhD] = useState(null);
   const [isAddPhD, setIsAddPhD] = useState(false);
+  const facultyId = useSelector((state) => state.user.facultyId);
+
   useEffect(() => {
     fetchPhDs();
-  }, []);
-
-  const API_BASE_URL = "http://localhost:3001/ece/faculty";
-
+  }, [facultyId]);
+  const API_BASE_URL = "/ece/faculty";
   const fetchPhDs = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/phd-awarded/FAC001`);
-      if (!response.ok) {
-        if (response.status === 404) {
-          setPhdDetails([]);
-          return;
-        }
-        throw new Error("Failed to fetch data");
+      const response = await API.get(`/ece/faculty/phd-awarded/${facultyId}`);
+      // If the API returns an array, map the data; otherwise, clear the state.
+      if (Array.isArray(response.data)) {
+        setPhdDetails(
+          response.data.map((record) => ({
+            PHD_id: record.PHD_id,
+            menteeName: record.mentee_name,
+            rollNo: record.mentee_rn,
+            passingYear: record.passing_year,
+            passingMonth: record.passing_month, // Added this field
+          }))
+        );
+      } else {
+        setPhdDetails([]);
       }
-
-      const data = await response.json();
-      setPhdDetails(
-        data.map((record) => ({
-          PHD_id: record.PHD_id,
-          menteeName: record.mentee_name,
-          rollNo: record.mentee_rn,
-          passingYear: record.passing_year,
-          passingMonth: record.passing_month, // 👈 Add this
-        })),
-      );
     } catch (error) {
       console.error("Error fetching PhD awarded records:", error);
       setPhdDetails([]);
     }
   };
 
+  useEffect(() => {
+    fetchPhDs();
+  }, []);
+
+  // Add a new PhD record
   const addPhD = async (newPhD) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/phd-awarded`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          faculty_id: "FAC001",
-          mentee_name: newPhD.menteeName,
-          mentee_rn: newPhD.rollNo,
-          passing_year: newPhD.passingYear,
-          passing_month: newPhD.passingMonth, // 👈 Add this
-        }),
-      });
-      if (!response.ok) {
-        throw new Error("Failed to add new record");
-      }
+      const payload = {
+        faculty_id: facultyId,
+        mentee_name: newPhD.menteeName,
+        mentee_rn: newPhD.rollNo,
+        passing_year: newPhD.passingYear,
+        passing_month: newPhD.passingMonth, // Added this field
+      };
+      await API.post("ece/faculty/phd-awarded", payload);
       fetchPhDs();
     } catch (error) {
       console.error("Error adding new PhD record:", error);
     }
   };
 
+  // Update an existing PhD record
   const updatePhD = async (updatedPhD) => {
     try {
-      console.log("phd id", updatedPhD.PHD_id);
-      const response = await fetch(
-        `${API_BASE_URL}/phd-awarded/${updatedPhD.PHD_id}`, // 👈 Use PHD_id
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            mentee_name: updatedPhD.menteeName,
-            passing_year: updatedPhD.passingYear,
-            passing_month: updatedPhD.passingMonth, // 👈 Add this
-            mentee_rn: updatedPhD.rollNo,
-          }),
-        },
-      );
-      if (!response.ok) {
-        throw new Error("Failed to update the record");
-      }
+      const payload = {
+        mentee_name: updatedPhD.menteeName,
+        mentee_rn: updatedPhD.rollNo,
+        passing_year: updatedPhD.passingYear,
+        passing_month: updatedPhD.passingMonth, // Added this field
+      };
+      await API.put(`ece/faculty/phd-awarded/${updatedPhD.PHD_id}`, payload);
       fetchPhDs();
     } catch (error) {
       console.error("Error updating PhD record:", error);
     }
   };
 
+  // Delete a PhD record
   const deletePhD = async (PHD_id) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/phd-awarded/${PHD_id}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) {
-        throw new Error("Failed to delete record");
-      }
+      await API.delete(`ece/faculty/phd-awarded/${PHD_id}`);
       fetchPhDs();
     } catch (error) {
       console.error("Error deleting PhD record:", error);
@@ -114,7 +100,6 @@ const PhDsAwarded = ({ setBlurActive }) => {
   };
 
   const openPopup = (phd) => {
-    console.log("phd", phd);
     setSelectedPhD(phd);
     setPopupOpen(true);
     setBlurActive(true);
@@ -122,41 +107,29 @@ const PhDsAwarded = ({ setBlurActive }) => {
 
   const closePopup = () => {
     setPopupOpen(false);
-    setIsAddPhD(false);
+    setIsAddPhD(true);
     setBlurActive(false);
   };
 
-  const handleAddPhD = async (newPhD) => {
+  // Depending on whether you're adding a new record or updating an existing one,
+  // call the appropriate API function.
+  const handleAddPhD = async (phd) => {
     if (isAddPhD) {
-      // Update existing record
-      console.log(newPhD);
-      await addPhD(newPhD);
+      await addPhD(phd);
     } else {
-      // Add new record
-      console.log("newphd", newPhD);
-      await updatePhD(newPhD);
+      await updatePhD(phd);
     }
     closePopup();
   };
 
   const handleDeletePhD = async (indexToDelete) => {
     const { PHD_id } = phdDetails[indexToDelete];
-
     try {
-      const response = await deletePhD(PHD_id); // Call the delete API
-      if (response.ok) {
-        // Update the state to remove the deleted row
-        setPhdDetails((prevDetails) =>
-          prevDetails.filter((_, index) => index !== indexToDelete),
-        );
-      } else {
-        console.error("Failed to delete record");
-      }
+      await deletePhD(PHD_id);
     } catch (error) {
       console.error("Error deleting PhD record:", error);
     }
   };
-
   const TABLE_HEAD = [
     "Name of the Student",
     "Roll No",

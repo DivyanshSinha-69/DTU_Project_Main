@@ -8,6 +8,8 @@ import addImg from "../../../assets/add.svg";
 import deleteImg from "../../../assets/delete.svg";
 import { toast } from "react-hot-toast";
 import { useSelector } from "react-redux";
+import API from "../../../utils/API";
+
 
 const FacultyDevelopmentProgram = ({ setBlurActive }) => {
   const [fdpDetails, setFdpDetails] = useState([]);
@@ -18,33 +20,29 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
   useEffect(() => {
     const fetchFDPDetails = async () => {
       try {
-        const response = await fetch(
-          `http://localhost:3001/ece/faculty/fdp-records/${facultyId}`,
-        );
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const result = await response.json();
-        if (Array.isArray(result.data)) {
+        const response = await API.get(`/ece/faculty/fdp-records/${facultyId}`);
+        // Assuming response.data holds the FDP records in an array
+        if (Array.isArray(response.data.data)) {
           setFdpDetails(
-            result.data.map((fdp) => ({
+            response.data.data.map((fdp) => ({
               FDP_id: fdp.FDP_id, // Include FDP_id
               FDP_name: fdp.FDP_name,
               year_conducted: fdp.year_conducted,
               month_conducted: fdp.month_conducted,
               days_contributed: fdp.days_contributed,
-            })),
+            }))
           );
         } else {
-          toast.error(result.message || "Failed to fetch FDP details");
+          toast.error(response.data.message || "Failed to fetch FDP details");
         }
-      } catch (err) {
+      } catch (error) {
+        console.error("Error fetching FDP details:", error);
         toast.error("Error while fetching FDP details");
       }
     };
 
     fetchFDPDetails();
-  }, []);
+  }, [facultyId]);
 
   const openPopup = (fdp) => {
     setSelectedFDP(fdp);
@@ -60,73 +58,63 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
 
   const handleAddFDP = async (newFDP) => {
     const { programName, year, month, days } = newFDP;
-    const url = isAddFDP
-      ? "http://localhost:3001/ece/faculty/fdp-records"
-      : `http://localhost:3001/ece/faculty/fdp-records/${selectedFDP?.FDP_id}`; // Use FDP_id for updates
-
-    const method = isAddFDP ? "POST" : "PUT";
-    const body = isAddFDP
-      ? {
-          facultyId,
-          FDP_name: programName,
-          year_conducted: year,
-          month_conducted: month,
-          days_contributed: days,
-        }
-      : {
-          FDP_id: selectedFDP.FDP_id, // Pass FDP_id for updates
-          facultyId,
-          FDP_name: programName,
-          year_conducted: year,
-          month_conducted: month,
-          days_contributed: days,
-        };
+    // Build the payload
+    const payload = {
+      facultyId,
+      FDP_name: programName,
+      year_conducted: year,
+      month_conducted: month,
+      days_contributed: days,
+    };
 
     try {
-      const response = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        toast.success("FDP record successfully added/updated");
-        setFdpDetails((prev) =>
-          isAddFDP
-            ? [...prev, { ...body, FDP_id: data.data.id }] // Include the generated FDP_id
-            : prev.map((fdp) =>
-                fdp.FDP_id === selectedFDP.FDP_id ? { ...body } : fdp,
-              ),
+      let response;
+      if (isAddFDP) {
+        // Add new FDP record
+        response = await API.post("/ece/faculty/fdp-records", payload);
+      } else {
+        // Update existing FDP record
+        response = await API.put(
+          `/ece/faculty/fdp-records/${selectedFDP.FDP_id}`,
+          payload
         );
+      }
+
+      if (response && response.data) {
+        toast.success("FDP record successfully saved");
+        // For adding a new record, append it to the list
+        if (isAddFDP) {
+          // Assuming the response returns the new FDP record including its generated FDP_id
+          setFdpDetails((prev) => [...prev, response.data]);
+        } else {
+          // For updates, refresh the FDP details list
+          setFdpDetails((prev) =>
+            prev.map((fdp) =>
+              fdp.FDP_id === selectedFDP.FDP_id ? response.data : fdp
+            )
+          );
+        }
         closePopup();
       } else {
-        toast.error(data.message || "Failed to save FDP record.");
+        toast.error("Failed to save FDP record.");
       }
     } catch (error) {
-      console.error(error);
+      console.error("Error saving FDP record:", error);
       toast.error("Error connecting to the server.");
     }
   };
 
   const handleDeleteFDP = async (fdpId) => {
     try {
-      const response = await fetch(
-        `http://localhost:3001/ece/faculty/fdp-records/${fdpId}`,
-        {
-          method: "DELETE",
-        },
-      );
-
-      const data = await response.json();
-      if (response.ok) {
+      const response = await API.delete(`/ece/faculty/fdp-records/${fdpId}`);
+      if (response && response.data) {
         toast.success("FDP record deleted successfully");
-        setFdpDetails((prev) => prev.filter((fdp) => fdp.FDP_id !== fdpId)); // Filter by FDP_id
+        setFdpDetails((prev) => prev.filter((fdp) => fdp.FDP_id !== fdpId));
       } else {
-        toast.error(data.message || "Something went wrong");
+        toast.error(response.data.message || "Something went wrong");
       }
     } catch (err) {
-      console.error("Request failed", err);
+      console.error("Error deleting FDP record:", err);
       toast.error("Error while deleting FDP");
     }
   };

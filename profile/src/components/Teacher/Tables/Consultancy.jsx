@@ -8,6 +8,8 @@ import addImg from "../../../assets/add.svg";
 import deleteImg from "../../../assets/delete.svg";
 import axios from "axios";
 import { useSelector } from "react-redux";
+import API from "../../../utils/API";
+
 
 const ConsultancyDetails = ({ setBlurActive }) => {
   const [consultancyDetails, setConsultancyDetails] = useState([]);
@@ -18,32 +20,22 @@ const ConsultancyDetails = ({ setBlurActive }) => {
 
   const fetchConsultancyDetails = async () => {
     try {
-      const response = await fetch(
-        `http://localhost:3001/ece/faculty/consultancy/${facultyId}`,
-      );
-
-      if (!response.ok) {
-        // Handle 404 response (no records found)
-        if (response.status === 404) {
-          setConsultancyDetails([]); // Set an empty array if no records are found
-          return;
-        }
-        throw new Error("Failed to fetch consultancy data");
+      const response = await API.get(`/ece/faculty/consultancy/${facultyId}`);
+      if (Array.isArray(response.data)) {
+        setConsultancyDetails(
+          response.data.map((record) => ({
+            project_title: record.project_title,
+            funding_agency: record.funding_agency,
+            amount_sponsored: record.amount_sponsored,
+            research_duration: record.research_duration,
+            start_date: record.start_date,
+            end_date: record.end_date,
+            consultancy_id: record.consultancy_id,
+          })),
+        );
+      } else {
+        setConsultancyDetails([]); // Set an empty array if no records are found
       }
-
-      const data = await response.json();
-
-      setConsultancyDetails(
-        data.map((record) => ({
-          project_title: record.project_title,
-          funding_agency: record.funding_agency, // Renaming to client for consistency with frontend
-          amount_sponsored: record.amount_sponsored,
-          research_duration: record.research_duration,
-          start_date: record.start_date,
-          end_date: record.end_date,
-          consultancy_id: record.consultancy_id,
-        })),
-      );
     } catch (error) {
       console.error("Error fetching consultancy records:", error);
       setConsultancyDetails([]); // Fallback to an empty array in case of errors
@@ -52,8 +44,7 @@ const ConsultancyDetails = ({ setBlurActive }) => {
 
   useEffect(() => {
     fetchConsultancyDetails();
-  }, []);
-
+  }, [facultyId]);
   const openPopup = (consultancy) => {
     setSelectedConsultancy(consultancy);
     setPopupOpen(true);
@@ -68,30 +59,24 @@ const ConsultancyDetails = ({ setBlurActive }) => {
 
   const handleAddConsultancy = async (newConsultancy) => {
     try {
+      const payload = {
+        faculty_id: facultyId,
+        project_title: newConsultancy.title,
+        funding_agency: newConsultancy.client || null,
+        amount_sponsored: newConsultancy.amount || 0,
+        research_duration: newConsultancy.duration || null,
+        start_date: newConsultancy.startDate,
+        end_date: newConsultancy.endDate || null,
+      };
+
       if (isAddConsultancy) {
         // Add new consultancy
-        await axios.post("http://localhost:3001/ece/faculty/consultancy", {
-          faculty_id: facultyId, // Hardcoded for now
-          project_title: newConsultancy.title,
-          funding_agency: newConsultancy.client || null, // Optional field
-          amount_sponsored: newConsultancy.amount || 0, // Default to 0 if not provided
-          research_duration: newConsultancy.duration || null, // Optional field
-          start_date: newConsultancy.startDate, // Required field
-          end_date: newConsultancy.endDate || null,
-        });
+        await API.post("/ece/faculty/consultancy", payload);
       } else {
         // Update existing consultancy
-        await axios.put(
-          `http://localhost:3001/ece/faculty/consultancy/${selectedConsultancy.consultancy_id}`,
-          {
-            faculty_id: facultyId, // Hardcoded for now
-            project_title: newConsultancy.title,
-            funding_agency: newConsultancy.client,
-            amount_sponsored: newConsultancy.amount,
-            research_duration: newConsultancy.duration,
-            start_date: newConsultancy.startDate,
-            end_date: newConsultancy.endDate || null,
-          },
+        await API.put(
+          `/ece/faculty/consultancy/${selectedConsultancy.consultancy_id}`,
+          payload,
         );
       }
 
@@ -106,8 +91,8 @@ const ConsultancyDetails = ({ setBlurActive }) => {
   const handleDeleteConsultancy = async (indexToDelete) => {
     const consultancyToDelete = consultancyDetails[indexToDelete];
     try {
-      await axios.delete(
-        `http://localhost:3001/ece/faculty/consultancy/${consultancyToDelete.consultancy_id}`,
+      await API.delete(
+        `/ece/faculty/consultancy/${consultancyToDelete.consultancy_id}`,
       );
       // Refresh consultancy details after deleting
       fetchConsultancyDetails();

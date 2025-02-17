@@ -5,38 +5,18 @@ import addImg from "../../../assets/add.svg";
 import editImg from "../../../assets/edit.svg"; // Import the edit icon
 import deleteImg from "../../../assets/delete.svg"; // Import the delete icon
 import ResearchProjectPopup from "../PopUp/ResearchProjectPopUp"; // Assume this popup component exists
+import API from "../../../utils/API";
+import { useSelector } from "react-redux";
+
+
 
 const ResearchProjects = ({ setBlurActive }) => {
   const [researchProjectsDetails, setResearchProjectsDetails] = useState([]);
-  const API_BASE_URL = "http://localhost:3001/ece/faculty";
-
-  useEffect(() => {
-    fetch(`${API_BASE_URL}/researchpaper/FAC001`) // Replace 123 with the actual faculty_id
-      .then((response) => response.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setResearchProjectsDetails(
-            data.map((item) => ({
-              research_id: item.research_id,
-              TypeOfPaper: getPaperType(item.paper_type), // Convert integer to string
-              Title: item.title_of_paper,
-              Domain: item.domain,
-              PublicationName: item.publication_name,
-              PublishedDate: item.published_date,
-              Document: item.pdf_path ? { name: "Uploaded" } : null,
-              Citation: item.citation,
-            })),
-          );
-        } else {
-          console.error("Unexpected API response:", data);
-        }
-      });
-  }, []);
-  const getPaperType = (type) => {
-    const types = ["Conference", "Journal", "Book Chapter", "Other"];
-    return types[type - 1] || "Unknown";
-  };
-
+  const [isPopupOpen, setPopupOpen] = useState(false);
+  const [editProject, setEditProject] = useState(null);
+    const facultyId = useSelector((state) => state.user.facultyId);
+  
+  const API_BASE_URL = "/ece/faculty";
   const TABLE_HEAD = [
     "Serial No",
     "Type of Paper",
@@ -45,13 +25,52 @@ const ResearchProjects = ({ setBlurActive }) => {
     "Name of Conference/Journal/Book Chapter/Other",
     "Published Date",
     "Document",
-    "Citation", // Add this line
+    "Citation",
     "Actions",
   ];
 
-  const [isPopupOpen, setPopupOpen] = useState(false);
-  const [editProject, setEditProject] = useState(null); // Holds the project data for editing
+  // Converts the numeric paper type from the API to a string.
+  const getPaperType = (type) => {
+    const types = ["Conference", "Journal", "Book Chapter", "Other"];
+    return types[type - 1] || "Unknown";
+  };
 
+  // Converts the paper type string to its corresponding numeric ID.
+  const getPaperTypeId = (type) => {
+    const types = { Conference: 1, Journal: 2, "Book Chapter": 3, Other: 4 };
+    return types[type] || 4;
+  };
+
+  // Fetch research projects from the API
+  const fetchResearchProjects = async () => {
+    try {
+      const response = await API.get(`/ece/faculty/researchpaper/${facultyId}`);
+      if (Array.isArray(response.data)) {
+        setResearchProjectsDetails(
+          response.data.map((item) => ({
+            research_id: item.research_id,
+            TypeOfPaper: getPaperType(item.paper_type),
+            Title: item.title_of_paper,
+            Domain: item.domain,
+            PublicationName: item.publication_name,
+            PublishedDate: item.published_date,
+            Document: item.pdf_path ? { name: "Uploaded" } : null,
+            Citation: item.citation,
+          }))
+        );
+      } else {
+        console.error("Unexpected API response:", response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching research projects:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchResearchProjects();
+  }, [facultyId]);
+
+  // Open the popup for adding a new project or editing an existing one
   const openPopup = (project = null) => {
     setEditProject(project ? { ...project } : null);
     setPopupOpen(true);
@@ -63,15 +82,15 @@ const ResearchProjects = ({ setBlurActive }) => {
     setBlurActive(false);
   };
 
-  // Function to handle the addition of a new research project or editing an existing one
-  const saveProject = (project) => {
+  // Save research project (add or update)
+  const saveProject = async (project) => {
     const method = editProject ? "PUT" : "POST";
     const url = editProject
       ? `${API_BASE_URL}/researchpaper/${editProject.research_id}`
       : `${API_BASE_URL}/researchpaper`;
 
     const requestData = {
-      faculty_id: "FAC001", // Replace with dynamic ID
+      faculty_id: facultyId, // Replace with dynamic ID if needed
       paper_type: getPaperTypeId(project.TypeOfPaper),
       title_of_paper: project.Title,
       domain: project.Domain,
@@ -81,58 +100,51 @@ const ResearchProjects = ({ setBlurActive }) => {
       citation: project.Citation,
     };
 
-    fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestData),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.message.includes("successfully")) {
-          setResearchProjectsDetails((prevDetails) => {
-            if (editProject) {
-              return prevDetails.map((p) =>
-                p.research_id === editProject.research_id
-                  ? { ...requestData, research_id: editProject.research_id }
-                  : p,
-              );
-            } else {
-              return [
-                ...prevDetails,
-                { ...requestData, research_id: data.data.insertId },
-              ];
-            }
-          });
-          closePopup();
-        }
-      })
-      .catch((error) => console.error("Error saving research paper:", error));
+    try {
+      const response = await API({
+        url,
+        method,
+        headers: { "Content-Type": "application/json" },
+        data: requestData,
+      });
+
+      // Check if the response indicates success
+      if (response.data.message && response.data.message.includes("successfully")) {
+        setResearchProjectsDetails((prevDetails) => {
+          if (editProject) {
+            // Update the existing project in state
+            return prevDetails.map((p) =>
+              p.research_id === editProject.research_id
+                ? { ...requestData, research_id: editProject.research_id }
+                : p
+            );
+          } else {
+            // Add the new project to state; assume insertId is returned for the new record
+            return [
+              ...prevDetails,
+              { ...requestData, research_id: response.data.data.insertId },
+            ];
+          }
+        });
+        closePopup();
+      }
+    } catch (error) {
+      console.error("Error saving research paper:", error);
+    }
   };
 
-  const getPaperTypeId = (type) => {
-    const types = { Conference: 1, Journal: 2, "Book Chapter": 3, Other: 4 };
-    return types[type] || 4;
-  };
-
-  // Function to handle row deletion
-  const deleteProject = (research_id) => {
-    fetch(`${API_BASE_URL}/researchpaper/${research_id}`, {
-      method: "DELETE",
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.message.includes("successfully")) {
-          setResearchProjectsDetails(
-            (prevDetails) =>
-              prevDetails.filter(
-                (project) => project.research_id !== research_id,
-              ), // ✅ Corrected filtering
-          );
-        }
-      })
-      .catch((error) => console.error("Error deleting research paper:", error));
+  // Delete a research project
+  const deleteProject = async (research_id) => {
+    try {
+      const response = await API.delete(`${API_BASE_URL}/researchpaper/${research_id}`);
+      if (response.data.message && response.data.message.includes("successfully")) {
+        setResearchProjectsDetails((prevDetails) =>
+          prevDetails.filter((project) => project.research_id !== research_id)
+        );
+      }
+    } catch (error) {
+      console.error("Error deleting research paper:", error);
+    }
   };
 
   return (

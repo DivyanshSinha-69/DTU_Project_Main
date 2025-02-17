@@ -5,6 +5,8 @@ import PersonalDetailPopup from "../PopUp/PersonalDetailPopup";
 import "../../../styles/popup.css";
 import editImg from "../../../assets/edit.svg";
 import { useSelector } from "react-redux";
+import API from "../../../utils/API";
+
 
 const PersonalDetails = ({ setBlurActive }) => {
   const facultyId = useSelector((state) => state.user.facultyId);
@@ -36,41 +38,37 @@ const PersonalDetails = ({ setBlurActive }) => {
   };
   const fetchSpecializations = async () => {
     try {
-      const response = await fetch(
-        `http://localhost:3001/ece/faculty/specializations/{facultyId}`,
-      );
-      const data = await response.json();
-      setSpecializations(data.data);
+      const response = await API.get(`/ece/faculty/specializations/${facultyId}`);
+      console.log(response)
+      if (Array.isArray(response.data.data)) {
+        setSpecializations(response.data.data);
+      } else {
+        setSpecializations([]);
+      }
     } catch (error) {
       console.error("Error fetching specializations:", error);
+      setSpecializations([]);
     }
   };
 
   useEffect(() => {
     fetchSpecializations();
-  }, []);
+  }, [facultyId]);
+
+  // Add a new specialization using API.post
   const addSpecialization = async () => {
     if (!newSpecialization.trim()) return;
 
     try {
-      const response = await fetch(
-        "http://localhost:3001/ece/faculty/specializations",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            faculty_id: facultyId,
-            specialization: newSpecialization,
-          }),
-        },
-      );
-
-      if (response.ok) {
-        const result = await response.json();
+      const response = await API.post("/ece/faculty/specializations", {
+        faculty_id: facultyId,
+        specialization: newSpecialization,
+      });
+      if (response.data) {
         setSpecializations([
           ...specializations,
           {
-            specialization_id: result.id,
+            specialization_id: response.data.id, // Assuming the API returns the generated ID as `id`
             specialization: newSpecialization,
           },
         ]);
@@ -81,22 +79,15 @@ const PersonalDetails = ({ setBlurActive }) => {
     }
   };
 
+  // Delete a specialization using API.delete
   const deleteSpecialization = async (specialization_id) => {
     try {
-      const response = await fetch(
-        `http://localhost:3001/ece/faculty/specializations/${specialization_id}`,
-        {
-          method: "DELETE",
-        },
+      await API.delete(`/ece/faculty/specializations/${specialization_id}`);
+      setSpecializations(
+        specializations.filter(
+          (spec) => spec.specialization_id !== specialization_id,
+        ),
       );
-
-      if (response.ok) {
-        setSpecializations(
-          specializations.filter(
-            (spec) => spec.specialization_id !== specialization_id,
-          ),
-        );
-      }
     } catch (error) {
       console.error("Error deleting specialization:", error);
     }
