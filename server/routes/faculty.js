@@ -66,6 +66,7 @@ const router = express.Router();
 
 router.use(authenticateToken);
 
+
 // Credentials Route
 router.get("/facultycredentials", getFacultyCredentials);
 router.get("/facultycredentials/:faculty_id", getFacultyCredentialsById);
