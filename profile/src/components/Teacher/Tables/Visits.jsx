@@ -6,6 +6,10 @@ import "../../../styles/popup.css";
 import editImg from "../../../assets/edit.svg";
 import addImg from "../../../assets/add.svg";
 import deleteImg from "../../../assets/delete.svg";
+import API from "../../../utils/API";
+import { useSelector } from "react-redux";
+
+
 
 // Dummy data for testing
 
@@ -31,25 +35,28 @@ const Visits = ({ setBlurActive }) => {
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [selectedVisit, setSelectedVisit] = useState(null);
   const [isAddVisit, setIsAddVisit] = useState(false);
-  const API_BASE_URL = "http://localhost:3001/ece/faculty";
-  const FACULTY_ID = "FAC001";
 
+  const FACULTY_ID = useSelector((state) => state.user.facultyId);
+  // Replace with dynamic faculty ID if necessary
+
+  // Fetch visit records from the API using the centralized API instance
   useEffect(() => {
     const fetchVisits = async () => {
       try {
-        const response = await fetch(
-          `${API_BASE_URL}/vae?faculty_id=${FACULTY_ID}`,
-        );
-        const data = await response.json();
-        setVisitDetails(data.data || []);
+        const response = await API.get(`ece/faculty/vae`, {
+          params: { faculty_id: FACULTY_ID },
+        });
+        // Assuming the API returns an object with a "data" property
+        setVisitDetails(response.data.data || []);
       } catch (error) {
         console.error("Error fetching visit details:", error);
       }
     };
 
     fetchVisits();
-  }, []);
+  }, [FACULTY_ID]);
 
+  // Open the popup for editing or adding a visit record
   const openPopup = (visit) => {
     setSelectedVisit(visit);
     setPopupOpen(true);
@@ -62,78 +69,51 @@ const Visits = ({ setBlurActive }) => {
     setBlurActive(false);
   };
 
+  // Handle adding or updating a visit record
   const handleAddOrUpdateVisit = async (visitData) => {
+    // Format the visit payload before sending it to the API
+    const formattedVisit = {
+      faculty_id: FACULTY_ID, // Static for now
+      visit_type: visitTypeMap[visitData.visitType], // Convert string to number
+      institution: visitData.institutionName,
+      course_taught: visitData.courses,
+      year_of_visit: visitData.year_of_visit,
+      month_of_visit: monthMap[visitData.month_of_visit], // Convert month name to number
+      hours_taught: visitData.hours_taught,
+    };
+
     try {
-      const formattedVisit = {
-        faculty_id: FACULTY_ID, // Static for now
-        visit_type: visitTypeMap[visitData.visitType], // Convert string to number
-        institution: visitData.institutionName,
-        course_taught: visitData.courses,
-        year_of_visit: visitData.year_of_visit,
-        month_of_visit: monthMap[visitData.month_of_visit], // Convert month name to number
-        hours_taught: visitData.hours_taught,
-      };
-
-      let response;
       if (isAddVisit) {
-        // ADD new visit
-        response = await fetch(`${API_BASE_URL}/vae`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formattedVisit),
-        });
-
-        if (!response.ok) {
-          console.log("Failed to add visit", formattedVisit);
-          throw new Error("Failed to add visit");
-        }
-
-        const responseData = await response.json();
-        setVisitDetails([
-          ...visitDetails,
-          { ...formattedVisit, visit_id: responseData.data.id },
+        // ADD new visit record
+        const response = await API.post("ece/faculty/vae", formattedVisit);
+        // Assuming the new record's id is returned as response.data.data.id
+        setVisitDetails((prev) => [
+          ...prev,
+          { ...formattedVisit, visit_id: response.data.data.id },
         ]);
       } else {
-        // UPDATE existing visit
-        response = await fetch(
-          `${API_BASE_URL}/vae/${selectedVisit.visit_id}`,
-          {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(formattedVisit),
-          },
-        );
-
-        if (!response.ok) {
-          console.log("Failed to update visit", formattedVisit);
-          throw new Error("Failed to update visit");
-        }
-
-        setVisitDetails(
-          visitDetails.map((visit) =>
+        // UPDATE existing visit record
+        await API.put(`ece/faculty/vae/${selectedVisit.visit_id}`, formattedVisit);
+        setVisitDetails((prev) =>
+          prev.map((visit) =>
             visit.visit_id === selectedVisit.visit_id
               ? { ...visit, ...formattedVisit }
-              : visit,
-          ),
+              : visit
+          )
         );
       }
-
       closePopup();
     } catch (error) {
       console.error("Error saving visit details:", error);
     }
   };
 
+  // Delete a visit record
   const handleDeleteVisit = async (visitId) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/vae/${visitId}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) throw new Error("Failed to delete visit");
-
-      setVisitDetails(
-        visitDetails.filter((visit) => visit.visit_id !== visitId),
+      await API.delete(`ece/faculty/vae/${visitId}`);
+      setVisitDetails((prev) =>
+        prev.filter((visit) => visit.visit_id !== visitId)
       );
     } catch (error) {
       console.error("Error deleting visit:", error);

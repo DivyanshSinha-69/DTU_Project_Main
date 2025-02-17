@@ -2,21 +2,21 @@ import React, { useState } from "react";
 import { Card } from "@material-tailwind/react";
 import toast from "react-hot-toast";
 
-export default function PhDsAwardedPopUp({
-  menteeName,
-  rollNo,
-  passingMonth,
-  passingYear,
-  PHD_id,
+export default function PatentPopUp({
+  patentName = "",
+  patentPublish = "",
+  patentFiled = "",
+  patentAwardDate = "",
+  patent_id = "",
   closeModal,
-  handleAddPhD,
+  handleAddPatent,
 }) {
   const [formData, setFormData] = useState({
-    menteeName: menteeName || "",
-    rollNo: rollNo || "",
-    passingYear: passingYear || "",
-    PHD_id: PHD_id || "",
-    passingMonth: passingMonth || "",
+    patentName: patentName || "",
+    patentPublish: patentPublish || "",
+    patentFiled: patentFiled || "",
+    patentAwardDate: patentAwardDate || "",
+    patent_id: patent_id || "",
   });
 
   const handleChange = (e) => {
@@ -29,30 +29,25 @@ export default function PhDsAwardedPopUp({
 
   const handlePopupSubmit = (e) => {
     e.preventDefault();
-    const { menteeName, rollNo, passingMonth, passingYear, PHD_id } = formData;
+    const { patentName, patentPublish, patentFiled, patentAwardDate } =
+      formData;
 
-    if (!menteeName || !rollNo || !passingYear || !passingMonth) {
+    // Validate required fields
+    if (!patentName || !patentPublish) {
       toast.error("Please fill in all required fields.");
       return;
     }
 
-    if (handleAddPhD) {
-      handleAddPhD(formData);
+    // Validate dates (optional: ensure award date is after publish date)
+    // if (patentAwardDate && new Date(patentAwardDate) < new Date(patentPublish)) {
+    //   toast.error("Award date cannot be before the publish date.");
+    //   return;
+    // }
+
+    if (handleAddPatent) {
+      handleAddPatent(formData);
     }
     closeModal();
-  };
-
-  const generateYearOptions = () => {
-    const currentYear = new Date().getFullYear();
-    const years = [];
-    for (let year = 2000; year <= currentYear; year++) {
-      years.push(year);
-    }
-    return years.map((year) => (
-      <option key={year} value={year}>
-        {year}
-      </option>
-    ));
   };
 
   return (
@@ -66,67 +61,66 @@ export default function PhDsAwardedPopUp({
           className="text-white flex flex-col space-y-6"
           onSubmit={handlePopupSubmit}
         >
-          {/* Mentee Name */}
+          {/* Patent Name */}
           <div className="relative z-0 w-full group">
-            <label htmlFor="menteeName" className="block text-sm">
-              Mentee Name
+            <label htmlFor="patentName" className="block text-sm">
+              Patent Name
             </label>
             <input
               type="text"
-              name="menteeName"
-              id="menteeName"
+              name="patentName"
+              id="patentName"
               className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               onChange={handleChange}
-              value={formData.menteeName}
+              value={formData.patentName}
               required
             />
           </div>
 
-          {/* Roll No */}
+          {/* Publish Date */}
           <div className="relative z-0 w-full group">
-            <label htmlFor="rollNo" className="block text-sm">
-              Roll No
+            <label htmlFor="patentPublish" className="block text-sm">
+              Publish Date
             </label>
             <input
-              type="text"
-              name="rollNo"
-              id="rollNo"
+              type="date"
+              name="patentPublish"
+              id="patentPublish"
               className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               onChange={handleChange}
-              value={formData.rollNo}
+              value={formData.patentPublish}
               required
             />
           </div>
+
+          {/* Filed Date */}
           <div className="relative z-0 w-full group">
-            <label htmlFor="passingYear" className="block text-sm">
-              Passing Month
+            <label htmlFor="patentFiled" className="block text-sm">
+              Filed Date (Optional)
             </label>
             <input
-              name="passingMonth"
-              id="passingMonth"
+              type="date"
+              name="patentFiled"
+              id="patentFiled"
               className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               onChange={handleChange}
-              value={formData.passingMonth}
-              required
-            ></input>
+              value={formData.patentFiled}
+            />
           </div>
 
-          {/* Passing Year Dropdown */}
+          {/* Award Date */}
           <div className="relative z-0 w-full group">
-            <label htmlFor="passingYear" className="block text-sm">
-              Passing Year
+            <label htmlFor="patentAwardDate" className="block text-sm">
+              Award Date (Optional)
             </label>
-            <select
-              name="passingYear"
-              id="passingYear"
+            <input
+              type="date"
+              name="patentAwardDate"
+              id="patentAwardDate"
               className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               onChange={handleChange}
-              value={formData.passingYear}
-              required
-            >
-              <option value="">Select Year</option>
-              {generateYearOptions()}
-            </select>
+              value={formData.patentAwardDate}
+            />
           </div>
 
           {/* Buttons */}
@@ -135,7 +129,7 @@ export default function PhDsAwardedPopUp({
               type="submit"
               className="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
             >
-              {menteeName ? "Update Record" : "Add Record"}
+              {patent_id ? "Update Record" : "Add Record"}
             </button>
             <button
               type="button"

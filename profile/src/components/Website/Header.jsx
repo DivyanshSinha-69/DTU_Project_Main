@@ -53,13 +53,20 @@ export default function StickyNavbar() {
     e.preventDefault();
 
     try {
-      // Make a POST request to your server with login credentials
-      const response = await axios.get("http://localhost:3001/logout", {
-        withCredentials: true,
-      });
+      let logoutUrl = "http://localhost:3001/logout"; // Default logout endpoint
 
+      if (role === "faculty") {
+        logoutUrl = "http://localhost:3001/ece/facultyauth/logout"; // Faculty-specific logout
+      }
+
+      // Make a GET request to the correct logout API
+      const response = await axios.get(logoutUrl, { withCredentials: true });
+
+      // Handle the logout response
       const userDetails = response.data;
       dispatch(logout(userDetails.user));
+
+      // Clear additional user-specific data
       dispatch(setRole("null"));
       dispatch(removeProfessionalSkills());
       dispatch(removePersonalDetails());
@@ -70,11 +77,10 @@ export default function StickyNavbar() {
       dispatch(removeHigherEducationDetails());
       dispatch(removeInterInstitute());
       dispatch(removeBtechEducation());
-      // dispatch(setRole("null"));
-      navigate("/");
+
+      navigate("/"); // ✅ Redirect to homepage after logout
     } catch (error) {
-      // Handle login error
-      console.error("Login failed:", error.message);
+      console.error("Logout failed:", error.message);
     }
   };
 
@@ -88,7 +94,7 @@ export default function StickyNavbar() {
           className="p-1 font-normal hover:translate-y-[-5px] transition-transform ease-in"
         >
           <HashLink
-            to="/login"
+            to="/login?role=student"
             className="flex flex-row items-center lg:flex-col"
           >
             <img src={img2} alt="student" height={30} width={30} />
@@ -105,11 +111,11 @@ export default function StickyNavbar() {
           className="p-1 font-normal hover:translate-y-[-5px] transition-transform ease-in"
         >
           <HashLink
-            to="/login"
+            to="/login?role=faculty"
             className="flex flex-row items-center lg:flex-col"
           >
             <img src={img1} alt="teacher" height={30} width={30} />
-            <p className="lg:ml-0 ml-4">Teacher/techStaff</p>
+            <p className="lg:ml-0 ml-4">Faculty</p>
           </HashLink>
         </Typography>
       )}

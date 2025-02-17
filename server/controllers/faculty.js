@@ -11,14 +11,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 // Controller for faculty_credentials table
 
-
 dotenv.config();
-
 
 export const getFacultyCredentials = async (req, res) => {
   try {
     const sql = "SELECT * FROM faculty_credentials";
-    
+
     // Using `await` to fetch data
     const [results] = await pool.query(sql);
 
@@ -31,7 +29,6 @@ export const getFacultyCredentials = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 
 export const getFacultyCredentialsById = (req, res) => {
   const { faculty_id } = req.params;
@@ -102,7 +99,12 @@ export const updateFacultyCredentials = async (req, res) => {
   `;
 
   try {
-    const [results] = await pool.query(sql, [faculty_name, mobile_number, pass, faculty_id]);
+    const [results] = await pool.query(sql, [
+      faculty_name,
+      mobile_number,
+      pass,
+      faculty_id,
+    ]);
 
     if (results.affectedRows === 0) {
       return res.status(404).json({ error: "Faculty credential not found" });
@@ -347,43 +349,62 @@ export const addResearchPaper = (req, res) => {
   } = req.body;
 
   // Getting the file path for the uploaded PDF
-  const filePath = req.file ? path.relative('public', req.file.path) : null;
+  const filePath = req.file ? path.relative("public", req.file.path) : null;
 
   // First, check if the faculty_id exists in the faculty_details table
-  pool.query('SELECT * FROM faculty_details WHERE faculty_id = ?', [faculty_id], (error, results) => {
-    if (error) {
-      return res.status(500).json({ message: 'Error checking faculty details', error });
-    }
+  pool.query(
+    "SELECT * FROM faculty_details WHERE faculty_id = ?",
+    [faculty_id],
+    (error, results) => {
+      if (error) {
+        return res
+          .status(500)
+          .json({ message: "Error checking faculty details", error });
+      }
 
-    if (results.length === 0) {
-      return res.status(400).json({ message: 'Faculty ID does not exist in the faculty_details table' });
-    }
+      if (results.length === 0) {
+        return res.status(400).json({
+          message: "Faculty ID does not exist in the faculty_details table",
+        });
+      }
 
-    // Now, insert the research paper record into faculty_research_paper table
-    const sql = `
+      // Now, insert the research paper record into faculty_research_paper table
+      const sql = `
       INSERT INTO faculty_research_paper 
       (faculty_id, paper_type, title_of_paper, domain, publication_name, published_date, pdf_path, citation) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    pool.query(
-      sql,
-      [faculty_id, paper_type, title_of_paper, domain, publication_name, published_date, filePath, citation],
-      (insertError, insertResult) => {
-        if (insertError) {
-          return res.status(500).json({ message: 'Error adding research paper', error: insertError });
-        }
+      pool.query(
+        sql,
+        [
+          faculty_id,
+          paper_type,
+          title_of_paper,
+          domain,
+          publication_name,
+          published_date,
+          filePath,
+          citation,
+        ],
+        (insertError, insertResult) => {
+          if (insertError) {
+            return res.status(500).json({
+              message: "Error adding research paper",
+              error: insertError,
+            });
+          }
 
-        // Respond with a success message and the inserted data
-        res.status(201).json({ message: 'Research paper added successfully', data: insertResult });
-      }
-    );
-  });
+          // Respond with a success message and the inserted data
+          res.status(201).json({
+            message: "Research paper added successfully",
+            data: insertResult,
+          });
+        },
+      );
+    },
+  );
 };
-
-
-
-
 
 // Get Research Papers by Faculty ID
 export const getResearchPapersByFaculty = (req, res) => {
@@ -418,10 +439,11 @@ export const updateResearchPaper = (req, res) => {
   } = req.body;
 
   // Get the new file path if a file was uploaded
-  const filePath = req.file ? path.relative('public', req.file.path) : null;
+  const filePath = req.file ? path.relative("public", req.file.path) : null;
 
   // Check if the research paper exists by research_id
-  const checkQuery = 'SELECT * FROM faculty_research_paper WHERE research_id = ?';
+  const checkQuery =
+    "SELECT * FROM faculty_research_paper WHERE research_id = ?";
   pool.query(checkQuery, [research_id], (err, result) => {
     if (err) {
       return res
@@ -435,7 +457,9 @@ export const updateResearchPaper = (req, res) => {
 
     // Get the old paper details
     const oldPdfPath = result[0].pdf_path;
-    const absoluteOldFilePath = oldPdfPath ? path.join('public', oldPdfPath) : null;
+    const absoluteOldFilePath = oldPdfPath
+      ? path.join("public", oldPdfPath)
+      : null;
 
     if (filePath && filePath !== oldPdfPath) {
       // If a new file is uploaded and it's not the same as the old one
@@ -444,7 +468,7 @@ export const updateResearchPaper = (req, res) => {
       }
     } else if (filePath && filePath === oldPdfPath) {
       // If the same file is being uploaded, skip deletion
-      console.log('Same file uploaded. Skipping deletion.');
+      console.log("Same file uploaded. Skipping deletion.");
     }
 
     // SQL query to update the research paper
@@ -490,14 +514,13 @@ export const updateResearchPaper = (req, res) => {
   });
 };
 
-
-
 export const deleteResearchPaper = (req, res) => {
   const { research_id } = req.params; // Using research_id instead of faculty_id and title_of_paper
 
   // Query to get the PDF path from the database using research_id
-  const getQuery = 'SELECT pdf_path FROM faculty_research_paper WHERE research_id = ?';
-  
+  const getQuery =
+    "SELECT pdf_path FROM faculty_research_paper WHERE research_id = ?";
+
   pool.query(getQuery, [research_id], (err, result) => {
     if (err) {
       return res
@@ -507,45 +530,56 @@ export const deleteResearchPaper = (req, res) => {
 
     // If no record found
     if (result.length === 0) {
-      return res.status(404).json({ message: 'No research paper found with the given research_id' });
+      return res.status(404).json({
+        message: "No research paper found with the given research_id",
+      });
     }
 
     const pdfPath = result[0].pdf_path; // The PDF file path retrieved from the database
 
     // Query to delete the research paper from the database
-    const deleteQuery = 'DELETE FROM faculty_research_paper WHERE research_id = ?';
+    const deleteQuery =
+      "DELETE FROM faculty_research_paper WHERE research_id = ?";
 
     pool.query(deleteQuery, [research_id], (err, deleteResult) => {
       if (err) {
-        return res.status(500).json({ message: 'Error deleting research paper from database', error: err });
+        return res.status(500).json({
+          message: "Error deleting research paper from database",
+          error: err,
+        });
       }
 
-        if (deleteResult.affectedRows === 0) {
-          return res.status(404).json({
-            message: "Failed to delete the research paper from the database",
-          });
-        }
+      if (deleteResult.affectedRows === 0) {
+        return res.status(404).json({
+          message: "Failed to delete the research paper from the database",
+        });
+      }
 
       // Only attempt to delete the PDF file if pdf_path exists
       if (pdfPath) {
-        const fullPdfPath = path.join('public', pdfPath);
+        const fullPdfPath = path.join("public", pdfPath);
 
         fs.unlink(fullPdfPath, (unlinkErr) => {
           if (unlinkErr) {
-            return res.status(500).json({ message: 'Error deleting the PDF file', error: unlinkErr });
+            return res.status(500).json({
+              message: "Error deleting the PDF file",
+              error: unlinkErr,
+            });
           }
 
-          res.status(200).json({ message: 'Research paper and PDF deleted successfully' });
+          res
+            .status(200)
+            .json({ message: "Research paper and PDF deleted successfully" });
         });
       } else {
         // If pdf_path is null, just send success response for record deletion
-        res.status(200).json({ message: 'Research paper deleted successfully, no PDF file to remove' });
+        res.status(200).json({
+          message: "Research paper deleted successfully, no PDF file to remove",
+        });
       }
     });
   });
 };
-
-
 
 export const getFDPRecords = (req, res) => {
   const { faculty_id } = req.params;
@@ -956,7 +990,6 @@ export const getPhDAwardedRecords = (req, res) => {
   });
 };
 
-
 /**
  * Get all PhD mentee names for a specific faculty_id
  */
@@ -984,19 +1017,25 @@ export const getPhDAwardedRecordsByFacultyId = (req, res) => {
   });
 };
 
-
 /**
  * Add a new PhD awarded record
  */
 export const addPhDAwardedRecord = (req, res) => {
-  const { faculty_id, mentee_name, mentee_rn, passing_year, passing_month } = req.body;
+  const { faculty_id, mentee_name, mentee_rn, passing_year, passing_month } =
+    req.body;
 
   const query = `
     INSERT INTO faculty_PhD_awarded (faculty_id, mentee_name, mentee_rn, passing_year, passing_month)
     VALUES (?, ?, ?, ?, ?)
   `;
 
-  const queryParams = [faculty_id, mentee_name, mentee_rn, passing_year, passing_month];
+  const queryParams = [
+    faculty_id,
+    mentee_name,
+    mentee_rn,
+    passing_year,
+    passing_month,
+  ];
 
   pool.query(query, queryParams, (err, result) => {
     if (err) {
@@ -1010,7 +1049,6 @@ export const addPhDAwardedRecord = (req, res) => {
     });
   });
 };
-
 
 /**
  * Update an existing PhD record using PHD_id
@@ -1032,7 +1070,13 @@ export const updatePhDAwardedRecord = (req, res) => {
     WHERE PHD_id = ?
   `;
 
-  const queryParams = [mentee_name, passing_year, passing_month, mentee_rn, PHD_id];
+  const queryParams = [
+    mentee_name,
+    passing_year,
+    passing_month,
+    mentee_rn,
+    PHD_id,
+  ];
 
   pool.query(query, queryParams, (err, result) => {
     if (err) {
@@ -1048,8 +1092,6 @@ export const updatePhDAwardedRecord = (req, res) => {
       .json({ message: "PhD awarded record updated successfully" });
   });
 };
-
-
 
 /**
  * Delete a PhD record using PHD_id
@@ -1075,8 +1117,6 @@ export const deletePhDAwardedRecord = (req, res) => {
       .json({ message: "PhD awarded record deleted successfully" });
   });
 };
-
-
 
 export const getSponsoredResearchByFaculty = (req, res) => {
   const { faculty_id } = req.params;
@@ -1522,21 +1562,17 @@ export const addSpecialization = (req, res) => {
       INSERT INTO faculty_specialization (faculty_id, specialization)
       VALUES (?, ?)
     `;
-    pool.query(
-      insertQuery,
-      [faculty_id, specialization],
-      (err, result) => {
-        if (err) {
-          console.error("Error adding specialization:", err);
-          return res.status(500).json({ message: "Internal Server Error" });
-        }
-        res.status(201).json({
-          message: "Specialization added successfully",
-          success: true,
-          id: result.insertId,
-        });
-      },
-    );
+    pool.query(insertQuery, [faculty_id, specialization], (err, result) => {
+      if (err) {
+        console.error("Error adding specialization:", err);
+        return res.status(500).json({ message: "Internal Server Error" });
+      }
+      res.status(201).json({
+        message: "Specialization added successfully",
+        success: true,
+        id: result.insertId,
+      });
+    });
   });
 };
 
@@ -1606,7 +1642,6 @@ export const getFacultyImage = (req, res) => {
   });
 };
 
-
 export const updateFacultyImage = async (req, res) => {
   const { faculty_id } = req.params;
 
@@ -1620,14 +1655,20 @@ export const updateFacultyImage = async (req, res) => {
 
   try {
     // Get the old image path from the database
-    const getQuery = 'SELECT faculty_image FROM faculty_image WHERE faculty_id = ?';
+    const getQuery =
+      "SELECT faculty_image FROM faculty_image WHERE faculty_id = ?";
     const [result] = await pool.query(getQuery, [faculty_id]);
 
     const oldImagePath = result.length > 0 ? result[0].faculty_image : null;
 
     // Delete the old image if it exists
     if (oldImagePath) {
-      const fullOldImagePath = path.join(__dirname, '..', 'public', oldImagePath);
+      const fullOldImagePath = path.join(
+        __dirname,
+        "..",
+        "public",
+        oldImagePath,
+      );
       try {
         await fs.promises.unlink(fullOldImagePath);
       } catch {
@@ -1636,7 +1677,7 @@ export const updateFacultyImage = async (req, res) => {
     }
 
     // Ensure the folder exists
-    const uploadDir = path.join(__dirname, '..', 'public', 'Faculty', 'images');
+    const uploadDir = path.join(__dirname, "..", "public", "Faculty", "images");
     if (!fs.existsSync(uploadDir)) {
       await fs.promises.mkdir(uploadDir, { recursive: true });
     }
@@ -1657,13 +1698,13 @@ export const updateFacultyImage = async (req, res) => {
     `;
     await pool.query(updateQuery, [newImagePath, faculty_id]);
 
-    res.status(200).json({ message: 'Faculty image updated successfully' });
+    res.status(200).json({ message: "Faculty image updated successfully" });
   } catch (err) {
-    res.status(500).json({ message: 'Error updating faculty image', error: err });
+    res
+      .status(500)
+      .json({ message: "Error updating faculty image", error: err });
   }
 };
-
-
 
 export const deleteFacultyImage = (req, res) => {
   const { faculty_id } = req.params;
@@ -1693,7 +1734,7 @@ export const deleteFacultyImage = (req, res) => {
     }
 
     // Construct the full path for the image
-    const fullImagePath = path.join(__dirname, '..', 'public', imagePath);
+    const fullImagePath = path.join(__dirname, "..", "public", imagePath);
 
     // Check if the file exists before trying to delete it
     fs.access(fullImagePath, fs.constants.F_OK, (err) => {
@@ -1701,29 +1742,38 @@ export const deleteFacultyImage = (req, res) => {
         // If the file exists, try to delete it
         fs.unlink(fullImagePath, (err) => {
           if (err) {
-            return res.status(500).json({ message: 'Error deleting the image file', error: err });
+            return res
+              .status(500)
+              .json({ message: "Error deleting the image file", error: err });
           }
         });
       }
 
       // Proceed with updating the faculty_image column to NULL in the database
-      const updateQuery = 'UPDATE faculty_image SET faculty_image = NULL WHERE faculty_id = ?';
+      const updateQuery =
+        "UPDATE faculty_image SET faculty_image = NULL WHERE faculty_id = ?";
 
       pool.query(updateQuery, [faculty_id], (err, updateResult) => {
         if (err) {
-          return res.status(500).json({ message: 'Error updating faculty image record', error: err });
+          return res.status(500).json({
+            message: "Error updating faculty image record",
+            error: err,
+          });
         }
 
         if (updateResult.affectedRows === 0) {
-          return res.status(404).json({ message: 'Failed to update faculty image record' });
+          return res
+            .status(404)
+            .json({ message: "Failed to update faculty image record" });
         }
 
-        res.status(200).json({ message: 'Faculty image deleted and record updated successfully' });
+        res.status(200).json({
+          message: "Faculty image deleted and record updated successfully",
+        });
       });
     });
   });
 };
-
 
 // Get all faculty patents
 export const getFacultyPatents = (req, res) => {
@@ -1750,13 +1800,19 @@ export const getFacultyPatents = (req, res) => {
   });
 };
 
-
 // Add a new faculty patent
 export const addFacultyPatent = (req, res) => {
-  const { faculty_id, patent_name, patent_publish, patent_filed, patent_award_date } = req.body;
+  const {
+    faculty_id,
+    patent_name,
+    patent_publish,
+    patent_filed,
+    patent_award_date,
+  } = req.body;
 
   // Check if the faculty_id exists in faculty_details
-  const checkQuery = "SELECT COUNT(*) AS count FROM faculty_details WHERE faculty_id = ?";
+  const checkQuery =
+    "SELECT COUNT(*) AS count FROM faculty_details WHERE faculty_id = ?";
   pool.query(checkQuery, [faculty_id], (err, results) => {
     if (err) {
       console.error("Error checking faculty_id:", err);
@@ -1764,7 +1820,9 @@ export const addFacultyPatent = (req, res) => {
     }
 
     if (results[0].count === 0) {
-      return res.status(400).json({ message: "faculty_id does not exist in faculty_details" });
+      return res
+        .status(400)
+        .json({ message: "faculty_id does not exist in faculty_details" });
     }
 
     // Insert the patent
@@ -1772,45 +1830,72 @@ export const addFacultyPatent = (req, res) => {
       INSERT INTO faculty_patents (faculty_id, patent_name, patent_publish, patent_filed, patent_award_date)
       VALUES (?, ?, ?, ?, ?)
     `;
-    pool.query(insertQuery, [faculty_id, patent_name, patent_publish, patent_filed || null, patent_award_date || null], (err, result) => {
-      if (err) {
-        console.error("Error adding patent:", err);
-        return res.status(500).json({ message: "Internal Server Error" });
-      }
-      res.status(201).json({
-        message: "Patent added successfully",
-        success: true,
-        id: result.insertId,
-      });
-    });
+    pool.query(
+      insertQuery,
+      [
+        faculty_id,
+        patent_name,
+        patent_publish,
+        patent_filed || null,
+        patent_award_date || null,
+      ],
+      (err, result) => {
+        if (err) {
+          console.error("Error adding patent:", err);
+          return res.status(500).json({ message: "Internal Server Error" });
+        }
+        res.status(201).json({
+          message: "Patent added successfully",
+          success: true,
+          id: result.insertId,
+        });
+      },
+    );
   });
 };
-
 
 // Update an existing faculty patent
 export const updateFacultyPatent = (req, res) => {
   const { patent_id } = req.params; // Patent ID
-  const { faculty_id, patent_name, patent_publish, patent_filed, patent_award_date } = req.body;
+  const {
+    faculty_id,
+    patent_name,
+    patent_publish,
+    patent_filed,
+    patent_award_date,
+  } = req.body;
 
   const query = `
     UPDATE faculty_patents
     SET faculty_id = ?, patent_name = ?, patent_publish = ?, patent_filed = ?, patent_award_date = ?
     WHERE patent_id = ?
   `;
-  pool.query(query, [faculty_id, patent_name, patent_publish, patent_filed || null, patent_award_date || null, patent_id], (err, result) => {
-    if (err) {
-      console.error("Error updating patent:", err);
-      return res.status(500).json({ message: "Internal Server Error" });
-    }
+  pool.query(
+    query,
+    [
+      faculty_id,
+      patent_name,
+      patent_publish,
+      patent_filed || null,
+      patent_award_date || null,
+      patent_id,
+    ],
+    (err, result) => {
+      if (err) {
+        console.error("Error updating patent:", err);
+        return res.status(500).json({ message: "Internal Server Error" });
+      }
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Patent not found" });
-    }
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: "Patent not found" });
+      }
 
-    res.status(200).json({ message: "Patent updated successfully", success: true });
-  });
+      res
+        .status(200)
+        .json({ message: "Patent updated successfully", success: true });
+    },
+  );
 };
-
 
 // Delete a faculty patent
 export const deleteFacultyPatent = (req, res) => {
@@ -1827,7 +1912,8 @@ export const deleteFacultyPatent = (req, res) => {
       return res.status(404).json({ message: "Patent not found" });
     }
 
-    res.status(200).json({ message: "Patent deleted successfully", success: true });
+    res
+      .status(200)
+      .json({ message: "Patent deleted successfully", success: true });
   });
 };
-

@@ -4,8 +4,11 @@ import Popup from "reactjs-popup";
 import AssociationPopUp from "../PopUp/AssociationPopUp";
 import "../../../styles/popup.css";
 import editImg from "../../../assets/edit.svg";
-
+import { useSelector } from "react-redux";
+import API from "../../../utils/API";
+import { store } from "../../../redux/Store";
 const Association = ({ setBlurActive }) => {
+  const facultyId = useSelector((state) => state.user.facultyId);
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [associationDetails, setAssociationDetails] = useState({
     highestDesignation: "",
@@ -21,13 +24,17 @@ const Association = ({ setBlurActive }) => {
     return date.toLocaleDateString("en-GB"); // "dd/mm/yyyy" format
   };
   // Load data from localStorage on mount or set dummy data
+
   useEffect(() => {
+    if (!facultyId) return; // Prevent API call if facultyId is null
+
     const fetchAssociationDetails = async () => {
+      const url = `/ece/faculty/facultyassociation/${facultyId}`;
+      console.log("Fetching data from:", url); // Debugging API URL
+
       try {
-        const response = await fetch(
-          "http://localhost:3001/ece/faculty/facultyassociation/FAC001",
-        );
-        const data = await response.json();
+        const response = await API.get(url);
+        const data = response.data;
 
         if (data.success) {
           setAssociationDetails({
@@ -58,7 +65,7 @@ const Association = ({ setBlurActive }) => {
     };
 
     fetchAssociationDetails();
-  }, []);
+  }, [facultyId]); // Added facultyId as a dependency
 
   // Function to open popup
   const openPopup = () => {
@@ -73,10 +80,11 @@ const Association = ({ setBlurActive }) => {
   };
 
   // Function to update data and save to localStorage
+
   const updateAssociationDetails = async (data) => {
     try {
       const payload = {
-        faculty_id: "FAC001",
+        faculty_id: facultyId,
         designation:
           data.highestDesignation === "Professor"
             ? 1
@@ -101,28 +109,27 @@ const Association = ({ setBlurActive }) => {
         JSON.stringify(payload, null, 2),
       );
 
-      const response = await fetch(
-        "http://localhost:3001/ece/faculty/facultyassociation/FAC001",
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        },
-      );
+      const url = `http://localhost:3001/ece/faculty/facultyassociation/${facultyId}`;
 
-      const result = await response.json();
-      console.log("📥 API Response:", result);
+      const response = await API.put(url, payload); // 🔹 Use API (Axios instance)
 
-      if (result.success) {
+      console.log("📥 API Response:", response.data);
+
+      if (response.data.success) {
         setAssociationDetails(data); // Update UI with new data
         closePopup();
       } else {
-        console.error("⚠️ Update Failed:", result.error);
+        console.error("⚠️ Update Failed:", response.data.error);
       }
     } catch (error) {
       console.error("❌ Error in update request:", error);
+
+      if (error.response) {
+        console.error("🔴 Server Response:", error.response.data);
+        if (error.response.status === 401 || error.response.status === 403) {
+          console.warn("🔄 Token might be expired. Trying refresh...");
+        }
+      }
     }
   };
 

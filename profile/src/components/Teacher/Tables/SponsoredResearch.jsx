@@ -7,85 +7,60 @@ import "../../../styles/popup.css";
 import editImg from "../../../assets/edit.svg";
 import addImg from "../../../assets/add.svg";
 import deleteImg from "../../../assets/delete.svg";
+import API from "../../../utils/API";
+import { useSelector } from "react-redux";
+
+
 
 // Dummy data for testing
-const dummyResearchDetails = [
-  {
-    title: "AI in Education",
-    agency: "NSF",
-    amount: 50000,
-    duration: 3,
-    startDate: "2021-06-15",
-  },
-  {
-    title: "Climate Change Impact",
-    agency: "UNESCO",
-    amount: 75000,
-    duration: 2,
-    startDate: "2022-01-10",
-  },
-  {
-    title: "Renewable Energy",
-    agency: "DOE",
-    amount: 100000,
-    duration: 4,
-    startDate: "2020-09-20",
-  },
-];
+
 
 const SponsoredResearch = ({ setBlurActive }) => {
   const [researchDetails, setResearchDetails] = useState([]);
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [selectedResearch, setSelectedResearch] = useState(null);
   const [isAddResearch, setIsAddResearch] = useState(false);
+  const facultyId = useSelector((state) => state.user.facultyId);
 
-  // Fetch data
-
+  // Fetch Sponsored Research records
   const fetchResearchDetails = async () => {
     try {
-      const response = await fetch(
-        `http://localhost:3001/ece/faculty/sponsored-research/${facultyId}`,
-      );
-      if (!response.ok) {
-        // If the response is not OK (e.g., 404), handle it gracefully
-        if (response.status === 404) {
-          setResearchDetails([]); // No data found, set to an empty array
-          return;
-        }
-        throw new Error("Failed to fetch data");
+      const response = await API.get(`ece/faculty/sponsored-research/${facultyId}`);
+      // If the API returns an array, map it; otherwise, set an empty array.
+      if (Array.isArray(response.data)) {
+        setResearchDetails(
+          response.data.map((record) => ({
+            project_title: record.project_title,
+            agency: record.funding_agency,
+            amount: record.amount_sponsored,
+            duration: record.research_duration,
+            startDate: record.start_date,
+            end_date: record.end_date,
+            sponsorship_id: record.sponsorship_id,
+          }))
+        );
+      } else {
+        setResearchDetails([]);
       }
-
-      const data = await response.json();
-
-      setResearchDetails(
-        data.map((record) => ({
-          project_title: record.project_title,
-          agency: record.funding_agency,
-          amount: record.amount_sponsored,
-          duration: record.research_duration,
-          startDate: record.start_date,
-          end_date: record.end_date,
-          sponsorship_id: record.sponsorship_id,
-        })),
-      );
     } catch (error) {
       console.error("Error fetching sponsored research records:", error);
-      setResearchDetails([]); // Fallback to an empty array in case of errors
+      setResearchDetails([]);
     }
   };
 
-  const openPopup = (research) => {
-    // Format the start date before passing it to the popup
-    const formattedStartDate = new Date(research.start_date).toLocaleDateString(
-      "en-GB",
-    );
+  useEffect(() => {
+    fetchResearchDetails();
+  }, [facultyId]);
 
-    // Set the selected research with the formatted start date
+  // Open the popup and format the start date for display
+  const openPopup = (research) => {
+    const formattedStartDate = research.startDate
+      ? new Date(research.startDate).toLocaleDateString("en-GB")
+      : "";
     setSelectedResearch({
       ...research,
-      start_date: formattedStartDate, // Update start_date with the formatted date
+      start_date: formattedStartDate, // update start_date with formatted value
     });
-
     setPopupOpen(true);
     setBlurActive(true);
   };
@@ -96,84 +71,70 @@ const SponsoredResearch = ({ setBlurActive }) => {
     setBlurActive(false);
   };
 
-  const handleAddResearch = (newResearch) => {
-    if (isAddResearch) {
-      // Add new research
-      const requestPayload = {
-        faculty_id: facultyId, // Use FAC001 for now
-        project_title: newResearch.title,
-        funding_agency: newResearch.agency,
-        amount_sponsored: newResearch.amount,
-        research_duration: newResearch.duration,
-        start_date: newResearch.startDate,
-        end_date: newResearch.endDate || null,
-      };
+  // Add or update a sponsored research record
+  const handleAddResearch = async (newResearch) => {
+    // Build the payload to send to the API
+    const requestPayload = {
+      faculty_id: facultyId,
+      project_title: newResearch.title,
+      funding_agency: newResearch.agency,
+      amount_sponsored: newResearch.amount,
+      research_duration: newResearch.duration,
+      start_date: newResearch.startDate,
+      end_date: newResearch.endDate || null,
+    };
 
-      axios
-        .post(
-          "http://localhost:3001/ece/faculty/sponsored-research",
-          requestPayload,
-        )
-        .then((response) => {
-          setResearchDetails([
-            ...researchDetails,
-            { ...newResearch, sponsorship_id: response.data.sponsorship_id },
-          ]);
-          closePopup();
-        })
-        .catch((error) => {
-          console.error("Error adding sponsored research:", error);
-        });
-    } else {
-      const updatedResearch = {
-        faculty_id: facultyId,
-        project_title: newResearch.title,
-        funding_agency: newResearch.agency,
-        amount_sponsored: newResearch.amount,
-        research_duration: newResearch.duration,
-        start_date: newResearch.startDate,
-        end_date: newResearch.endDate || null,
-      };
-
-      axios
-        .put(
-          `http://localhost:3001/ece/faculty/sponsored-research/${selectedResearch.sponsorship_id}`,
-          updatedResearch,
-        )
-        .then(() => {
-          setResearchDetails((prevDetails) =>
-            prevDetails?.map((research) =>
-              research.sponsorship_id === selectedResearch.sponsorship_id
-                ? { ...newResearch }
-                : research,
-            ),
-          );
-          closePopup();
-        })
-
-        .catch((error) => {
-          console.error("Error updating sponsored research:", error);
-        });
+    try {
+      if (isAddResearch) {
+        // Add new research record
+        const response = await API.post(
+          "ece/faculty/sponsored-research",
+          requestPayload
+        );
+        setResearchDetails((prev) => [
+          ...prev,
+          { ...newResearch, sponsorship_id: response.data.sponsorship_id },
+        ]);
+      } else {
+        // Update existing research record
+        await API.put(
+          `ece/faculty/sponsored-research/${selectedResearch.sponsorship_id}`,
+          requestPayload
+        );
+        setResearchDetails((prev) =>
+          prev.map((research) =>
+            research.sponsorship_id === selectedResearch.sponsorship_id
+              ? { ...newResearch }
+              : research
+          )
+        );
+      }
+      closePopup();
+    } catch (error) {
+      console.error(
+        isAddResearch
+          ? "Error adding sponsored research:"
+          : "Error updating sponsored research:",
+        error
+      );
     }
   };
 
-  const handleDeleteResearch = (sponsorshipId) => {
-    axios
-      .delete(
-        `http://localhost:3001/ece/faculty/sponsored-research/${sponsorshipId}`,
-      )
-      .then(() => {
-        setResearchDetails((prevDetails) =>
-          prevDetails.filter(
-            (research) => research.sponsorship_id !== sponsorshipId,
-          ),
-        );
-      })
-      .catch((error) => {
-        console.error("Error deleting sponsored research:", error);
-      });
+  // Delete a research record
+  const handleDeleteResearch = async (sponsorshipId) => {
+    try {
+      await API.delete(`ece/faculty/sponsored-research/${sponsorshipId}`);
+      setResearchDetails((prev) =>
+        prev.filter(
+          (research) => research.sponsorship_id !== sponsorshipId
+        )
+      );
+    } catch (error) {
+      console.error("Error deleting sponsored research:", error);
+    }
   };
 
+  // Table headers for displaying research details
   const TABLE_HEAD = [
     "Project Title",
     "Funding Agency",
@@ -183,16 +144,13 @@ const SponsoredResearch = ({ setBlurActive }) => {
     "End Date",
     "Actions",
   ];
-  const formatDateForInput = (date) => {
-    const [date1, time] = date?.split("T");
 
-    const [day, month, year] = date1.split("-");
-    return `${day}-${month}-${year}`; // yyyy-MM-dd
+  // Optional: Format a date string for input fields if needed
+  const formatDateForInput = (date) => {
+    const [datePart] = date?.split("T") || [];
+    const [year, month, day] = datePart ? datePart.split("-") : [];
+    return day && month && year ? `${day}-${month}-${year}` : "";
   };
-  const facultyId = "FAC001"; // Replace with dynamic faculty ID if necessary
-  useEffect(() => {
-    fetchResearchDetails();
-  }, []); // Make sure this updates when facultyId changes
   return (
     <div>
       <div className="h-auto p-10">

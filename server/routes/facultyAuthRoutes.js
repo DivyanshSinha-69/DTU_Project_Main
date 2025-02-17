@@ -1,15 +1,13 @@
 import express from "express";
-import { forgotPassword,
-        resetPassword,
-        facultyLogin,
-        refreshToken,
-        logout,
-        
-        } from "../controllers/facultyAuthController.js";
+import {
+  forgotPassword,
+  resetPassword,
+  facultyLogin,
+  refreshToken,
+  logout,
+} from "../controllers/facultyAuthController.js";
 
 const router = express.Router();
-
-
 
 router.post("/login", facultyLogin);
 router.post("/refresh", refreshToken);
