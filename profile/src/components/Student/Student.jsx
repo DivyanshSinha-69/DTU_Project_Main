@@ -29,11 +29,17 @@ import BtechEducationDetails from "./Tables/BtechEducationalDetails";
 import { setBtechEducation } from "../../redux/reducers/UserBtechEducationalDetails";
 
 const Student = () => {
-  const { studentName, RollNo, Course, CourseName } = useSelector(
+  const user = useSelector(state => state.auth.user) || {}; // Ensure user is never undefined
+  const { studentName, RollNo, Course, CourseName } = user;
+
+  
+  const State = useSelector(
     (state) => state.auth.user,
   );
+  console.log("state", State);
   const [isBlurActive, setBlurActive] = useState(false);
   const [loader, setLoader] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   const { image } = useSelector((state) => state.userImage);
   const dispatch = useDispatch();
@@ -160,7 +166,7 @@ const Student = () => {
           },
         );
         dispatch(setPlacement(placementresponse.data.user));
-
+        setDataLoaded(true);
         setLoader(false);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -170,7 +176,9 @@ const Student = () => {
 
     fetchData();
   }, []);
-
+  if (loader || !dataLoaded) {
+    return <Loader />;
+  }
   return (
     <div>
       {loader ? (

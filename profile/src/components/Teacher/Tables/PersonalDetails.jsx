@@ -11,12 +11,12 @@ import API from "../../../utils/API";
 const PersonalDetails = ({ setBlurActive }) => {
   const facultyId = useSelector((state) => state.user.facultyId);
   const [personalDetails, setPersonalDetails] = useState({
-    name: "John Doe",
-    highestDegree: "PhD",
-    email: "johndoe@example.com",
-    contactNo: "1234567890",
-    qualificationYear: "2010",
-    degreeYear: "2008", // New property for the year of attaining the highest degree
+    name: "",
+    highestDegree: "",
+    email: "",
+    contactNo: "",
+    qualificationYear: "",
+    degreeYear: "",
   });
   const [specializations, setSpecializations] = useState([]);
   const [newSpecialization, setNewSpecialization] = useState("");
@@ -33,9 +33,46 @@ const PersonalDetails = ({ setBlurActive }) => {
     setBlurActive(false); // Deactivate blur when closing the popup
   };
 
-  const updatePersonalDetails = (updatedData) => {
-    setPersonalDetails(updatedData);
+  
+  const fetchFacultyDetails = async () => {
+    try {
+      const response = await API.get(`/ece/faculty/faculty-details/${facultyId}`);
+      if (response.data ) {
+        const faculty = response.data.data[0];
+        console.log("fac",faculty)
+        setPersonalDetails({
+          name: faculty.faculty_name || "",
+          highestDegree: faculty.degree || "",
+          email: faculty.email_id || "",
+          contactNo: faculty.mobile_number || "",
+          qualificationYear: faculty.year_of_attaining_highest_degree || "",
+          degreeYear: faculty.year_of_attaining_highest_degree || "", // Assuming same as qualification year
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching faculty details:", error);
+    }
   };
+
+  const updatePersonalDetails = async (updatedData) => {
+    try {
+      const response = await API.put(`/ece/faculty/faculty-details/${facultyId}`, {
+        faculty_name: updatedData.name,
+        degree: updatedData.highestDegree,
+        university: "", // Add if needed
+        year_of_attaining_highest_degree: updatedData.degreeYear,
+        email_id: updatedData.email,
+        mobile_number: updatedData.contactNo,
+      });
+  
+      if (response.status === 200) {
+        setPersonalDetails(updatedData);
+      }
+    } catch (error) {
+      console.error("Error updating faculty details:", error);
+    }
+  };
+  
   const fetchSpecializations = async () => {
     try {
       const response = await API.get(`/ece/faculty/specializations/${facultyId}`);
@@ -52,7 +89,9 @@ const PersonalDetails = ({ setBlurActive }) => {
   };
 
   useEffect(() => {
+    fetchFacultyDetails();
     fetchSpecializations();
+
   }, [facultyId]);
 
   // Add a new specialization using API.post

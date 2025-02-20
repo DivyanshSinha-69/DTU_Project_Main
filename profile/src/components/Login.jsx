@@ -43,25 +43,38 @@ const Login = () => {
       // Extract accessToken from response
       const { accessToken, refreshToken, user } = response.data;
 
-      if (!accessToken) {
+      if (!accessToken && role === 'faculty') {
         console.error("⚠️ No access token received from the server!");
         return;
       }
 
-      // Store accessToken and refreshToken in Redux
-      dispatch(
-        login({
-          facultyId: user.faculty_id, // Store faculty_id
-          accessToken: accessToken, // Store access token
-          refreshToken: refreshToken, // Store refresh token
-        }),
-      );
+      
 
       dispatch(setRole(user.Position));
 
       if (role === "faculty") {
         dispatch(setFacultyId(user.faculty_id)); // Store faculty ID for faculty login
       }
+      if (user.Position === "student") {
+        dispatch(
+          login({
+            user: user,
+          })
+        );
+      } else {
+        dispatch(
+          login({
+            user: user,
+            facultyId: user.faculty_id, // Store faculty_id
+            accessToken: accessToken, // Store access token
+            refreshToken: refreshToken, // Store refresh token
+          })
+        );
+      }
+      
+      // else {
+      //   dispatch(setRollNo(user.rollNo));
+      // }
 
       // Redirect after successful login
       if (user.Position === "faculty") {
