@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 
-const hashedPassword = "$2a$10$mKRPgOZNd78CXcTPcqs4huHMS/NXRdxg7cMdmt.K8xer/.qIg/v2K"; // Stored hash
+const hashedPassword = "$2a$10$V6QsygADgFaDr9Radw22.ej4/CxdaDyXYv478nB.gp4Bw6BfRodGm"; // Stored hash
 const enteredPassword = "NewSecurePassword123"; // The password you want to check
 
 bcrypt.compare(enteredPassword, hashedPassword, (err, isMatch) => {
