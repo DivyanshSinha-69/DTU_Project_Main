@@ -25,7 +25,6 @@ const PatentRecords = ({ setBlurActive }) => {
           faculty_id: facultyId, // Add facultyId as a query parameter
         },
       });
-      console.log(response.data);
       setPatentDetails(
         response.data?.data?.map((patent) => ({
           patent_id: patent.patent_id,

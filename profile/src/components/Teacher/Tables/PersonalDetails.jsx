@@ -39,7 +39,6 @@ const PersonalDetails = ({ setBlurActive }) => {
       const response = await API.get(`/ece/faculty/faculty-details/${facultyId}`);
       if (response.data ) {
         const faculty = response.data.data[0];
-        console.log("fac",faculty)
         setPersonalDetails({
           name: faculty.faculty_name || "",
           highestDegree: faculty.degree || "",
@@ -76,7 +75,6 @@ const PersonalDetails = ({ setBlurActive }) => {
   const fetchSpecializations = async () => {
     try {
       const response = await API.get(`/ece/faculty/specializations/${facultyId}`);
-      console.log(response)
       if (Array.isArray(response.data.data)) {
         setSpecializations(response.data.data);
       } else {

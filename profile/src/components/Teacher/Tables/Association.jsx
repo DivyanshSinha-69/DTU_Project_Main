@@ -30,7 +30,6 @@ const Association = ({ setBlurActive }) => {
 
     const fetchAssociationDetails = async () => {
       const url = `/ece/faculty/facultyassociation/${facultyId}`;
-      console.log("Fetching data from:", url); // Debugging API URL
 
       try {
         const response = await API.get(url);
@@ -104,16 +103,12 @@ const Association = ({ setBlurActive }) => {
         date_end_astprof: data.assistantProfessorEndDate,
       };
 
-      console.log(
-        "📤 Sending Update Payload:",
-        JSON.stringify(payload, null, 2),
-      );
+      
 
       const url = `http://localhost:3001/ece/faculty/facultyassociation/${facultyId}`;
 
       const response = await API.put(url, payload); // 🔹 Use API (Axios instance)
 
-      console.log("📥 API Response:", response.data);
 
       if (response.data.success) {
         setAssociationDetails(data); // Update UI with new data

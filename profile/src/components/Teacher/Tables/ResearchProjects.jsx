@@ -74,7 +74,7 @@ const ResearchProjects = ({ setBlurActive }) => {
   const openPopup = (project = null) => {
     setEditProject(project ? { ...project } : null);
     setPopupOpen(true);
-    setBlurActive(true);
+    setBlurActive(true)
   };
 
   const closePopup = () => {

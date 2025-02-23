@@ -29,26 +29,27 @@ const Faculty = () => {
 
   const facultyId = useSelector((state) => state.user.facultyId);
 
-const fetchFacultyImage = async () => {
-  if (isOperationInProgress || !facultyId) return;
-
-  try {
-    const response = await API.get(`/ece/faculty/facultyimage/${facultyId}`);
-
-    console.log("API called for faculty image");
-
-    if (response.data && response.data.faculty_image) {
-      const imagePath = `http://localhost:3001/public/${response.data.faculty_image}`;
-      console.log("Fetched image path:", imagePath);
-      setSelectedImage(imagePath);
-    } else {
-      setSelectedImage(null);
+  const fetchFacultyImage = async () => {
+    if (isOperationInProgress) return;
+  
+    try {
+      const response = await API.get(`/ece/faculty/facultyimage/FAC001`);
+      console.log("API called for faculty image", response);
+  
+      if (response.data && response.data.faculty_image) {
+        const imagePath = `http://localhost:3001/public/${response.data.faculty_image}`; // Ensure correct path
+        console.log("Fetched image path:", imagePath);
+        setSelectedImage(imagePath);
+      } else {
+        setSelectedImage(null);
+      }
+    } catch (error) {
+      console.error("❌ Error fetching faculty image:", error);
+      toast.error("⚠️ Failed to fetch faculty image.");
     }
-  } catch (error) {
-    console.error("❌ Error fetching faculty image:", error);
-    toast.error("⚠️ Failed to fetch faculty image.");
-  }
-};
+  };
+  
+  
 
 
   useEffect(() => {
@@ -58,9 +59,8 @@ const fetchFacultyImage = async () => {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const handleImageUploadOrUpdate = async (event) => {
-    if (!event.target.files || event.target.files.length === 0 || !facultyId)
-      return;
-  
+    if (!event.target.files || event.target.files.length === 0) return;
+    
     setOperationInProgress(true);
     const file = event.target.files[0];
     const fileExtension = file.name.split(".").pop().toLowerCase();
@@ -74,34 +74,32 @@ const fetchFacultyImage = async () => {
   
     const formData = new FormData();
     formData.append("faculty_image", file);
-    formData.append("faculty_id", facultyId);
   
     setIsUploadingImage(true);
   
-    setTimeout(async () => {
-      try {
-        const response = selectedImage
-          ? await API.put(`/ece/faculty/facultyimage/${facultyId}`, formData)
-          : await API.post(`/ece/faculty/facultyimage/${facultyId}`, formData);
+    try {
+      const response = await API.put(
+        `/ece/faculty/facultyimage/FAC001`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      
   
-        if (response.data?.message?.includes("successfully")) {
-          setSelectedImage(URL.createObjectURL(file));
-          toast.success(
-            selectedImage ? "Image updated successfully!" : "Image uploaded successfully!"
-          );
-          setTimeout(fetchFacultyImage, 3000);
-        } else {
-          toast.error("Failed to upload or update image.");
-        }
-      } catch (error) {
-        console.error("Error uploading/updating image:", error);
+      if (response.data?.message?.includes("successfully")) {
+        setTimeout(fetchFacultyImage, 2000); // Fetch updated image after delay
+        toast.success("Image uploaded successfully!");
+      } else {
         toast.error("Failed to upload or update image.");
-      } finally {
-        setIsUploadingImage(false);
-        setOperationInProgress(false);
       }
-    }, 2000);
+    } catch (error) {
+      console.error("Error uploading/updating image:", error);
+      toast.error("Failed to upload or update image.");
+    } finally {
+      setIsUploadingImage(false);
+      setOperationInProgress(false);
+    }
   };
+  
   
   const handleDeleteImage = async () => {
     if (!facultyId) return;
@@ -123,6 +121,7 @@ const fetchFacultyImage = async () => {
       setOperationInProgress(false);
     }
   };
+  
   
 
   // Dummy data for the teacher (replace with actual data later)
