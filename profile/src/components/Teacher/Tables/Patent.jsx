@@ -15,7 +15,9 @@ const PatentRecords = ({ setBlurActive }) => {
   const [selectedPatent, setSelectedPatent] = useState(null);
   const [isAddPatent, setIsAddPatent] = useState(false);
 
-  const facultyId = useSelector((state) => state.user.facultyId);
+  const user = useSelector(state => state.auth.user) || {};
+    const { faculty_id } = user;
+    const facultyId = faculty_id;
 
   // Fetch patent records
   const fetchPatentRecords = async () => {

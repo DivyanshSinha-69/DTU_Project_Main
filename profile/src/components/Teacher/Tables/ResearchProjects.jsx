@@ -14,7 +14,9 @@ const ResearchProjects = ({ setBlurActive }) => {
   const [researchProjectsDetails, setResearchProjectsDetails] = useState([]);
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [editProject, setEditProject] = useState(null);
-    const facultyId = useSelector((state) => state.user.facultyId);
+  const user = useSelector(state => state.auth.user) || {};
+    const { faculty_id } = user;
+    const facultyId = faculty_id;
   
   const API_BASE_URL = "/ece/faculty";
   const TABLE_HEAD = [

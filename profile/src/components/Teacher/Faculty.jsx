@@ -27,13 +27,15 @@ const Faculty = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [isOperationInProgress, setOperationInProgress] = useState(false);
 
-  const facultyId = useSelector((state) => state.user.facultyId);
+  const user = useSelector(state => state.auth.user) || {};
+    const { faculty_id } = user;
+    const facultyId = faculty_id;
 
   const fetchFacultyImage = async () => {
     if (isOperationInProgress) return;
   
     try {
-      const response = await API.get(`/ece/faculty/facultyimage/FAC001`);
+      const response = await API.get(`/ece/faculty/facultyimage/${facultyId}`);
       console.log("API called for faculty image", response);
   
       if (response.data && response.data.faculty_image) {
@@ -79,7 +81,7 @@ const Faculty = () => {
   
     try {
       const response = await API.put(
-        `/ece/faculty/facultyimage/FAC001`,
+        `/ece/faculty/facultyimage/${facultyId}`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
@@ -175,7 +177,7 @@ const Faculty = () => {
               <div className="details-container m-2">
                 <h1 className="font-extrabold text-3xl">{teacherData.name}</h1>
                 <h2 className="font-bold text-1xl">
-                  ID: {teacherData.employeeId}
+                    ID: {facultyId}
                 </h2>
                 <h2 className="text-lg">{teacherData.designation}</h2>
                 <h2>Department: {teacherData.department}</h2>

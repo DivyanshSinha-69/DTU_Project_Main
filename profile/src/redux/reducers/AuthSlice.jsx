@@ -1,24 +1,16 @@
 import { createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const storedAccessToken = localStorage.getItem("accessToken");
-const storedRefreshToken = localStorage.getItem("refreshToken");
-let parsedUser = null;
-try {
-  const storedUser = localStorage.getItem("user");
-  parsedUser = storedUser ? JSON.parse(storedUser) : null;
-} catch (error) {
-  console.error("Error parsing user from localStorage:", error);
-  parsedUser = null;
-}
+
 
 const initialState = {
-  user: parsedUser,
+  user: JSON.parse(localStorage.getItem("user")) || null, // Ensure structure is maintained
   facultyId: localStorage.getItem("facultyId") || null,
   accessToken: localStorage.getItem("accessToken") || null,
   refreshToken: localStorage.getItem("refreshToken") || null,
   isAuthenticated: !!localStorage.getItem("accessToken"),
 };
+
 
 
 
@@ -33,8 +25,9 @@ export const authSlice = createSlice({
       state.accessToken = action.payload.accessToken;
       state.refreshToken = action.payload.refreshToken;
       state.isAuthenticated = true;
+      localStorage.setItem("user", JSON.stringify(action.payload.user)); 
       localStorage.setItem("facultyId", action.payload.facultyId);
-      localStorage.setItem("user", JSON.stringify(action.payload.user)); // Store user persistently
+
       localStorage.setItem("accessToken", action.payload.accessToken);
       localStorage.setItem("refreshToken", action.payload.refreshToken);
     },
@@ -44,7 +37,6 @@ export const authSlice = createSlice({
       state.accessToken = null;
       state.refreshToken = null;
       state.isAuthenticated = false;
-      localStorage.removeItem("user");
       localStorage.removeItem("facultyId");
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");

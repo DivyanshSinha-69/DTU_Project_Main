@@ -30,13 +30,11 @@ import { setBtechEducation } from "../../redux/reducers/UserBtechEducationalDeta
 
 const Student = () => {
   const user = useSelector(state => state.auth.user) || {}; // Ensure user is never undefined
+  console.log("login user", user);
   const { studentName, RollNo, Course, CourseName } = user;
 
   
-  const State = useSelector(
-    (state) => state.auth.user,
-  );
-  console.log("state", State);
+  
   const [isBlurActive, setBlurActive] = useState(false);
   const [loader, setLoader] = useState(true);
   const [dataLoaded, setDataLoaded] = useState(false);

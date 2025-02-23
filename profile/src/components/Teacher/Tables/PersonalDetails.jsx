@@ -9,7 +9,9 @@ import API from "../../../utils/API";
 
 
 const PersonalDetails = ({ setBlurActive }) => {
-  const facultyId = useSelector((state) => state.user.facultyId);
+  const user = useSelector(state => state.auth.user) || {};
+  const { faculty_id } = user;
+  const facultyId = faculty_id;
   const [personalDetails, setPersonalDetails] = useState({
     name: "",
     highestDegree: "",

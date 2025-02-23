@@ -15,7 +15,9 @@ const BookRecordsPublished = ({ setBlurActive }) => {
   const [selectedBook, setSelectedBook] = useState(null);
   const [isAddBook, setIsAddBook] = useState(false);
 
-  const facultyId = useSelector((state) => state.user.facultyId);
+  const user = useSelector(state => state.auth.user) || {};
+    const { faculty_id } = user;
+    const facultyId = faculty_id;
 
   // Fetch book records from the backend
 

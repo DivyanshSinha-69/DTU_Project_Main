@@ -8,7 +8,9 @@ import { useSelector } from "react-redux";
 import API from "../../../utils/API";
 import { store } from "../../../redux/Store";
 const Association = ({ setBlurActive }) => {
-  const facultyId = useSelector((state) => state.user.facultyId);
+  const user = useSelector(state => state.auth.user) || {};
+    const { faculty_id } = user;
+    const facultyId = faculty_id;
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [associationDetails, setAssociationDetails] = useState({
     highestDesignation: "",

@@ -16,7 +16,9 @@ const ConsultancyDetails = ({ setBlurActive }) => {
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [selectedConsultancy, setSelectedConsultancy] = useState(null);
   const [isAddConsultancy, setIsAddConsultancy] = useState(false);
-  const facultyId = useSelector((state) => state.user.facultyId);
+  const user = useSelector(state => state.auth.user) || {};
+    const { faculty_id } = user;
+    const facultyId = faculty_id;
 
   const fetchConsultancyDetails = async () => {
     try {
