@@ -1,5 +1,5 @@
 import React from "react";
-const Unaithorized = () => {
+const Unauthorized = () => {
   return (
     <div className=" flex justify-center items-center h-screen text-center">
       <svg
@@ -22,4 +22,4 @@ const Unaithorized = () => {
   );
 };
 
-export default Unaithorized;
+export default Unauthorized;

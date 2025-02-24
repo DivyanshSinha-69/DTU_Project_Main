@@ -13,7 +13,6 @@ import Forgot from "./components/Forgot";
 import Faculty from "./components/Teacher/Faculty";
 import Student from "./components/Student/Student";
 import Dashboard from "./components/AdminDashboard";
-import Unaithorized from "./components/Unauthorized";
 import { useDispatch, useSelector } from "react-redux";
 import Parents from "./components/Parents";
 import Alumini from "./components/Alumini";
@@ -24,6 +23,8 @@ import { setRole } from "./redux/reducers/UserSlice";
 import Loader from "./components/Loader";
 import AdminLogin from "./components/AdminLogin";
 import ResetPassword from "./components/ResetPass";
+import Unauthorized from "./components/Unauthorized";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   const navigate = Navigate;
@@ -38,7 +39,12 @@ function App() {
         });
 
         const userDetails = response.data;
-        dispatch(login(userDetails.user));
+        dispatch(login({
+          user: userDetails.user,
+          facultyId: null,
+            accessToken: null,
+            refreshToken: null,
+        }));
         dispatch(setRole(userDetails.user.Position));
 
         if (userDetails.user.Position === "student") {
@@ -60,18 +66,28 @@ function App() {
 
   return (
     <>
+       <Toaster
+                     toastOptions={{
+                       className: "",
+                       duration: 2500,
+                       style: {
+                         background: "#1f2937",
+                         color: "#fff",
+                       },
+                     }}
+                   />
       <Router>
         <StickyNavbar />
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/login/admin" element={<AdminLogin />} />
-          <Route path="/faculty/portal" element={<Faculty />} />
+          {/* <Route path="/login/admin" element={<AdminLogin />} /> */}
 
           {role === "student" ? (
             <Route path="/student/portal" element={<Student />} />
-          ) : /*) : role === "teacher" ? (
-            <Route path="/teacher/portal" element={<Teacher />} />*/
+          ) :  role === "faculty" ? (
+              <Route path="/faculty/portal" element={<Faculty />} />
+          ):
           role === "admin" ? (
             <Route path="/admin/portal" element={<Dashboard />} />
           ) : (
@@ -83,7 +99,7 @@ function App() {
           <Route path="/forgot" element={<Forgot />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-          <Route path="*" element={<Unaithorized />} />
+          <Route path="*" element={<Unauthorized />} />
         </Routes>
         <Footer />
       </Router>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import backgroundImage from "../assets/dtu.png";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
@@ -6,10 +6,14 @@ import axios from "axios";
 import { login } from "../redux/reducers/AuthSlice";
 import { setRole, setFacultyId } from "../redux/reducers/UserSlice";
 import { useLocation } from "react-router-dom";
+import { toast } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 
 import { HashLink } from "react-router-hash-link";
+// let hasToastFired = false;
 
 const Login = () => {
+  
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const role = params.get("role") || "student"; // Default to student
@@ -43,27 +47,42 @@ const Login = () => {
       // Extract accessToken from response
       const { accessToken, refreshToken, user } = response.data;
 
-      if (!accessToken) {
+      if (!accessToken && role === 'faculty') {
         console.error("⚠️ No access token received from the server!");
+        toast.error("Invalid credentials. Please try again.");
         return;
       }
 
-      // Store accessToken and refreshToken in Redux
-      dispatch(
-        login({
-          facultyId: user.faculty_id, // Store faculty_id
-          accessToken: accessToken, // Store access token
-          refreshToken: refreshToken, // Store refresh token
-        }),
-      );
+      
 
       dispatch(setRole(user.Position));
 
-      if (role === "faculty") {
-        dispatch(setFacultyId(user.faculty_id)); // Store faculty ID for faculty login
+      
+      if (role === "student") {
+        dispatch(
+          login({
+            user: user, // Ensure the entire user object is stored
+            facultyId: null,
+            accessToken: accessToken,
+            refreshToken: refreshToken,
+          })
+        );
+        
+      } else if (role === 'faculty'){
+        dispatch(
+          login({
+            user: user,
+            facultyId: user.faculty_id, // Store faculty_id
+            accessToken: accessToken, // Store access token
+            refreshToken: refreshToken, // Store refresh token
+          })
+        );
       }
-
-      // Redirect after successful login
+      
+      // if (!hasToastFired) {
+      //   toast.success("Login successful!");
+      //   hasToastFired = true; // Set flag to prevent multiple calls
+      // }
       if (user.Position === "faculty") {
         navigate("/faculty/portal");
       } else if (user.Position === "student") {
@@ -71,10 +90,37 @@ const Login = () => {
       } else {
         navigate("/unauthorized");
       }
+
     } catch (error) {
       console.error("Login failed:", error.response?.data || error.message);
+    
+      // Ensure we extract the correct message
+      const errorMessage =
+        error.response?.data?.message || // If API returns { "message": "Invalid credentials" }
+        error.response?.data?.error ||  // If API returns { "error": "Invalid credentials" }
+        "Invalid credentials"; // Default message
+    
+      toast.error(errorMessage); // Show extracted error message
     }
+    
   };
+  // useEffect(() => {
+  //   const storedUser = localStorage.getItem("user");
+  //   const storedAccessToken = localStorage.getItem("accessToken");
+  //   const storedRefreshToken = localStorage.getItem("refreshToken");
+  //   const storedFacultyId = localStorage.getItem("facultyId");
+
+  //   if (storedUser && storedAccessToken) {
+  //     dispatch(
+  //       login({
+  //         user: JSON.parse(storedUser),
+  //         facultyId: storedFacultyId,
+  //         accessToken: storedAccessToken,
+  //         refreshToken: storedRefreshToken,
+  //       })
+  //     );
+  //   }
+  // }, [dispatch]);
 
   return (
     <>
@@ -125,14 +171,6 @@ const Login = () => {
                 >
                   Password
                 </label>
-                {/* <div className="text-sm">
-                  <HashLink
-                    to="/forgot"
-                    className="font-semibold text-md text-gray-800 hover:text-indigo-500"
-                  >
-                    Forgot password?
-                  </HashLink>
-                </div> */}
               </div>
               <div className="mt-2">
                 <input
@@ -166,8 +204,11 @@ const Login = () => {
               </button>
             </div>
           </form>
+
         </div>
+        
       </div>
+      
     </>
   );
 };

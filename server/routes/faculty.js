@@ -131,11 +131,11 @@ router.put("/consultancy/:consultancy_id", updateConsultancy);
 router.delete("/consultancy/:consultancy_id", deleteConsultancy);
 
 // Faculty Details Routes
-router.get("/faculty/:faculty_id", getFacultyDetails);
-router.get("/faculty", getFacultyDetails);
-router.post("/faculty", addFaculty);
-router.put("/faculty/:faculty_id", updateFacultyDetails);
-router.delete("/faculty/:faculty_id", deleteFaculty);
+router.get("/faculty-details/:faculty_id", getFacultyDetails);
+router.get("/faculty-details", getFacultyDetails);
+router.post("/faculty-details", addFaculty);
+router.put("/faculty-details/:faculty_id", updateFacultyDetails);
+router.delete("/faculty-details/:faculty_id", deleteFaculty);
 
 // Specialization Routes
 router.get("/specializations", getSpecializations);

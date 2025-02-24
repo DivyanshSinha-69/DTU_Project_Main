@@ -20,8 +20,9 @@ const SponsoredResearch = ({ setBlurActive }) => {
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [selectedResearch, setSelectedResearch] = useState(null);
   const [isAddResearch, setIsAddResearch] = useState(false);
-  const facultyId = useSelector((state) => state.user.facultyId);
-
+  const user = useSelector(state => state.auth.user) || {};
+    const { faculty_id } = user;
+    const facultyId = faculty_id;
   // Fetch Sponsored Research records
   const fetchResearchDetails = async () => {
     try {
@@ -147,9 +148,10 @@ const SponsoredResearch = ({ setBlurActive }) => {
 
   // Optional: Format a date string for input fields if needed
   const formatDateForInput = (date) => {
-    const [datePart] = date?.split("T") || [];
-    const [year, month, day] = datePart ? datePart.split("-") : [];
-    return day && month && year ? `${day}-${month}-${year}` : "";
+    const [date1, time] = date?.split("T");
+
+    const [day, month, year] = date1.split("-");
+    return `${day}-${month}-${year}`; // yyyy-MM-dd
   };
   return (
     <div>

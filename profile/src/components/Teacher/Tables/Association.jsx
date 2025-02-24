@@ -8,7 +8,9 @@ import { useSelector } from "react-redux";
 import API from "../../../utils/API";
 import { store } from "../../../redux/Store";
 const Association = ({ setBlurActive }) => {
-  const facultyId = useSelector((state) => state.user.facultyId);
+  const user = useSelector(state => state.auth.user) || {};
+    const { faculty_id } = user;
+    const facultyId = faculty_id;
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [associationDetails, setAssociationDetails] = useState({
     highestDesignation: "",
@@ -30,7 +32,6 @@ const Association = ({ setBlurActive }) => {
 
     const fetchAssociationDetails = async () => {
       const url = `/ece/faculty/facultyassociation/${facultyId}`;
-      console.log("Fetching data from:", url); // Debugging API URL
 
       try {
         const response = await API.get(url);
@@ -101,19 +102,16 @@ const Association = ({ setBlurActive }) => {
             : data.associateProfessorStartDate,
         date_end_asoprof: data.associateProfessorEndDate,
         date_asg_astprof: data.assistantProfessorStartDate,
-        date_end_astprof: data.assistantProfessorEndDate,
+        date_end_astprof: data.assistantProfessorEndDate || null,
+        date_end_prof:null
       };
 
-      console.log(
-        "📤 Sending Update Payload:",
-        JSON.stringify(payload, null, 2),
-      );
+      
 
       const url = `http://localhost:3001/ece/faculty/facultyassociation/${facultyId}`;
 
       const response = await API.put(url, payload); // 🔹 Use API (Axios instance)
 
-      console.log("📥 API Response:", response.data);
 
       if (response.data.success) {
         setAssociationDetails(data); // Update UI with new data
@@ -180,7 +178,12 @@ const Association = ({ setBlurActive }) => {
       date: highestDesignationDate,
     });
   }
+  const formatDateForPopUP = (date) => {
+    const [date1, time] = date?.split("T");
 
+    const [day, month, year] = date1.split("-");
+    return `${day}-${month}-${year}`; // yyyy-MM-dd
+  };
   return (
     <div>
       <div className="h-auto p-10">

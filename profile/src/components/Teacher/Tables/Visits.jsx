@@ -36,7 +36,9 @@ const Visits = ({ setBlurActive }) => {
   const [selectedVisit, setSelectedVisit] = useState(null);
   const [isAddVisit, setIsAddVisit] = useState(false);
 
-  const FACULTY_ID = useSelector((state) => state.user.facultyId);
+  const user = useSelector(state => state.auth.user) || {};
+    const { faculty_id } = user;
+    const FACULTY_ID = faculty_id;
   // Replace with dynamic faculty ID if necessary
 
   // Fetch visit records from the API using the centralized API instance

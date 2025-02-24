@@ -28,6 +28,12 @@ export default function ResearchProjectPopup({
     "IoT",
   ];
 
+  const formatDateForInput = (date) => {
+    const [date1, time] = date?.split("T");
+
+    const [day, month, year] = date1.split("-");
+    return `${day}-${month}-${year}`; // yyyy-MM-dd
+  };
   // Pre-fill form with existing data if editing
   useEffect(() => {
     if (project) {
@@ -36,7 +42,7 @@ export default function ResearchProjectPopup({
         typeOfPaper: project.TypeOfPaper || "Conference",
         domain: project.Domain || "AI",
         publicationName: project.PublicationName || "",
-        publishedDate: project.PublishedDate || "",
+        publishedDate: formatDateForInput(project.PublishedDate) || "",
         document: project.Document || null,
         citation: project.Citation || "", // Add this line
       });

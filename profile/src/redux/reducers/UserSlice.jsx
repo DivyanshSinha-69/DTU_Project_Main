@@ -12,12 +12,9 @@ export const userSlice = createSlice({
     setRole: (state, action) => {
       state.role = action.payload;
     },
-    setFacultyId: (state, action) => {
-      state.facultyId = action.payload; // Store faculty ID in Redux
-    },
   },
 });
 
-export const { setRole, setFacultyId } = userSlice.actions;
+export const { setRole } = userSlice.actions;
 
 export default userSlice.reducer;

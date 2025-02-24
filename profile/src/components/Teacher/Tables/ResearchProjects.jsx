@@ -14,7 +14,9 @@ const ResearchProjects = ({ setBlurActive }) => {
   const [researchProjectsDetails, setResearchProjectsDetails] = useState([]);
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [editProject, setEditProject] = useState(null);
-    const facultyId = useSelector((state) => state.user.facultyId);
+  const user = useSelector(state => state.auth.user) || {};
+    const { faculty_id } = user;
+    const facultyId = faculty_id;
   
   const API_BASE_URL = "/ece/faculty";
   const TABLE_HEAD = [
@@ -72,9 +74,11 @@ const ResearchProjects = ({ setBlurActive }) => {
 
   // Open the popup for adding a new project or editing an existing one
   const openPopup = (project = null) => {
-    setEditProject(project ? { ...project } : null);
+    setEditProject(project ? {
+      ...project,
+     } : null);
     setPopupOpen(true);
-    setBlurActive(true);
+    setBlurActive(true)
   };
 
   const closePopup = () => {
@@ -112,20 +116,37 @@ const ResearchProjects = ({ setBlurActive }) => {
       if (response.data.message && response.data.message.includes("successfully")) {
         setResearchProjectsDetails((prevDetails) => {
           if (editProject) {
-            // Update the existing project in state
             return prevDetails.map((p) =>
               p.research_id === editProject.research_id
-                ? { ...requestData, research_id: editProject.research_id }
+                ? { 
+                    research_id: editProject.research_id,
+                    TypeOfPaper: getPaperType(requestData.paper_type),
+                    Title: requestData.title_of_paper,
+                    Domain: requestData.domain,
+                    PublicationName: requestData.publication_name,
+                    PublishedDate: requestData.published_date,
+                    Document: requestData.pdf_path ? { name: "Uploaded" } : null,
+                    Citation: requestData.citation,
+                  }
                 : p
             );
           } else {
-            // Add the new project to state; assume insertId is returned for the new record
             return [
               ...prevDetails,
-              { ...requestData, research_id: response.data.data.insertId },
+              { 
+                research_id: response.data.data.insertId,
+                TypeOfPaper: getPaperType(requestData.paper_type),
+                Title: requestData.title_of_paper,
+                Domain: requestData.domain,
+                PublicationName: requestData.publication_name,
+                PublishedDate: requestData.published_date,
+                Document: requestData.pdf_path ? { name: "Uploaded" } : null,
+                Citation: requestData.citation,
+              }, 
             ];
           }
         });
+        
         closePopup();
       }
     } catch (error) {
@@ -146,6 +167,7 @@ const ResearchProjects = ({ setBlurActive }) => {
       console.error("Error deleting research paper:", error);
     }
   };
+
 
   return (
     <div>
@@ -278,7 +300,8 @@ const ResearchProjects = ({ setBlurActive }) => {
                             color="blue-gray"
                             className="font-normal"
                           >
-                            {PublishedDate}
+                          {new Date(PublishedDate)?.toLocaleDateString("en-GB")}
+
                           </Typography>
                         </td>
                         <td className={classes}>
