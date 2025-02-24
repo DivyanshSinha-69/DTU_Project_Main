@@ -68,7 +68,7 @@ const Login = () => {
           })
         );
         
-      } else {
+      } else if (role === 'faculty'){
         dispatch(
           login({
             user: user,
@@ -171,14 +171,6 @@ const Login = () => {
                 >
                   Password
                 </label>
-                {/* <div className="text-sm">
-                  <HashLink
-                    to="/forgot"
-                    className="font-semibold text-md text-gray-800 hover:text-indigo-500"
-                  >
-                    Forgot password?
-                  </HashLink>
-                </div> */}
               </div>
               <div className="mt-2">
                 <input

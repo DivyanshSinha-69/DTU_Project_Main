@@ -60,42 +60,45 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
 
   const handleAddFDP = async (newFDP) => {
     const { programName, year, month, days } = newFDP;
-    // Build the payload
+  
     const payload = {
-      facultyId,
+      faculty_id: facultyId,
       FDP_name: programName,
       year_conducted: year,
       month_conducted: month,
       days_contributed: days,
     };
-
+  
     try {
       let response;
       if (isAddFDP) {
-        // Add new FDP record
         response = await API.post("/ece/faculty/fdp-records", payload);
       } else {
-        // Update existing FDP record
-        response = await API.put(
-          `/ece/faculty/fdp-records/${selectedFDP.FDP_id}`,
-          payload
-        );
+        response = await API.put(`/ece/faculty/fdp-records/${selectedFDP.FDP_id}`, payload);
       }
-
+  
+      console.log("API Response:", response.data); // Debugging
+  
       if (response && response.data) {
         toast.success("FDP record successfully saved");
-        // For adding a new record, append it to the list
+  
+        // Ensure the new data matches the expected format
+        const newFDPRecord = {
+          FDP_id: response.data.FDP_id || selectedFDP.FDP_id, // Ensure ID exists
+          FDP_name: response.data.FDP_name || programName,
+          year_conducted: response.data.year_conducted || year,
+          month_conducted: response.data.month_conducted || month,
+          days_contributed: response.data.days_contributed || days,
+        };
+  
         if (isAddFDP) {
-          // Assuming the response returns the new FDP record including its generated FDP_id
-          setFdpDetails((prev) => [...prev, response.data]);
+          setFdpDetails((prev) => [...prev, newFDPRecord]);
         } else {
-          // For updates, refresh the FDP details list
           setFdpDetails((prev) =>
-            prev.map((fdp) =>
-              fdp.FDP_id === selectedFDP.FDP_id ? response.data : fdp
-            )
+            prev.map((fdp) => (fdp.FDP_id === selectedFDP.FDP_id ? newFDPRecord : fdp))
           );
         }
+  
         closePopup();
       } else {
         toast.error("Failed to save FDP record.");
@@ -105,6 +108,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
       toast.error("Error connecting to the server.");
     }
   };
+  
 
   const handleDeleteFDP = async (fdpId) => {
     try {

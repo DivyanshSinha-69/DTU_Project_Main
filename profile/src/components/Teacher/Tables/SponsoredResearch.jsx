@@ -148,9 +148,10 @@ const SponsoredResearch = ({ setBlurActive }) => {
 
   // Optional: Format a date string for input fields if needed
   const formatDateForInput = (date) => {
-    const [datePart] = date?.split("T") || [];
-    const [year, month, day] = datePart ? datePart.split("-") : [];
-    return day && month && year ? `${day}-${month}-${year}` : "";
+    const [date1, time] = date?.split("T");
+
+    const [day, month, year] = date1.split("-");
+    return `${day}-${month}-${year}`; // yyyy-MM-dd
   };
   return (
     <div>

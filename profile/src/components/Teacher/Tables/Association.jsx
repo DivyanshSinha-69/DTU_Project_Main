@@ -102,7 +102,8 @@ const Association = ({ setBlurActive }) => {
             : data.associateProfessorStartDate,
         date_end_asoprof: data.associateProfessorEndDate,
         date_asg_astprof: data.assistantProfessorStartDate,
-        date_end_astprof: data.assistantProfessorEndDate,
+        date_end_astprof: data.assistantProfessorEndDate || null,
+        date_end_prof:null
       };
 
       
@@ -177,7 +178,12 @@ const Association = ({ setBlurActive }) => {
       date: highestDesignationDate,
     });
   }
+  const formatDateForPopUP = (date) => {
+    const [date1, time] = date?.split("T");
 
+    const [day, month, year] = date1.split("-");
+    return `${day}-${month}-${year}`; // yyyy-MM-dd
+  };
   return (
     <div>
       <div className="h-auto p-10">

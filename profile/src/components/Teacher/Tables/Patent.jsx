@@ -97,13 +97,7 @@ const PatentRecords = ({ setBlurActive }) => {
     setBlurActive(false);
   };
 
-  const formatDateForInput = (date) => {
-    if (!date) return "";
-    const [datePart] = date.split("T");
-    const [year, month, day] = datePart.split("-");
-    return `${day}-${month}-${year}`;
-  };
-
+  
   const TABLE_HEAD = [
     "Patent Name",
     "Published Date",
@@ -112,6 +106,12 @@ const PatentRecords = ({ setBlurActive }) => {
     "Actions",
   ];
 
+  const formatDateForInput = (date) => {
+    const [date1, time] = date?.split("T");
+
+    const [day, month, year] = date1.split("-");
+    return `${day}-${month}-${year}`; // yyyy-MM-dd
+  };
   return (
     <div>
       <div className="h-auto p-10">
@@ -282,9 +282,9 @@ const PatentRecords = ({ setBlurActive }) => {
             selectedPatent && (
               <PatentPopUp
                 patentName={selectedPatent.patent_name}
-                patentPublish={selectedPatent.patent_publish}
-                patentFiled={selectedPatent.patent_filed}
-                patentAwardDate={selectedPatent.patent_award_date}
+                patentPublish={formatDateForInput(selectedPatent.patent_publish)}
+                patentFiled={formatDateForInput(selectedPatent.patent_filed)}
+                patentAwardDate={formatDateForInput(selectedPatent.patent_award_date)}
                 patent_id={selectedPatent.patent_id}
                 closeModal={closePopup}
                 handleAddPatent={handleAddPatent}
