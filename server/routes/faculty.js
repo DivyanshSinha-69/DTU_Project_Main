@@ -64,7 +64,7 @@ import {
 
 const router = express.Router();
 
-router.use(authenticateToken);
+// router.use(authenticateToken);
 
 
 // Credentials Route
@@ -82,13 +82,9 @@ router.put("/facultyassociation/:faculty_id", updateFacultyAssociation);
 router.delete("/facultyassociation/:faculty_id", deleteFacultyAssociation);
 
 // Research Paper Route
-router.post("/researchpaper", uploadResearchPaper, addResearchPaper);
 router.get("/researchpaper/:faculty_id", getResearchPapersByFaculty);
-router.put(
-  "/researchpaper/:research_id",
-  uploadResearchPaper,
-  updateResearchPaper,
-);
+router.post("/researchpaper", uploadResearchPaper, addResearchPaper);
+router.put("/researchpaper/:research_id", uploadResearchPaper, updateResearchPaper);
 router.delete("/researchpaper/:research_id", deleteResearchPaper);
 
 // FDP routes
@@ -151,6 +147,7 @@ router.delete("/facultyimage/:faculty_id", deleteFacultyImage); // Route to dele
 
 // Faculty Patent Routes
 router.get("/patent", getFacultyPatents); // Get all patents
+router.get("/patent/:faculty_id", getFacultyPatents); // Get patents by faculty_id
 router.post("/patent", addFacultyPatent); // Add a new patent
 router.put("/patent/:patent_id", updateFacultyPatent); // Update a patent
 router.delete("/patent/:patent_id", deleteFacultyPatent); // Delete a patent
