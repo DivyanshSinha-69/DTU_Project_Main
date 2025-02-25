@@ -103,7 +103,7 @@ const ResearchProjects = ({ setBlurActive }) => {
       pdf_path: project.Document ? project.Document.name : null,
       citation: project.Citation,
     };
-
+    console.log(requestData);
     try {
       const response = await API({
         url,

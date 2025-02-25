@@ -36,11 +36,9 @@ const Faculty = () => {
   
     try {
       const response = await API.get(`/ece/faculty/facultyimage/${facultyId}`);
-      console.log("API called for faculty image", response);
   
       if (response.data && response.data.faculty_image) {
         const imagePath = `http://localhost:3001/public/${response.data.faculty_image}`; // Ensure correct path
-        console.log("Fetched image path:", imagePath);
         setSelectedImage(imagePath);
       } else {
         setSelectedImage(null);

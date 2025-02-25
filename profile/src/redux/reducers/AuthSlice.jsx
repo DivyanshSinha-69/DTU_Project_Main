@@ -8,7 +8,7 @@ const initialState = {
   facultyId: localStorage.getItem("facultyId") || null,
   accessToken: localStorage.getItem("accessToken") || null,
   refreshToken: localStorage.getItem("refreshToken") || null,
-  isAuthenticated: !!localStorage.getItem("accessToken"),
+  isAuthenticated: false,
 };
 
 
@@ -19,7 +19,6 @@ export const authSlice = createSlice({
   initialState,
   reducers: {
     login: (state, action) => {
-      console.log("🔹 Redux Login Payload:", action.payload);
       state.user = action.payload.user;
       state.facultyId = action.payload.facultyId;
       state.accessToken = action.payload.accessToken;

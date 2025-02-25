@@ -10,7 +10,7 @@ export default function ResearchProjectPopup({
   const [formData, setFormData] = useState({
     title: "",
     typeOfPaper: "Conference",
-    domain: "AI",
+    domain: "",
     publicationName: "",
     publishedDate: "",
     document: null,
