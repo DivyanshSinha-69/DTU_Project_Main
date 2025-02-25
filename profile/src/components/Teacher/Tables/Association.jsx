@@ -90,47 +90,53 @@ const Association = ({ setBlurActive }) => {
           data.highestDesignation === "Professor"
             ? 1
             : data.highestDesignation === "Associate Professor"
-              ? 2
-              : 3,
+            ? 2
+            : 3, // Assistant Professor
+  
         date_asg_prof:
           data.highestDesignation === "Professor"
             ? data.highestDesignationDate
             : null,
+  
         date_asg_asoprof:
           data.highestDesignation === "Associate Professor"
             ? data.highestDesignationDate
-            : data.associateProfessorStartDate,
-        date_end_asoprof: data.associateProfessorEndDate,
-        date_asg_astprof: data.assistantProfessorStartDate,
-        date_end_astprof: data.assistantProfessorEndDate || null,
-        date_end_prof:null
+            : data.associateProfessorStartDate || null,
+  
+        date_end_asoprof:
+          data.highestDesignation === "Associate Professor"
+            ? data.associateProfessorEndDate
+            : null,
+  
+        date_asg_astprof:
+          data.highestDesignation === "Assistant Professor"
+            ? data.highestDesignationDate
+            : data.assistantProfessorStartDate || null,
+  
+        date_end_astprof:
+          data.highestDesignation === "Assistant Professor"
+            ? null
+            : data.assistantProfessorEndDate || null,
+  
+        date_end_prof: null, // Keep this as is
       };
-
-      
-
+  
+      console.log("Payload sent to API:", payload);
+  
       const url = `http://localhost:3001/ece/faculty/facultyassociation/${facultyId}`;
-
-      const response = await API.put(url, payload); // 🔹 Use API (Axios instance)
-
-
+      const response = await API.put(url, payload);
+  
       if (response.data.success) {
-        setAssociationDetails(data); // Update UI with new data
+        setAssociationDetails(data);
         closePopup();
       } else {
         console.error("⚠️ Update Failed:", response.data.error);
       }
     } catch (error) {
       console.error("❌ Error in update request:", error);
-
-      if (error.response) {
-        console.error("🔴 Server Response:", error.response.data);
-        if (error.response.status === 401 || error.response.status === 403) {
-          console.warn("🔄 Token might be expired. Trying refresh...");
-        }
-      }
     }
   };
-
+  
   // Prepare table data based on designation logic
   const TABLE_HEAD = [
     "Designation",

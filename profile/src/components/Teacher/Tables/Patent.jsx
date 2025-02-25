@@ -18,11 +18,10 @@ const PatentRecords = ({ setBlurActive }) => {
   const user = useSelector(state => state.auth.user) || {};
     const { faculty_id } = user;
     const facultyId = faculty_id;
-
   // Fetch patent records
   const fetchPatentRecords = async () => {
     try {
-      const response = await API.get(`ece/faculty/patent/`, {
+      const response = await API.get(`/ece/faculty/patent/${facultyId}`, {
         params: {
           faculty_id: facultyId, // Add facultyId as a query parameter
         },

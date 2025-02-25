@@ -42,7 +42,6 @@ const Login = () => {
         { withCredentials: true },
       );
 
-      console.log("🔹 Server Response:", response.data);
 
       // Extract accessToken from response
       const { accessToken, refreshToken, user } = response.data;

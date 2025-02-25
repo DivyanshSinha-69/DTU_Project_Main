@@ -38,7 +38,8 @@ export default function StickyNavbar() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [openNav, setOpenNav] = React.useState(false);
-
+    const user = useSelector(state => state.auth.user) || {};
+  const { faculty_id } = user;
   React.useEffect(() => {
     window.addEventListener(
       "resize",
@@ -53,36 +54,45 @@ export default function StickyNavbar() {
     e.preventDefault();
 
     try {
-      let logoutUrl = "http://localhost:3001/logout"; // Default logout endpoint
+        let logoutUrl = "http://localhost:3001/logout"; // Default logout endpoint
+        const logoutData = {}; // Data payload for logout
 
-      if (role === "faculty") {
-        logoutUrl = "http://localhost:3001/ece/facultyauth/logout"; // Faculty-specific logout
-      }
+        if (role === "faculty" && faculty_id) {
+            logoutUrl = "http://localhost:3001/ece/facultyauth/logout"; // Faculty-specific logout
+            logoutData.faculty_id = faculty_id;
+        }
 
-      // Make a GET request to the correct logout API
-      const response = await axios.get(logoutUrl, { withCredentials: true });
+        // Send a POST request for faculty logout (if applicable)
+        const response = await axios.post(logoutUrl, logoutData, { withCredentials: true });
 
-      // Handle the logout response
-      const userDetails = response.data;
-      dispatch(logout(userDetails.user));
+        if (response.status === 200) {
+            console.log("✅ Logged out successfully");
 
-      // Clear additional user-specific data
-      dispatch(setRole("null"));
-      dispatch(removeProfessionalSkills());
-      dispatch(removePersonalDetails());
-      dispatch(removeUserImage());
-      dispatch(removePlacement());
-      dispatch(removeMtechEducation());
-      dispatch(removeEntrepreneurDetails());
-      dispatch(removeHigherEducationDetails());
-      dispatch(removeInterInstitute());
-      dispatch(removeBtechEducation());
+            // Dispatch logout action to clear Redux state
+            dispatch(logout());
 
-      navigate("/"); // ✅ Redirect to homepage after logout
+            // Clear additional user-specific data
+            dispatch(setRole(null));
+            dispatch(removeProfessionalSkills());
+            dispatch(removePersonalDetails());
+            dispatch(removeUserImage());
+            dispatch(removePlacement());
+            dispatch(removeMtechEducation());
+            dispatch(removeEntrepreneurDetails());
+            dispatch(removeHigherEducationDetails());
+            dispatch(removeInterInstitute());
+            dispatch(removeBtechEducation());
+
+            // Redirect to homepage after logout
+            navigate("/");
+        } else {
+            console.error("⚠️ Logout failed:", response.data.message);
+        }
     } catch (error) {
-      console.error("Logout failed:", error.message);
+        console.error("❌ Logout error:", error.message);
     }
-  };
+};
+
 
   const navList = (
     <ul className="mt-2  mb-4 flex flex-col gap-4 lg:mb-0 lg:mt-0 lg:flex-row lg:items-center lg:gap-6">

@@ -151,6 +151,7 @@ router.delete("/facultyimage/:faculty_id", deleteFacultyImage); // Route to dele
 
 // Faculty Patent Routes
 router.get("/patent", getFacultyPatents); // Get all patents
+router.get("/patent/:faculty_id", getFacultyPatents); // Get all patents
 router.post("/patent", addFacultyPatent); // Add a new patent
 router.put("/patent/:patent_id", updateFacultyPatent); // Update a patent
 router.delete("/patent/:patent_id", deleteFacultyPatent); // Delete a patent
