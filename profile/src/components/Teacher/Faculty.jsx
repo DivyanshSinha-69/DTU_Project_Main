@@ -20,6 +20,8 @@ import { store } from "../../redux/Store.jsx";
 import PatentRecords from "./Tables/Patent.jsx";
 import { useSelector } from "react-redux";
 import API from "../../utils/API.js";
+import { motion } from "framer-motion";
+
 
 const Faculty = () => {
   const [isBlurActive, setBlurActive] = useState(false);
@@ -28,7 +30,7 @@ const Faculty = () => {
   const [isOperationInProgress, setOperationInProgress] = useState(false);
 
   const user = useSelector(state => state.auth.user) || {};
-    const { faculty_id } = user;
+    const { faculty_id, faculty_name, faculty_designation } = user;
     const facultyId = faculty_id;
 
   const fetchFacultyImage = async () => {
@@ -125,12 +127,7 @@ const Faculty = () => {
   
 
   // Dummy data for the teacher (replace with actual data later)
-  const teacherData = {
-    name: "Dr. John Does",
-    employeeId: "FAC001",
-    department: "ECE",
-    designation: "Professor",
-  };
+  
 
   useEffect(() => {
     // Mocking loader delay for demo purposes
@@ -145,41 +142,61 @@ const Faculty = () => {
         <>
           <div className="bg-[#FAFAFA] pt-10">
             <div className="h-auto w-full flex flex-wrap justify-center mx-auto">
-              <div className="img-container m-2 relative">
-                <img
-                  className={`rounded-xl h-[175px] w-[175px] ${isUploadingImage ? "opacity-50" : ""}`}
-                  src={selectedImage ? selectedImage : teacherImg} // Display fetched image if available
-                  alt="Teacher profile"
-                />
-                {isUploadingImage && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-xl">
-                    <div className="loader border-t-transparent border-4 border-white rounded-full w-8 h-8 animate-spin"></div>
-                  </div>
-                )}
+            <div className="img-container relative m-4">
+  {/* Profile Image with Hover Effect (No Shadow) */}
+  <img
+    className={`rounded-xl h-[175px] w-[175px]`}
+    src={selectedImage ? selectedImage : teacherImg}
+    alt="Teacher profile"
+    style={{ boxShadow: "none" }} // Ensures no unwanted shadow
+  />
+  
+  {/* Loading Overlay */}
+  {isUploadingImage && (
+    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-xl">
+      <div className="loader border-t-transparent border-4 border-white rounded-full w-8 h-8 animate-spin"></div>
+    </div>
+  )}
 
-                <label
-                  htmlFor="imageUpload"
-                  className="absolute bottom-2 right-2 cursor-pointer bg-gray-800 text-white p-2 rounded-full flex items-center justify-center"
-                >
-                  <img src={UploadIcon} alt="Upload Icon" className="w-6 h-6" />
-                </label>
-                <input
-                  id="imageUpload"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleImageUploadOrUpdate}
-                />
-              </div>
+  {/* Upload Button */}
+  <label
+  htmlFor="imageUpload"
+  className="absolute bottom-2 right-2 cursor-pointer bg-white text-white p-1.5 rounded-full flex items-center justify-center transition-transform duration-500 hover:rotate-[360deg]"
+>
+  <img src={UploadIcon} alt="Upload Icon" className="w-4 h-4 " />
+</label>
 
-              <div className="details-container m-2">
-                <h1 className="font-extrabold text-3xl">{teacherData.name}</h1>
-                <h2 className="font-bold text-1xl">
-                    ID: {facultyId}
-                </h2>
-                <h2 className="text-lg">{teacherData.designation}</h2>
-                <h2>Department: {teacherData.department}</h2>
-              </div>
+
+  <input
+    id="imageUpload"
+    type="file"
+    accept="image/*"
+    className="hidden"
+    onChange={handleImageUploadOrUpdate}
+  />
+</div>
+
+{/* Faculty Details */}
+<div className="details-container mt-4 max-w-lg">
+
+  <h1 className="text-4xl font-bold text-gray-800">{faculty_name}</h1>
+  <h2 className="text-base italic font-medium text-gray-600">
+    {faculty_designation === 1
+      ? "Professor"
+      : faculty_designation === 2
+      ? "Associate Professor"
+      : faculty_designation === 3
+      ? "Assistant Professor"
+      : "Unknown"}
+  </h2>
+  <h2 className="text-md font-medium text-gray-600">
+    <span className="text-gray-500">ID:</span> {facultyId}
+  </h2>
+  <h2 className="text-md font-medium text-gray-600">
+    <span className="text-gray-500">Department:</span> ECE
+  </h2>
+</div>
+
             </div>
 
             <div className={`pt-10 ${isBlurActive ? "blur-effect" : ""}`}>
