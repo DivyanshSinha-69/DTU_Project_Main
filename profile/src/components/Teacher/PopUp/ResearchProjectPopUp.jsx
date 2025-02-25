@@ -15,7 +15,7 @@ export default function ResearchProjectPopup({
     publishedDate: "",
     document: null,
     citation: "",
-    pdf:null// Add this line
+    pdf: null, // Add this line
   });
 
   const domainOptions = [
@@ -67,10 +67,10 @@ export default function ResearchProjectPopup({
       pdf: file, // Store the file for API upload
     }));
   };
-  
+
   const handleSubmit = (e) => {
     e.preventDefault();
-  
+
     // Validation: Ensure all fields are filled
     if (
       !formData.title ||
@@ -82,7 +82,7 @@ export default function ResearchProjectPopup({
       toast.error("Please fill in all required fields");
       return;
     }
-  
+
     // Create project data object
     const newProject = {
       Title: formData.title,
@@ -94,16 +94,14 @@ export default function ResearchProjectPopup({
       Citation: formData.citation,
       pdf: formData.pdf, // Pass the pdf file for API upload
     };
-  
+
     // Call the function to save the project (either add or edit)
     saveProject(newProject);
-  
+
     // Success toast and close modal
     toast.success("Research project saved successfully!");
     closeModal();
   };
-
-  
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-80">

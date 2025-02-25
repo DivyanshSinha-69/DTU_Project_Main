@@ -1,8 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
-
-
 const initialState = {
   user: JSON.parse(localStorage.getItem("user")) || null, // Ensure structure is maintained
   facultyId: localStorage.getItem("facultyId") || null,
@@ -10,9 +8,6 @@ const initialState = {
   refreshToken: localStorage.getItem("refreshToken") || null,
   isAuthenticated: false,
 };
-
-
-
 
 export const authSlice = createSlice({
   name: "auth",
@@ -24,7 +19,7 @@ export const authSlice = createSlice({
       state.accessToken = action.payload.accessToken;
       state.refreshToken = action.payload.refreshToken;
       state.isAuthenticated = true;
-      localStorage.setItem("user", JSON.stringify(action.payload.user)); 
+      localStorage.setItem("user", JSON.stringify(action.payload.user));
       localStorage.setItem("facultyId", action.payload.facultyId);
 
       localStorage.setItem("accessToken", action.payload.accessToken);

@@ -66,7 +66,6 @@ const router = express.Router();
 
 // router.use(authenticateToken);
 
-
 // Credentials Route
 router.get("/facultycredentials", getFacultyCredentials);
 router.get("/facultycredentials/:faculty_id", getFacultyCredentialsById);
@@ -84,7 +83,11 @@ router.delete("/facultyassociation/:faculty_id", deleteFacultyAssociation);
 // Research Paper Route
 router.get("/researchpaper/:faculty_id", getResearchPapersByFaculty);
 router.post("/researchpaper", uploadResearchPaper, addResearchPaper);
-router.put("/researchpaper/:research_id", uploadResearchPaper, updateResearchPaper);
+router.put(
+  "/researchpaper/:research_id",
+  uploadResearchPaper,
+  updateResearchPaper,
+);
 router.delete("/researchpaper/:research_id", deleteResearchPaper);
 
 // FDP routes

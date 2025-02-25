@@ -9,8 +9,6 @@ import API from "../../../utils/API";
 import { useSelector } from "react-redux";
 import PdfModal from "../../PdfModal";
 
-
-
 const ResearchProjects = ({ setBlurActive }) => {
   const [researchProjectsDetails, setResearchProjectsDetails] = useState([]);
   const [isPopupOpen, setPopupOpen] = useState(false);
@@ -18,10 +16,10 @@ const ResearchProjects = ({ setBlurActive }) => {
   const [selectedPdf, setSelectedPdf] = useState(null);
   const accessToken = useSelector((state) => state.auth.accessToken);
 
-  const user = useSelector(state => state.auth.user) || {};
-    const { faculty_id } = user;
-    const facultyId = faculty_id;
-  
+  const user = useSelector((state) => state.auth.user) || {};
+  const { faculty_id } = user;
+  const facultyId = faculty_id;
+
   const API_BASE_URL = "/ece/faculty";
   const TABLE_HEAD = [
     "Serial No",
@@ -62,7 +60,7 @@ const ResearchProjects = ({ setBlurActive }) => {
             PublishedDate: item.published_date,
             Document: item.pdf_path ? { name: item.pdf_path } : null,
             Citation: item.citation,
-          }))
+          })),
         );
       } else {
         console.error("Unexpected API response:", response.data);
@@ -78,11 +76,15 @@ const ResearchProjects = ({ setBlurActive }) => {
 
   // Open the popup for adding a new project or editing an existing one
   const openPopup = (project = null) => {
-    setEditProject(project ? {
-      ...project,
-     } : null);
+    setEditProject(
+      project
+        ? {
+            ...project,
+          }
+        : null,
+    );
     setPopupOpen(true);
-    setBlurActive(true)
+    setBlurActive(true);
   };
 
   const closePopup = () => {
@@ -91,81 +93,90 @@ const ResearchProjects = ({ setBlurActive }) => {
   };
 
   // Save research project (add or update)
- const saveProject = async (project) => {
-  const method = editProject ? "PUT" : "POST";
-  const url = editProject
-    ? `${API_BASE_URL}/researchpaper/${editProject.research_id}`
-    : `${API_BASE_URL}/researchpaper`;
+  const saveProject = async (project) => {
+    const method = editProject ? "PUT" : "POST";
+    const url = editProject
+      ? `${API_BASE_URL}/researchpaper/${editProject.research_id}`
+      : `${API_BASE_URL}/researchpaper`;
 
-  const formData = new FormData();
-  formData.append("faculty_id", facultyId);
-  formData.append("paper_type", getPaperTypeId(project.TypeOfPaper));
-  formData.append("title_of_paper", project.Title);
-  formData.append("domain", project.Domain);
-  formData.append("publication_name", project.PublicationName);
-  formData.append("published_date", project.PublishedDate);
-  formData.append("citation", project.Citation);
+    const formData = new FormData();
+    formData.append("faculty_id", facultyId);
+    formData.append("paper_type", getPaperTypeId(project.TypeOfPaper));
+    formData.append("title_of_paper", project.Title);
+    formData.append("domain", project.Domain);
+    formData.append("publication_name", project.PublicationName);
+    formData.append("published_date", project.PublishedDate);
+    formData.append("citation", project.Citation);
 
-  if (project.pdf) {
-    formData.append("pdf", project.pdf);
-  }
+    if (project.pdf) {
+      formData.append("pdf", project.pdf);
+    }
 
-  try {
-    const response = await API({
-      url,
-      method,
-      headers: { "Content-Type": "multipart/form-data" },
-      data: formData,
-    });
-
-    console.log("API Response:", response.data); // Debugging Log
-
-    if (response.data.message && response.data.message.includes("successfully")) {
-      setResearchProjectsDetails((prevDetails) => {
-        const newProject = {
-          research_id: response.data.data.insertId || editProject?.research_id,
-          TypeOfPaper: project.TypeOfPaper,
-          Title: project.Title,
-          Domain: project.Domain,
-          PublicationName: project.PublicationName,
-          PublishedDate: project.PublishedDate,
-          Document: project.pdf ? { name: `Faculty\\ResearchPapers\\FAC001\\${project.pdf.name}` } : null,  // 🔹 Use project.pdf name         
-          Citation: project.Citation,
-        };
-
-        if (editProject) {
-          // Update existing project
-          return prevDetails.map((p) =>
-            p.research_id === editProject.research_id ? newProject : p
-          );
-        } else {
-          // Add new project
-          return [...prevDetails, newProject];
-        }
+    try {
+      const response = await API({
+        url,
+        method,
+        headers: { "Content-Type": "multipart/form-data" },
+        data: formData,
       });
 
-      closePopup();
-    }
-  } catch (error) {
-    console.error("Error saving research paper:", error);
-  }
-};
+      console.log("API Response:", response.data); // Debugging Log
 
-  
+      if (
+        response.data.message &&
+        response.data.message.includes("successfully")
+      ) {
+        setResearchProjectsDetails((prevDetails) => {
+          const newProject = {
+            research_id:
+              response.data.data.insertId || editProject?.research_id,
+            TypeOfPaper: project.TypeOfPaper,
+            Title: project.Title,
+            Domain: project.Domain,
+            PublicationName: project.PublicationName,
+            PublishedDate: project.PublishedDate,
+            Document: project.pdf
+              ? { name: `Faculty\\ResearchPapers\\FAC001\\${project.pdf.name}` }
+              : null, // 🔹 Use project.pdf name
+            Citation: project.Citation,
+          };
+
+          if (editProject) {
+            // Update existing project
+            return prevDetails.map((p) =>
+              p.research_id === editProject.research_id ? newProject : p,
+            );
+          } else {
+            // Add new project
+            return [...prevDetails, newProject];
+          }
+        });
+
+        closePopup();
+      }
+    } catch (error) {
+      console.error("Error saving research paper:", error);
+    }
+  };
+
   // Delete a research project
   const deleteProject = async (research_id) => {
     try {
-      const response = await API.delete(`${API_BASE_URL}/researchpaper/${research_id}`);
-      if (response.data.message && response.data.message.includes("successfully")) {
+      const response = await API.delete(
+        `${API_BASE_URL}/researchpaper/${research_id}`,
+      );
+      if (
+        response.data.message &&
+        response.data.message.includes("successfully")
+      ) {
         setResearchProjectsDetails((prevDetails) =>
-          prevDetails.filter((project) => project.research_id !== research_id)
+          prevDetails.filter((project) => project.research_id !== research_id),
         );
       }
     } catch (error) {
       console.error("Error deleting research paper:", error);
     }
   };
-
 
   return (
     <div>
@@ -237,7 +248,6 @@ const ResearchProjects = ({ setBlurActive }) => {
                       PublishedDate,
                       Document,
                       Citation,
-                      
                     },
                     index,
                   ) => {
@@ -299,26 +309,31 @@ const ResearchProjects = ({ setBlurActive }) => {
                             color="blue-gray"
                             className="font-normal"
                           >
-                          {new Date(PublishedDate)?.toLocaleDateString("en-GB")}
-
+                            {new Date(PublishedDate)?.toLocaleDateString(
+                              "en-GB",
+                            )}
                           </Typography>
                         </td>
                         <td className={classes}>
-  <Typography variant="small" color="blue-gray" className="font-normal">
-    {Document ? (
-      <a
-        href={`http://localhost:3001/public/${Document.name}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-blue-500 hover:underline"
-      >
-        View
-      </a>
-    ) : (
-      "Not Uploaded"
-    )}
-  </Typography>
-</td>
+                          <Typography
+                            variant="small"
+                            color="blue-gray"
+                            className="font-normal"
+                          >
+                            {Document ? (
+                              <a
+                                href={`http://localhost:3001/public/${Document.name}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-500 hover:underline"
+                              >
+                                View
+                              </a>
+                            ) : (
+                              "Not Uploaded"
+                            )}
+                          </Typography>
+                        </td>
 
                         <td className={classes}>
                           <Typography
@@ -381,10 +396,9 @@ const ResearchProjects = ({ setBlurActive }) => {
         </Card>
       </div>
       {selectedPdf && (
-      <PdfModal pdfUrl={selectedPdf} onClose={() => setSelectedPdf(null)} />
-    )}
+        <PdfModal pdfUrl={selectedPdf} onClose={() => setSelectedPdf(null)} />
+      )}
     </div>
-    
   );
 };
 

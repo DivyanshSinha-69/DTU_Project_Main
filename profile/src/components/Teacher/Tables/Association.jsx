@@ -8,9 +8,9 @@ import { useSelector } from "react-redux";
 import API from "../../../utils/API";
 import { store } from "../../../redux/Store";
 const Association = ({ setBlurActive }) => {
-  const user = useSelector(state => state.auth.user) || {};
-    const { faculty_id } = user;
-    const facultyId = faculty_id;
+  const user = useSelector((state) => state.auth.user) || {};
+  const { faculty_id } = user;
+  const facultyId = faculty_id;
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [associationDetails, setAssociationDetails] = useState({
     highestDesignation: "",
@@ -90,42 +90,42 @@ const Association = ({ setBlurActive }) => {
           data.highestDesignation === "Professor"
             ? 1
             : data.highestDesignation === "Associate Professor"
-            ? 2
-            : 3, // Assistant Professor
-  
+              ? 2
+              : 3, // Assistant Professor
+
         date_asg_prof:
           data.highestDesignation === "Professor"
             ? data.highestDesignationDate
             : null,
-  
+
         date_asg_asoprof:
           data.highestDesignation === "Associate Professor"
             ? data.highestDesignationDate
             : data.associateProfessorStartDate || null,
-  
+
         date_end_asoprof:
           data.highestDesignation === "Associate Professor"
             ? data.associateProfessorEndDate
             : null,
-  
+
         date_asg_astprof:
           data.highestDesignation === "Assistant Professor"
             ? data.highestDesignationDate
             : data.assistantProfessorStartDate || null,
-  
+
         date_end_astprof:
           data.highestDesignation === "Assistant Professor"
             ? null
             : data.assistantProfessorEndDate || null,
-  
+
         date_end_prof: null, // Keep this as is
       };
-  
+
       console.log("Payload sent to API:", payload);
-  
+
       const url = `http://localhost:3001/ece/faculty/facultyassociation/${facultyId}`;
       const response = await API.put(url, payload);
-  
+
       if (response.data.success) {
         setAssociationDetails(data);
         closePopup();
@@ -136,7 +136,7 @@ const Association = ({ setBlurActive }) => {
       console.error("❌ Error in update request:", error);
     }
   };
-  
+
   // Prepare table data based on designation logic
   const TABLE_HEAD = [
     "Designation",

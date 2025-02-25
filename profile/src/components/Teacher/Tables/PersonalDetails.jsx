@@ -7,9 +7,8 @@ import editImg from "../../../assets/edit.svg";
 import { useSelector } from "react-redux";
 import API from "../../../utils/API";
 
-
 const PersonalDetails = ({ setBlurActive }) => {
-  const user = useSelector(state => state.auth.user) || {};
+  const user = useSelector((state) => state.auth.user) || {};
   const { faculty_id } = user;
   const facultyId = faculty_id;
   const [personalDetails, setPersonalDetails] = useState({
@@ -35,11 +34,12 @@ const PersonalDetails = ({ setBlurActive }) => {
     setBlurActive(false); // Deactivate blur when closing the popup
   };
 
-  
   const fetchFacultyDetails = async () => {
     try {
-      const response = await API.get(`/ece/faculty/faculty-details/${facultyId}`);
-      if (response.data ) {
+      const response = await API.get(
+        `/ece/faculty/faculty-details/${facultyId}`,
+      );
+      if (response.data) {
         const faculty = response.data.data[0];
         setPersonalDetails({
           name: faculty.faculty_name || "",
@@ -57,15 +57,18 @@ const PersonalDetails = ({ setBlurActive }) => {
 
   const updatePersonalDetails = async (updatedData) => {
     try {
-      const response = await API.put(`/ece/faculty/faculty-details/${facultyId}`, {
-        faculty_name: updatedData.name,
-        degree: updatedData.highestDegree,
-        university: "", // Add if needed
-        year_of_attaining_highest_degree: updatedData.degreeYear,
-        email_id: updatedData.email,
-        mobile_number: updatedData.contactNo,
-      });
-  
+      const response = await API.put(
+        `/ece/faculty/faculty-details/${facultyId}`,
+        {
+          faculty_name: updatedData.name,
+          degree: updatedData.highestDegree,
+          university: "", // Add if needed
+          year_of_attaining_highest_degree: updatedData.degreeYear,
+          email_id: updatedData.email,
+          mobile_number: updatedData.contactNo,
+        },
+      );
+
       if (response.status === 200) {
         setPersonalDetails(updatedData);
       }
@@ -73,10 +76,12 @@ const PersonalDetails = ({ setBlurActive }) => {
       console.error("Error updating faculty details:", error);
     }
   };
-  
+
   const fetchSpecializations = async () => {
     try {
-      const response = await API.get(`/ece/faculty/specializations/${facultyId}`);
+      const response = await API.get(
+        `/ece/faculty/specializations/${facultyId}`,
+      );
       if (Array.isArray(response.data.data)) {
         setSpecializations(response.data.data);
       } else {
@@ -91,7 +96,6 @@ const PersonalDetails = ({ setBlurActive }) => {
   useEffect(() => {
     fetchFacultyDetails();
     fetchSpecializations();
-
   }, [facultyId]);
 
   // Add a new specialization using API.post

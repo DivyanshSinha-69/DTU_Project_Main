@@ -9,8 +9,6 @@ import deleteImg from "../../../assets/delete.svg";
 import API from "../../../utils/API";
 import { useSelector } from "react-redux";
 
-
-
 // Dummy data for testing
 const dummyPhDDetails = [
   { menteeName: "John Doe", rollNo: "123456", passingYear: 2020 },
@@ -23,9 +21,9 @@ const PhDsAwarded = ({ setBlurActive }) => {
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [selectedPhD, setSelectedPhD] = useState(null);
   const [isAddPhD, setIsAddPhD] = useState(false);
-  const user = useSelector(state => state.auth.user) || {};
-    const { faculty_id } = user;
-    const facultyId = faculty_id;
+  const user = useSelector((state) => state.auth.user) || {};
+  const { faculty_id } = user;
+  const facultyId = faculty_id;
 
   useEffect(() => {
     fetchPhDs();
@@ -43,7 +41,7 @@ const PhDsAwarded = ({ setBlurActive }) => {
             rollNo: record.mentee_rn,
             passingYear: record.passing_year,
             passingMonth: record.passing_month, // Added this field
-          }))
+          })),
         );
       } else {
         setPhdDetails([]);

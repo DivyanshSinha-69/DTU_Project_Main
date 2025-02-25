@@ -29,12 +29,10 @@ import BtechEducationDetails from "./Tables/BtechEducationalDetails";
 import { setBtechEducation } from "../../redux/reducers/UserBtechEducationalDetails";
 
 const Student = () => {
-  const user = useSelector(state => state.auth.user) || {}; // Ensure user is never undefined
+  const user = useSelector((state) => state.auth.user) || {}; // Ensure user is never undefined
   console.log("login user", user);
   const { studentName, RollNo, Course, CourseName } = user;
 
-  
-  
   const [isBlurActive, setBlurActive] = useState(false);
   const [loader, setLoader] = useState(true);
   const [dataLoaded, setDataLoaded] = useState(false);

@@ -1,10 +1,13 @@
-import bcrypt from 'bcrypt';
+import bcrypt from "bcrypt";
 
-const password = 'NewSecurePassword123';
+const password = "NewSecurePassword123";
 const saltRounds = 10;
 
-bcrypt.hash(password, saltRounds).then((hash) => {
-  console.log('Hashed password:', hash);
-}).catch((err) => {
-  console.error('Error hashing password:', err);
-});
+bcrypt
+  .hash(password, saltRounds)
+  .then((hash) => {
+    console.log("Hashed password:", hash);
+  })
+  .catch((err) => {
+    console.error("Error hashing password:", err);
+  });

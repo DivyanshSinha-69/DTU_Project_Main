@@ -10,15 +10,14 @@ import { toast } from "react-hot-toast";
 import { useSelector } from "react-redux";
 import API from "../../../utils/API";
 
-
 const FacultyDevelopmentProgram = ({ setBlurActive }) => {
   const [fdpDetails, setFdpDetails] = useState([]);
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [selectedFDP, setSelectedFDP] = useState([]);
   const [isAddFDP, setIsAddFDP] = useState(false);
-  const user = useSelector(state => state.auth.user) || {};
-    const { faculty_id } = user;
-    const facultyId = faculty_id;
+  const user = useSelector((state) => state.auth.user) || {};
+  const { faculty_id } = user;
+  const facultyId = faculty_id;
   useEffect(() => {
     const fetchFDPDetails = async () => {
       try {
@@ -32,7 +31,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
               year_conducted: fdp.year_conducted,
               month_conducted: fdp.month_conducted,
               days_contributed: fdp.days_contributed,
-            }))
+            })),
           );
         } else {
           toast.error(response.data.message || "Failed to fetch FDP details");
@@ -60,7 +59,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
 
   const handleAddFDP = async (newFDP) => {
     const { programName, year, month, days } = newFDP;
-  
+
     const payload = {
       faculty_id: facultyId,
       FDP_name: programName,
@@ -68,20 +67,23 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
       month_conducted: month,
       days_contributed: days,
     };
-  
+
     try {
       let response;
       if (isAddFDP) {
         response = await API.post("/ece/faculty/fdp-records", payload);
       } else {
-        response = await API.put(`/ece/faculty/fdp-records/${selectedFDP.FDP_id}`, payload);
+        response = await API.put(
+          `/ece/faculty/fdp-records/${selectedFDP.FDP_id}`,
+          payload,
+        );
       }
-  
+
       console.log("API Response:", response.data); // Debugging
-  
+
       if (response && response.data) {
         toast.success("FDP record successfully saved");
-  
+
         // Ensure the new data matches the expected format
         const newFDPRecord = {
           FDP_id: response.data.FDP_id || selectedFDP.FDP_id, // Ensure ID exists
@@ -90,15 +92,17 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
           month_conducted: response.data.month_conducted || month,
           days_contributed: response.data.days_contributed || days,
         };
-  
+
         if (isAddFDP) {
           setFdpDetails((prev) => [...prev, newFDPRecord]);
         } else {
           setFdpDetails((prev) =>
-            prev.map((fdp) => (fdp.FDP_id === selectedFDP.FDP_id ? newFDPRecord : fdp))
+            prev.map((fdp) =>
+              fdp.FDP_id === selectedFDP.FDP_id ? newFDPRecord : fdp,
+            ),
           );
         }
-  
+
         closePopup();
       } else {
         toast.error("Failed to save FDP record.");
@@ -108,7 +112,6 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
       toast.error("Error connecting to the server.");
     }
   };
-  
 
   const handleDeleteFDP = async (fdpId) => {
     try {

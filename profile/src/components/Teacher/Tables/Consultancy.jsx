@@ -10,15 +10,14 @@ import axios from "axios";
 import { useSelector } from "react-redux";
 import API from "../../../utils/API";
 
-
 const ConsultancyDetails = ({ setBlurActive }) => {
   const [consultancyDetails, setConsultancyDetails] = useState([]);
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [selectedConsultancy, setSelectedConsultancy] = useState(null);
   const [isAddConsultancy, setIsAddConsultancy] = useState(false);
-  const user = useSelector(state => state.auth.user) || {};
-    const { faculty_id } = user;
-    const facultyId = faculty_id;
+  const user = useSelector((state) => state.auth.user) || {};
+  const { faculty_id } = user;
+  const facultyId = faculty_id;
 
   const fetchConsultancyDetails = async () => {
     try {

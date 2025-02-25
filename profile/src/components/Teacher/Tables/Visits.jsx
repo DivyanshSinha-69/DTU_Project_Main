@@ -9,8 +9,6 @@ import deleteImg from "../../../assets/delete.svg";
 import API from "../../../utils/API";
 import { useSelector } from "react-redux";
 
-
-
 // Dummy data for testing
 
 const Visits = ({ setBlurActive }) => {
@@ -36,9 +34,9 @@ const Visits = ({ setBlurActive }) => {
   const [selectedVisit, setSelectedVisit] = useState(null);
   const [isAddVisit, setIsAddVisit] = useState(false);
 
-  const user = useSelector(state => state.auth.user) || {};
-    const { faculty_id } = user;
-    const FACULTY_ID = faculty_id;
+  const user = useSelector((state) => state.auth.user) || {};
+  const { faculty_id } = user;
+  const FACULTY_ID = faculty_id;
   // Replace with dynamic faculty ID if necessary
 
   // Fetch visit records from the API using the centralized API instance
@@ -95,13 +93,16 @@ const Visits = ({ setBlurActive }) => {
         ]);
       } else {
         // UPDATE existing visit record
-        await API.put(`ece/faculty/vae/${selectedVisit.visit_id}`, formattedVisit);
+        await API.put(
+          `ece/faculty/vae/${selectedVisit.visit_id}`,
+          formattedVisit,
+        );
         setVisitDetails((prev) =>
           prev.map((visit) =>
             visit.visit_id === selectedVisit.visit_id
               ? { ...visit, ...formattedVisit }
-              : visit
-          )
+              : visit,
+          ),
         );
       }
       closePopup();
@@ -115,7 +116,7 @@ const Visits = ({ setBlurActive }) => {
     try {
       await API.delete(`ece/faculty/vae/${visitId}`);
       setVisitDetails((prev) =>
-        prev.filter((visit) => visit.visit_id !== visitId)
+        prev.filter((visit) => visit.visit_id !== visitId),
       );
     } catch (error) {
       console.error("Error deleting visit:", error);

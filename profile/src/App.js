@@ -39,12 +39,14 @@ function App() {
         });
 
         const userDetails = response.data;
-        dispatch(login({
-          user: userDetails.user,
-          facultyId: null,
+        dispatch(
+          login({
+            user: userDetails.user,
+            facultyId: null,
             accessToken: null,
             refreshToken: null,
-        }));
+          }),
+        );
         dispatch(setRole(userDetails.user.Position));
 
         if (userDetails.user.Position === "student") {
@@ -66,16 +68,16 @@ function App() {
 
   return (
     <>
-       <Toaster
-                     toastOptions={{
-                       className: "",
-                       duration: 2500,
-                       style: {
-                         background: "#1f2937",
-                         color: "#fff",
-                       },
-                     }}
-                   />
+      <Toaster
+        toastOptions={{
+          className: "",
+          duration: 2500,
+          style: {
+            background: "#1f2937",
+            color: "#fff",
+          },
+        }}
+      />
       <Router>
         <StickyNavbar />
         <Routes>
@@ -85,10 +87,9 @@ function App() {
 
           {role === "student" ? (
             <Route path="/student/portal" element={<Student />} />
-          ) :  role === "faculty" ? (
-              <Route path="/faculty/portal" element={<Faculty />} />
-          ):
-          role === "admin" ? (
+          ) : role === "faculty" ? (
+            <Route path="/faculty/portal" element={<Faculty />} />
+          ) : role === "admin" ? (
             <Route path="/admin/portal" element={<Dashboard />} />
           ) : (
             <Route path="/login" element={<Login />} />

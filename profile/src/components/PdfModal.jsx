@@ -10,11 +10,7 @@ const PdfModal = ({ pdfUrl, onClose }) => {
         >
           Close
         </button>
-        <iframe
-          src={pdfUrl}
-          className="w-full h-full"
-          title="PDF Viewer"
-        />
+        <iframe src={pdfUrl} className="w-full h-full" title="PDF Viewer" />
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import backgroundImage from "../assets/dtu.png";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
@@ -13,7 +13,6 @@ import { HashLink } from "react-router-hash-link";
 // let hasToastFired = false;
 
 const Login = () => {
-  
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const role = params.get("role") || "student"; // Default to student
@@ -42,21 +41,17 @@ const Login = () => {
         { withCredentials: true },
       );
 
-
       // Extract accessToken from response
       const { accessToken, refreshToken, user } = response.data;
 
-      if (!accessToken && role === 'faculty') {
+      if (!accessToken && role === "faculty") {
         console.error("⚠️ No access token received from the server!");
         toast.error("Invalid credentials. Please try again.");
         return;
       }
 
-      
-
       dispatch(setRole(user.Position));
 
-      
       if (role === "student") {
         dispatch(
           login({
@@ -64,20 +59,19 @@ const Login = () => {
             facultyId: null,
             accessToken: accessToken,
             refreshToken: refreshToken,
-          })
+          }),
         );
-        
-      } else if (role === 'faculty'){
+      } else if (role === "faculty") {
         dispatch(
           login({
             user: user,
             facultyId: user.faculty_id, // Store faculty_id
             accessToken: accessToken, // Store access token
             refreshToken: refreshToken, // Store refresh token
-          })
+          }),
         );
       }
-      
+
       // if (!hasToastFired) {
       //   toast.success("Login successful!");
       //   hasToastFired = true; // Set flag to prevent multiple calls
@@ -89,19 +83,17 @@ const Login = () => {
       } else {
         navigate("/unauthorized");
       }
-
     } catch (error) {
       console.error("Login failed:", error.response?.data || error.message);
-    
+
       // Ensure we extract the correct message
       const errorMessage =
         error.response?.data?.message || // If API returns { "message": "Invalid credentials" }
-        error.response?.data?.error ||  // If API returns { "error": "Invalid credentials" }
+        error.response?.data?.error || // If API returns { "error": "Invalid credentials" }
         "Invalid credentials"; // Default message
-    
+
       toast.error(errorMessage); // Show extracted error message
     }
-    
   };
   // useEffect(() => {
   //   const storedUser = localStorage.getItem("user");
@@ -203,11 +195,8 @@ const Login = () => {
               </button>
             </div>
           </form>
-
         </div>
-        
       </div>
-      
     </>
   );
 };
