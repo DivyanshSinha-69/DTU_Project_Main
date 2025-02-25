@@ -178,37 +178,59 @@ export const facultyLogin = (req, res) => {
         if (!isMatch)
           return res.status(401).json({ message: "Invalid password!" });
 
-        const accessToken = generateAccessToken(user.faculty_id);
-        const refreshToken = generateRefreshToken(user.faculty_id);
-
-        const expiryDays = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7;
-        const refreshTokenExpiry = new Date(
-          Date.now() + expiryDays * 24 * 60 * 60 * 1000,
-        )
-          .toISOString()
-          .slice(0, 19)
-          .replace("T", " ");
-
         pool.query(
-          "UPDATE faculty_auth SET refresh_token = ?, refresh_token_expiry = ? WHERE faculty_id = ?",
-          [refreshToken, refreshTokenExpiry, faculty_id],
-          (err) => {
+          `SELECT fd.faculty_name, fa.designation 
+           FROM faculty_details fd 
+           LEFT JOIN faculty_association fa ON fd.faculty_id = fa.faculty_id 
+           WHERE fd.faculty_id = ?`,
+          [faculty_id],
+          (err, facultyResults) => {
             if (err) {
               console.error("Database Error:", err);
               return res.status(500).json({ message: "Server error!" });
             }
 
-            res.json({
-              message: "Login successful!",
-              accessToken,
-              refreshToken,
-              user: {
-                faculty_id: user.faculty_id,
-                Position: "faculty",
-              },
-            });
-          },
-        );
+            if (facultyResults.length === 0) {
+              return res.status(404).json({ message: "Faculty details not found!" });
+            }
+
+            const { faculty_name, designation } = facultyResults[0];
+
+          const accessToken = generateAccessToken(user.faculty_id);
+          const refreshToken = generateRefreshToken(user.faculty_id);
+
+          const expiryDays = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7;
+          const refreshTokenExpiry = new Date(
+            Date.now() + expiryDays * 24 * 60 * 60 * 1000,
+          )
+            .toISOString()
+            .slice(0, 19)
+            .replace("T", " ");
+
+          pool.query(
+            "UPDATE faculty_auth SET refresh_token = ?, refresh_token_expiry = ? WHERE faculty_id = ?",
+            [refreshToken, refreshTokenExpiry, faculty_id],
+            (err) => {
+              if (err) {
+                console.error("Database Error:", err);
+                return res.status(500).json({ message: "Server error!" });
+              }
+
+              res.json({
+                message: "Login successful!",
+                accessToken,
+                refreshToken,
+                user: {
+                  faculty_id: user.faculty_id,
+                  faculty_name: faculty_name,
+                  faculty_designation: designation,
+                  Position: "faculty",
+                },
+              });
+            },
+          );
+        }
+      );
       });
     },
   );
