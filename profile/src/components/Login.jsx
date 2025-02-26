@@ -8,6 +8,8 @@ import { setRole, setFacultyId } from "../redux/reducers/UserSlice";
 import { useLocation } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { Toaster } from "react-hot-toast";
+import showPasswordIcon from "../assets/showPasswordIcon.png";
+
 
 import { HashLink } from "react-router-hash-link";
 // let hasToastFired = false;
@@ -21,6 +23,8 @@ const Login = () => {
   const dispatch = useDispatch();
   const [rollNo, setRollNo] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -80,7 +84,10 @@ const Login = () => {
         navigate("/faculty/portal");
       } else if (user.Position === "student") {
         navigate("/student/portal");
-      } else {
+      }else if (user.Position === "admin") {
+        navigate("/admin/portal");
+      }
+      else {
         navigate("/unauthorized");
       }
     } catch (error) {
@@ -138,20 +145,20 @@ const Login = () => {
                 htmlFor="rollNo"
                 className="block font-bold text-lg font-large leading-6 text-white"
               >
-                {role === "faculty" ? "Faculty ID" : "Student Roll Number"}
+                {role === "faculty" ? "Faculty ID" : role === "student" ? "Student Roll Number" : "Admin ID"}
+
               </label>
 
-              <div className="mt-2">
-                <input
-                  id="rollNo"
-                  name="rollNo"
-                  autoComplete="username"
-                  value={rollNo}
-                  required
-                  className="block w-full p-2 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  onChange={(e) => setRollNo(e.target.value)}
-                />
-              </div>
+              <input
+  id="rollNo"
+  name="rollNo"
+  autoComplete="username"
+  value={rollNo}
+  required
+  className="block w-full p-2 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 font-mono tracking-wide"
+  onChange={(e) => setRollNo(e.target.value)}
+/>
+
             </div>
 
             <div>
@@ -163,18 +170,32 @@ const Login = () => {
                   Password
                 </label>
               </div>
-              <div className="mt-2">
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  className="block w-full p-2 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
+              <div className="mt-2 relative">
+              <input
+  id="password"
+  name="password"
+  type={showPassword ? "text" : "password"}
+  autoComplete="current-password"
+  required
+  className="block w-full p-2 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 font-mono tracking-wide"
+  value={password}
+  onChange={(e) => setPassword(e.target.value)}
+/>
+
+  <button
+    type="button"
+    onClick={() => setShowPassword(!showPassword)}
+    className="absolute inset-y-0 right-3 flex items-center"
+  >
+    <img 
+      src={showPasswordIcon} 
+      alt="Show Password" 
+      className="h-4 w-4"
+    />
+  </button>
+</div>
+
+
             </div>
 
             <div>

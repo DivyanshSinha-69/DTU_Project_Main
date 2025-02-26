@@ -22,28 +22,27 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
     const fetchFDPDetails = async () => {
       try {
         const response = await API.get(`/ece/faculty/fdp-records/${facultyId}`);
-        // Assuming response.data holds the FDP records in an array
-        if (Array.isArray(response.data.data)) {
+        
+        if (Array.isArray(response.data)) {
           setFdpDetails(
             response.data.data.map((fdp) => ({
-              FDP_id: fdp.FDP_id, // Include FDP_id
+              FDP_id: fdp.FDP_id,
               FDP_name: fdp.FDP_name,
               year_conducted: fdp.year_conducted,
               month_conducted: fdp.month_conducted,
               days_contributed: fdp.days_contributed,
-            })),
+            }))
           );
-        } else {
-          toast.error(response.data.message || "Failed to fetch FDP details");
         }
       } catch (error) {
         console.error("Error fetching FDP details:", error);
         toast.error("Error while fetching FDP details");
       }
     };
-
+  
     fetchFDPDetails();
   }, [facultyId]);
+  
 
   const openPopup = (fdp) => {
     setSelectedFDP(fdp);

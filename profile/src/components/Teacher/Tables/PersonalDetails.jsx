@@ -16,7 +16,6 @@ const PersonalDetails = ({ setBlurActive }) => {
     highestDegree: "",
     email: "",
     contactNo: "",
-    qualificationYear: "",
     degreeYear: "",
   });
   const [specializations, setSpecializations] = useState([]);
@@ -46,7 +45,6 @@ const PersonalDetails = ({ setBlurActive }) => {
           highestDegree: faculty.degree || "",
           email: faculty.email_id || "",
           contactNo: faculty.mobile_number || "",
-          qualificationYear: faculty.year_of_attaining_highest_degree || "",
           degreeYear: faculty.year_of_attaining_highest_degree || "", // Assuming same as qualification year
         });
       }
@@ -139,10 +137,9 @@ const PersonalDetails = ({ setBlurActive }) => {
   const TABLE_HEAD = [
     "Name",
     "Highest Degree",
-    "Year of Degree",
+    "Year of Attaining Highest Degree",
     "Official Email ID",
     "Contact No.",
-    "Qualification Year",
   ];
   const specializationOptions = [
     "Image processing",
@@ -213,7 +210,6 @@ const PersonalDetails = ({ setBlurActive }) => {
                 highestDegree={personalDetails.highestDegree}
                 email={personalDetails.email}
                 contactNo={personalDetails.contactNo}
-                qualificationYear={personalDetails.qualificationYear}
                 degreeYear={personalDetails.degreeYear}
                 updatePersonalDetails={updatePersonalDetails}
               />
@@ -290,15 +286,7 @@ const PersonalDetails = ({ setBlurActive }) => {
                       {personalDetails.contactNo}
                     </Typography>
                   </td>
-                  <td className="p-4">
-                    <Typography
-                      variant="small"
-                      color="blue-gray"
-                      className="font-normal"
-                    >
-                      {personalDetails.qualificationYear}
-                    </Typography>
-                  </td>
+                  
                 </tr>
               </tbody>
             </table>
