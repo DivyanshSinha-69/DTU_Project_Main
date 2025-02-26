@@ -52,27 +52,31 @@ export default function StickyNavbar() {
   };
   const handleLogout = async (e) => {
     e.preventDefault();
-
+  
     try {
       let logoutUrl = "http://localhost:3001/logout"; // Default logout endpoint
       const logoutData = {}; // Data payload for logout
-
+  
       if (role === "faculty" && faculty_id) {
         logoutUrl = "http://localhost:3001/ece/facultyauth/logout"; // Faculty-specific logout
         logoutData.faculty_id = faculty_id;
       }
-
-      // Send a POST request for faculty logout (if applicable)
-      const response = await axios.post(logoutUrl, logoutData, {
-        withCredentials: true,
-      });
-
+  
+      let response;
+      if (role === "student") {
+        // Make a GET request for student logout
+        response = await axios.get(logoutUrl, { withCredentials: true });
+      } else {
+        // Make a POST request for faculty or other roles
+        response = await axios.post(logoutUrl, logoutData, { withCredentials: true });
+      }
+  
       if (response.status === 200) {
         console.log("✅ Logged out successfully");
-
+  
         // Dispatch logout action to clear Redux state
         dispatch(logout());
-
+  
         // Clear additional user-specific data
         dispatch(setRole(null));
         dispatch(removeProfessionalSkills());
@@ -84,7 +88,7 @@ export default function StickyNavbar() {
         dispatch(removeHigherEducationDetails());
         dispatch(removeInterInstitute());
         dispatch(removeBtechEducation());
-
+  
         // Redirect to homepage after logout
         navigate("/");
       } else {
@@ -94,6 +98,7 @@ export default function StickyNavbar() {
       console.error("❌ Logout error:", error.message);
     }
   };
+  
 
   const navList = (
     <ul className="mt-2  mb-4 flex flex-col gap-4 lg:mb-0 lg:mt-0 lg:flex-row lg:items-center lg:gap-6">
@@ -139,7 +144,7 @@ export default function StickyNavbar() {
           className="p-1 font-normal hover:translate-y-[-5px] transition-transform ease-in"
         >
           <HashLink
-            to="/login/admin"
+            to="/login?role=admin"
             className="flex flex-row items-center lg:flex-col"
             style={{ ":hover": { cursor: "pointer" } }}
           >
