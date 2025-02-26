@@ -187,7 +187,7 @@ const Faculty = () => {
                         : "Unknown"}
                 </h2>
                 <h2 className="text-md font-medium text-gray-600">
-                  <span className="text-gray-500">ID:</span> {facultyId}
+                  <span className="text-gray-500">Faculty ID:</span> {facultyId}
                 </h2>
                 <h2 className="text-md font-medium text-gray-600">
                   <span className="text-gray-500">Department:</span> ECE

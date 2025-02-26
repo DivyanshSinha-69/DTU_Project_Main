@@ -37,7 +37,6 @@ const allowedOrigins =
   process.env.ALLOWED_ORIGINS === "*"
     ? true
     : process.env.ALLOWED_ORIGINS.split(",");
-console.log(process.env.JWT_SECRET);
 app.use(
   cors({
     origin: ["https://www.dtu-eceportal.com","http://localhost:3000"],
