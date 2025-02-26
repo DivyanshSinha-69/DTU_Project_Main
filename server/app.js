@@ -1,5 +1,5 @@
 import express from "express";
-import { config } from "dotenv";
+import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import path from "path";
@@ -13,6 +13,8 @@ import commonRouter from "./routes/common.js";
 import authRouter from "./routes/facultyAuthRoutes.js"; // Added Forgot Password Routes
 
 import { errorMiddleware } from "./middlewares/error.js";
+
+dotenv.config(); // Load environment variables
 
 // Load environment variables
 config({ path: "./essentials.env" });
