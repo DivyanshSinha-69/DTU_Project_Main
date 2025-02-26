@@ -34,7 +34,7 @@ function App() {
   useEffect(() => {
     const checkExistingToken = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKENDURL}/cookiescheck`, {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/cookiescheck`, {
           withCredentials: true,
         });
 
