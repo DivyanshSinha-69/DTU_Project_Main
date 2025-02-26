@@ -14,7 +14,8 @@ export default function ResearchProjectPopup({
     publicationName: "",
     publishedDate: "",
     document: null,
-    citation: "", // Add this line
+    citation: "",
+    pdf: null, // Add this line
   });
 
   const domainOptions = [
@@ -45,6 +46,7 @@ export default function ResearchProjectPopup({
         publishedDate: formatDateForInput(project.PublishedDate) || "",
         document: project.Document || null,
         citation: project.Citation || "", // Add this line
+        pdf: formData.pdf,
       });
     }
   }, [project]);
@@ -58,9 +60,11 @@ export default function ResearchProjectPopup({
   };
 
   const handleFileChange = (e) => {
+    const file = e.target.files[0];
     setFormData((prevData) => ({
       ...prevData,
-      document: e.target.files[0],
+      document: file, // Store the file for display purposes
+      pdf: file, // Store the file for API upload
     }));
   };
 
@@ -87,7 +91,8 @@ export default function ResearchProjectPopup({
       PublicationName: formData.publicationName,
       PublishedDate: formData.publishedDate,
       Document: formData.document,
-      Citation: formData.citation, // Add this line
+      Citation: formData.citation,
+      pdf: formData.pdf, // Pass the pdf file for API upload
     };
 
     // Call the function to save the project (either add or edit)

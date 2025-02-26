@@ -7,17 +7,19 @@ import deleteImg from "../../../assets/delete.svg"; // Import the delete icon
 import ResearchProjectPopup from "../PopUp/ResearchProjectPopUp"; // Assume this popup component exists
 import API from "../../../utils/API";
 import { useSelector } from "react-redux";
-
-
+import PdfModal from "../../PdfModal";
 
 const ResearchProjects = ({ setBlurActive }) => {
   const [researchProjectsDetails, setResearchProjectsDetails] = useState([]);
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [editProject, setEditProject] = useState(null);
-  const user = useSelector(state => state.auth.user) || {};
-    const { faculty_id } = user;
-    const facultyId = faculty_id;
-  
+  const [selectedPdf, setSelectedPdf] = useState(null);
+  const accessToken = useSelector((state) => state.auth.accessToken);
+
+  const user = useSelector((state) => state.auth.user) || {};
+  const { faculty_id } = user;
+  const facultyId = faculty_id;
+
   const API_BASE_URL = "/ece/faculty";
   const TABLE_HEAD = [
     "Serial No",
@@ -56,9 +58,9 @@ const ResearchProjects = ({ setBlurActive }) => {
             Domain: item.domain,
             PublicationName: item.publication_name,
             PublishedDate: item.published_date,
-            Document: item.pdf_path ? { name: "Uploaded" } : null,
+            Document: item.pdf_path ? { name: item.pdf_path } : null,
             Citation: item.citation,
-          }))
+          })),
         );
       } else {
         console.error("Unexpected API response:", response.data);
@@ -74,11 +76,15 @@ const ResearchProjects = ({ setBlurActive }) => {
 
   // Open the popup for adding a new project or editing an existing one
   const openPopup = (project = null) => {
-    setEditProject(project ? {
-      ...project,
-     } : null);
+    setEditProject(
+      project
+        ? {
+            ...project,
+          }
+        : null,
+    );
     setPopupOpen(true);
-    setBlurActive(true)
+    setBlurActive(true);
   };
 
   const closePopup = () => {
@@ -93,60 +99,59 @@ const ResearchProjects = ({ setBlurActive }) => {
       ? `${API_BASE_URL}/researchpaper/${editProject.research_id}`
       : `${API_BASE_URL}/researchpaper`;
 
-    const requestData = {
-      faculty_id: facultyId, // Replace with dynamic ID if needed
-      paper_type: getPaperTypeId(project.TypeOfPaper),
-      title_of_paper: project.Title,
-      domain: project.Domain,
-      publication_name: project.PublicationName,
-      published_date: project.PublishedDate,
-      pdf_path: project.Document ? project.Document.name : null,
-      citation: project.Citation,
-    };
-    console.log(requestData);
+    const formData = new FormData();
+    formData.append("faculty_id", facultyId);
+    formData.append("paper_type", getPaperTypeId(project.TypeOfPaper));
+    formData.append("title_of_paper", project.Title);
+    formData.append("domain", project.Domain);
+    formData.append("publication_name", project.PublicationName);
+    formData.append("published_date", project.PublishedDate);
+    formData.append("citation", project.Citation);
+
+    if (project.pdf) {
+      formData.append("pdf", project.pdf);
+    }
+
     try {
       const response = await API({
         url,
         method,
-        headers: { "Content-Type": "application/json" },
-        data: requestData,
+        headers: { "Content-Type": "multipart/form-data" },
+        data: formData,
       });
 
-      // Check if the response indicates success
-      if (response.data.message && response.data.message.includes("successfully")) {
+      console.log("API Response:", response.data); // Debugging Log
+
+      if (
+        response.data.message &&
+        response.data.message.includes("successfully")
+      ) {
         setResearchProjectsDetails((prevDetails) => {
+          const newProject = {
+            research_id:
+              response.data.data.insertId || editProject?.research_id,
+            TypeOfPaper: project.TypeOfPaper,
+            Title: project.Title,
+            Domain: project.Domain,
+            PublicationName: project.PublicationName,
+            PublishedDate: project.PublishedDate,
+            Document: project.pdf
+              ? { name: `Faculty\\ResearchPapers\\FAC001\\${project.pdf.name}` }
+              : null, // 🔹 Use project.pdf name
+            Citation: project.Citation,
+          };
+
           if (editProject) {
+            // Update existing project
             return prevDetails.map((p) =>
-              p.research_id === editProject.research_id
-                ? { 
-                    research_id: editProject.research_id,
-                    TypeOfPaper: getPaperType(requestData.paper_type),
-                    Title: requestData.title_of_paper,
-                    Domain: requestData.domain,
-                    PublicationName: requestData.publication_name,
-                    PublishedDate: requestData.published_date,
-                    Document: requestData.pdf_path ? { name: "Uploaded" } : null,
-                    Citation: requestData.citation,
-                  }
-                : p
+              p.research_id === editProject.research_id ? newProject : p,
             );
           } else {
-            return [
-              ...prevDetails,
-              { 
-                research_id: response.data.data.insertId,
-                TypeOfPaper: getPaperType(requestData.paper_type),
-                Title: requestData.title_of_paper,
-                Domain: requestData.domain,
-                PublicationName: requestData.publication_name,
-                PublishedDate: requestData.published_date,
-                Document: requestData.pdf_path ? { name: "Uploaded" } : null,
-                Citation: requestData.citation,
-              }, 
-            ];
+            // Add new project
+            return [...prevDetails, newProject];
           }
         });
-        
+
         closePopup();
       }
     } catch (error) {
@@ -157,17 +162,21 @@ const ResearchProjects = ({ setBlurActive }) => {
   // Delete a research project
   const deleteProject = async (research_id) => {
     try {
-      const response = await API.delete(`${API_BASE_URL}/researchpaper/${research_id}`);
-      if (response.data.message && response.data.message.includes("successfully")) {
+      const response = await API.delete(
+        `${API_BASE_URL}/researchpaper/${research_id}`,
+      );
+      if (
+        response.data.message &&
+        response.data.message.includes("successfully")
+      ) {
         setResearchProjectsDetails((prevDetails) =>
-          prevDetails.filter((project) => project.research_id !== research_id)
+          prevDetails.filter((project) => project.research_id !== research_id),
         );
       }
     } catch (error) {
       console.error("Error deleting research paper:", error);
     }
   };
-
 
   return (
     <div>
@@ -300,8 +309,9 @@ const ResearchProjects = ({ setBlurActive }) => {
                             color="blue-gray"
                             className="font-normal"
                           >
-                          {new Date(PublishedDate)?.toLocaleDateString("en-GB")}
-
+                            {new Date(PublishedDate)?.toLocaleDateString(
+                              "en-GB",
+                            )}
                           </Typography>
                         </td>
                         <td className={classes}>
@@ -310,11 +320,21 @@ const ResearchProjects = ({ setBlurActive }) => {
                             color="blue-gray"
                             className="font-normal"
                           >
-                            {Document
-                              ? Document.name || "Uploaded"
-                              : "Not Uploaded"}
+                            {Document ? (
+                              <a
+                                href={`http://localhost:3001/public/${Document.name}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-500 hover:underline"
+                              >
+                                View
+                              </a>
+                            ) : (
+                              "Not Uploaded"
+                            )}
                           </Typography>
                         </td>
+
                         <td className={classes}>
                           <Typography
                             variant="small"
@@ -375,6 +395,9 @@ const ResearchProjects = ({ setBlurActive }) => {
           </div>
         </Card>
       </div>
+      {selectedPdf && (
+        <PdfModal pdfUrl={selectedPdf} onClose={() => setSelectedPdf(null)} />
+      )}
     </div>
   );
 };

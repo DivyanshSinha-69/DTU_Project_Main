@@ -15,9 +15,9 @@ const PatentRecords = ({ setBlurActive }) => {
   const [selectedPatent, setSelectedPatent] = useState(null);
   const [isAddPatent, setIsAddPatent] = useState(false);
 
-  const user = useSelector(state => state.auth.user) || {};
-    const { faculty_id } = user;
-    const facultyId = faculty_id;
+  const user = useSelector((state) => state.auth.user) || {};
+  const { faculty_id } = user;
+  const facultyId = faculty_id;
   // Fetch patent records
   const fetchPatentRecords = async () => {
     try {
@@ -96,7 +96,6 @@ const PatentRecords = ({ setBlurActive }) => {
     setBlurActive(false);
   };
 
-  
   const TABLE_HEAD = [
     "Patent Name",
     "Published Date",
@@ -281,9 +280,13 @@ const PatentRecords = ({ setBlurActive }) => {
             selectedPatent && (
               <PatentPopUp
                 patentName={selectedPatent.patent_name}
-                patentPublish={formatDateForInput(selectedPatent.patent_publish)}
+                patentPublish={formatDateForInput(
+                  selectedPatent.patent_publish,
+                )}
                 patentFiled={formatDateForInput(selectedPatent.patent_filed)}
-                patentAwardDate={formatDateForInput(selectedPatent.patent_award_date)}
+                patentAwardDate={formatDateForInput(
+                  selectedPatent.patent_award_date,
+                )}
                 patent_id={selectedPatent.patent_id}
                 closeModal={closePopup}
                 handleAddPatent={handleAddPatent}

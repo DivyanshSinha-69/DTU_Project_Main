@@ -61,9 +61,10 @@ export default function Footer() {
       >
         &copy; DELHI TECHNOLOGICAL UNIVERSITY
       </Typography>
-      {/* <Typography color="gray" className="mb-2 text-center font-bold text-gray-500">
-        created with ❤️ by Arpan Amarnath Anupam
-      </Typography> */}
+      
+      <Typography color="gray" className="mb-2 text-center font-bold text-gray-500">
+  Developed by 3D
+</Typography>
     </footer>
   );
 }

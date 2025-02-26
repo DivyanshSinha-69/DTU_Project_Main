@@ -10,23 +10,22 @@ import deleteImg from "../../../assets/delete.svg";
 import API from "../../../utils/API";
 import { useSelector } from "react-redux";
 
-
-
 // Dummy data for testing
-
 
 const SponsoredResearch = ({ setBlurActive }) => {
   const [researchDetails, setResearchDetails] = useState([]);
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [selectedResearch, setSelectedResearch] = useState(null);
   const [isAddResearch, setIsAddResearch] = useState(false);
-  const user = useSelector(state => state.auth.user) || {};
-    const { faculty_id } = user;
-    const facultyId = faculty_id;
+  const user = useSelector((state) => state.auth.user) || {};
+  const { faculty_id } = user;
+  const facultyId = faculty_id;
   // Fetch Sponsored Research records
   const fetchResearchDetails = async () => {
     try {
-      const response = await API.get(`ece/faculty/sponsored-research/${facultyId}`);
+      const response = await API.get(
+        `ece/faculty/sponsored-research/${facultyId}`,
+      );
       // If the API returns an array, map it; otherwise, set an empty array.
       if (Array.isArray(response.data)) {
         setResearchDetails(
@@ -38,7 +37,7 @@ const SponsoredResearch = ({ setBlurActive }) => {
             startDate: record.start_date,
             end_date: record.end_date,
             sponsorship_id: record.sponsorship_id,
-          }))
+          })),
         );
       } else {
         setResearchDetails([]);
@@ -90,7 +89,7 @@ const SponsoredResearch = ({ setBlurActive }) => {
         // Add new research record
         const response = await API.post(
           "ece/faculty/sponsored-research",
-          requestPayload
+          requestPayload,
         );
         setResearchDetails((prev) => [
           ...prev,
@@ -100,14 +99,14 @@ const SponsoredResearch = ({ setBlurActive }) => {
         // Update existing research record
         await API.put(
           `ece/faculty/sponsored-research/${selectedResearch.sponsorship_id}`,
-          requestPayload
+          requestPayload,
         );
         setResearchDetails((prev) =>
           prev.map((research) =>
             research.sponsorship_id === selectedResearch.sponsorship_id
               ? { ...newResearch }
-              : research
-          )
+              : research,
+          ),
         );
       }
       closePopup();
@@ -116,7 +115,7 @@ const SponsoredResearch = ({ setBlurActive }) => {
         isAddResearch
           ? "Error adding sponsored research:"
           : "Error updating sponsored research:",
-        error
+        error,
       );
     }
   };
@@ -126,9 +125,7 @@ const SponsoredResearch = ({ setBlurActive }) => {
     try {
       await API.delete(`ece/faculty/sponsored-research/${sponsorshipId}`);
       setResearchDetails((prev) =>
-        prev.filter(
-          (research) => research.sponsorship_id !== sponsorshipId
-        )
+        prev.filter((research) => research.sponsorship_id !== sponsorshipId),
       );
     } catch (error) {
       console.error("Error deleting sponsored research:", error);

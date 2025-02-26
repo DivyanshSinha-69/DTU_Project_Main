@@ -1657,7 +1657,7 @@ export const updateFacultyImage = async (req, res) => {
     // Get the old image path from the database
     const getQuery =
       "SELECT faculty_image FROM faculty_image WHERE faculty_id = ?";
-      const [result] = await pool.promise().query(getQuery, [faculty_id]); 
+    const [result] = await pool.promise().query(getQuery, [faculty_id]);
 
     const oldImagePath = result.length > 0 ? result[0].faculty_image : null;
 
@@ -1701,9 +1701,10 @@ export const updateFacultyImage = async (req, res) => {
     res.status(200).json({ message: "Faculty image updated successfully" });
   } catch (err) {
     console.error("❌ Error updating faculty image:", err); // Log error in backend console
-    res.status(500).json({ message: "Error updating faculty image", error: err.message });
+    res
+      .status(500)
+      .json({ message: "Error updating faculty image", error: err.message });
   }
-  
 };
 
 export const deleteFacultyImage = (req, res) => {

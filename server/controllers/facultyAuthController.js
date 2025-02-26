@@ -191,46 +191,48 @@ export const facultyLogin = (req, res) => {
             }
 
             if (facultyResults.length === 0) {
-              return res.status(404).json({ message: "Faculty details not found!" });
+              return res
+                .status(404)
+                .json({ message: "Faculty details not found!" });
             }
 
             const { faculty_name, designation } = facultyResults[0];
 
-          const accessToken = generateAccessToken(user.faculty_id);
-          const refreshToken = generateRefreshToken(user.faculty_id);
+            const accessToken = generateAccessToken(user.faculty_id);
+            const refreshToken = generateRefreshToken(user.faculty_id);
 
-          const expiryDays = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7;
-          const refreshTokenExpiry = new Date(
-            Date.now() + expiryDays * 24 * 60 * 60 * 1000,
-          )
-            .toISOString()
-            .slice(0, 19)
-            .replace("T", " ");
+            const expiryDays = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7;
+            const refreshTokenExpiry = new Date(
+              Date.now() + expiryDays * 24 * 60 * 60 * 1000,
+            )
+              .toISOString()
+              .slice(0, 19)
+              .replace("T", " ");
 
-          pool.query(
-            "UPDATE faculty_auth SET refresh_token = ?, refresh_token_expiry = ? WHERE faculty_id = ?",
-            [refreshToken, refreshTokenExpiry, faculty_id],
-            (err) => {
-              if (err) {
-                console.error("Database Error:", err);
-                return res.status(500).json({ message: "Server error!" });
-              }
+            pool.query(
+              "UPDATE faculty_auth SET refresh_token = ?, refresh_token_expiry = ? WHERE faculty_id = ?",
+              [refreshToken, refreshTokenExpiry, faculty_id],
+              (err) => {
+                if (err) {
+                  console.error("Database Error:", err);
+                  return res.status(500).json({ message: "Server error!" });
+                }
 
-              res.json({
-                message: "Login successful!",
-                accessToken,
-                refreshToken,
-                user: {
-                  faculty_id: user.faculty_id,
-                  faculty_name: faculty_name,
-                  faculty_designation: designation,
-                  Position: "faculty",
-                },
-              });
-            },
-          );
-        }
-      );
+                res.json({
+                  message: "Login successful!",
+                  accessToken,
+                  refreshToken,
+                  user: {
+                    faculty_id: user.faculty_id,
+                    faculty_name: faculty_name,
+                    faculty_designation: designation,
+                    Position: "faculty",
+                  },
+                });
+              },
+            );
+          },
+        );
       });
     },
   );
