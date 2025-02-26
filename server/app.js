@@ -16,6 +16,7 @@ import { errorMiddleware } from "./middlewares/error.js";
 
 dotenv.config();
 
+
 export const app = express();
 app.use("/public", express.static("public"));
 

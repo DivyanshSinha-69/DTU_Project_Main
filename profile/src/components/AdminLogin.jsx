@@ -18,7 +18,7 @@ const AdminLogin = () => {
     try {
       // Make a POST request to your server with login credentials
       const response = await axios.post(
-        "https://dtu-eceportal.com/login/admin",
+        "https://api.dtu-eceportal.com/login/admin",
         {
           email: email,
           password: password,

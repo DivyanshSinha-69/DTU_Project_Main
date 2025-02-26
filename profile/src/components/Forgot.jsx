@@ -16,8 +16,8 @@ const Forgot = () => {
     // Determine the API endpoint based on user type
     const endpoint =
       userType === "faculty"
-        ? "https://dtu-eceportal.com/ece/facultyauth/forgotpassword"
-        : "https://dtu-eceportal.com/forgotpassword";
+        ? "https://api.dtu-eceportal.com/ece/facultyauth/forgotpassword"
+        : "https://api.dtu-eceportal.com/forgotpassword";
 
     try {
       // Make a POST request to the appropriate endpoint

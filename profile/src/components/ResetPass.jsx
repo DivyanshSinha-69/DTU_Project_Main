@@ -23,7 +23,7 @@ const ResetPassword = () => {
     try {
       // Make a POST request to the reset password endpoint
       const response = await axios.post(
-        `https://dtu-eceportal.com/ece/facultyauth/resetpassword/${token}`,
+        `https://api.dtu-eceportal.com/ece/facultyauth/resetpassword/${token}`,
         {
           newPassword,
         },

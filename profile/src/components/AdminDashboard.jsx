@@ -91,7 +91,7 @@ const Dashboard = () => {
     setClicked(true);
     try {
       const response = await axios.post(
-        "https://dtu-eceportal.com/ece/admin/getdata",
+        "https://api.dtu-eceportal.com/ece/admin/getdata",
         {
           ...formData,
         },

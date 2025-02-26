@@ -3,7 +3,7 @@ import { store } from "../redux/Store";
 import { updateAccessToken, logout } from "../redux/reducers/AuthSlice";
 
 const API = axios.create({
-  baseURL: "https://dtu-eceportal.com",
+  baseURL: "https://api.dtu-eceportal.com",
   withCredentials: true, // Ensure cookies are sent if used for refresh tokens
 });
 const decodeToken = (token) => {

@@ -32,8 +32,8 @@ const Login = () => {
     try {
       const endpoint =
         role === "faculty"
-          ? "https://dtu-eceportal.com/ece/facultyauth/login"
-          : "https://dtu-eceportal.com/login";
+          ? "https://api.dtu-eceportal.com/ece/facultyauth/login"
+          : "https://api.dtu-eceportal.com/login";
 
       const response = await axios.post(
         endpoint,
