@@ -14,10 +14,7 @@ import authRouter from "./routes/facultyAuthRoutes.js"; // Added Forgot Password
 
 import { errorMiddleware } from "./middlewares/error.js";
 
-dotenv.config(); // Load environment variables
-
-// Load environment variables
-config({ path: "./essentials.env" });
+dotenv.config();
 
 export const app = express();
 app.use("/public", express.static("public"));
@@ -39,7 +36,7 @@ const allowedOrigins =
   process.env.ALLOWED_ORIGINS === "*"
     ? true
     : process.env.ALLOWED_ORIGINS.split(",");
-
+console.log(process.env.JWT_SECRET);
 app.use(
   cors({
     origin: allowedOrigins,
