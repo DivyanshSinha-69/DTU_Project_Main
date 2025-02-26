@@ -38,7 +38,7 @@ const Publication = ({ setBlurActive }) => {
   const handledelete = async (ID) => {
     try {
       const response = await axios.delete(
-        "http://localhost:3001/ece/student/deletepublication",
+        `${process.env.REACT_APP_BACKEND_URL}/ece/student/deletepublication`,
         {
           data: {
             ID: ID,

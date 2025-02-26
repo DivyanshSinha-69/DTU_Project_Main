@@ -12,6 +12,7 @@
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.6.3",
     "devextreme-react": "^23.2.3",
+    "dotenv": "^16.4.7",
     "file-saver": "^2.0.5",
     "framer-motion": "^12.4.7",
     "heroicons": "^2.1.1",

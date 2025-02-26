@@ -49,7 +49,7 @@ export default function AddPlacementsPopup(props) {
 
     try {
       const response = await axios.post(
-        "http://localhost:3001/ece/student/addplacement",
+        `${process.env.REACT_APP_BACKEND_URL}/ece/student/addplacement`,
         {
           companyName: formData.companyName,
           placementType: formData.placementType,

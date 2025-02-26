@@ -3,7 +3,7 @@ import { store } from "../redux/Store";
 import { updateAccessToken, logout } from "../redux/reducers/AuthSlice";
 
 const API = axios.create({
-  baseURL: "https://api.dtu-eceportal.com",
+  baseURL: `${process.env.REACT_APP_BACKEND_URL}`,
   withCredentials: true, // Ensure cookies are sent if used for refresh tokens
 });
 const decodeToken = (token) => {
@@ -48,7 +48,7 @@ API.interceptors.request.use(
 
           // Refresh the token
           const res = await axios.post(
-            "http://localhost:3001/ece/facultyauth/refresh",
+            `${process.env.REACT_APP_BACKEND_URL}/ece/facultyauth/refresh`,
             {
               refreshToken: refreshToken,
             },
@@ -110,7 +110,7 @@ API.interceptors.response.use(
         }
 
         const res = await axios.post(
-          "http://localhost:3001/ece/facultyauth/refresh",
+          `${process.env.REACT_APP_BACKEND_URL}/ece/facultyauth/refresh`,
           {
             refreshToken: refreshToken, // 🔹 Send stored refresh token
           },

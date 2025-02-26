@@ -40,7 +40,7 @@ const allowedOrigins =
 console.log(process.env.JWT_SECRET);
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: ["https://www.dtu-eceportal.com","http://localhost:3000"],
     methods: corsMethods,
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,

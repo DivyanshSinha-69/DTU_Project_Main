@@ -30,10 +30,11 @@ const Login = () => {
     e.preventDefault();
 
     try {
+      console.log("WOrking Fine,", `${process.env.REACT_APP_BACKEND_URL}`);
       const endpoint =
         role === "faculty"
-          ? "https://api.dtu-eceportal.com/ece/facultyauth/login"
-          : "https://api.dtu-eceportal.com/login";
+          ? `${process.env.REACT_APP_BACKEND_URL}/ece/facultyauth/login`
+          : `${process.env.REACT_APP_BACKEND_URL}/login`;
 
       const response = await axios.post(
         endpoint,

@@ -54,7 +54,7 @@ export default function AddPlacementsPopup(props) {
 
     try {
       const response = await axios.post(
-        "http://localhost:3001/ece/student/addpublication",
+        `${process.env.REACT_APP_BACKEND_URL}/ece/student/addpublication`,
         {
           publishedIn: formData.publishedIn,
           articleTitle: formData.articleTitle,

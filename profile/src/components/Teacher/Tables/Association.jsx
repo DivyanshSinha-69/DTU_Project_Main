@@ -123,7 +123,7 @@ const Association = ({ setBlurActive }) => {
 
       console.log("Payload sent to API:", payload);
 
-      const url = `http://localhost:3001/ece/faculty/facultyassociation/${facultyId}`;
+      const url = `${process.env.REACT_APP_BACKEND_URL}/ece/faculty/facultyassociation/${facultyId}`;
       const response = await API.put(url, payload);
 
       if (response.data.success) {

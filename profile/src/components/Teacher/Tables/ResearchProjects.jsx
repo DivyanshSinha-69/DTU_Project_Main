@@ -322,7 +322,7 @@ const ResearchProjects = ({ setBlurActive }) => {
                           >
                             {Document ? (
                               <a
-                                href={`http://localhost:3001/public/${Document.name}`}
+                                href={`${process.env.REACT_APP_BACKEND_URL}/public/${Document.name}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-blue-500 hover:underline"

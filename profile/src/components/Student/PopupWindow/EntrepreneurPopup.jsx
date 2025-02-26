@@ -47,7 +47,7 @@ export default function EntrepreneurPopup(props) {
       }
 
       const response = await axios.put(
-        "http://localhost:3001/ece/student/updateentrepreneurdetails",
+        `${process.env.REACT_APP_BACKEND_URL}/ece/student/updateentrepreneurdetails`,
         {
           companyName: formData.companyName,
           cinNumber: formData.cinNumber,

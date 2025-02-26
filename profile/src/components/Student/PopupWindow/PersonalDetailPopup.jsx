@@ -76,7 +76,7 @@ export default function PersonalDetailPopup(props) {
     }
     try {
       const response = await axios.put(
-        "http://localhost:3001/ece/student/updatepersonaldetails",
+        `${process.env.REACT_APP_BACKEND_URL}/ece/student/updatepersonaldetails`,
         {
           id: rollNo,
           motherName: formData.motherName,

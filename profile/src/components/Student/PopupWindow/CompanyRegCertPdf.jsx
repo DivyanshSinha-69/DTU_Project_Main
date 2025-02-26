@@ -39,7 +39,7 @@ const CompanyRegCertPdf = ({ setPdfSrc }) => {
 
       try {
         const response = await axios.post(
-          "http://localhost:3001/ece/student/uploadcompanyregcert",
+          `${process.env.REACT_APP_BACKEND_URL}/ece/student/uploadcompanyregcert`,
           formData,
           {
             headers: {
@@ -57,7 +57,7 @@ const CompanyRegCertPdf = ({ setPdfSrc }) => {
 
       axios
         .post(
-          `http://localhost:3001/ece/student/getcompanyregcert`,
+          `${process.env.REACT_APP_BACKEND_URL}/ece/student/getcompanyregcert`,
           { id: RollNo },
           // { responseType: "arraybuffer" }
         )

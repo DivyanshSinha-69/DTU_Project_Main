@@ -42,7 +42,7 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
   const handledelete = async (ID) => {
     try {
       const response = await axios.delete(
-        "http://localhost:3001/ece/student/deleteprofessionalskills",
+        `${process.env.REACT_APP_BACKEND_URL}/ece/student/deleteprofessionalskills`,
         {
           data: {
             ID: ID,

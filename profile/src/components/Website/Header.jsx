@@ -54,11 +54,11 @@ export default function StickyNavbar() {
     e.preventDefault();
   
     try {
-      let logoutUrl = "http://localhost:3001/logout"; // Default logout endpoint
+      let logoutUrl = `${process.env.REACT_APP_BACKEND_URL}/logout`; // Default logout endpoint
       const logoutData = {}; // Data payload for logout
   
       if (role === "faculty" && faculty_id) {
-        logoutUrl = "http://localhost:3001/ece/facultyauth/logout"; // Faculty-specific logout
+        logoutUrl = `${process.env.REACT_APP_BACKEND_URL}/ece/facultyauth/logout`; // Faculty-specific logout
         logoutData.faculty_id = faculty_id;
       }
   
