@@ -1918,3 +1918,90 @@ export const deleteFacultyPatent = (req, res) => {
       .json({ message: "Patent deleted successfully", success: true });
   });
 };
+
+// ✅ GET all faculty qualifications or specific faculty qualification
+export const getFacultyQualifications = (req, res) => {
+  const { faculty_id } = req.params;
+
+  const query = faculty_id
+    ? "SELECT * FROM faculty_Qualification WHERE faculty_id = ?"
+    : "SELECT * FROM faculty_Qualification";
+
+  pool.query(query, faculty_id ? [faculty_id] : [], (err, results) => {
+    if (err) {
+      return res
+        .status(500)
+        .json({ message: "Error fetching faculty qualifications", error: err });
+    }
+    res.status(200).json(results);
+  });
+};
+
+// ✅ ADD a new faculty qualification
+export const addFacultyQualification = (req, res) => {
+  const { faculty_id, degree_level, institute, degree_name, year_of_passing, specialization } = req.body;
+
+  if (!faculty_id || !degree_level || !institute || !degree_name || !year_of_passing || !specialization) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  const query = `INSERT INTO faculty_Qualification 
+      (faculty_id, degree_level, institute, degree_name, year_of_passing, specialization) 
+      VALUES (?, ?, ?, ?, ?, ?)`;
+
+  pool.query(
+    query,
+    [faculty_id, degree_level, institute, degree_name, year_of_passing, specialization],
+    (err, result) => {
+      if (err) {
+        return res.status(500).json({ message: "Error adding qualification", error: err });
+      }
+      res.status(201).json({ message: "Qualification added successfully", education_id: result.insertId });
+    }
+  );
+};
+
+// ✅ UPDATE a faculty qualification
+export const updateFacultyQualification = (req, res) => {
+  const { education_id } = req.params;
+  const { faculty_id, degree_level, institute, degree_name, year_of_passing, specialization } = req.body;
+
+  if (!faculty_id || !degree_level || !institute || !degree_name || !year_of_passing || !specialization) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  const query = `UPDATE faculty_Qualification 
+      SET faculty_id = ?, degree_level = ?, institute = ?, degree_name = ?, year_of_passing = ?, specialization = ? 
+      WHERE education_id = ?`;
+
+  pool.query(
+    query,
+    [faculty_id, degree_level, institute, degree_name, year_of_passing, specialization, education_id],
+    (err, result) => {
+      if (err) {
+        return res.status(500).json({ message: "Error updating qualification", error: err });
+      }
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: "Qualification not found" });
+      }
+      res.status(200).json({ message: "Qualification updated successfully" });
+    }
+  );
+};
+
+// ✅ DELETE a faculty qualification
+export const deleteFacultyQualification = (req, res) => {
+  const { education_id } = req.params;
+
+  const query = `DELETE FROM faculty_Qualification WHERE education_id = ?`;
+
+  pool.query(query, [education_id], (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: "Error deleting qualification", error: err });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Qualification not found" });
+    }
+    res.status(200).json({ message: "Qualification deleted successfully" });
+  });
+};
