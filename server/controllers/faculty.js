@@ -5,6 +5,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
+import sharp from "sharp";
 
 const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
@@ -1642,70 +1643,89 @@ export const getFacultyImage = (req, res) => {
   });
 };
 
-export const updateFacultyImage = async (req, res) => {
+
+
+
+
+export const updateFacultyImage = (req, res) => {
   const { faculty_id } = req.params;
 
   if (!req.file) {
     return res.status(400).json({ message: "No image file uploaded" });
   }
 
-  // Define the image path for storage (use the filename provided by Multer)
-  const newImageFilename = req.file.filename; // Multer has already assigned a unique name
+  const newImageFilename = req.file.filename;
   const newImagePath = `Faculty/images/${newImageFilename}`;
+  const uploadDir = path.join(__dirname, "..", "public", "Faculty", "images");
 
-  try {
-    // Get the old image path from the database
-    const getQuery =
-      "SELECT faculty_image FROM faculty_image WHERE faculty_id = ?";
-    const [result] = await pool.promise().query(getQuery, [faculty_id]);
-
-    const oldImagePath = result.length > 0 ? result[0].faculty_image : null;
-
-    // Delete the old image if it exists
-    if (oldImagePath) {
-      const fullOldImagePath = path.join(
-        __dirname,
-        "..",
-        "public",
-        oldImagePath,
-      );
-      try {
-        await fs.promises.unlink(fullOldImagePath);
-      } catch {
-        // Continue even if the old file deletion fails
-      }
-    }
-
-    // Ensure the folder exists
-    const uploadDir = path.join(__dirname, "..", "public", "Faculty", "images");
-    if (!fs.existsSync(uploadDir)) {
-      await fs.promises.mkdir(uploadDir, { recursive: true });
-    }
-
-    // Move the uploaded file to the destination
-    const destPath = path.join(uploadDir, newImageFilename);
-    const tempFilePath = req.file.path;
-
-    if (tempFilePath !== destPath) {
-      await fs.promises.rename(tempFilePath, destPath);
-    }
-
-    // Update the faculty_image field in the database
-    const updateQuery = `
-      UPDATE faculty_image 
-      SET faculty_image = ? 
-      WHERE faculty_id = ?
-    `;
-    await pool.promise().query(updateQuery, [newImagePath, faculty_id]);
-
-    res.status(200).json({ message: "Faculty image updated successfully" });
-  } catch (err) {
-    console.error("❌ Error updating faculty image:", err); // Log error in backend console
-    res
-      .status(500)
-      .json({ message: "Error updating faculty image", error: err.message });
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
   }
+
+  const tempFilePath = req.file.path;
+  const compressedImagePath = path.join(uploadDir, `compressed_${newImageFilename}`);
+
+  // Compress Image
+  sharp(tempFilePath)
+    .resize(800)
+    .jpeg({ quality: 75 })
+    .toFile(compressedImagePath, (err) => {
+      if (err) {
+        console.error("❌ Error compressing image:", err);
+        return res.status(500).json({ message: "Error processing image", error: err.message });
+      }
+
+      // Fetch old image path from the database
+      const getQuery = "SELECT faculty_image FROM faculty_image WHERE faculty_id = ?";
+      pool.query(getQuery, [faculty_id], (err, result) => {
+        if (err) {
+          console.error("❌ Error fetching old image:", err);
+          return res.status(500).json({ message: "Error fetching old image", error: err.message });
+        }
+
+        const oldImagePath = result.length > 0 ? result[0].faculty_image : null;
+
+        // Delete old image if it exists
+        if (oldImagePath) {
+          const fullOldImagePath = path.join(__dirname, "..", "public", oldImagePath);
+          if (fs.existsSync(fullOldImagePath)) {
+            fs.unlink(fullOldImagePath, (err) => {
+              if (err) console.error("❌ Error deleting old image:", err);
+              else console.log("✅ Old image deleted successfully.");
+            });
+          } else {
+            console.warn("⚠ Old image not found, skipping deletion.");
+          }
+        }
+
+        // Update database with new compressed image path
+        const updateQuery = "UPDATE faculty_image SET faculty_image = ? WHERE faculty_id = ?";
+        pool.query(updateQuery, [`Faculty/images/compressed_${newImageFilename}`, faculty_id], (err) => {
+          if (err) {
+            console.error("❌ Error updating faculty image:", err);
+            return res.status(500).json({ message: "Error updating faculty image", error: err.message });
+          }
+
+          // ✅ Delay deleting temp file to ensure it's fully released
+          setTimeout(() => {
+            if (fs.existsSync(tempFilePath)) {
+              fs.rm(tempFilePath, { force: true }, (err) => {
+                if (err) console.error("❌ Error deleting uncompressed image:", err);
+                else console.log("✅ Uncompressed image deleted successfully.");
+              });
+            } else {
+              console.warn("⚠ Uncompressed image not found, skipping deletion.");
+            }
+          }, 500); // 2-second delay to avoid file lock issues
+
+          res.status(200).json({ message: "Faculty image updated successfully" });
+        });
+      });
+    });
 };
+
+
+
 
 export const deleteFacultyImage = (req, res) => {
   const { faculty_id } = req.params;

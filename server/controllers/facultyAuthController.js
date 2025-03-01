@@ -198,6 +198,29 @@ export const facultyLogin = (req, res) => {
 
             const { faculty_name, designation } = facultyResults[0];
 
+            // Fetch counts from all tables in a single query
+            pool.query(
+              `SELECT 
+                  (SELECT COUNT(*) FROM faculty_research_paper WHERE faculty_id = ?) AS research_papers,
+                  (SELECT COUNT(*) FROM faculty_sponsored_research WHERE faculty_id = ?) AS sponsorships,
+                  (SELECT COUNT(*) FROM faculty_patents WHERE faculty_id = ?) AS patents,
+                  (SELECT COUNT(*) FROM faculty_Book_records WHERE faculty_id = ?) AS book_records,
+                  (SELECT COUNT(*) FROM faculty_consultancy WHERE faculty_id = ?) AS consultancy`,
+              [faculty_id, faculty_id, faculty_id, faculty_id, faculty_id],
+              (err, countResults) => {
+                if (err) {
+                  console.error("Database Error:", err);
+                  return res.status(500).json({ message: "Server error!" });
+                }
+
+                const {
+                  research_papers,
+                  sponsorships,
+                  patents,
+                  book_records,
+                  consultancy,
+                } = countResults[0];
+
             const accessToken = generateAccessToken(user.faculty_id);
             const refreshToken = generateRefreshToken(user.faculty_id);
 
@@ -227,12 +250,18 @@ export const facultyLogin = (req, res) => {
                     faculty_name: faculty_name,
                     faculty_designation: designation,
                     Position: "faculty",
+                    researchCount: research_papers,
+                    sponsorCount: sponsorships,
+                    patentCount: patents,
+                    bookCount: book_records,
+                    consultancyCount: consultancy,
                   },
                 });
               },
             );
           },
         );
+      });
       });
     },
   );
