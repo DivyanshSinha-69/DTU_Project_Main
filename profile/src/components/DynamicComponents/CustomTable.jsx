@@ -6,8 +6,16 @@ import deleteImg from "../../assets/delete.svg";
 import addImg from "../../assets/add.svg"; // Import Add Icon
 import { useThemeContext } from "../../context/ThemeContext";
 
+const formatDateForInput = (date) => {
+  if (!date) return "-";
+  const [date1] = date?.split("T");
+  const [year, month, day] = date1?.split("-");
+  return `${day}-${month}-${year}`;
+};
+
 const CustomTable = ({ title, subtitle, columns, data, actions, onAdd }) => {
   const { darkMode } = useThemeContext();
+
   return (
     <Card
       className="shadow-2xl rounded-2xl p-6 max-w-7xl w-full mx-auto"
@@ -44,7 +52,7 @@ const CustomTable = ({ title, subtitle, columns, data, actions, onAdd }) => {
       </div>
 
       {/* Table Container - Seamless Design */}
-      <div className="w-full overflow-x-auto md:overflow-hidden">
+      <div className="w-full overflow-x-auto">
         <table
           className="w-full min-w-auto lg:min-w-max table-auto text-left"
           style={{
@@ -65,7 +73,9 @@ const CustomTable = ({ title, subtitle, columns, data, actions, onAdd }) => {
                   key={col.key}
                   className={`border-b p-4 ${col.key === "actions" ? "text-right" : ""}`}
                   style={{
-                    borderBottom: darkMode ? "1px solid #21262D" : "1px solid #DADDE1",
+                    borderBottom: darkMode
+                      ? "1px solid #21262D"
+                      : "1px solid #DADDE1",
                   }}
                 >
                   <Typography
@@ -90,26 +100,63 @@ const CustomTable = ({ title, subtitle, columns, data, actions, onAdd }) => {
                   className="hover:bg-opacity-20 transition-all"
                   style={{
                     backgroundColor: "transparent",
-                    borderBottom: isLast ? "none" : darkMode ? "1px solid #21262D" : "1px solid #DADDE1",
+                    borderBottom: isLast
+                      ? "none"
+                      : darkMode
+                        ? "1px solid #21262D"
+                        : "1px solid #DADDE1",
                   }}
                 >
                   {columns.map((col) => {
+                    let cellValue = row[col.key];
+                    if (col.key === "Document") {
+                      console.log(cellValue);
+                      return (
+                        <td key={col.key} className="p-4">
+                          {cellValue ? (
+                            <a
+                              href={`${process.env.REACT_APP_BACKEND_URL}/public/${cellValue.name}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-500 hover:underline"
+                            >
+                              View
+                            </a>
+                          ) : (
+                            "Not Uploaded"
+                          )}
+                        </td>
+                      );
+                    }
                     return col.key === "actions" ? (
                       <td key={col.key} className="p-4 text-right">
                         <div className="flex justify-end gap-2">
                           <button
-                            onClick={() => actions.edit(row)}
+                            onClick={() => {
+                              actions.edit(row);
+                              console.log(row);
+                            }}
                             className="p-2 rounded-full transition-transform hover:scale-105"
-                            style={{ backgroundColor: darkMode ? "#238636" : "#2D9C4A", color: "#FFFFFF" }}
+                            style={{
+                              backgroundColor: darkMode ? "#238636" : "#2D9C4A",
+                              color: "#FFFFFF",
+                            }}
                           >
                             <img src={editImg} alt="edit" className="h-5 w-5" />
                           </button>
                           <button
                             onClick={() => actions.delete(row)}
                             className="p-2 rounded-full transition-transform hover:scale-105"
-                            style={{ backgroundColor: darkMode ? "#D32F2F" : "#E53935", color: "#FFFFFF" }}
+                            style={{
+                              backgroundColor: darkMode ? "#D32F2F" : "#E53935",
+                              color: "#FFFFFF",
+                            }}
                           >
-                            <img src={deleteImg} alt="delete" className="h-5 w-5 filter brightness-0 invert" />
+                            <img
+                              src={deleteImg}
+                              alt="delete"
+                              className="h-5 w-5 filter brightness-0 invert"
+                            />
                           </button>
                         </div>
                       </td>
@@ -120,7 +167,7 @@ const CustomTable = ({ title, subtitle, columns, data, actions, onAdd }) => {
                           className="font-poppins font-normal"
                           style={{ color: darkMode ? "#E4E6EB" : "#1C1E21" }}
                         >
-                          {row[col.key]?row[col.key]:"-"}
+                          {cellValue ? cellValue : "-"}
                         </Typography>
                       </td>
                     );

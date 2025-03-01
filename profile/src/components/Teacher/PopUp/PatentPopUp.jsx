@@ -6,7 +6,7 @@ export default function PatentPopUp({
   patentName = "",
   patentPublish = "",
   patentFiled = "",
-  patentAwardDate = "",
+  patentAwardDate = null,
   patent_id = "",
   closeModal,
   handleAddPatent,

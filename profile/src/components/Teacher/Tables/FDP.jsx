@@ -25,7 +25,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
     const fetchFDPDetails = async () => {
       try {
         const response = await API.get(`/ece/faculty/fdp-records/${facultyId}`);
-        console.log(response.data.data)
+        console.log(response.data.data);
         if (Array.isArray(response.data.data)) {
           setFdpDetails(
             response.data.data.map((fdp) => ({
@@ -42,10 +42,9 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
         toast.error("Error while fetching FDP details");
       }
     };
-  
+
     fetchFDPDetails();
   }, []);
-  
 
   const openPopup = (fdp) => {
     setSelectedFDP(fdp);
@@ -77,7 +76,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
       } else {
         response = await API.put(
           `/ece/faculty/fdp-records/${selectedFDP.FDP_id}`,
-          payload,
+          payload
         );
       }
 
@@ -100,8 +99,8 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
         } else {
           setFdpDetails((prev) =>
             prev.map((fdp) =>
-              fdp.FDP_id === selectedFDP.FDP_id ? newFDPRecord : fdp,
-            ),
+              fdp.FDP_id === selectedFDP.FDP_id ? newFDPRecord : fdp
+            )
           );
         }
 
@@ -137,12 +136,10 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
     "Actions",
   ];
 
-
   return (
     <>
       {/* Header Section */}
-      
-  
+
       {/* Reusable Custom Table Component */}
       <CustomTable
         title="Participation in Faculty Development/Training Activities/STTP"
@@ -163,13 +160,13 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
             setSelectedFDP(fdp);
           },
           delete: (fdp) => {
-    if (fdp?.FDP_id) {
-      handleDeleteFDP(fdp.FDP_id);
-    } else {
-      console.error("FDP ID is missing or undefined", fdp);
-      toast.error("FDP ID not found");
-    }
-  },
+            if (fdp?.FDP_id) {
+              handleDeleteFDP(fdp.FDP_id);
+            } else {
+              console.error("FDP ID is missing or undefined", fdp);
+              toast.error("FDP ID not found");
+            }
+          },
         }}
         onAdd={() => {
           setIsAddFDP(true);
@@ -178,7 +175,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
           setSelectedFDP(null);
         }}
       />
-  
+
       {/* Popup for Adding/Editing FDP */}
       <Popup
         open={isPopupOpen}
@@ -213,4 +210,4 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
     </>
   );
 };
-export default FacultyDevelopmentProgram;  
+export default FacultyDevelopmentProgram;

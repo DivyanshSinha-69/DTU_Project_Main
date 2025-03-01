@@ -8,6 +8,7 @@ import addImg from "../../../assets/add.svg";
 import deleteImg from "../../../assets/delete.svg";
 import API from "../../../utils/API";
 import { useSelector } from "react-redux";
+import CustomTable from "../../DynamicComponents/CustomTable";
 
 // Dummy data for testing
 const dummyPhDDetails = [
@@ -41,7 +42,7 @@ const PhDsAwarded = ({ setBlurActive }) => {
             rollNo: record.mentee_rn,
             passingYear: record.passing_year,
             passingMonth: record.passing_month, // Added this field
-          })),
+          }))
         );
       } else {
         setPhdDetails([]);
@@ -139,132 +140,38 @@ const PhDsAwarded = ({ setBlurActive }) => {
   ];
 
   return (
-    <div>
-      <div className="h-auto p-10">
-        <div className="flex flex-row justify-between pr-5 pl-5">
-          <p className="p-3 text-2xl font1 border-top my-auto">
-            PhD Guidance Details <br />
-            <span className="text-lg text-red-600">
-              (Mention your students who have completed their Phd )
-            </span>
-          </p>
-          <button
-            onClick={() => {
-              setIsAddPhD(true);
-              setPopupOpen(true);
-              setBlurActive(true);
-            }}
-            className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full hover:invert hover:scale-[130%] transition-transform ease-in"
-          >
-            <img src={addImg} alt="add" className="h-5 w-5" />
-          </button>
-        </div>
-        <hr className="mb-7"></hr>
+    <>
+      {/* Reusable Custom Table Component */}
+      <CustomTable
+        title="PhD Guidance Details"
+        subtitle="(Mention your students who have completed their PhD)"
+        columns={[
+          { key: "menteeName", label: "Mentee Name" },
+          { key: "rollNo", label: "Roll Number" },
+          { key: "passingMonth", label: "Passing Month" },
+          { key: "passingYear", label: "Passing Year" },
+          { key: "actions", label: "Actions" },
+        ]}
+        data={phdDetails}
+        actions={{
+          edit: (phd) => {
+            setIsAddPhD(false);
+            setSelectedPhD(phd);
+            openPopup(phd);
+          },
+          delete: (phd) => {
+            handleDeletePhD(phd.PHD_id);
+          },
+        }}
+        onAdd={() => {
+          setIsAddPhD(true);
+          setPopupOpen(true);
+          setBlurActive(true);
+          setSelectedPhD(null);
+        }}
+      />
 
-        <div className="">
-          <Card className="h-auto w-full pl-10 pr-10 overflow-x-scroll md:overflow-hidden">
-            <table className="w-full min-w-auto lg:min-w-max table-auto text-left">
-              <thead>
-                <tr>
-                  {TABLE_HEAD.map((head, index) => (
-                    <th
-                      key={head}
-                      className={`border-b border-blue-gray-100 bg-blue-gray-50 p-4 ${
-                        head === "Actions" ? "text-right" : ""
-                      }`}
-                    >
-                      <Typography
-                        variant="small"
-                        color="blue-gray"
-                        className="font-normal leading-none opacity-70"
-                      >
-                        {head}
-                      </Typography>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {phdDetails.map((phd, index) => {
-                  const { menteeName, rollNo, passingYear, passingMonth } = phd;
-                  const isLast = index === phdDetails.length - 1;
-                  const classes = isLast
-                    ? "p-4"
-                    : "p-4 border-b border-blue-gray-50";
-
-                  return (
-                    <tr key={`${menteeName}-${rollNo}-${index}`}>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {menteeName}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {rollNo}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {passingMonth}
-                        </Typography>
-                      </td>
-
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {passingYear}
-                        </Typography>
-                      </td>
-                      <td className={`${classes} text-right`}>
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => {
-                              setIsAddPhD(false);
-                              setSelectedPhD(phd);
-                              openPopup(phd);
-                            }}
-                            className="bg-green-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
-                          >
-                            <img src={editImg} alt="edit" className="h-5 w-5" />
-                          </button>
-                          <button
-                            onClick={() => handleDeletePhD(index)}
-                            className="bg-red-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
-                          >
-                            <img
-                              src={deleteImg}
-                              alt="delete"
-                              className="h-5 w-5 filter brightness-0 invert"
-                            />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </Card>
-        </div>
-      </div>
-
-      {/* Popup */}
+      {/* Popup for Adding/Editing PhD Details */}
       <Popup
         open={isPopupOpen}
         onClose={closePopup}
@@ -277,23 +184,26 @@ const PhDsAwarded = ({ setBlurActive }) => {
               menteeName=""
               rollNo=""
               passingYear=""
+              passingMonth=""
               closeModal={closePopup}
               handleAddPhD={handleAddPhD}
             />
           ) : (
-            <PhDPopUp
-              menteeName={selectedPhD?.menteeName}
-              rollNo={selectedPhD?.rollNo}
-              passingYear={selectedPhD?.passingYear}
-              passingMonth={selectedPhD?.passingMonth} // 👈 Add this
-              PHD_id={selectedPhD?.PHD_id}
-              closeModal={closePopup}
-              handleAddPhD={handleAddPhD}
-            />
+            selectedPhD && (
+              <PhDPopUp
+                menteeName={selectedPhD?.menteeName || ""}
+                rollNo={selectedPhD?.rollNo || ""}
+                passingYear={selectedPhD?.passingYear || ""}
+                passingMonth={selectedPhD?.passingMonth || ""}
+                PHD_id={selectedPhD?.PHD_id || ""}
+                closeModal={closePopup}
+                handleAddPhD={handleAddPhD}
+              />
+            )
           )}
         </div>
       </Popup>
-    </div>
+    </>
   );
 };
 

@@ -8,6 +8,7 @@ import addImg from "../../../assets/add.svg";
 import deleteImg from "../../../assets/delete.svg";
 import { useSelector } from "react-redux";
 import API from "../../../utils/API";
+import CustomTable from "../../DynamicComponents/CustomTable";
 
 const BookRecordsPublished = ({ setBlurActive }) => {
   const [bookDetails, setBookDetails] = useState([]);
@@ -20,7 +21,11 @@ const BookRecordsPublished = ({ setBlurActive }) => {
   const facultyId = faculty_id;
 
   // Fetch book records from the backend
-
+  const formatDateForInput = (isoDate) => {
+    if (!isoDate) return ""; // Handle null/undefined cases
+    const date = new Date(isoDate);
+    return date.toLocaleDateString("en-GB"); // "dd/mm/yyyy" format
+  };
   const fetchBookRecords = async () => {
     try {
       const response = await API.get(`ece/faculty/books/${facultyId}`);
@@ -30,9 +35,9 @@ const BookRecordsPublished = ({ setBlurActive }) => {
           faculty_id: book.faculty_id,
           title: book.book_title,
           publication_name: book.publication_name,
-          published_date: book.published_date,
+          published_date: formatDateForInput(book.published_date),
           Book_id: book.Book_id,
-        })),
+        }))
       );
     } catch (error) {
       console.error("Error fetching book records:", error);
@@ -69,7 +74,7 @@ const BookRecordsPublished = ({ setBlurActive }) => {
 
   const handleDeleteBook = async (Book_id) => {
     try {
-      await API.delete(`/books/${Book_id}`);
+      await API.delete(`/ece/faculty/books/${Book_id}`);
       setBookDetails(bookDetails.filter((book) => book.Book_id !== Book_id));
     } catch (error) {
       console.error("Error deleting book record:", error);
@@ -98,158 +103,45 @@ const BookRecordsPublished = ({ setBlurActive }) => {
     "Published Date",
     "Actions",
   ];
-  const formatDateForInput = (date) => {
-    const [date1, time] = date?.split("T");
-
-    const [year, month, day] = date1?.split("-");
-    return "${day}-${month}-${year}";
+  const formatDateForInputPopup = (date) => {
+    const [day, month, year] = date.split("/");
+    return `${year}-${month}-${day}`; // yyyy-MM-dd
   };
-
   return (
-    <div>
-      <div className="h-auto p-10">
-        <div className="flex flex-row justify-between pr-5 pl-5">
-          <p className="p-3 text-2xl font1 border-top my-auto">
-            Book Records Published <br />
-            <span className="text-lg text-red-600">
-              (Details of books published)
-            </span>
-          </p>
-          <button
-            onClick={() => {
-              setIsAddBook(true);
-              setPopupOpen(true);
-              setBlurActive(true);
-            }}
-            className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full hover:invert hover:scale-[130%] transition-transform ease-in"
-          >
-            <img src={addImg} alt="add" className="h-5 w-5" />
-          </button>
-        </div>
-        <hr className="mb-7"></hr>
+    <>
+      <CustomTable
+        title="Book Records Published"
+        subtitle="(Details of books published)"
+        columns={[
+          { key: "isbn", label: "ISBN" },
+          { key: "title", label: "Title" },
+          { key: "publication_name", label: "Publication Name" },
+          { key: "published_date", label: "Published Date" },
+          { key: "actions", label: "Actions" },
+        ]}
+        data={bookDetails}
+        actions={{
+          edit: (book) => {
+            setIsAddBook(false);
+            setSelectedBook({
+              isbn: book.isbn,
+              faculty_id: book.faculty_id,
+              book_title: book.title,
+              publication_name: book.publication_name,
+              publishedDate: formatDateForInputPopup(book.published_date),
+              Book_id: book.Book_id,
+            });
+            openPopup(book);
+          },
+          delete: (book) => handleDeleteBook(book.Book_id),
+        }}
+        onAdd={() => {
+          setIsAddBook(true);
+          setPopupOpen(true);
+          setBlurActive(true);
+        }}
+      />
 
-        <div className="">
-          <Card className="h-auto w-full pl-10 pr-10 overflow-x-scroll md:overflow-hidden">
-            <table className="w-full min-w-auto lg:min-w-max table-auto text-left">
-              <thead>
-                <tr>
-                  {TABLE_HEAD?.map((head, index) => (
-                    <th
-                      key={head}
-                      className={`border-b border-blue-gray-100 bg-blue-gray-50 p-4 ${
-                        head === "Actions" ? "text-right" : ""
-                      }`}
-                    >
-                      <Typography
-                        variant="small"
-                        color="blue-gray"
-                        className="font-normal leading-none opacity-70"
-                      >
-                        {head}
-                      </Typography>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {bookDetails?.map((book, index) => {
-                  const {
-                    Book_id,
-                    isbn,
-                    title,
-                    publication_name,
-                    published_date,
-                  } = book;
-                  const isLast = index === bookDetails.length - 1;
-                  const classes = isLast
-                    ? "p-4"
-                    : "p-4 border-b border-blue-gray-50";
-
-                  return (
-                    <tr key={`${isbn}-${index}`}>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {isbn}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {title}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {publication_name}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {new Date(published_date)?.toLocaleDateString(
-                            "en-GB",
-                          )}
-                        </Typography>
-                      </td>
-                      <td className={`${classes} text-right`}>
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => {
-                              setIsAddBook(false);
-                              setSelectedBook({
-                                isbn: book.ISBN, // Ensure it matches the API response field
-                                faculty_id: book.faculty_id,
-                                book_title: book.book_title, // Change `book_title` to `title` for consistency
-                                publication_name: book.publication_name, // Change `publication_name` to `publication`
-                                published_date: formatDateForInput(
-                                  book.published_date,
-                                ), // Keep consistent naming
-                                Book_id: book.Book_id,
-                              });
-                              openPopup(book);
-                            }}
-                            className="bg-green-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
-                          >
-                            <img src={editImg} alt="edit" className="h-5 w-5" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              handleDeleteBook(Book_id);
-                            }}
-                            className="bg-red-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
-                          >
-                            <img
-                              src={deleteImg}
-                              alt="delete"
-                              className="h-5 w-5 filter brightness-0 invert"
-                            />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </Card>
-        </div>
-      </div>
-
-      {/* Popup */}
       <Popup
         open={isPopupOpen}
         onClose={closePopup}
@@ -273,7 +165,7 @@ const BookRecordsPublished = ({ setBlurActive }) => {
                 title={selectedBook.title}
                 publication={selectedBook.publication_name}
                 Book_id={selectedBook.Book_id}
-                publishedDate={formatDateForInput(selectedBook.published_date)}
+                publishedDate={selectedBook.publishedDate}
                 closeModal={closePopup}
                 handleAddBook={handleAddBook}
               />
@@ -281,7 +173,7 @@ const BookRecordsPublished = ({ setBlurActive }) => {
           )}
         </div>
       </Popup>
-    </div>
+    </>
   );
 };
 

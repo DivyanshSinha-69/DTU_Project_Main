@@ -8,6 +8,8 @@ import deleteImg from "../../../assets/delete.svg";
 import { useSelector } from "react-redux";
 import API from "../../../utils/API";
 import PatentPopUp from "../PopUp/PatentPopUp";
+import CustomTable from "../../DynamicComponents/CustomTable";
+import { dialogTitleClasses } from "@mui/material";
 
 const PatentRecords = ({ setBlurActive }) => {
   const [patentDetails, setPatentDetails] = useState([]);
@@ -18,6 +20,11 @@ const PatentRecords = ({ setBlurActive }) => {
   const user = useSelector((state) => state.auth.user) || {};
   const { faculty_id } = user;
   const facultyId = faculty_id;
+  const formatDateForInput = (isoDate) => {
+    if (!isoDate) return ""; // Handle null/undefined cases
+    const date = new Date(isoDate);
+    return date.toLocaleDateString("en-GB"); // "dd/mm/yyyy" format
+  };
   // Fetch patent records
   const fetchPatentRecords = async () => {
     try {
@@ -30,10 +37,10 @@ const PatentRecords = ({ setBlurActive }) => {
         response.data?.data?.map((patent) => ({
           patent_id: patent.patent_id,
           patent_name: patent.patent_name,
-          patent_publish: patent.patent_publish,
-          patent_filed: patent.patent_filed,
-          patent_award_date: patent.patent_award_date,
-        })),
+          patent_publish: formatDateForInput(patent.patent_publish),
+          patent_filed: formatDateForInput(patent.patent_filed),
+          patent_award_date: formatDateForInput(patent.patent_award_date),
+        }))
       );
     } catch (error) {
       console.error("Error fetching patent records:", error);
@@ -62,7 +69,7 @@ const PatentRecords = ({ setBlurActive }) => {
       } else {
         await API.put(
           `ece/faculty/patent/${selectedPatent.patent_id}`,
-          patentData,
+          patentData
         );
       }
       fetchPatentRecords();
@@ -77,7 +84,7 @@ const PatentRecords = ({ setBlurActive }) => {
     try {
       await API.delete(`ece/faculty/patent/${patentId}`);
       setPatentDetails(
-        patentDetails.filter((patent) => patent.patent_id !== patentId),
+        patentDetails.filter((patent) => patent.patent_id !== patentId)
       );
     } catch (error) {
       console.error("Error deleting patent:", error);
@@ -104,165 +111,54 @@ const PatentRecords = ({ setBlurActive }) => {
     "Actions",
   ];
 
-  const formatDateForInput = (date) => {
-    const [date1, time] = date?.split("T");
-
-    const [day, month, year] = date1.split("-");
-    return `${day}-${month}-${year}`; // yyyy-MM-dd
+  const formatDateForInputPopup = (date) => {
+    const [day, month, year] = date.split("/");
+    return `${year}-${month}-${day}`; // yyyy-MM-dd
   };
   return (
-    <div>
-      <div className="h-auto p-10">
-        <div className="flex flex-row justify-between pr-5 pl-5">
-          <p className="p-3 text-2xl font1 border-top my-auto">
-            Patent Records <br />
-            <span className="text-lg text-red-600">
-              (Details of patents filed/awarded)
-            </span>
-          </p>
-          <button
-            onClick={() => {
-              setIsAddPatent(true);
-              setPopupOpen(true);
-              setBlurActive(true);
-            }}
-            className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full hover:invert hover:scale-[130%] transition-transform ease-in"
-          >
-            <img src={addImg} alt="add" className="h-5 w-5" />
-          </button>
-        </div>
-        <hr className="mb-7" />
-
-        <div className="">
-          <Card className="h-auto w-full pl-10 pr-10 overflow-x-scroll md:overflow-hidden">
-            <table className="w-full min-w-auto lg:min-w-max table-auto text-left">
-              <thead>
-                <tr>
-                  {TABLE_HEAD.map((head) => (
-                    <th
-                      key={head}
-                      className={`border-b border-blue-gray-100 bg-blue-gray-50 p-4 ${
-                        head === "Actions" ? "text-right" : ""
-                      }`}
-                    >
-                      <Typography
-                        variant="small"
-                        color="blue-gray"
-                        className="font-normal leading-none opacity-70"
-                      >
-                        {head}
-                      </Typography>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {patentDetails.map((patent, index) => {
-                  const {
-                    patent_id,
-                    patent_name,
-                    patent_publish,
-                    patent_filed,
-                    patent_award_date,
-                  } = patent;
-
-                  const isLast = index === patentDetails.length - 1;
-                  const classes = isLast
-                    ? "p-4"
-                    : "p-4 border-b border-blue-gray-50";
-
-                  return (
-                    <tr key={patent_id}>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {patent_name}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {new Date(patent_publish)?.toLocaleDateString(
-                            "en-GB",
-                          )}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {patent_filed
-                            ? new Date(patent_filed)?.toLocaleDateString(
-                                "en-GB",
-                              )
-                            : "-"}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {patent_award_date
-                            ? new Date(patent_award_date)?.toLocaleDateString(
-                                "en-GB",
-                              )
-                            : "-"}
-                        </Typography>
-                      </td>
-                      <td className={`${classes} text-right`}>
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => {
-                              setIsAddPatent(false);
-                              setSelectedPatent({
-                                patentName: patent.patent_name, // Ensure this matches the prop name in PatentPopUp
-                                patentPublish: formatDateForInput(
-                                  patent.patent_publish,
-                                ),
-                                patentFiled: formatDateForInput(
-                                  patent.patent_filed,
-                                ),
-                                patentAwardDate: formatDateForInput(
-                                  patent.patent_award_date,
-                                ),
-                                patent_id: patent.patent_id, // Include patent_id for updates
-                              });
-                              openPopup(patent);
-                            }}
-                            className="bg-green-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
-                          >
-                            <img src={editImg} alt="edit" className="h-5 w-5" />
-                          </button>
-                          <button
-                            onClick={() => handleDeletePatent(patent_id)}
-                            className="bg-red-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
-                          >
-                            <img
-                              src={deleteImg}
-                              alt="delete"
-                              className="h-5 w-5 filter brightness-0 invert"
-                            />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </Card>
-        </div>
-      </div>
+    <>
+      {/* Reusable Custom Table Component for Patent Records */}
+      <CustomTable
+        title="Patent Records"
+        subtitle="(Details of patents filed/awarded)"
+        columns={[
+          { key: "patent_name", label: "Patent Name" },
+          { key: "patent_publish", label: "Publish Date" },
+          { key: "patent_filed", label: "Filed Date" },
+          { key: "patent_award_date", label: "Award Date" },
+          { key: "actions", label: "Actions" },
+        ]}
+        data={patentDetails} // Patent data array
+        actions={{
+          edit: (patent) => {
+            setIsAddPatent(false);
+            setPopupOpen(true);
+            setBlurActive(true);
+            setSelectedPatent({
+              patentName: patent.patent_name,
+              patentPublish: formatDateForInputPopup(patent.patent_publish),
+              patentFiled: formatDateForInputPopup(patent.patent_filed),
+              patentAwardDate: formatDateForInputPopup(
+                patent.patent_award_date
+              ),
+              patent_id: patent.patent_id, // Ensures ID is available for updates
+            });
+          },
+          delete: (patent) => {
+            if (patent?.patent_id) {
+              handleDeletePatent(patent.patent_id);
+            } else {
+              console.error("Patent ID is missing or undefined", patent);
+            }
+          },
+        }}
+        onAdd={() => {
+          setIsAddPatent(true);
+          setPopupOpen(true);
+          setBlurActive(true);
+          setSelectedPatent(null);
+        }}
+      />
 
       <Popup
         open={isPopupOpen}
@@ -279,14 +175,10 @@ const PatentRecords = ({ setBlurActive }) => {
           ) : (
             selectedPatent && (
               <PatentPopUp
-                patentName={selectedPatent.patent_name}
-                patentPublish={formatDateForInput(
-                  selectedPatent.patent_publish,
-                )}
-                patentFiled={formatDateForInput(selectedPatent.patent_filed)}
-                patentAwardDate={formatDateForInput(
-                  selectedPatent.patent_award_date,
-                )}
+                patentName={selectedPatent.patentName}
+                patentPublish={selectedPatent.patentPublish}
+                patentFiled={selectedPatent.patentFiled}
+                patentAwardDate={selectedPatent.patentAwardDate}
                 patent_id={selectedPatent.patent_id}
                 closeModal={closePopup}
                 handleAddPatent={handleAddPatent}
@@ -295,7 +187,7 @@ const PatentRecords = ({ setBlurActive }) => {
           )}
         </div>
       </Popup>
-    </div>
+    </>
   );
 };
 

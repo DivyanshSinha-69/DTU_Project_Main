@@ -76,7 +76,7 @@ const Sidebar = ({ menuItems, selectedItem, onSelect, role, faculty_id }) => {
         animate={{ width: isOpen ? 250 : 60 }}
         transition={{ duration: 0.3 }}
         className={`h-screen transition-all duration-300 flex flex-col shadow-lg 
-          ${darkMode ? "bg-[#464667] text-white" : "bg-[#F4F5F7] text-[#2D3A4A]"}`}
+          ${darkMode ? "bg-[#0B1B39] text-white" : "bg-[#F4F5F7] text-[#2D3A4A]"}`}
       >
         {isOpen && (
           <div className="flex items-center justify-center mt-6 mb-4">
@@ -92,7 +92,7 @@ const Sidebar = ({ menuItems, selectedItem, onSelect, role, faculty_id }) => {
                 ${
                   selectedItem === item.id && isOpen
                     ? darkMode
-                      ? "bg-[#161722] text-white relative"
+                      ? "bg-[#222755] text-white relative"
                       : "bg-[#E0E0E0] text-[#2D3A4A] relative"
                     : darkMode
                       ? "hover:bg-[#2B2C3A]"

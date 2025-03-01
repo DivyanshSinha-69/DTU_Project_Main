@@ -8,7 +8,6 @@ export default function PersonalDetailPopup({
   highestDegree,
   email,
   contactNo,
-  qualificationYear,
   degreeYear,
   updatePersonalDetails,
 }) {
@@ -17,7 +16,6 @@ export default function PersonalDetailPopup({
     highestDegree: highestDegree || "",
     email: email || "",
     contactNo: contactNo || "",
-    qualificationYear: qualificationYear || "",
     degreeYear: degreeYear || "",
   });
 
@@ -128,21 +126,6 @@ export default function PersonalDetailPopup({
               className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               onChange={handleChange}
               value={formData.contactNo}
-              required
-            />
-          </div>
-
-          <div className="relative z-0 w-full group">
-            <label htmlFor="qualificationYear" className="block text-sm">
-              Qualification Year
-            </label>
-            <input
-              type="number"
-              name="qualificationYear"
-              id="qualificationYear"
-              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onChange={handleChange}
-              value={formData.qualificationYear}
               required
             />
           </div>

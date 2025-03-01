@@ -6,17 +6,19 @@ import "../../../styles/popup.css";
 import editImg from "../../../assets/edit.svg";
 import { useSelector } from "react-redux";
 import API from "../../../utils/API";
+import { useThemeContext } from "../../../context/ThemeContext";
 
 const PersonalDetails = ({ setBlurActive }) => {
   const user = useSelector((state) => state.auth.user) || {};
   const { faculty_id } = user;
   const facultyId = faculty_id;
+  const { darkMode } = useThemeContext();
   const [personalDetails, setPersonalDetails] = useState({
     name: "",
     highestDegree: "",
+    degreeYear: "",
     email: "",
     contactNo: "",
-    degreeYear: "",
   });
   const [specializations, setSpecializations] = useState([]);
   const [newSpecialization, setNewSpecialization] = useState("");
@@ -36,16 +38,17 @@ const PersonalDetails = ({ setBlurActive }) => {
   const fetchFacultyDetails = async () => {
     try {
       const response = await API.get(
-        `/ece/faculty/faculty-details/${facultyId}`,
+        `/ece/faculty/faculty-details/${facultyId}`
       );
       if (response.data) {
         const faculty = response.data.data[0];
         setPersonalDetails({
           name: faculty.faculty_name || "",
           highestDegree: faculty.degree || "",
+          degreeYear: faculty.year_of_attaining_highest_degree || "", // Assuming same as qualification year
+
           email: faculty.email_id || "",
           contactNo: faculty.mobile_number || "",
-          degreeYear: faculty.year_of_attaining_highest_degree || "", // Assuming same as qualification year
         });
       }
     } catch (error) {
@@ -64,7 +67,7 @@ const PersonalDetails = ({ setBlurActive }) => {
           year_of_attaining_highest_degree: updatedData.degreeYear,
           email_id: updatedData.email,
           mobile_number: updatedData.contactNo,
-        },
+        }
       );
 
       if (response.status === 200) {
@@ -78,7 +81,7 @@ const PersonalDetails = ({ setBlurActive }) => {
   const fetchSpecializations = async () => {
     try {
       const response = await API.get(
-        `/ece/faculty/specializations/${facultyId}`,
+        `/ece/faculty/specializations/${facultyId}`
       );
       if (Array.isArray(response.data.data)) {
         setSpecializations(response.data.data);
@@ -126,8 +129,8 @@ const PersonalDetails = ({ setBlurActive }) => {
       await API.delete(`/ece/faculty/specializations/${specialization_id}`);
       setSpecializations(
         specializations.filter(
-          (spec) => spec.specialization_id !== specialization_id,
-        ),
+          (spec) => spec.specialization_id !== specialization_id
+        )
       );
     } catch (error) {
       console.error("Error deleting specialization:", error);
@@ -177,119 +180,125 @@ const PersonalDetails = ({ setBlurActive }) => {
     "Biomedical Image & Signal processing",
     "Automation/Control Systems",
   ];
-
+  const title = "Teacher Personal Details";
+  const subtitle = "(As per official records)";
   return (
     <div>
-      <div className="h-auto p-10">
-        <div className="flex flex-row justify-between pr-5 pl-5">
-          <p className="p-3 text-2xl font1 border-top my-auto">
-            Teacher Personal Details <br />
-            <span className="text-lg text-red-600">
-              (As per official records)
-            </span>
-          </p>
-
-          <button
-            onClick={openPopup}
-            className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full hover:invert hover:scale-[130%] transition-transform ease-in"
-          >
-            <img src={editImg} alt="Edit" className="h-5 w-5" />
-          </button>
-
-          <Popup
-            trigger={null}
-            open={isPopupOpen}
-            onClose={closePopup}
-            className="mx-auto my-auto p-2"
-            closeOnDocumentClick
-          >
-            <div>
-              <PersonalDetailPopup
-                closeModal={closePopup}
-                name={personalDetails.name}
-                highestDegree={personalDetails.highestDegree}
-                email={personalDetails.email}
-                contactNo={personalDetails.contactNo}
-                degreeYear={personalDetails.degreeYear}
-                updatePersonalDetails={updatePersonalDetails}
-              />
-            </div>
-          </Popup>
-        </div>
-        <hr className="mb-7"></hr>
+      <div className="h-auto ">
+        <Popup
+          trigger={null}
+          open={isPopupOpen}
+          onClose={closePopup}
+          className="mx-auto my-auto p-2"
+          closeOnDocumentClick
+        >
+          <div>
+            <PersonalDetailPopup
+              closeModal={closePopup}
+              name={personalDetails.name}
+              highestDegree={personalDetails.highestDegree}
+              email={personalDetails.email}
+              contactNo={personalDetails.contactNo}
+              degreeYear={personalDetails.degreeYear}
+              updatePersonalDetails={updatePersonalDetails}
+            />
+          </div>
+        </Popup>
 
         <div>
-          <Card className="h-auto w-full pl-10 pr-10 overflow-x-scroll md:overflow-hidden">
-            <table className="w-full min-w-auto lg:min-w-max table-auto text-left">
-              <thead>
-                <tr>
-                  {TABLE_HEAD.map((head) => (
-                    <th
-                      key={head}
-                      className="border-b border-blue-gray-100 bg-blue-gray-50 p-4"
-                    >
-                      <Typography
-                        variant="small"
-                        color="blue-gray"
-                        className="font-normal leading-none opacity-70"
+          <Card
+            className="shadow-2xl rounded-2xl p-6 w-full mx-auto"
+            style={{
+              backgroundColor: darkMode ? "#0D1117" : "#FFFFFF",
+              color: darkMode ? "#E4E6EB" : "#1C1E21",
+            }}
+          >
+            {/* Table Header Section */}
+            <div className="flex flex-row justify-between items-center mb-5">
+              {/* Title & Subtitle */}
+              <div>
+                <Typography
+                  variant="h5"
+                  className="font-poppins font-semibold text-xl"
+                  style={{ color: darkMode ? "#E4E6EB" : "#1C1E21" }}
+                >
+                  {title}
+                </Typography>
+                {subtitle && (
+                  <Typography variant="small" className="text-red-500 mt-1">
+                    {subtitle}
+                  </Typography>
+                )}
+              </div>
+
+              {/* edit Button (Aligned to Right) */}
+              <button
+                onClick={openPopup}
+                className="p-2 rounded-full transition-transform hover:scale-105"
+                style={{
+                  backgroundColor: darkMode ? "#238636" : "#2D9C4A",
+                  color: "#FFFFFF",
+                }}
+              >
+                <img src={editImg} alt="add" className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="w-full overflow-x-auto">
+              <table
+                className="w-full table-auto text-left"
+                style={{
+                  backgroundColor: "transparent",
+                  color: darkMode ? "#E4E6EB" : "#1C1E21",
+                }}
+              >
+                {/* Table Head */}
+                <thead>
+                  <tr
+                    style={{
+                      backgroundColor: darkMode ? "#161B22" : "#F0F2F5",
+                      color: darkMode ? "#8B949E" : "#65676B",
+                    }}
+                  >
+                    {TABLE_HEAD.map((head) => (
+                      <th
+                        key={head}
+                        className="border-b p-4"
+                        style={{
+                          borderBottom: darkMode
+                            ? "1px solid #21262D"
+                            : "1px solid #DADDE1",
+                        }}
                       >
-                        {head}
-                      </Typography>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                <tr key={personalDetails.name}>
-                  <td className="p-4">
-                    <Typography
-                      variant="small"
-                      color="blue-gray"
-                      className="font-normal"
-                    >
-                      {personalDetails.name}
-                    </Typography>
-                  </td>
-                  <td className="p-4">
-                    <Typography
-                      variant="small"
-                      color="blue-gray"
-                      className="font-normal"
-                    >
-                      {personalDetails.highestDegree}
-                    </Typography>
-                  </td>
-                  <td className="p-4">
-                    <Typography
-                      variant="small"
-                      color="blue-gray"
-                      className="font-normal"
-                    >
-                      {personalDetails.degreeYear}
-                    </Typography>
-                  </td>
-                  <td className="p-4">
-                    <Typography
-                      variant="small"
-                      color="blue-gray"
-                      className="font-normal"
-                    >
-                      {personalDetails.email}
-                    </Typography>
-                  </td>
-                  <td className="p-4">
-                    <Typography
-                      variant="small"
-                      color="blue-gray"
-                      className="font-normal"
-                    >
-                      {personalDetails.contactNo}
-                    </Typography>
-                  </td>
-                  
-                </tr>
-              </tbody>
-            </table>
+                        <Typography
+                          variant="small"
+                          className="font-poppins font-medium leading-none"
+                          style={{ opacity: 0.8 }}
+                        >
+                          {head}
+                        </Typography>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+
+                {/* Table Body */}
+                <tbody>
+                  <tr>
+                    {Object.values(personalDetails).map((value, idx) => (
+                      <td key={idx} className="p-4">
+                        <Typography
+                          variant="small"
+                          className="font-poppins font-normal"
+                          style={{ color: darkMode ? "#E4E6EB" : "#1C1E21" }}
+                        >
+                          {value ? value : "-"}
+                        </Typography>
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
             {/* Specializations Sub-Table */}
             <div className="mt-5">
               <Typography
@@ -302,7 +311,11 @@ const PersonalDetails = ({ setBlurActive }) => {
               <hr className="my-2" /> {/* Line below the heading */}
               <table className="w-full table-auto border-collapse">
                 <tbody>
-                  <tr>
+                  <tr
+                    style={{
+                      backgroundColor: "transparent",
+                    }}
+                  >
                     <td className="p-4">
                       <div className="flex flex-wrap gap-2">
                         {" "}
@@ -314,8 +327,10 @@ const PersonalDetails = ({ setBlurActive }) => {
                           >
                             <Typography
                               variant="small"
-                              color="blue-gray"
-                              className="font-normal text-sm" // 👈 Smaller font size
+                              className="font-poppins font-normal"
+                              style={{
+                                color: darkMode ? "#E4E6EB" : "#1C1E21",
+                              }}
                             >
                               {spec.specialization}
                             </Typography>
@@ -348,12 +363,12 @@ const PersonalDetails = ({ setBlurActive }) => {
                               <option key={index} value={specialization}>
                                 {specialization}
                               </option>
-                            ),
+                            )
                           )}
                         </select>
                         <button
                           onClick={addSpecialization}
-                          className="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700"
+                          className="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 transition-transform hover:scale-105"
                         >
                           Add
                         </button>
