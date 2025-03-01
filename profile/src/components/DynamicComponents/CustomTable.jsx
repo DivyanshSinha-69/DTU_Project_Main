@@ -1,0 +1,138 @@
+import React from "react";
+import { Card } from "@material-tailwind/react";
+import { Typography } from "@material-tailwind/react";
+import editImg from "../../assets/edit.svg";
+import deleteImg from "../../assets/delete.svg";
+import addImg from "../../assets/add.svg"; // Import Add Icon
+import { useThemeContext } from "../../context/ThemeContext";
+
+const CustomTable = ({ title, subtitle, columns, data, actions, onAdd }) => {
+  const { darkMode } = useThemeContext();
+  return (
+    <Card
+      className="shadow-2xl rounded-2xl p-6 max-w-7xl w-full mx-auto"
+      style={{
+        backgroundColor: darkMode ? "#0D1117" : "#FFFFFF", // Updated dark mode color
+        color: darkMode ? "#E4E6EB" : "#1C1E21",
+      }}
+    >
+      {/* Table Header Section */}
+      <div className="flex flex-row justify-between items-center mb-5">
+        {/* Title & Subtitle */}
+        <div>
+          <Typography
+            variant="h5"
+            className="font-poppins font-semibold text-xl"
+            style={{ color: darkMode ? "#E4E6EB" : "#1C1E21" }}
+          >
+            {title}
+          </Typography>
+          {subtitle && (
+            <Typography variant="small" className="text-red-500 mt-1">
+              {subtitle}
+            </Typography>
+          )}
+        </div>
+
+        {/* Add Button (Aligned to Right) */}
+        <button
+          onClick={onAdd}
+          className="p-3 bg-green-600 text-white rounded-full hover:invert hover:scale-110 transition-transform ease-in"
+        >
+          <img src={addImg} alt="add" className="h-5 w-5" />
+        </button>
+      </div>
+
+      {/* Table Container - Seamless Design */}
+      <div className="w-full overflow-x-auto md:overflow-hidden">
+        <table
+          className="w-full min-w-auto lg:min-w-max table-auto text-left"
+          style={{
+            backgroundColor: "transparent", // No background, seamless look
+            color: darkMode ? "#E4E6EB" : "#1C1E21",
+          }}
+        >
+          {/* Table Head */}
+          <thead>
+            <tr
+              style={{
+                backgroundColor: darkMode ? "#161B22" : "#F0F2F5",
+                color: darkMode ? "#8B949E" : "#65676B", // Updated grey heading color
+              }}
+            >
+              {columns.map((col) => (
+                <th
+                  key={col.key}
+                  className={`border-b p-4 ${col.key === "actions" ? "text-right" : ""}`}
+                  style={{
+                    borderBottom: darkMode ? "1px solid #21262D" : "1px solid #DADDE1",
+                  }}
+                >
+                  <Typography
+                    variant="small"
+                    className="font-poppins font-medium leading-none"
+                    style={{ opacity: 0.8 }}
+                  >
+                    {col.label}
+                  </Typography>
+                </th>
+              ))}
+            </tr>
+          </thead>
+
+          {/* Table Body */}
+          <tbody>
+            {data?.map((row, index) => {
+              const isLast = index === data?.length - 1;
+              return (
+                <tr
+                  key={index}
+                  className="hover:bg-opacity-20 transition-all"
+                  style={{
+                    backgroundColor: "transparent",
+                    borderBottom: isLast ? "none" : darkMode ? "1px solid #21262D" : "1px solid #DADDE1",
+                  }}
+                >
+                  {columns.map((col) => {
+                    return col.key === "actions" ? (
+                      <td key={col.key} className="p-4 text-right">
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => actions.edit(row)}
+                            className="p-2 rounded-full transition-transform hover:scale-105"
+                            style={{ backgroundColor: darkMode ? "#238636" : "#2D9C4A", color: "#FFFFFF" }}
+                          >
+                            <img src={editImg} alt="edit" className="h-5 w-5" />
+                          </button>
+                          <button
+                            onClick={() => actions.delete(row)}
+                            className="p-2 rounded-full transition-transform hover:scale-105"
+                            style={{ backgroundColor: darkMode ? "#D32F2F" : "#E53935", color: "#FFFFFF" }}
+                          >
+                            <img src={deleteImg} alt="delete" className="h-5 w-5 filter brightness-0 invert" />
+                          </button>
+                        </div>
+                      </td>
+                    ) : (
+                      <td key={col.key} className="p-4">
+                        <Typography
+                          variant="small"
+                          className="font-poppins font-normal"
+                          style={{ color: darkMode ? "#E4E6EB" : "#1C1E21" }}
+                        >
+                          {row[col.key]?row[col.key]:"-"}
+                        </Typography>
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  );
+};
+
+export default CustomTable;

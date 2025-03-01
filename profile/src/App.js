@@ -25,6 +25,7 @@ import AdminLogin from "./components/AdminLogin";
 import ResetPassword from "./components/ResetPass";
 import Unauthorized from "./components/Unauthorized";
 import { Toaster } from "react-hot-toast";
+import { ThemeProvider, ThemeProviderWrapper } from "./context/ThemeContext";
 
 function App() {
   const navigate = Navigate;
@@ -68,6 +69,7 @@ function App() {
 
   return (
     <>
+      <ThemeProviderWrapper>
       <Toaster
         toastOptions={{
           className: "",
@@ -79,7 +81,6 @@ function App() {
         }}
       />
       <Router>
-        <StickyNavbar />
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
@@ -103,7 +104,8 @@ function App() {
           <Route path="*" element={<Unauthorized />} />
         </Routes>
         <Footer />
-      </Router>
+        </Router>
+        </ThemeProviderWrapper>
     </>
   );
 }

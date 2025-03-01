@@ -154,51 +154,7 @@ export default function StickyNavbar() {
         </Typography>
       )}
 
-      {/* <Typography
-        as="li"
-        variant="small"
-        color="blue-gray"
-        className="p-1 font-normal hover:translate-y-[-5px] transition-transform ease-in"
-      >
-        <HashLink
-          to="/parents"
-          className="flex flex-row items-center lg:flex-col"
-          style={{ ":hover": { cursor: "pointer" } }}
-        >
-          <img src={img4} alt="parents" height={30} width={30} />
-          <p className="lg:ml-0 ml-4">Parents</p>
-        </HashLink>
-      </Typography>
-      <Typography
-        as="li"
-        variant="small"
-        color="blue-gray"
-        className="p-1 font-normal hover:translate-y-[-5px] transition-transform ease-in"
-      >
-        <HashLink
-          to="/alumini"
-          className="flex flex-row items-center lg:flex-col "
-          style={{ ":hover": { cursor: "pointer" } }}
-        >
-          <img src={img5} alt="alumni" height={30} width={30} />
-          <p className="lg:ml-0 ml-4">Alumni</p>
-        </HashLink>
-      </Typography>
-      <Typography
-        as="li"
-        variant="small"
-        color="blue-gray"
-        className="p-1 font-normal hover:translate-y-[-5px] transition-transform ease-in"
-      >
-        <HashLink
-          to="/"
-          className="flex flex-row items-center lg:flex-col "
-          style={{ ":hover": { cursor: "pointer" } }}
-        >
-          <img src={homeimg} alt="alumni" height={30} width={30} />
-          <p className="lg:ml-0 ml-4">Home</p>
-        </HashLink>
-      </Typography> */}
+      
       {isAuthenticated === true && (
         <>
           <Typography
@@ -246,8 +202,8 @@ export default function StickyNavbar() {
   return (
     <>
       <div className="font1 bg-inherit border-0 max-h-[768px] w-[calc(100% + 48px)] shadow-none">
-        <Navbar className="bg-white border-0 top-0 z-10 h-max max-w-full rounded-nonep-0 lg:p-0 shadow-none">
-          <div className="flex  bg-inherit border-0 items-center justify-between rounded-none text-blue-gray-900">
+      <Navbar className="bg-white border-0 top-0 z-50 h-max w-full rounded-none p-0 lg:p-0 shadow-none sticky fixed">
+         <div className="flex  bg-inherit border-0 items-center justify-between rounded-none text-blue-gray-900">
             <Typography className="mr-4 cursor-pointer py-0 font-medium ">
               <div className="flex justify-center text-align">
                 <img src={dtulogo} alt="dtulogo" className="h-20 w-30" />

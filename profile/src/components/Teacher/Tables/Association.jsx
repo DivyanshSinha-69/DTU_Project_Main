@@ -7,6 +7,7 @@ import editImg from "../../../assets/edit.svg";
 import { useSelector } from "react-redux";
 import API from "../../../utils/API";
 import { store } from "../../../redux/Store";
+import CustomTable from "../../DynamicComponents/CustomTable";
 const Association = ({ setBlurActive }) => {
   const user = useSelector((state) => state.auth.user) || {};
   const { faculty_id } = user;
@@ -191,116 +192,31 @@ const Association = ({ setBlurActive }) => {
     return `${day}-${month}-${year}`; // yyyy-MM-dd
   };
   return (
-    <div>
-      <div className="h-auto p-10">
-        <div className="flex flex-row justify-between pr-5 pl-5">
-          <p className="p-3 text-2xl font1 border-top my-auto">
-            Teacher Designation Details <br />
-            <span className="text-lg text-red-600">
-              (As per official records)
-            </span>
-          </p>
+    <>
+      <CustomTable
+        title="Teacher Designation Details"
+        subtitle="(As per official records)"
+        columns={[
+          { key: "designation", label: "Designation" },
+          { key: "date", label: "Date Attained" },
+          { key: "startDate", label: "Start Date" },
+          { key: "endDate", label: "Last Date" },
+        ]}
+        data={TABLE_ROWS || []} 
+        actions={{
+          edit: openPopup,
+        }}
+        onAdd={openPopup}
+      />
 
-          <button
-            onClick={openPopup}
-            className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full hover:invert hover:scale-[130%] transition-transform ease-in"
-          >
-            <img src={editImg} alt="Edit" className="h-5 w-5" />
-          </button>
-
-          <Popup
-            open={isPopupOpen}
-            onClose={closePopup}
-            className="mx-auto my-auto p-2"
-            closeOnDocumentClick
-          >
-            <div>
-              <AssociationPopUp
-                currentDetails={associationDetails}
-                onUpdate={updateAssociationDetails}
-                closeModal={closePopup}
-              />
-            </div>
-          </Popup>
-        </div>
-        <hr className="mb-7"></hr>
-
-        {/* Table */}
-        <Card className="h-auto w-full pl-10 pr-10 overflow-x-scroll md:overflow-hidden">
-          <table className="w-full min-w-auto lg:min-w-max table-auto text-left">
-            <thead>
-              <tr>
-                {TABLE_HEAD.map((head) => (
-                  <th
-                    key={head}
-                    className="border-b border-blue-gray-100 bg-blue-gray-50 p-4"
-                  >
-                    <Typography
-                      variant="small"
-                      color="blue-gray"
-                      className="font-normal leading-none opacity-70"
-                    >
-                      {head}
-                    </Typography>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {TABLE_ROWS.map(
-                ({ designation, date, startDate, endDate }, index) => {
-                  const isLast = index === TABLE_ROWS.length - 1;
-                  const classes = isLast
-                    ? "p-4"
-                    : "p-4 border-b border-blue-gray-50";
-
-                  return (
-                    <tr key={designation}>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {designation}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {date || "-"}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {startDate || "-"}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {endDate || "-"}
-                        </Typography>
-                      </td>
-                    </tr>
-                  );
-                },
-              )}
-            </tbody>
-          </table>
-        </Card>
-      </div>
-    </div>
+      <Popup open={isPopupOpen} onClose={closePopup} closeOnDocumentClick>
+        <AssociationPopUp
+          currentDetails={associationDetails}
+          onUpdate={updateAssociationDetails}
+          closeModal={closePopup}
+        />
+      </Popup>
+    </>
   );
 };
 
