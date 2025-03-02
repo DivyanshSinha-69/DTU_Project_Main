@@ -339,73 +339,36 @@ export const deleteFacultyAssociation = (req, res) => {
 // Add Research Paper
 
 export const addResearchPaper = (req, res) => {
-  const {
-    faculty_id,
-    paper_type,
-    title_of_paper,
-    domain,
-    publication_name,
-    published_date,
-    citation, // New field
-  } = req.body;
+  const { faculty_id, paper_type, title_of_paper, domain, publication_name, published_date, citation } = req.body;
 
-  // Getting the file path for the uploaded PDF
+  // Get the compressed file path
   const filePath = req.file ? path.relative("public", req.file.path) : null;
 
-  // First, check if the faculty_id exists in the faculty_details table
-  pool.query(
-    "SELECT * FROM faculty_details WHERE faculty_id = ?",
-    [faculty_id],
-    (error, results) => {
-      if (error) {
-        return res
-          .status(500)
-          .json({ message: "Error checking faculty details", error });
-      }
+  // Check if faculty_id exists
+  pool.query("SELECT * FROM faculty_details WHERE faculty_id = ?", [faculty_id], (error, results) => {
+    if (error) return res.status(500).json({ message: "Error checking faculty details", error });
 
-      if (results.length === 0) {
-        return res.status(400).json({
-          message: "Faculty ID does not exist in the faculty_details table",
-        });
-      }
+    if (results.length === 0) {
+      return res.status(400).json({ message: "Faculty ID does not exist in faculty_details table" });
+    }
 
-      // Now, insert the research paper record into faculty_research_paper table
-      const sql = `
+    // Insert into faculty_research_paper table
+    const sql = `
       INSERT INTO faculty_research_paper 
       (faculty_id, paper_type, title_of_paper, domain, publication_name, published_date, pdf_path, citation) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-      pool.query(
-        sql,
-        [
-          faculty_id,
-          paper_type,
-          title_of_paper,
-          domain,
-          publication_name,
-          published_date,
-          filePath,
-          citation,
-        ],
-        (insertError, insertResult) => {
-          if (insertError) {
-            return res.status(500).json({
-              message: "Error adding research paper",
-              error: insertError,
-            });
-          }
+    pool.query(sql, [faculty_id, paper_type, title_of_paper, domain, publication_name, published_date, filePath, citation],
+      (insertError, insertResult) => {
+        if (insertError) return res.status(500).json({ message: "Error adding research paper", error: insertError });
 
-          // Respond with a success message and the inserted data
-          res.status(201).json({
-            message: "Research paper added successfully",
-            data: insertResult,
-          });
-        },
-      );
-    },
-  );
+        res.status(201).json({ message: "Research paper added successfully", data: insertResult });
+      }
+    );
+  });
 };
+
 
 // Get Research Papers by Faculty ID
 export const getResearchPapersByFaculty = (req, res) => {
@@ -429,50 +392,27 @@ export const getResearchPapersByFaculty = (req, res) => {
 };
 
 export const updateResearchPaper = (req, res) => {
-  const { research_id } = req.params; // Get research_id from route params
-  const {
-    paper_type,
-    title_of_paper,
-    domain,
-    publication_name,
-    published_date,
-    citation,
-  } = req.body;
+  const { research_id } = req.params;
+  const { paper_type, title_of_paper, domain, publication_name, published_date, citation } = req.body;
 
-  // Get the new file path if a file was uploaded
+  // Get the new compressed file path
   const filePath = req.file ? path.relative("public", req.file.path) : null;
 
-  // Check if the research paper exists by research_id
-  const checkQuery =
-    "SELECT * FROM faculty_research_paper WHERE research_id = ?";
-  pool.query(checkQuery, [research_id], (err, result) => {
-    if (err) {
-      return res
-        .status(500)
-        .json({ message: "Error checking research paper", error: err });
-    }
+  // Check if research paper exists
+  pool.query("SELECT * FROM faculty_research_paper WHERE research_id = ?", [research_id], (err, result) => {
+    if (err) return res.status(500).json({ message: "Error checking research paper", error: err });
 
-    if (result.length === 0) {
-      return res.status(404).json({ message: "Research paper not found" });
-    }
+    if (result.length === 0) return res.status(404).json({ message: "Research paper not found" });
 
-    // Get the old paper details
     const oldPdfPath = result[0].pdf_path;
-    const absoluteOldFilePath = oldPdfPath
-      ? path.join("public", oldPdfPath)
-      : null;
+    const absoluteOldFilePath = oldPdfPath ? path.join("public", oldPdfPath) : null;
 
-    if (filePath && filePath !== oldPdfPath) {
-      // If a new file is uploaded and it's not the same as the old one
-      if (absoluteOldFilePath && fs.existsSync(absoluteOldFilePath)) {
-        fs.unlinkSync(absoluteOldFilePath); // Delete the old file
-      }
-    } else if (filePath && filePath === oldPdfPath) {
-      // If the same file is being uploaded, skip deletion
-      console.log("Same file uploaded. Skipping deletion.");
+    // If a new file is uploaded, delete the old one
+    if (filePath && filePath !== oldPdfPath && absoluteOldFilePath && fs.existsSync(absoluteOldFilePath)) {
+      fs.unlinkSync(absoluteOldFilePath);
     }
 
-    // SQL query to update the research paper
+    // Update research paper details
     const updateQuery = `
       UPDATE faculty_research_paper
       SET 
@@ -482,35 +422,16 @@ export const updateResearchPaper = (req, res) => {
         publication_name = ?, 
         published_date = ?, 
         citation = ?, 
-        pdf_path = COALESCE(?, pdf_path) -- Only update pdf_path if a new file is uploaded
+        pdf_path = COALESCE(?, pdf_path)
       WHERE research_id = ?
     `;
 
-    pool.query(
-      updateQuery,
-      [
-        paper_type,
-        title_of_paper,
-        domain,
-        publication_name,
-        published_date,
-        citation,
-        filePath, // Update pdf_path only if a new file is uploaded
-        research_id,
-      ],
+    pool.query(updateQuery, [paper_type, title_of_paper, domain, publication_name, published_date, citation, filePath, research_id],
       (updateErr, updateResult) => {
-        if (updateErr) {
-          return res.status(500).json({
-            message: "Error updating research paper",
-            error: updateErr,
-          });
-        }
+        if (updateErr) return res.status(500).json({ message: "Error updating research paper", error: updateErr });
 
-        res.status(200).json({
-          message: "Research paper updated successfully",
-          data: updateResult,
-        });
-      },
+        res.status(200).json({ message: "Research paper updated successfully", data: updateResult });
+      }
     );
   });
 };

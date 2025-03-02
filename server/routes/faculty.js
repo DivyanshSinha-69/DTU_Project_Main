@@ -2,6 +2,7 @@ import express from "express";
 import {
   uploadResearchPaper,
   uploadFacultyImage,
+  compressPDF,
 } from "../config/multerConfig.js";
 import { authenticateToken } from "../middlewares/auth.js";
 
@@ -86,8 +87,8 @@ router.delete("/facultyassociation/:faculty_id", deleteFacultyAssociation);
 
 // Research Paper Route
 router.get("/researchpaper/:faculty_id", getResearchPapersByFaculty);
-router.post("/researchpaper", uploadResearchPaper, addResearchPaper);
-router.put("/researchpaper/:research_id", uploadResearchPaper, updateResearchPaper);
+router.post("/researchpaper", uploadResearchPaper, compressPDF, addResearchPaper);
+router.put("/researchpaper/:research_id", uploadResearchPaper, compressPDF, updateResearchPaper);
 router.delete("/researchpaper/:research_id", deleteResearchPaper);
 
 // FDP routes

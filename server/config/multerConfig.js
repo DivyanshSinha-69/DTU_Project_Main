@@ -3,64 +3,103 @@ import path from "path";
 import multer from "multer";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import { PDFDocument } from "pdf-lib";
+import { exec } from "child_process";
 
-// Get the current directory of the file (equivalent to __dirname in ES modules)
+// Get the current directory
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// Set up Multer storage for research papers
+// Multer storage for research papers
 const researchPaperStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     const faculty_id = req.body.faculty_id;
-    const uploadPath = path.join(
-      "public",
-      "Faculty",
-      "ResearchPapers",
-      faculty_id,
-    );
-
-    // Create the folder if it doesn't exist
+    const uploadPath = path.join("public", "Faculty", "ResearchPapers", faculty_id);
     fs.mkdirSync(uploadPath, { recursive: true });
-
-    cb(null, uploadPath); // Relative upload path
+    cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
-    const fileName = file.originalname;
-    cb(null, fileName); // Use the original file name
+    cb(null, file.originalname);
   },
 });
 
-// Set up Multer storage for faculty images
+// Middleware to compress PDF using pdf-lib + Ghostscript
+const compressPDF = async (req, res, next) => {
+  if (!req.file) return next();
+
+  const filePath = req.file.path;
+  const tempPdfPath = filePath.replace(".pdf", "_temp.pdf");
+  const finalCompressedPath = filePath.replace(".pdf", "_compressed.pdf");
+
+  try {
+    // 📝 Load PDF using pdf-lib
+    const existingPdfBytes = fs.readFileSync(filePath);
+    const pdfDoc = await PDFDocument.load(existingPdfBytes);
+
+    // Remove metadata
+    pdfDoc.setTitle("");
+    pdfDoc.setAuthor("");
+    pdfDoc.setSubject("");
+    pdfDoc.setKeywords([]);
+    pdfDoc.setProducer("pdf-lib");
+    pdfDoc.setCreator("pdf-lib");
+
+    // Save PDF (without metadata)
+    const pdfBytes = await pdfDoc.save();
+    fs.writeFileSync(tempPdfPath, pdfBytes);
+
+    // 🛠️ Apply Ghostscript for real compression
+    const gsCommand = `gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/screen -dNOPAUSE -dQUIET -dBATCH -sOutputFile="${finalCompressedPath}" "${tempPdfPath}"`;
+
+    exec(gsCommand, (error) => {
+      if (error) {
+        console.error("Ghostscript Compression Error:", error);
+        return res.status(500).json({ message: "Error compressing PDF", error });
+      }
+
+      const originalSize = fs.statSync(filePath).size;
+      const compressedSize = fs.statSync(finalCompressedPath).size;
+
+      console.log(`📂 Original Size: ${(originalSize / 1024 / 1024).toFixed(2)} MB`);
+      console.log(`📂 Compressed Size: ${(compressedSize / 1024 / 1024).toFixed(2)} MB`);
+
+      // Replace original file with the compressed one if it's smaller
+      if (compressedSize < originalSize) {
+        fs.unlinkSync(filePath);
+        fs.unlinkSync(tempPdfPath);
+        req.file.path = finalCompressedPath;
+        req.file.filename = path.basename(finalCompressedPath);
+      } else {
+        fs.unlinkSync(finalCompressedPath);
+        fs.unlinkSync(tempPdfPath);
+      }
+
+      next();
+    });
+  } catch (error) {
+    console.error("PDF Compression Error:", error);
+    return res.status(500).json({ message: "Error compressing PDF", error });
+  }
+};
+
+// Multer storage for faculty images
 const facultyImageStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = path.join(
-      __dirname,
-      "..",
-      "public",
-      "Faculty",
-      "images",
-    );
-
-    // Create the folder if it doesn't exist
+    const uploadPath = path.join(__dirname, "..", "public", "Faculty", "images");
     fs.mkdirSync(uploadPath, { recursive: true });
-
-    cb(null, uploadPath); // Upload destination path
+    cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
-    const faculty_id = req.params.faculty_id; // Using faculty_id from the route parameter
+    const faculty_id = req.params.faculty_id;
     if (!faculty_id) {
-      return cb(new Error("Faculty ID is required to save the image"), null);
+      return cb(new Error("Faculty ID is required"), null);
     }
-
-    // Generate a unique filename based on the faculty_id and timestamp
-    const fileExtension = path.extname(file.originalname); // Extract the file extension
-    const timestamp = Date.now(); // Add a timestamp to ensure uniqueness
-    const uniqueFilename = `${faculty_id}_${timestamp}${fileExtension}`; // Save as faculty_id_timestamp.extension
-
-    cb(null, uniqueFilename); // Use the unique filename
+    const fileExtension = path.extname(file.originalname);
+    const uniqueFilename = `${faculty_id}_${Date.now()}${fileExtension}`;
+    cb(null, uniqueFilename);
   },
 });
 
-// File filter for faculty images (only allow JPG and JPEG)
+// File filter for faculty images (JPG only)
 const facultyImageFilter = (req, file, cb) => {
   if (["image/jpeg", "image/jpg"].includes(file.mimetype)) {
     cb(null, true);
@@ -72,13 +111,13 @@ const facultyImageFilter = (req, file, cb) => {
 // Export Multer instances
 const uploadResearchPaper = multer({
   storage: researchPaperStorage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // Limit file size to 10MB
-}).single("pdf"); // Ensure this matches the field name in your requests
+  limits: { fileSize: 20 * 1024 * 1024 },
+}).single("pdf");
 
 const uploadFacultyImage = multer({
   storage: facultyImageStorage,
   fileFilter: facultyImageFilter,
-  limits: { fileSize: 2 * 1024 * 1024 }, // Limit file size to 2MB
-}).single("faculty_image"); // Field name for faculty image uploads
+  limits: { fileSize: 2 * 1024 * 1024 },
+}).single("faculty_image");
 
-export { uploadResearchPaper, uploadFacultyImage };
+export { uploadResearchPaper, uploadFacultyImage, compressPDF };
