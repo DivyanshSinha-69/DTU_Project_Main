@@ -128,7 +128,7 @@ export default function FacultyDevelopmentPopUp({
             >
               <option value="">Select Month</option>
               {months.map((month) => (
-                <option key={month.value} value={month.value}>
+                <option key={month.value} value={month.name}>
                   {month.name}
                 </option>
               ))}
