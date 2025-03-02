@@ -12,6 +12,7 @@ import showPasswordIcon from "../assets/showPasswordIcon.png";
 
 
 import { HashLink } from "react-router-hash-link";
+import StickyNavbar from "./Website/Header";
 // let hasToastFired = false;
 
 const Login = () => {
@@ -123,6 +124,7 @@ const Login = () => {
 
   return (
     <>
+      <StickyNavbar/>
       <div
         className="flex font1 min-h-full h-screen justify-center flex-col  px-6 py-12 lg:px-8 "
         style={{

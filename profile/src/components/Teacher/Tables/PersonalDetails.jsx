@@ -6,17 +6,19 @@ import "../../../styles/popup.css";
 import editImg from "../../../assets/edit.svg";
 import { useSelector } from "react-redux";
 import API from "../../../utils/API";
+import { useThemeContext } from "../../../context/ThemeContext";
 
 const PersonalDetails = ({ setBlurActive }) => {
   const user = useSelector((state) => state.auth.user) || {};
   const { faculty_id } = user;
   const facultyId = faculty_id;
+  const { darkMode } = useThemeContext();
   const [personalDetails, setPersonalDetails] = useState({
     name: "",
     highestDegree: "",
+    degreeYear: "",
     email: "",
     contactNo: "",
-    degreeYear: "",
   });
   const [specializations, setSpecializations] = useState([]);
   const [newSpecialization, setNewSpecialization] = useState("");
@@ -36,16 +38,17 @@ const PersonalDetails = ({ setBlurActive }) => {
   const fetchFacultyDetails = async () => {
     try {
       const response = await API.get(
-        `/ece/faculty/faculty-details/${facultyId}`,
+        `/ece/faculty/faculty-details/${facultyId}`
       );
       if (response.data) {
         const faculty = response.data.data[0];
         setPersonalDetails({
           name: faculty.faculty_name || "",
           highestDegree: faculty.degree || "",
+          degreeYear: faculty.year_of_attaining_highest_degree || "", // Assuming same as qualification year
+
           email: faculty.email_id || "",
           contactNo: faculty.mobile_number || "",
-          degreeYear: faculty.year_of_attaining_highest_degree || "", // Assuming same as qualification year
         });
       }
     } catch (error) {
@@ -64,7 +67,7 @@ const PersonalDetails = ({ setBlurActive }) => {
           year_of_attaining_highest_degree: updatedData.degreeYear,
           email_id: updatedData.email,
           mobile_number: updatedData.contactNo,
-        },
+        }
       );
 
       if (response.status === 200) {
@@ -78,7 +81,7 @@ const PersonalDetails = ({ setBlurActive }) => {
   const fetchSpecializations = async () => {
     try {
       const response = await API.get(
-        `/ece/faculty/specializations/${facultyId}`,
+        `/ece/faculty/specializations/${facultyId}`
       );
       if (Array.isArray(response.data.data)) {
         setSpecializations(response.data.data);
@@ -126,8 +129,8 @@ const PersonalDetails = ({ setBlurActive }) => {
       await API.delete(`/ece/faculty/specializations/${specialization_id}`);
       setSpecializations(
         specializations.filter(
-          (spec) => spec.specialization_id !== specialization_id,
-        ),
+          (spec) => spec.specialization_id !== specialization_id
+        )
       );
     } catch (error) {
       console.error("Error deleting specialization:", error);
@@ -177,61 +180,105 @@ const PersonalDetails = ({ setBlurActive }) => {
     "Biomedical Image & Signal processing",
     "Automation/Control Systems",
   ];
-
+  const title = "Personal Details";
+  const subtitle = "(As per official records)";
   return (
     <div>
-      <div className="h-auto p-10">
-        <div className="flex flex-row justify-between pr-5 pl-5">
-          <p className="p-3 text-2xl font1 border-top my-auto">
-            Teacher Personal Details <br />
-            <span className="text-lg text-red-600">
-              (As per official records)
-            </span>
-          </p>
+      <div className="h-auto">
+        {/* Popup for Editing Personal Details */}
+        <Popup
+          trigger={null}
+          open={isPopupOpen}
+          onClose={closePopup}
+          className="mx-auto my-auto p-2"
+          closeOnDocumentClick
+        >
+          <div>
+            <PersonalDetailPopup
+              closeModal={closePopup}
+              name={personalDetails.name}
+              highestDegree={personalDetails.highestDegree}
+              email={personalDetails.email}
+              contactNo={personalDetails.contactNo}
+              degreeYear={personalDetails.degreeYear}
+              updatePersonalDetails={updatePersonalDetails}
+            />
+          </div>
+        </Popup>
 
-          <button
-            onClick={openPopup}
-            className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full hover:invert hover:scale-[130%] transition-transform ease-in"
-          >
-            <img src={editImg} alt="Edit" className="h-5 w-5" />
-          </button>
-
-          <Popup
-            trigger={null}
-            open={isPopupOpen}
-            onClose={closePopup}
-            className="mx-auto my-auto p-2"
-            closeOnDocumentClick
-          >
+        {/* Main Card */}
+        <Card
+          className="shadow-2xl rounded-2xl p-6 w-full mx-auto"
+          style={{
+            backgroundColor: darkMode ? "#0D1117" : "#FFFFFF",
+            color: darkMode ? "#C9CCD1" : "#2D3A4A", // Softer text color
+          }}
+        >
+          {/* Table Header Section */}
+          <div className="flex flex-row justify-between items-center mb-5">
+            {/* Title & Subtitle */}
             <div>
-              <PersonalDetailPopup
-                closeModal={closePopup}
-                name={personalDetails.name}
-                highestDegree={personalDetails.highestDegree}
-                email={personalDetails.email}
-                contactNo={personalDetails.contactNo}
-                degreeYear={personalDetails.degreeYear}
-                updatePersonalDetails={updatePersonalDetails}
-              />
+              <Typography
+                variant="h5"
+                className="font-poppins font-semibold text-xl"
+                style={{ color: darkMode ? "#C9CCD1" : "#2D3A4A" }} // Softer text color
+              >
+                {title}
+              </Typography>
+              {subtitle && (
+                <Typography
+                  variant="small"
+                  className="text-red-500 mt-1 font-poppins font-medium"
+                >
+                  {subtitle}
+                </Typography>
+              )}
             </div>
-          </Popup>
-        </div>
-        <hr className="mb-7"></hr>
 
-        <div>
-          <Card className="h-auto w-full pl-10 pr-10 overflow-x-scroll md:overflow-hidden">
-            <table className="w-full min-w-auto lg:min-w-max table-auto text-left">
+            {/* Edit Button */}
+            <button
+              onClick={openPopup}
+              className="p-2 rounded-full transition-transform hover:scale-105"
+              style={{
+                backgroundColor: darkMode ? "#238636" : "#2D9C4A",
+                color: "#FFFFFF",
+              }}
+            >
+              <img src={editImg} alt="edit" className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Personal Details Table */}
+          <div className="w-full overflow-x-auto">
+            <table
+              className="w-full table-auto text-left"
+              style={{
+                backgroundColor: "transparent",
+                color: darkMode ? "#C9CCD1" : "#2D3A4A", // Softer text color
+              }}
+            >
+              {/* Table Head */}
               <thead>
-                <tr>
+                <tr
+                  style={{
+                    backgroundColor: darkMode ? "#161B22" : "#F0F2F5",
+                    color: darkMode ? "#A0A4A8" : "#6B7280", // Softer text color
+                  }}
+                >
                   {TABLE_HEAD.map((head) => (
                     <th
                       key={head}
-                      className="border-b border-blue-gray-100 bg-blue-gray-50 p-4"
+                      className="border-b p-4"
+                      style={{
+                        borderBottom: darkMode
+                          ? "1px solid #21262D"
+                          : "1px solid #DADDE1",
+                      }}
                     >
                       <Typography
                         variant="small"
-                        color="blue-gray"
-                        className="font-normal leading-none opacity-70"
+                        className="font-poppins font-medium leading-none"
+                        style={{ opacity: 0.8, letterSpacing: "0.5px" }}
                       >
                         {head}
                       </Typography>
@@ -239,132 +286,111 @@ const PersonalDetails = ({ setBlurActive }) => {
                   ))}
                 </tr>
               </thead>
+
+              {/* Table Body */}
               <tbody>
-                <tr key={personalDetails.name}>
-                  <td className="p-4">
-                    <Typography
-                      variant="small"
-                      color="blue-gray"
-                      className="font-normal"
-                    >
-                      {personalDetails.name}
-                    </Typography>
-                  </td>
-                  <td className="p-4">
-                    <Typography
-                      variant="small"
-                      color="blue-gray"
-                      className="font-normal"
-                    >
-                      {personalDetails.highestDegree}
-                    </Typography>
-                  </td>
-                  <td className="p-4">
-                    <Typography
-                      variant="small"
-                      color="blue-gray"
-                      className="font-normal"
-                    >
-                      {personalDetails.degreeYear}
-                    </Typography>
-                  </td>
-                  <td className="p-4">
-                    <Typography
-                      variant="small"
-                      color="blue-gray"
-                      className="font-normal"
-                    >
-                      {personalDetails.email}
-                    </Typography>
-                  </td>
-                  <td className="p-4">
-                    <Typography
-                      variant="small"
-                      color="blue-gray"
-                      className="font-normal"
-                    >
-                      {personalDetails.contactNo}
-                    </Typography>
-                  </td>
-                  
+                <tr>
+                  {Object.values(personalDetails).map((value, idx) => (
+                    <td key={idx} className="p-4">
+                      <Typography
+                        variant="small"
+                        className="font-poppins font-normal"
+                        style={{
+                          color: darkMode ? "#C9CCD1" : "#2D3A4A", // Softer text color
+                          letterSpacing: "0.3px",
+                        }}
+                      >
+                        {value ? value : "-"}
+                      </Typography>
+                    </td>
+                  ))}
                 </tr>
               </tbody>
             </table>
-            {/* Specializations Sub-Table */}
-            <div className="mt-5">
-              <Typography
-                variant="small"
-                color="blue-gray"
-                className="font-normal leading-none opacity-70"
-              >
-                Specializations
-              </Typography>
-              <hr className="my-2" /> {/* Line below the heading */}
-              <table className="w-full table-auto border-collapse">
-                <tbody>
-                  <tr>
-                    <td className="p-4">
-                      <div className="flex flex-wrap gap-2">
-                        {" "}
-                        {/* Reduced spacing */}
-                        {specializations.map((spec) => (
-                          <div
-                            key={spec.specialization_id}
-                            className="flex items-center bg-gray-100 text-black px-4 py-2 rounded-lg"
-                          >
-                            <Typography
-                              variant="small"
-                              color="blue-gray"
-                              className="font-normal text-sm" // 👈 Smaller font size
-                            >
-                              {spec.specialization}
-                            </Typography>
-                            <button
-                              onClick={() =>
-                                deleteSpecialization(spec.specialization_id)
-                              }
-                              className="ml-2 text-red-600 hover:text-red-800 text-sm"
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </td>
-                  </tr>
+          </div>
 
-                  {/* Add New Specialization */}
-                  <tr>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2">
-                        <select
-                          value={newSpecialization}
-                          onChange={(e) => setNewSpecialization(e.target.value)}
-                          className="border border-gray-300 rounded px-2 py-1"
+          {/* Specializations Sub-Table */}
+          <div className="mt-5">
+            <Typography
+              variant="small"
+              className="font-poppins font-medium"
+              style={{ color: darkMode ? "#C9CCD1" : "#2D3A4A" }} // Softer text color
+            >
+              Specializations
+            </Typography>
+            <hr
+              className="my-2"
+              style={{ borderColor: darkMode ? "#21262D" : "#DADDE1" }}
+            />{" "}
+            {/* Line below the heading */}
+            <table className="w-full table-auto border-collapse">
+              <tbody>
+                <tr style={{ backgroundColor: "transparent" }}>
+                  <td className="p-4">
+                    <div className="flex flex-wrap gap-2">
+                      {specializations.map((spec) => (
+                        <div
+                          key={spec.specialization_id}
+                          className="flex items-center px-4 py-2 rounded-lg transition-all"
+                          style={{
+                            backgroundColor: darkMode ? "#2B2C3A" : "#F0F2F5",
+                            color: darkMode ? "#C9CCD1" : "#2D3A4A", // Softer text color
+                          }}
                         >
-                          <option value="">Select Specialization</option>
-                          {specializationOptions.map(
-                            (specialization, index) => (
-                              <option key={index} value={specialization}>
-                                {specialization}
-                              </option>
-                            ),
-                          )}
-                        </select>
-                        <button
-                          onClick={addSpecialization}
-                          className="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700"
-                        >
-                          Add
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        </div>
+                          <Typography
+                            variant="small"
+                            className="font-poppins font-normal"
+                          >
+                            {spec.specialization}
+                          </Typography>
+                          <button
+                            onClick={() =>
+                              deleteSpecialization(spec.specialization_id)
+                            }
+                            className="ml-2 text-red-600 hover:text-red-800 text-sm"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </td>
+                </tr>
+
+                {/* Add New Specialization */}
+                <tr>
+                  <td className="p-4">
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={newSpecialization}
+                        onChange={(e) => setNewSpecialization(e.target.value)}
+                        className="border rounded px-2 py-1 transition-all"
+                        style={{
+                          backgroundColor: darkMode ? "#161B22" : "#FFFFFF",
+                          color: darkMode ? "#C9CCD1" : "#2D3A4A", // Softer text color
+                          borderColor: darkMode ? "#21262D" : "#DADDE1",
+                        }}
+                      >
+                        <option value="">Select Specialization</option>
+                        {specializationOptions.map((specialization, index) => (
+                          <option key={index} value={specialization}>
+                            {specialization}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={addSpecialization}
+                        className="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 transition-transform hover:scale-105"
+                      >
+                        Add
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </Card>
       </div>
     </div>
   );

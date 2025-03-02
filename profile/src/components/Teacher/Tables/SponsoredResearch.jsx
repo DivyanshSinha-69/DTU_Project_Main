@@ -9,6 +9,7 @@ import addImg from "../../../assets/add.svg";
 import deleteImg from "../../../assets/delete.svg";
 import API from "../../../utils/API";
 import { useSelector } from "react-redux";
+import CustomTable from "../../DynamicComponents/CustomTable";
 
 // Dummy data for testing
 
@@ -20,25 +21,31 @@ const SponsoredResearch = ({ setBlurActive }) => {
   const user = useSelector((state) => state.auth.user) || {};
   const { faculty_id } = user;
   const facultyId = faculty_id;
+  const formatDateForInput = (isoDate) => {
+    if (!isoDate) return ""; // Handle null/undefined cases
+    const date = new Date(isoDate);
+    return date.toLocaleDateString("en-GB"); // "dd/mm/yyyy" format
+  };
   // Fetch Sponsored Research records
   const fetchResearchDetails = async () => {
     try {
       const response = await API.get(
-        `ece/faculty/sponsored-research/${facultyId}`,
+        `ece/faculty/sponsored-research/${facultyId}`
       );
       // If the API returns an array, map it; otherwise, set an empty array.
       if (Array.isArray(response.data)) {
         setResearchDetails(
           response.data.map((record) => ({
             project_title: record.project_title,
-            agency: record.funding_agency,
-            amount: record.amount_sponsored,
-            duration: record.research_duration,
-            startDate: record.start_date,
-            end_date: record.end_date,
+            funding_agency: record.funding_agency,
+            amount_sponsored: record.amount_sponsored,
+            research_duration: record.research_duration,
+            start_date: formatDateForInput(record.start_date),
+            end_date: formatDateForInput(record.end_date),
             sponsorship_id: record.sponsorship_id,
-          })),
+          }))
         );
+        console.log(researchDetails);
       } else {
         setResearchDetails([]);
       }
@@ -89,7 +96,7 @@ const SponsoredResearch = ({ setBlurActive }) => {
         // Add new research record
         const response = await API.post(
           "ece/faculty/sponsored-research",
-          requestPayload,
+          requestPayload
         );
         setResearchDetails((prev) => [
           ...prev,
@@ -99,14 +106,14 @@ const SponsoredResearch = ({ setBlurActive }) => {
         // Update existing research record
         await API.put(
           `ece/faculty/sponsored-research/${selectedResearch.sponsorship_id}`,
-          requestPayload,
+          requestPayload
         );
         setResearchDetails((prev) =>
           prev.map((research) =>
             research.sponsorship_id === selectedResearch.sponsorship_id
               ? { ...newResearch }
-              : research,
-          ),
+              : research
+          )
         );
       }
       closePopup();
@@ -115,7 +122,7 @@ const SponsoredResearch = ({ setBlurActive }) => {
         isAddResearch
           ? "Error adding sponsored research:"
           : "Error updating sponsored research:",
-        error,
+        error
       );
     }
   };
@@ -125,7 +132,7 @@ const SponsoredResearch = ({ setBlurActive }) => {
     try {
       await API.delete(`ece/faculty/sponsored-research/${sponsorshipId}`);
       setResearchDetails((prev) =>
-        prev.filter((research) => research.sponsorship_id !== sponsorshipId),
+        prev.filter((research) => research.sponsorship_id !== sponsorshipId)
       );
     } catch (error) {
       console.error("Error deleting sponsored research:", error);
@@ -144,166 +151,59 @@ const SponsoredResearch = ({ setBlurActive }) => {
   ];
 
   // Optional: Format a date string for input fields if needed
-  const formatDateForInput = (date) => {
-    const [date1, time] = date?.split("T");
-
-    const [day, month, year] = date1.split("-");
-    return `${day}-${month}-${year}`; // yyyy-MM-dd
+  const formatDateForInputPopup = (date) => {
+    const [day, month, year] = date?.split("/");
+    return `${year}-${month}-${day}`; // yyyy-MM-dd
   };
   return (
-    <div>
-      <div className="h-auto p-10">
-        <div className="flex flex-row justify-between pr-5 pl-5">
-          <p className="p-3 text-2xl font1 border-top my-auto">
-            Sponsored Research <br />
-            <span className="text-lg text-red-600">
-              (Details of sponsored research projects)
-            </span>
-          </p>
-          <button
-            onClick={() => {
-              setIsAddResearch(true);
-              setPopupOpen(true);
-              setBlurActive(true);
-            }}
-            className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full hover:invert hover:scale-[130%] transition-transform ease-in"
-          >
-            <img src={addImg} alt="add" className="h-5 w-5" />
-          </button>
-        </div>
-        <hr className="mb-7"></hr>
+    <>
+      {/* Reusable Custom Table Component */}
+      <CustomTable
+        title="Sponsored Research"
+        subtitle="(Details of sponsored research projects)"
+        columns={[
+          { key: "project_title", label: "Project Title" },
+          { key: "funding_agency", label: "Funding Agency" },
+          {
+            key: "amount_sponsored",
+            label: "Amount Sponsored",
+          },
+          { key: "research_duration", label: "Duration" },
+          {
+            key: "start_date",
+            label: "Start Date",
+          },
+          {
+            key: "end_date",
+            label: "End Date",
+          },
+          { key: "actions", label: "Actions" },
+        ]}
+        data={researchDetails}
+        actions={{
+          edit: (research) => {
+            openPopup(research);
+            setIsAddResearch(false);
+            setSelectedResearch({
+              project_title: research.project_title,
+              funding_agency: research.funding_agency,
+              amount_sponsored: research.amount_sponsored,
+              research_duration: research.research_duration,
+              start_date: research.start_date,
+              end_date: research.end_date,
+            });
+          },
+          delete: (research) => handleDeleteResearch(research.sponsorship_id),
+        }}
+        onAdd={() => {
+          setIsAddResearch(true);
+          setPopupOpen(true);
+          setBlurActive(true);
+          setSelectedResearch(null);
+        }}
+      />
 
-        <div className="">
-          <Card className="h-auto w-full pl-10 pr-10 overflow-x-scroll md:overflow-hidden">
-            <table className="w-full min-w-auto lg:min-w-max table-auto text-left">
-              <thead>
-                <tr>
-                  {TABLE_HEAD?.map((head, index) => (
-                    <th
-                      key={head}
-                      className={`border-b border-blue-gray-100 bg-blue-gray-50 p-4 ${
-                        head === "Actions" ? "text-right" : ""
-                      }`}
-                    >
-                      <Typography
-                        variant="small"
-                        color="blue-gray"
-                        className="font-normal leading-none opacity-70"
-                      >
-                        {head}
-                      </Typography>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {researchDetails?.map((research, index) => {
-                  const {
-                    title = research.project_title,
-                    agency = research.funding_agency,
-                    amount = research.amount_sponsored,
-                    duration = research.research_duration,
-                    startDate = research.start_date,
-                    endDate = research.end_date,
-                  } = research;
-                  const isLast = index === researchDetails.length - 1;
-                  const classes = isLast
-                    ? "p-4"
-                    : "p-4 border-b border-blue-gray-50";
-
-                  return (
-                    <tr key={`${title}-${index}`}>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {title}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {agency}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          ₹{amount?.toLocaleString()}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {duration}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {new Date(startDate)?.toLocaleDateString("en-GB")}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {endDate
-                            ? new Date(endDate)?.toLocaleDateString("en-GB")
-                            : "-"}
-                        </Typography>
-                      </td>
-                      <td className={`${classes} text-right`}>
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => {
-                              openPopup(research);
-                              setIsAddResearch(false);
-                            }}
-                            className="bg-green-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
-                          >
-                            <img src={editImg} alt="edit" className="h-5 w-5" />
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleDeleteResearch(research.sponsorship_id)
-                            }
-                            className="bg-red-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
-                          >
-                            <img
-                              src={deleteImg}
-                              alt="delete"
-                              className="h-5 w-5 filter brightness-0 invert"
-                            />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </Card>
-        </div>
-      </div>
-
-      {/* Popup */}
+      {/* Popup for Adding/Editing Sponsored Research */}
       <Popup
         open={isPopupOpen}
         onClose={closePopup}
@@ -325,14 +225,16 @@ const SponsoredResearch = ({ setBlurActive }) => {
           ) : (
             selectedResearch && (
               <SponsoredResearchPopUp
-                title={selectedResearch.project_title}
-                agency={selectedResearch.agency}
-                amount={selectedResearch.amount}
-                duration={selectedResearch.duration}
-                startDate={formatDateForInput(selectedResearch.startDate)}
+                title={selectedResearch?.project_title || ""}
+                agency={selectedResearch?.funding_agency || ""}
+                amount={selectedResearch?.amount_sponsored || ""}
+                duration={selectedResearch?.research_duration || ""}
+                startDate={formatDateForInputPopup(
+                  selectedResearch?.start_date
+                )}
                 endDate={
-                  selectedResearch.endDate
-                    ? formatDateForInput(selectedResearch?.endDate)
+                  selectedResearch?.end_date
+                    ? formatDateForInputPopup(selectedResearch?.end_date)
                     : ""
                 }
                 closeModal={closePopup}
@@ -342,7 +244,7 @@ const SponsoredResearch = ({ setBlurActive }) => {
           )}
         </div>
       </Popup>
-    </div>
+    </>
   );
 };
 

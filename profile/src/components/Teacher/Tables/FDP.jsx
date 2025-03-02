@@ -9,6 +9,8 @@ import deleteImg from "../../../assets/delete.svg";
 import { toast } from "react-hot-toast";
 import { useSelector } from "react-redux";
 import API from "../../../utils/API";
+import CustomTable from "../../DynamicComponents/CustomTable";
+import { useThemeContext } from "../../../context/ThemeContext";
 
 const FacultyDevelopmentProgram = ({ setBlurActive }) => {
   const [fdpDetails, setFdpDetails] = useState([]);
@@ -17,12 +19,14 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
   const [isAddFDP, setIsAddFDP] = useState(false);
   const user = useSelector((state) => state.auth.user) || {};
   const { faculty_id } = user;
+  const { darkMode } = useThemeContext();
   const facultyId = faculty_id;
   useEffect(() => {
     const fetchFDPDetails = async () => {
       try {
         const response = await API.get(`/ece/faculty/fdp-records/${facultyId}`);
-        
+        console.log(response.data.data);
+
         if (Array.isArray(response.data.data)) {
           setFdpDetails(
             response.data.data.map((fdp) => ({
@@ -39,10 +43,9 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
         toast.error("Error while fetching FDP details");
       }
     };
-  
+
     fetchFDPDetails();
-  }, [facultyId]);
-  
+  }, []);
 
   const openPopup = (fdp) => {
     setSelectedFDP(fdp);
@@ -74,7 +77,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
       } else {
         response = await API.put(
           `/ece/faculty/fdp-records/${selectedFDP.FDP_id}`,
-          payload,
+          payload
         );
       }
 
@@ -85,7 +88,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
 
         // Ensure the new data matches the expected format
         const newFDPRecord = {
-          FDP_id: response.data.FDP_id || selectedFDP.FDP_id, // Ensure ID exists
+          FDP_id: response.data.data.id || selectedFDP.FDP_id, // Ensure ID exists
           FDP_name: response.data.FDP_name || programName,
           year_conducted: response.data.year_conducted || year,
           month_conducted: response.data.month_conducted || month,
@@ -97,8 +100,8 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
         } else {
           setFdpDetails((prev) =>
             prev.map((fdp) =>
-              fdp.FDP_id === selectedFDP.FDP_id ? newFDPRecord : fdp,
-            ),
+              fdp.FDP_id === selectedFDP.FDP_id ? newFDPRecord : fdp
+            )
           );
         }
 
@@ -107,7 +110,6 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
         toast.error("Failed to save FDP record.");
       }
     } catch (error) {
-      console.error("Error saving FDP record:", error);
       toast.error("Error connecting to the server.");
     }
   };
@@ -136,139 +138,46 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
   ];
 
   return (
-    <div>
-      <div className="h-auto p-10">
-        <div className="flex flex-row justify-between pr-5 pl-5">
-          <p className="p-3 text-2xl font1 border-top my-auto">
-            Participation in Faculty development/Training activities/STTP <br />
-            <span className="text-lg text-red-600">
-              (Details of FDPs conducted or attended)
-            </span>
-          </p>
-          <button
-            onClick={() => {
-              setIsAddFDP(true);
-              setPopupOpen(true);
-              setBlurActive(true);
-              setSelectedFDP(null);
-            }}
-            className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full hover:invert hover:scale-[130%] transition-transform ease-in"
-          >
-            <img src={addImg} alt="add" className="h-5 w-5" />
-          </button>
-        </div>
-        <hr className="mb-7"></hr>
+    <>
+      {/* Header Section */}
 
-        <div className="">
-          <Card className="h-auto w-full pl-10 pr-10 overflow-x-scroll md:overflow-hidden">
-            <table className="w-full min-w-auto lg:min-w-max table-auto text-left">
-              <thead>
-                <tr>
-                  {TABLE_HEAD?.map((head, index) => (
-                    <th
-                      key={head}
-                      className={`border-b border-blue-gray-100 bg-blue-gray-50 p-4 ${
-                        head === "Actions" ? "text-right" : ""
-                      }`}
-                    >
-                      <Typography
-                        variant="small"
-                        color="blue-gray"
-                        className="font-normal leading-none opacity-70"
-                      >
-                        {head}
-                      </Typography>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {fdpDetails?.map((fdp, index) => {
-                  const {
-                    FDP_name: programName,
-                    year_conducted: year,
-                    month_conducted: month,
-                    days_contributed: days,
-                  } = fdp;
-                  const isLast = index === fdpDetails.length - 1;
-                  const classes = isLast
-                    ? "p-4"
-                    : "p-4 border-b border-blue-gray-50";
+      {/* Reusable Custom Table Component */}
+      <CustomTable
+        title="Participation in Faculty Development/Training Activities/STTP"
+        subtitle="(Details of FDPs conducted or attended)"
+        columns={[
+          { key: "FDP_name", label: "Program Name" },
+          { key: "year_conducted", label: "Year" },
+          { key: "month_conducted", label: "Month" },
+          { key: "days_contributed", label: "Days" },
+          { key: "actions", label: "Actions" },
+        ]}
+        data={fdpDetails} // FDP data array
+        actions={{
+          edit: (fdp) => {
+            setIsAddFDP(false);
+            setPopupOpen(true);
+            setBlurActive(true);
+            setSelectedFDP(fdp);
+          },
+          delete: (fdp) => {
+            if (fdp?.FDP_id) {
+              handleDeleteFDP(fdp.FDP_id);
+            } else {
+              console.error("FDP ID is missing or undefined", fdp);
+              toast.error("FDP ID not found");
+            }
+          },
+        }}
+        onAdd={() => {
+          setIsAddFDP(true);
+          setPopupOpen(true);
+          setBlurActive(true);
+          setSelectedFDP(null);
+        }}
+      />
 
-                  return (
-                    <tr key={`${programName}-${year}-${index}`}>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {programName}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {year}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {month}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {days} days
-                        </Typography>
-                      </td>
-                      <td className={`${classes} text-right`}>
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => {
-                              setIsAddFDP(false); // This indicates it's an edit operation
-                              setPopupOpen(true);
-                              setBlurActive(true);
-                              setSelectedFDP(fdp);
-                              console.log(selectedFDP);
-                            }}
-                            className="bg-green-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
-                          >
-                            <img src={editImg} alt="edit" className="h-5 w-5" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteFDP(fdp.FDP_id)}
-                            className="bg-red-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
-                          >
-                            <img
-                              src={deleteImg}
-                              alt="delete"
-                              className="h-5 w-5 filter brightness-0 invert"
-                            />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </Card>
-        </div>
-      </div>
-
-      {/* Popup */}
+      {/* Popup for Adding/Editing FDP */}
       <Popup
         open={isPopupOpen}
         onClose={closePopup}
@@ -299,8 +208,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
           )}
         </div>
       </Popup>
-    </div>
+    </>
   );
 };
-
 export default FacultyDevelopmentProgram;

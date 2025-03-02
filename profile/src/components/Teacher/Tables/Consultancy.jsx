@@ -9,6 +9,7 @@ import deleteImg from "../../../assets/delete.svg";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import API from "../../../utils/API";
+import CustomTable from "../../DynamicComponents/CustomTable";
 
 const ConsultancyDetails = ({ setBlurActive }) => {
   const [consultancyDetails, setConsultancyDetails] = useState([]);
@@ -18,7 +19,11 @@ const ConsultancyDetails = ({ setBlurActive }) => {
   const user = useSelector((state) => state.auth.user) || {};
   const { faculty_id } = user;
   const facultyId = faculty_id;
-
+  const formatDateForInput = (isoDate) => {
+    if (!isoDate) return ""; // Handle null/undefined cases
+    const date = new Date(isoDate);
+    return date.toLocaleDateString("en-GB"); // "dd/mm/yyyy" format
+  };
   const fetchConsultancyDetails = async () => {
     try {
       const response = await API.get(`/ece/faculty/consultancy/${facultyId}`);
@@ -29,10 +34,10 @@ const ConsultancyDetails = ({ setBlurActive }) => {
             funding_agency: record.funding_agency,
             amount_sponsored: record.amount_sponsored,
             research_duration: record.research_duration,
-            start_date: record.start_date,
-            end_date: record.end_date,
+            start_date: formatDateForInput(record.start_date),
+            end_date: formatDateForInput(record.end_date),
             consultancy_id: record.consultancy_id,
-          })),
+          }))
         );
       } else {
         setConsultancyDetails([]); // Set an empty array if no records are found
@@ -77,7 +82,7 @@ const ConsultancyDetails = ({ setBlurActive }) => {
         // Update existing consultancy
         await API.put(
           `/ece/faculty/consultancy/${selectedConsultancy.consultancy_id}`,
-          payload,
+          payload
         );
       }
 
@@ -93,7 +98,7 @@ const ConsultancyDetails = ({ setBlurActive }) => {
     const consultancyToDelete = consultancyDetails[indexToDelete];
     try {
       await API.delete(
-        `/ece/faculty/consultancy/${consultancyToDelete.consultancy_id}`,
+        `/ece/faculty/consultancy/${consultancyToDelete.consultancy_id}`
       );
       // Refresh consultancy details after deleting
       fetchConsultancyDetails();
@@ -111,163 +116,59 @@ const ConsultancyDetails = ({ setBlurActive }) => {
     "End Date",
     "Actions",
   ];
-  const formatDateForInput = (date) => {
-    const [date1, time] = date?.split("T");
-
-    const [day, month, year] = date1.split("-");
-    return `${day}-${month}-${year}`; // yyyy-MM-dd
+  const formatDateForInputPopup = (date) => {
+    const [day, month, year] = date.split("/");
+    return `${year}-${month}-${day}`; // yyyy-MM-dd
   };
   return (
-    <div>
-      <div className="h-auto p-10">
-        <div className="flex flex-row justify-between pr-5 pl-5">
-          <p className="p-3 text-2xl font1 border-top my-auto">
-            Consultancy Details <br />
-            <span className="text-lg text-red-600">
-              (Details of consultancy projects)
-            </span>
-          </p>
-          <button
-            onClick={() => {
-              setIsAddConsultancy(true);
-              setPopupOpen(true);
-              setBlurActive(true);
-            }}
-            className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full hover:invert hover:scale-[130%] transition-transform ease-in"
-          >
-            <img src={addImg} alt="add" className="h-5 w-5" />
-          </button>
-        </div>
-        <hr className="mb-7"></hr>
+    <>
+      {/* Reusable Custom Table Component */}
+      <CustomTable
+        title="Consultancy Details"
+        subtitle="(Details of consultancy projects)"
+        columns={[
+          { key: "project_title", label: "Project Title" },
+          { key: "funding_agency", label: "Funding Agency" },
+          {
+            key: "amount_sponsored",
+            label: "Amount Sponsored",
+            format: (value) => `₹${value?.toLocaleString()}`,
+          },
+          {
+            key: "research_duration",
+            label: "Research Duration",
+            format: (value) => `${value} years`,
+          },
+          {
+            key: "start_date",
+            label: "Start Date",
+          },
+          {
+            key: "end_date",
+            label: "End Date",
+          },
+          { key: "actions", label: "Actions" },
+        ]}
+        data={consultancyDetails}
+        actions={{
+          edit: (consultancy) => {
+            setIsAddConsultancy(false);
+            setSelectedConsultancy(consultancy);
+            openPopup(consultancy);
+          },
+          delete: (consultancy) => {
+            handleDeleteConsultancy(consultancy.consultancy_id);
+          },
+        }}
+        onAdd={() => {
+          setIsAddConsultancy(true);
+          setPopupOpen(true);
+          setBlurActive(true);
+          setSelectedConsultancy(null);
+        }}
+      />
 
-        <div className="">
-          <Card className="h-auto w-full pl-10 pr-10 overflow-x-scroll md:overflow-hidden">
-            <table className="w-full min-w-auto lg:min-w-max table-auto text-left">
-              <thead>
-                <tr>
-                  {TABLE_HEAD.map((head, index) => (
-                    <th
-                      key={head}
-                      className={`border-b border-blue-gray-100 bg-blue-gray-50 p-4 ${
-                        head === "Actions" ? "text-right" : ""
-                      }`}
-                    >
-                      <Typography
-                        variant="small"
-                        color="blue-gray"
-                        className="font-normal leading-none opacity-70"
-                      >
-                        {head}
-                      </Typography>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {consultancyDetails.map((consultancy, index) => {
-                  const {
-                    consultancy_id,
-                    project_title,
-                    funding_agency,
-                    amount_sponsored,
-                    research_duration,
-                    start_date,
-                    end_date,
-                  } = consultancy;
-                  const isLast = index === consultancyDetails.length - 1;
-                  const classes = isLast
-                    ? "p-4"
-                    : "p-4 border-b border-blue-gray-50";
-
-                  return (
-                    <tr key={`${project_title}-${index}`}>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {project_title}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {funding_agency}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          ₹{amount_sponsored?.toLocaleString()}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {research_duration} years
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {new Date(start_date)?.toLocaleDateString("en-GB")}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {end_date
-                            ? new Date(end_date)?.toLocaleDateString("en-GB")
-                            : "-"}
-                        </Typography>
-                      </td>
-
-                      <td className={`${classes} text-right`}>
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => openPopup(consultancy)}
-                            className="bg-green-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
-                          >
-                            <img src={editImg} alt="edit" className="h-5 w-5" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteConsultancy(index)}
-                            className="bg-red-700 text-white p-2 rounded-full hover:invert hover:scale-110 transition-transform ease-in"
-                          >
-                            <img
-                              src={deleteImg}
-                              alt="delete"
-                              className="h-5 w-5 filter brightness-0 invert"
-                            />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </Card>
-        </div>
-      </div>
-
-      {/* Popup */}
+      {/* Popup for Adding/Editing Consultancy Details */}
       <Popup
         open={isPopupOpen}
         onClose={closePopup}
@@ -289,14 +190,16 @@ const ConsultancyDetails = ({ setBlurActive }) => {
           ) : (
             selectedConsultancy && (
               <ConsultancyDetailsPopUp
-                title={selectedConsultancy.project_title}
-                client={selectedConsultancy.funding_agency}
-                amount={selectedConsultancy.amount_sponsored}
-                duration={selectedConsultancy.research_duration}
-                startDate={formatDateForInput(selectedConsultancy.start_date)}
+                title={selectedConsultancy?.project_title || ""}
+                client={selectedConsultancy?.funding_agency || ""}
+                amount={selectedConsultancy?.amount_sponsored || ""}
+                duration={selectedConsultancy?.research_duration || ""}
+                startDate={
+                  formatDateForInputPopup(selectedConsultancy?.start_date) || ""
+                }
                 endDate={
-                  selectedConsultancy.end_date
-                    ? formatDateForInput(selectedConsultancy?.end_date)
+                  selectedConsultancy?.end_date
+                    ? formatDateForInputPopup(selectedConsultancy?.end_date)
                     : ""
                 }
                 closeModal={closePopup}
@@ -306,7 +209,7 @@ const ConsultancyDetails = ({ setBlurActive }) => {
           )}
         </div>
       </Popup>
-    </div>
+    </>
   );
 };
 
