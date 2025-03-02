@@ -48,7 +48,7 @@ const compressPDF = async (req, res, next) => {
     fs.writeFileSync(tempPdfPath, pdfBytes);
 
     // 🛠️ Apply Ghostscript for real compression
-    const gsCommand = `gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/screen -dNOPAUSE -dQUIET -dBATCH -sOutputFile="${finalCompressedPath}" "${tempPdfPath}"`;
+    const gsCommand = `gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook -dNOPAUSE -dQUIET -dBATCH -sOutputFile="${finalCompressedPath}" "${tempPdfPath}"`;
 
     exec(gsCommand, (error) => {
       if (error) {

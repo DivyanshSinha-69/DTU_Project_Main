@@ -14,6 +14,22 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
+function getMonthName(monthNumber) {
+  const months = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+  ];
+  return months[monthNumber - 1] || "Invalid month";
+}
+
+function getMonthNumber(monthName) {
+  const months = {
+      "January": 1, "February": 2, "March": 3, "April": 4, "May": 5, "June": 6,
+      "July": 7, "August": 8, "September": 9, "October": 10, "November": 11, "December": 12
+  };
+  return months[monthName] || "Invalid month";
+}
+
 export const getFacultyCredentials = async (req, res) => {
   try {
     const sql = "SELECT * FROM faculty_credentials";
@@ -503,71 +519,69 @@ export const deleteResearchPaper = (req, res) => {
   });
 };
 
+// 1. Get FDP records
 export const getFDPRecords = (req, res) => {
   const { faculty_id } = req.params;
 
   let query = "SELECT * FROM faculty_FDP";
   let params = [];
 
-  // If a faculty_id is provided, filter results by faculty_id
   if (faculty_id) {
-    query += " WHERE faculty_id = ?";
-    params.push(faculty_id);
+      query += " WHERE faculty_id = ?";
+      params.push(faculty_id);
   }
 
   pool.query(query, params, (err, results) => {
-    if (err) {
-      console.error("Error fetching FDP details:", err);
-      return res
-        .status(500)
-        .json({ message: "Error fetching FDP details", error: err });
-    }
+      if (err) {
+          console.error("Error fetching FDP details:", err);
+          return res.status(500).json({ message: "Error fetching FDP details", error: err });
+      }
 
-    // If no results found, send a message
-    if (results.length === 0) {
-      return res.status(404).json({ message: "No FDP details found" });
-    }
+      if (results.length === 0) {
+          return res.status(404).json({ message: "No FDP details found" });
+      }
 
-    // Successfully fetched the FDP records
-    res
-      .status(200)
-      .json({ message: "FDP details fetched successfully", data: results });
+      // Convert month number to month name
+      const modifiedResults = results.map(record => ({
+          ...record,
+          month_conducted: getMonthName(record.month_conducted)
+      }));
+
+      res.status(200).json({ message: "FDP details fetched successfully", data: modifiedResults });
   });
 };
 
 // 2. Add a new FDP record
 export const addFDPRecord = (req, res) => {
   const {
-    faculty_id,
-    FDP_name,
-    year_conducted,
-    month_conducted,
-    days_contributed,
+      faculty_id,
+      FDP_name,
+      year_conducted,
+      month_conducted, // This will be received as a name
+      days_contributed
   } = req.body;
 
+  // Convert month name to number
+  const monthNumber = getMonthNumber(month_conducted);
+  if (monthNumber === "Invalid month") {
+      return res.status(400).json({ message: "Invalid month name provided" });
+  }
+
   const query = `
-    INSERT INTO faculty_FDP (faculty_id, FDP_name, year_conducted, month_conducted, days_contributed)
-    VALUES (?, ?, ?, ?, ?)
+      INSERT INTO faculty_FDP (faculty_id, FDP_name, year_conducted, month_conducted, days_contributed)
+      VALUES (?, ?, ?, ?, ?)
   `;
-  const params = [
-    faculty_id,
-    FDP_name,
-    year_conducted,
-    month_conducted,
-    days_contributed,
-  ];
+  const params = [faculty_id, FDP_name, year_conducted, monthNumber, days_contributed];
 
   pool.query(query, params, (err, result) => {
-    if (err) {
-      console.error("Error adding FDP record:", err);
-      return res
-        .status(500)
-        .json({ message: "Error adding FDP record", error: err });
-    }
-    res.status(201).json({
-      message: "FDP record added successfully",
-      data: { id: result.insertId },
-    });
+      if (err) {
+          console.error("Error adding FDP record:", err);
+          return res.status(500).json({ message: "Error adding FDP record", error: err });
+      }
+      res.status(201).json({
+          message: "FDP record added successfully",
+          data: { id: result.insertId }
+      });
   });
 };
 
@@ -575,43 +589,37 @@ export const addFDPRecord = (req, res) => {
 export const updateFDPRecord = (req, res) => {
   const { FDP_id } = req.params;
   const {
-    faculty_id,
-    FDP_name,
-    year_conducted,
-    month_conducted,
-    days_contributed,
+      faculty_id,
+      FDP_name,
+      year_conducted,
+      month_conducted, // Received as a name
+      days_contributed
   } = req.body;
 
+  // Convert month name to number
+  const monthNumber = getMonthNumber(month_conducted);
+  if (monthNumber === "Invalid month") {
+      return res.status(400).json({ message: "Invalid month name provided" });
+  }
+
   const query = `
-    UPDATE faculty_FDP 
-    SET faculty_id = ?, FDP_name = ?, year_conducted = ?, month_conducted = ?, days_contributed = ?
-    WHERE FDP_id = ?
+      UPDATE faculty_FDP 
+      SET faculty_id = ?, FDP_name = ?, year_conducted = ?, month_conducted = ?, days_contributed = ?
+      WHERE FDP_id = ?
   `;
-  const params = [
-    faculty_id,
-    FDP_name,
-    year_conducted,
-    month_conducted,
-    days_contributed,
-    FDP_id,
-  ];
+  const params = [faculty_id, FDP_name, year_conducted, monthNumber, days_contributed, FDP_id];
 
   pool.query(query, params, (err, result) => {
-    if (err) {
-      console.error("Error updating FDP record:", err);
-      return res
-        .status(500)
-        .json({ message: "Error updating FDP record", error: err });
-    }
-    if (result.affectedRows === 0) {
-      return res
-        .status(404)
-        .json({ message: "No FDP record found with the given FDP_id" });
-    }
-    res.status(200).json({ message: "FDP record updated successfully" });
+      if (err) {
+          console.error("Error updating FDP record:", err);
+          return res.status(500).json({ message: "Error updating FDP record", error: err });
+      }
+      if (result.affectedRows === 0) {
+          return res.status(404).json({ message: "No FDP record found with the given FDP_id" });
+      }
+      res.status(200).json({ message: "FDP record updated successfully" });
   });
 };
-
 // 4. Delete an FDP record using FDP_id
 export const deleteFDPRecord = (req, res) => {
   const { FDP_id } = req.params;
@@ -634,7 +642,6 @@ export const deleteFDPRecord = (req, res) => {
     res.status(200).json({ message: "FDP record deleted successfully" });
   });
 };
-
 export const getVAERecords = (req, res) => {
   const { faculty_id } = req.query;
 
@@ -642,130 +649,91 @@ export const getVAERecords = (req, res) => {
   const params = [];
 
   if (faculty_id) {
-    query += " WHERE faculty_id = ?";
-    params.push(faculty_id);
+      query += " WHERE faculty_id = ?";
+      params.push(faculty_id);
   }
 
   pool.query(query, params, (err, results) => {
-    if (err) {
-      console.error("Error fetching VAE records:", err);
-      return res
-        .status(500)
-        .json({ message: "Error fetching VAE records", error: err });
-    }
-    res
-      .status(200)
-      .json({ message: "VAE records retrieved successfully", data: results });
+      if (err) {
+          console.error("Error fetching VAE records:", err);
+          return res.status(500).json({ message: "Error fetching VAE records", error: err });
+      }
+
+      // Convert numeric month to string before sending response
+      const formattedResults = results.map(record => ({
+          ...record,
+          month_of_visit: getMonthName(record.month_of_visit)
+      }));
+
+      res.status(200).json({ message: "VAE records retrieved successfully", data: formattedResults });
   });
 };
 
+// 🟢 ADD VAE RECORD
 export const addVAERecord = (req, res) => {
-  const {
-    faculty_id,
-    visit_type,
-    institution,
-    course_taught,
-    year_of_visit,
-    month_of_visit,
-    hours_taught,
-  } = req.body;
+  const { faculty_id, visit_type, institution, course_taught, year_of_visit, month_of_visit, hours_taught } = req.body;
 
   // Validate input
-  if (
-    !faculty_id ||
-    !visit_type ||
-    !institution ||
-    !course_taught ||
-    !year_of_visit ||
-    !month_of_visit ||
-    !hours_taught
-  ) {
-    return res.status(400).json({ message: "All fields are required" });
+  if (!faculty_id || !visit_type || !institution || !course_taught || !year_of_visit || !month_of_visit || !hours_taught) {
+      return res.status(400).json({ message: "All fields are required" });
+  }
+
+  const monthNumber = getMonthNumber(month_of_visit);
+  if (monthNumber === "Invalid month") {
+      return res.status(400).json({ message: "Invalid month name provided" });
   }
 
   const query = `
-    INSERT INTO faculty_VAErecords (faculty_id, visit_type, institution, course_taught, year_of_visit, month_of_visit, hours_taught)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO faculty_VAErecords (faculty_id, visit_type, institution, course_taught, year_of_visit, month_of_visit, hours_taught)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
-  const params = [
-    faculty_id,
-    visit_type,
-    institution,
-    course_taught,
-    year_of_visit,
-    month_of_visit,
-    hours_taught,
-  ];
+  const params = [faculty_id, visit_type, institution, course_taught, year_of_visit, monthNumber, hours_taught];
 
   pool.query(query, params, (err, result) => {
-    if (err) {
-      console.error("Error adding VAE record:", err);
-      return res
-        .status(500)
-        .json({ message: "Error adding VAE record", error: err });
-    }
-    res.status(201).json({
-      message: "VAE record added successfully",
-      data: { id: result.insertId },
-    });
+      if (err) {
+          console.error("Error adding VAE record:", err);
+          return res.status(500).json({ message: "Error adding VAE record", error: err });
+      }
+      res.status(201).json({
+          message: "VAE record added successfully",
+          data: { id: result.insertId },
+      });
   });
 };
 
+// 🟢 UPDATE VAE RECORD
 export const updateVAERecord = (req, res) => {
   const { visit_id } = req.params;
-  const {
-    visit_type,
-    institution,
-    course_taught,
-    year_of_visit,
-    month_of_visit,
-    hours_taught,
-  } = req.body;
+  const { visit_type, institution, course_taught, year_of_visit, month_of_visit, hours_taught } = req.body;
 
   // Validate input
-  if (
-    !visit_id ||
-    !visit_type ||
-    !institution ||
-    !course_taught ||
-    !year_of_visit ||
-    !month_of_visit ||
-    !hours_taught
-  ) {
-    return res.status(400).json({ message: "All fields are required" });
+  if (!visit_id || !visit_type || !institution || !course_taught || !year_of_visit || !month_of_visit || !hours_taught) {
+      return res.status(400).json({ message: "All fields are required" });
+  }
+
+  const monthNumber = getMonthNumber(month_of_visit);
+  if (monthNumber === "Invalid month") {
+      return res.status(400).json({ message: "Invalid month name provided" });
   }
 
   const query = `
-    UPDATE faculty_VAErecords
-    SET visit_type = ?, institution = ?, course_taught = ?, year_of_visit = ?, month_of_visit = ?, hours_taught = ?
-    WHERE visit_id = ?
+      UPDATE faculty_VAErecords
+      SET visit_type = ?, institution = ?, course_taught = ?, year_of_visit = ?, month_of_visit = ?, hours_taught = ?
+      WHERE visit_id = ?
   `;
-  const params = [
-    visit_type,
-    institution,
-    course_taught,
-    year_of_visit,
-    month_of_visit,
-    hours_taught,
-    visit_id,
-  ];
+  const params = [visit_type, institution, course_taught, year_of_visit, monthNumber, hours_taught, visit_id];
 
   pool.query(query, params, (err, result) => {
-    if (err) {
-      console.error("Error updating VAE record:", err);
-      return res
-        .status(500)
-        .json({ message: "Error updating VAE record", error: err });
-    }
-    if (result.affectedRows === 0) {
-      return res
-        .status(404)
-        .json({ message: "No VAE record found with the given visit_id" });
-    }
-    res.status(200).json({ message: "VAE record updated successfully" });
+      if (err) {
+          console.error("Error updating VAE record:", err);
+          return res.status(500).json({ message: "Error updating VAE record", error: err });
+      }
+      if (result.affectedRows === 0) {
+          return res.status(404).json({ message: "No VAE record found with the given visit_id" });
+      }
+      res.status(200).json({ message: "VAE record updated successfully" });
   });
 };
-
 export const deleteVAERecord = (req, res) => {
   const { visit_id } = req.params;
 
@@ -902,19 +870,25 @@ export const deleteBookRecord = (req, res) => {
  */
 export const getPhDAwardedRecords = (req, res) => {
   const query = "SELECT * FROM faculty_PhD_awarded";
+
   pool.query(query, (err, results) => {
     if (err) {
-      return res
-        .status(500)
-        .json({ message: "Error fetching PhD awarded records", error: err });
+      return res.status(500).json({
+        message: "Error fetching PhD awarded records",
+        error: err
+      });
     }
-    res.status(200).json(results);
+
+    // Convert numeric month to string month
+    const updatedResults = results.map(record => ({
+      ...record,
+      passing_month: getMonthName(record.passing_month)
+    }));
+
+    res.status(200).json(updatedResults);
   });
 };
 
-/**
- * Get all PhD mentee names for a specific faculty_id
- */
 export const getPhDAwardedRecordsByFacultyId = (req, res) => {
   const { faculty_id } = req.params;
 
@@ -926,25 +900,39 @@ export const getPhDAwardedRecordsByFacultyId = (req, res) => {
 
   pool.query(query, [faculty_id], (err, results) => {
     if (err) {
-      return res
-        .status(500)
-        .json({ message: "Error fetching PhD awarded records", error: err });
-    }
-    if (results.length === 0) {
-      return res.status(404).json({
-        message: "No PhD awarded records found for the given faculty_id",
+      return res.status(500).json({
+        message: "Error fetching PhD awarded records",
+        error: err
       });
     }
-    res.status(200).json(results);
+    
+    if (results.length === 0) {
+      return res.status(404).json({
+        message: "No PhD awarded records found for the given faculty_id"
+      });
+    }
+
+    // Convert numeric month to string month
+    const updatedResults = results.map(record => ({
+      ...record,
+      passing_month: getMonthName(record.passing_month)
+    }));
+
+    res.status(200).json(updatedResults);
   });
 };
 
-/**
- * Add a new PhD awarded record
- */
 export const addPhDAwardedRecord = (req, res) => {
-  const { faculty_id, mentee_name, mentee_rn, passing_year, passing_month } =
-    req.body;
+  let { faculty_id, mentee_name, mentee_rn, passing_year, passing_month } = req.body;
+
+  // Convert string month to numeric month if it's a valid month name
+  if (isNaN(passing_month)) {
+    passing_month = getMonthNumber(passing_month);
+  }
+
+  if (passing_month === "Invalid month") {
+    return res.status(400).json({ message: "Invalid passing month" });
+  }
 
   const query = `
     INSERT INTO faculty_PhD_awarded (faculty_id, mentee_name, mentee_rn, passing_year, passing_month)
@@ -961,9 +949,10 @@ export const addPhDAwardedRecord = (req, res) => {
 
   pool.query(query, queryParams, (err, result) => {
     if (err) {
-      return res
-        .status(500)
-        .json({ message: "Error adding PhD awarded record", error: err });
+      return res.status(500).json({
+        message: "Error adding PhD awarded record",
+        error: err
+      });
     }
     res.status(201).json({
       message: "PhD awarded record added successfully",
@@ -972,18 +961,21 @@ export const addPhDAwardedRecord = (req, res) => {
   });
 };
 
-/**
- * Update an existing PhD record using PHD_id
- */
-/**
- * Update an existing PhD record using PHD_id
- */
 export const updatePhDAwardedRecord = (req, res) => {
-  const { mentee_name, passing_year, passing_month, mentee_rn } = req.body;
+  let { mentee_name, passing_year, passing_month, mentee_rn } = req.body;
   const { PHD_id } = req.params;
 
   if (!PHD_id) {
     return res.status(400).json({ message: "PHD_id is required" });
+  }
+
+  // Convert string month to numeric month if it's a valid month name
+  if (isNaN(passing_month)) {
+    passing_month = getMonthNumber(passing_month);
+  }
+
+  if (passing_month === "Invalid month") {
+    return res.status(400).json({ message: "Invalid passing month" });
   }
 
   const query = `
@@ -1002,16 +994,17 @@ export const updatePhDAwardedRecord = (req, res) => {
 
   pool.query(query, queryParams, (err, result) => {
     if (err) {
-      return res
-        .status(500)
-        .json({ message: "Error updating PhD awarded record", error: err });
+      return res.status(500).json({
+        message: "Error updating PhD awarded record",
+        error: err
+      });
     }
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "PhD awarded record not found" });
     }
-    res
-      .status(200)
-      .json({ message: "PhD awarded record updated successfully" });
+    res.status(200).json({
+      message: "PhD awarded record updated successfully"
+    });
   });
 };
 
