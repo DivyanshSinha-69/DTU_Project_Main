@@ -76,10 +76,14 @@ const Sidebar = ({ menuItems, selectedItem, onSelect, role, faculty_id }) => {
         <Menu size={24} />
       </button>
       <motion.div
-        initial={{ width: isOpen ? 250 : 60 }}
-        animate={{ width: isOpen ? 250 : 60 }}
-        transition={{ duration: 0.3 }}
-        className={`h-screen transition-all duration-300 flex flex-col shadow-lg 
+        initial={{ width: 60 }} // Start with the sidebar closed
+        animate={{ width: isOpen ? 250 : 60 }} // Animate to open or closed state
+        transition={{
+          type: "spring", // Use spring animation for smoother motion
+          stiffness: 100, // Adjust stiffness for smoother feel
+          damping: 15, // Adjust damping for smoother feel
+        }}
+        className={`h-screen flex flex-col shadow-lg 
           ${darkMode ? "bg-[#0D1117] text-white" : "bg-[#FFFFFF] text-[#1F252E]"}`}
         style={{
           borderRight: darkMode ? "1px solid #22232B" : "1px solid #D1D5DB", // Subtle border
@@ -92,7 +96,7 @@ const Sidebar = ({ menuItems, selectedItem, onSelect, role, faculty_id }) => {
         )}
         <div className="w-full space-y-1">
           {menuItems.map((item) => (
-            <div
+            <motion.div
               key={item.id}
               onClick={() => isOpen && onSelect(item.id)}
               className={`cursor-pointer w-full py-2 px-4 transition-all duration-300 flex items-center 
@@ -114,10 +118,15 @@ const Sidebar = ({ menuItems, selectedItem, onSelect, role, faculty_id }) => {
                   }}
                 ></div>
               )}
-              {isOpen && (
-                <span className="block text-sm ml-2">{item.label}</span>
-              )}
-            </div>
+              <motion.span
+                className="block text-sm ml-2"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: isOpen ? 1 : 0, x: isOpen ? 0 : -10 }}
+                transition={{ duration: 0.3 }}
+              >
+                {item.label}
+              </motion.span>
+            </motion.div>
           ))}
         </div>
         <div className="mt-auto mb-4 flex justify-center">
@@ -135,11 +144,14 @@ const Sidebar = ({ menuItems, selectedItem, onSelect, role, faculty_id }) => {
             }}
             onClick={handleLogout}
           >
-            {isOpen ? (
-              <span className="text-sm">Logout</span>
-            ) : (
-              <LogOut size={20} />
-            )}
+            <motion.span
+              className="text-sm"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: isOpen ? 1 : 0, x: isOpen ? 0 : -10 }}
+              transition={{ duration: 0.3 }}
+            >
+              {isOpen ? "Logout" : <LogOut size={20} />}
+            </motion.span>
           </button>
         </div>
       </motion.div>
