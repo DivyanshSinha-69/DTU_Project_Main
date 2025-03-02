@@ -29,6 +29,7 @@ import { useThemeContext } from "../../context/ThemeContext.jsx";
 import dtuImg from "../../assets/dtufullimage.jpg";
 import { PieChart, Pie, Cell } from "recharts";
 import { FaSun, FaMoon } from "react-icons/fa";
+import Qualification from "./Tables/Qualification.jsx";
 
 const Faculty = () => {
   const [isBlurActive, setBlurActive] = useState(false);
@@ -216,19 +217,18 @@ const Faculty = () => {
             transition={{ duration: 0.5 }}
           >
             <div
-              className={`relative flex w-24 h-12 rounded-full p-1 cursor-pointer transition-colors duration-300 ${
+              className={`relative flex w-24 h-12 rounded-full p-1 cursor-pointer transition-colors duration-500 ${
                 darkMode ? "bg-gray-900" : "bg-gray-300"
               }`}
               onClick={() => setDarkMode(!darkMode)}
             >
               {/* Toggle Button */}
               <motion.div
-                className={`absolute w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md transition-all duration-300 ${
+                className={`absolute w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md transition-all duration-500 ${
                   darkMode ? "translate-x-12" : "translate-x-0"
                 }`}
                 layout
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                style={{ zIndex: 1 }} // Reduce z-index to be below the labels
+                transition={{ type: "spring", stiffness: 700, damping: 20 }}
               >
                 {darkMode ? (
                   <FaMoon className="text-gray-700" />
@@ -479,6 +479,13 @@ const Faculty = () => {
                   className={`pt-5 pb-5 ${isBlurActive ? "blur-effect" : ""}`}
                 >
                   <Association setBlurActive={setBlurActive} />
+                </div>
+                <div
+                  style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
+                  ref={sectionRefs["research-projects"]}
+                  className={`pt-5 pb-5 ${isBlurActive ? "blur-effect" : ""}`}
+                >
+                  <Qualification setBlurActive={setBlurActive} />
                 </div>
                 <div
                   style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
