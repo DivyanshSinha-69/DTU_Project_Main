@@ -221,7 +221,7 @@ const ResearchProjects = ({ setBlurActive }) => {
             console.log(project);
             openPopup(project);
           },
-          delete: (id) => deleteProject(id),
+          delete: (row) => deleteProject(row.research_id),
         }}
         onAdd={() => openPopup()} // Opens popup when Add button is clicked
       />

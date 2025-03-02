@@ -2,35 +2,24 @@ import React, { useState } from "react";
 import { Card } from "@material-tailwind/react";
 import toast from "react-hot-toast";
 
-export default function FacultyDevelopmentPopUp({
-  programName,
-  year,
-  month,
-  days,
+export default function QualificationPopUp({
+  degreeLevel,
+  institute,
+  degreeName,
+  yearOfPassing,
+  specialization,
   closeModal,
-  handleAddFDP,
+  handleAddQualification,
 }) {
   const [formData, setFormData] = useState({
-    programName: programName || "",
-    year: year || "",
-    month: month || "",
-    days: days || "",
+    degreeLevel: degreeLevel || "",
+    institute: institute || "",
+    degreeName: degreeName || "",
+    yearOfPassing: yearOfPassing || "",
+    specialization: specialization || "",
   });
 
-  const months = [
-    { name: "January", value: 1 },
-    { name: "February", value: 2 },
-    { name: "March", value: 3 },
-    { name: "April", value: 4 },
-    { name: "May", value: 5 },
-    { name: "June", value: 6 },
-    { name: "July", value: 7 },
-    { name: "August", value: 8 },
-    { name: "September", value: 9 },
-    { name: "October", value: 10 },
-    { name: "November", value: 11 },
-    { name: "December", value: 12 },
-  ];
+  const degreeLevels = ["Bachelors", "Masters", "PhD"];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -42,15 +31,27 @@ export default function FacultyDevelopmentPopUp({
 
   const handlePopupSubmit = async (e) => {
     e.preventDefault();
-    const { programName, year, month, days } = formData;
+    const {
+      degreeLevel,
+      institute,
+      degreeName,
+      yearOfPassing,
+      specialization,
+    } = formData;
 
-    if (!programName || !year || !month || !days) {
+    if (
+      !degreeLevel ||
+      !institute ||
+      !degreeName ||
+      !yearOfPassing ||
+      !specialization
+    ) {
       toast.error("Please fill in all required fields.");
       return;
     }
 
-    if (handleAddFDP) {
-      handleAddFDP(formData); // Corrected typo here
+    if (handleAddQualification) {
+      handleAddQualification(formData);
     }
     closeModal();
   };
@@ -58,7 +59,7 @@ export default function FacultyDevelopmentPopUp({
   const generateYearOptions = () => {
     const currentYear = new Date().getFullYear();
     const years = [];
-    for (let year = 2020; year <= currentYear; year++) {
+    for (let year = 1950; year <= currentYear; year++) {
       years.push(year);
     }
     return years.map((year) => (
@@ -79,33 +80,71 @@ export default function FacultyDevelopmentPopUp({
           className="text-white flex flex-col space-y-6"
           onSubmit={handlePopupSubmit}
         >
-          {/* Program Name */}
+          {/* Degree Level Dropdown */}
           <div className="relative z-0 w-full group">
-            <label htmlFor="programName" className="block text-sm">
-              Title of Faculty development/training activities
+            <label htmlFor="degreeLevel" className="block text-sm">
+              Degree Level
+            </label>
+            <select
+              name="degreeLevel"
+              id="degreeLevel"
+              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={handleChange}
+              value={formData.degreeLevel}
+              required
+            >
+              <option value="">Select Degree Level</option>
+              {degreeLevels.map((level) => (
+                <option key={level} value={level}>
+                  {level}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Institute */}
+          <div className="relative z-0 w-full group">
+            <label htmlFor="institute" className="block text-sm">
+              Institute
             </label>
             <input
               type="text"
-              name="programName"
-              id="programName"
+              name="institute"
+              id="institute"
               className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               onChange={handleChange}
-              value={formData.programName}
+              value={formData.institute}
               required
             />
           </div>
 
-          {/* Year Conducted Dropdown */}
+          {/* Degree Name */}
           <div className="relative z-0 w-full group">
-            <label htmlFor="year" className="block text-sm">
-              Year of Participation
+            <label htmlFor="degreeName" className="block text-sm">
+              Degree Name
             </label>
-            <select
-              name="year"
-              id="year"
+            <input
+              type="text"
+              name="degreeName"
+              id="degreeName"
               className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               onChange={handleChange}
-              value={formData.year}
+              value={formData.degreeName}
+              required
+            />
+          </div>
+
+          {/* Year of Passing Dropdown */}
+          <div className="relative z-0 w-full group">
+            <label htmlFor="yearOfPassing" className="block text-sm">
+              Year of Passing
+            </label>
+            <select
+              name="yearOfPassing"
+              id="yearOfPassing"
+              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={handleChange}
+              value={formData.yearOfPassing}
               required
             >
               <option value="">Select Year</option>
@@ -113,42 +152,19 @@ export default function FacultyDevelopmentPopUp({
             </select>
           </div>
 
-          {/* Month Conducted Dropdown */}
+          {/* Specialization */}
           <div className="relative z-0 w-full group">
-            <label htmlFor="month" className="block text-sm">
-              Month of Participation
-            </label>
-            <select
-              name="month"
-              id="month"
-              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onChange={handleChange}
-              value={formData.month}
-              required
-            >
-              <option value="">Select Month</option>
-              {months.map((month) => (
-                <option key={month.value} value={month.name}>
-                  {month.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Days Contributed */}
-          <div className="relative z-0 w-full group">
-            <label htmlFor="days" className="block text-sm">
-              Duration of Participation(in days)
+            <label htmlFor="specialization" className="block text-sm">
+              Specialization
             </label>
             <input
-              type="number"
-              name="days"
-              id="days"
+              type="text"
+              name="specialization"
+              id="specialization"
               className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               onChange={handleChange}
-              value={formData.days}
+              value={formData.specialization}
               required
-              min="1"
             />
           </div>
 
@@ -158,7 +174,7 @@ export default function FacultyDevelopmentPopUp({
               type="submit"
               className="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
             >
-              {programName ? "Update Program" : "Add Program"}
+              {degreeLevel ? "Update Qualification" : "Add Qualification"}
             </button>
             <button
               type="button"

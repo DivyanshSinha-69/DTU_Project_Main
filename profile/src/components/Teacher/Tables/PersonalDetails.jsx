@@ -360,11 +360,11 @@ const PersonalDetails = ({ setBlurActive }) => {
                 {/* Add New Specialization */}
                 <tr>
                   <td className="p-4">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col md:flex-row items-center gap-2">
                       <select
                         value={newSpecialization}
                         onChange={(e) => setNewSpecialization(e.target.value)}
-                        className="border rounded px-2 py-1 transition-all"
+                        className="border rounded px-2 py-1 transition-all w-full md:w-auto"
                         style={{
                           backgroundColor: darkMode ? "#161B22" : "#FFFFFF",
                           color: darkMode ? "#C9CCD1" : "#2D3A4A", // Softer text color
@@ -380,7 +380,7 @@ const PersonalDetails = ({ setBlurActive }) => {
                       </select>
                       <button
                         onClick={addSpecialization}
-                        className="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 transition-transform hover:scale-105"
+                        className="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 transition-transform hover:scale-105 w-full md:w-auto"
                       >
                         Add
                       </button>

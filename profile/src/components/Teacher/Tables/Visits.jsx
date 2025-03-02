@@ -15,20 +15,6 @@ import CustomTable from "../../DynamicComponents/CustomTable";
 const Visits = ({ setBlurActive }) => {
   const visitTypeMap = { Visiting: 1, Adjunct: 2, Emeritus: 3 };
   const visitTypeReverseMap = { 1: "Visiting", 2: "Adjunct", 3: "Emeritus" };
-  const monthMap = {
-    January: 1,
-    February: 2,
-    March: 3,
-    April: 4,
-    May: 5,
-    June: 6,
-    July: 7,
-    August: 8,
-    September: 9,
-    October: 10,
-    November: 11,
-    December: 12,
-  };
 
   const [visitDetails, setVisitDetails] = useState([]);
   const [isPopupOpen, setPopupOpen] = useState(false);
@@ -76,11 +62,11 @@ const Visits = ({ setBlurActive }) => {
     // Format the visit payload before sending it to the API
     const formattedVisit = {
       faculty_id: FACULTY_ID, // Static for now
-      visit_type: visitTypeMap[visitData.visitType], // Convert string to number
+      visit_type: visitData.visitType, // Convert string to number
       institution: visitData.institutionName,
       course_taught: visitData.courses,
       year_of_visit: visitData.year_of_visit,
-      month_of_visit: monthMap[visitData.month_of_visit], // Convert month name to number
+      month_of_visit: visitData.month_of_visit, // Convert month name to number
       hours_taught: visitData.hours_taught,
     };
 

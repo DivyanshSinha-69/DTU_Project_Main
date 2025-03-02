@@ -5,6 +5,16 @@ import deleteImg from "../../assets/delete.svg";
 import addImg from "../../assets/add.svg"; // Import Add Icon
 import { useThemeContext } from "../../context/ThemeContext";
 
+// Utility function to truncate text
+const truncateText = (text, wordLimit) => {
+  if (!text) return "-";
+  const words = text.split(" ");
+  if (words.length > wordLimit) {
+    return words.slice(0, wordLimit).join(" ") + "...";
+  }
+  return text;
+};
+
 const formatDateForInput = (date) => {
   if (!date) return "-";
   const [date1] = date?.split("T");
@@ -14,10 +24,11 @@ const formatDateForInput = (date) => {
 
 const CustomTable = ({ title, subtitle, columns, data, actions, onAdd }) => {
   const { darkMode } = useThemeContext();
+  const wordLimit = 7; // Set your desired word limit here
 
   return (
     <Card
-      className="shadow-2xl rounded-2xl p-6 max-w-7xl w-full mx-auto"
+      className="shadow-2xl rounded-2xl p-6 w-full mx-auto"
       style={{
         backgroundColor: darkMode ? "#0D1117" : "#FFFFFF", // Updated dark mode color
         color: darkMode ? "#C9CCD1" : "#2D3A4A", // Softer text color
@@ -176,7 +187,11 @@ const CustomTable = ({ title, subtitle, columns, data, actions, onAdd }) => {
                             letterSpacing: "0.3px", // Improved typography
                           }}
                         >
-                          {cellValue ? cellValue : "-"}
+                          {typeof cellValue === "string"
+                            ? truncateText(cellValue, wordLimit) // Truncate all string values
+                            : cellValue
+                              ? cellValue
+                              : "-"}
                         </Typography>
                       </td>
                     );
