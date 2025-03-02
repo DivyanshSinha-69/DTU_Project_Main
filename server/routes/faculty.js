@@ -60,6 +60,10 @@ import {
   addFacultyPatent,
   updateFacultyPatent,
   deleteFacultyPatent,
+  getFacultyQualifications,
+  addFacultyQualification,
+  updateFacultyQualification,
+  deleteFacultyQualification
 } from "../controllers/faculty.js";
 
 const router = express.Router();
@@ -83,11 +87,7 @@ router.delete("/facultyassociation/:faculty_id", deleteFacultyAssociation);
 // Research Paper Route
 router.get("/researchpaper/:faculty_id", getResearchPapersByFaculty);
 router.post("/researchpaper", uploadResearchPaper, addResearchPaper);
-router.put(
-  "/researchpaper/:research_id",
-  uploadResearchPaper,
-  updateResearchPaper,
-);
+router.put("/researchpaper/:research_id", uploadResearchPaper, updateResearchPaper);
 router.delete("/researchpaper/:research_id", deleteResearchPaper);
 
 // FDP routes
@@ -154,5 +154,11 @@ router.get("/patent/:faculty_id", getFacultyPatents); // Get patents by faculty_
 router.post("/patent", addFacultyPatent); // Add a new patent
 router.put("/patent/:patent_id", updateFacultyPatent); // Update a patent
 router.delete("/patent/:patent_id", deleteFacultyPatent); // Delete a patent
+
+// Faculty Qualification Routes
+router.get("/qualification/:faculty_id?", getFacultyQualifications);
+router.post("/qualification", addFacultyQualification);
+router.put("/qualification/:education_id", updateFacultyQualification);
+router.delete("/qualification/:education_id", deleteFacultyQualification);
 
 export default router;

@@ -26,6 +26,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
       try {
         const response = await API.get(`/ece/faculty/fdp-records/${facultyId}`);
         console.log(response.data.data);
+
         if (Array.isArray(response.data.data)) {
           setFdpDetails(
             response.data.data.map((fdp) => ({
