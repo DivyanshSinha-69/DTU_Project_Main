@@ -180,11 +180,12 @@ const PersonalDetails = ({ setBlurActive }) => {
     "Biomedical Image & Signal processing",
     "Automation/Control Systems",
   ];
-  const title = "Teacher Personal Details";
+  const title = "Personal Details";
   const subtitle = "(As per official records)";
   return (
     <div>
-      <div className="h-auto ">
+      <div className="h-auto">
+        {/* Popup for Editing Personal Details */}
         <Popup
           trigger={null}
           open={isPopupOpen}
@@ -205,181 +206,191 @@ const PersonalDetails = ({ setBlurActive }) => {
           </div>
         </Popup>
 
-        <div>
-          <Card
-            className="shadow-2xl rounded-2xl p-6 w-full mx-auto"
-            style={{
-              backgroundColor: darkMode ? "#0D1117" : "#FFFFFF",
-              color: darkMode ? "#E4E6EB" : "#1C1E21",
-            }}
-          >
-            {/* Table Header Section */}
-            <div className="flex flex-row justify-between items-center mb-5">
-              {/* Title & Subtitle */}
-              <div>
+        {/* Main Card */}
+        <Card
+          className="shadow-2xl rounded-2xl p-6 w-full mx-auto"
+          style={{
+            backgroundColor: darkMode ? "#0D1117" : "#FFFFFF",
+            color: darkMode ? "#C9CCD1" : "#2D3A4A", // Softer text color
+          }}
+        >
+          {/* Table Header Section */}
+          <div className="flex flex-row justify-between items-center mb-5">
+            {/* Title & Subtitle */}
+            <div>
+              <Typography
+                variant="h5"
+                className="font-poppins font-semibold text-xl"
+                style={{ color: darkMode ? "#C9CCD1" : "#2D3A4A" }} // Softer text color
+              >
+                {title}
+              </Typography>
+              {subtitle && (
                 <Typography
-                  variant="h5"
-                  className="font-poppins font-semibold text-xl"
-                  style={{ color: darkMode ? "#E4E6EB" : "#1C1E21" }}
+                  variant="small"
+                  className="text-red-500 mt-1 font-poppins font-medium"
                 >
-                  {title}
+                  {subtitle}
                 </Typography>
-                {subtitle && (
-                  <Typography variant="small" className="text-red-500 mt-1">
-                    {subtitle}
-                  </Typography>
-                )}
-              </div>
-
-              {/* edit Button (Aligned to Right) */}
-              <button
-                onClick={openPopup}
-                className="p-2 rounded-full transition-transform hover:scale-105"
-                style={{
-                  backgroundColor: darkMode ? "#238636" : "#2D9C4A",
-                  color: "#FFFFFF",
-                }}
-              >
-                <img src={editImg} alt="add" className="h-5 w-5" />
-              </button>
+              )}
             </div>
-            <div className="w-full overflow-x-auto">
-              <table
-                className="w-full table-auto text-left"
-                style={{
-                  backgroundColor: "transparent",
-                  color: darkMode ? "#E4E6EB" : "#1C1E21",
-                }}
-              >
-                {/* Table Head */}
-                <thead>
-                  <tr
-                    style={{
-                      backgroundColor: darkMode ? "#161B22" : "#F0F2F5",
-                      color: darkMode ? "#8B949E" : "#65676B",
-                    }}
-                  >
-                    {TABLE_HEAD.map((head) => (
-                      <th
-                        key={head}
-                        className="border-b p-4"
+
+            {/* Edit Button */}
+            <button
+              onClick={openPopup}
+              className="p-2 rounded-full transition-transform hover:scale-105"
+              style={{
+                backgroundColor: darkMode ? "#238636" : "#2D9C4A",
+                color: "#FFFFFF",
+              }}
+            >
+              <img src={editImg} alt="edit" className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Personal Details Table */}
+          <div className="w-full overflow-x-auto">
+            <table
+              className="w-full table-auto text-left"
+              style={{
+                backgroundColor: "transparent",
+                color: darkMode ? "#C9CCD1" : "#2D3A4A", // Softer text color
+              }}
+            >
+              {/* Table Head */}
+              <thead>
+                <tr
+                  style={{
+                    backgroundColor: darkMode ? "#161B22" : "#F0F2F5",
+                    color: darkMode ? "#A0A4A8" : "#6B7280", // Softer text color
+                  }}
+                >
+                  {TABLE_HEAD.map((head) => (
+                    <th
+                      key={head}
+                      className="border-b p-4"
+                      style={{
+                        borderBottom: darkMode
+                          ? "1px solid #21262D"
+                          : "1px solid #DADDE1",
+                      }}
+                    >
+                      <Typography
+                        variant="small"
+                        className="font-poppins font-medium leading-none"
+                        style={{ opacity: 0.8, letterSpacing: "0.5px" }}
+                      >
+                        {head}
+                      </Typography>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+
+              {/* Table Body */}
+              <tbody>
+                <tr>
+                  {Object.values(personalDetails).map((value, idx) => (
+                    <td key={idx} className="p-4">
+                      <Typography
+                        variant="small"
+                        className="font-poppins font-normal"
                         style={{
-                          borderBottom: darkMode
-                            ? "1px solid #21262D"
-                            : "1px solid #DADDE1",
+                          color: darkMode ? "#C9CCD1" : "#2D3A4A", // Softer text color
+                          letterSpacing: "0.3px",
                         }}
                       >
-                        <Typography
-                          variant="small"
-                          className="font-poppins font-medium leading-none"
-                          style={{ opacity: 0.8 }}
-                        >
-                          {head}
-                        </Typography>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
+                        {value ? value : "-"}
+                      </Typography>
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-                {/* Table Body */}
-                <tbody>
-                  <tr>
-                    {Object.values(personalDetails).map((value, idx) => (
-                      <td key={idx} className="p-4">
-                        <Typography
-                          variant="small"
-                          className="font-poppins font-normal"
-                          style={{ color: darkMode ? "#E4E6EB" : "#1C1E21" }}
+          {/* Specializations Sub-Table */}
+          <div className="mt-5">
+            <Typography
+              variant="small"
+              className="font-poppins font-medium"
+              style={{ color: darkMode ? "#C9CCD1" : "#2D3A4A" }} // Softer text color
+            >
+              Specializations
+            </Typography>
+            <hr
+              className="my-2"
+              style={{ borderColor: darkMode ? "#21262D" : "#DADDE1" }}
+            />{" "}
+            {/* Line below the heading */}
+            <table className="w-full table-auto border-collapse">
+              <tbody>
+                <tr style={{ backgroundColor: "transparent" }}>
+                  <td className="p-4">
+                    <div className="flex flex-wrap gap-2">
+                      {specializations.map((spec) => (
+                        <div
+                          key={spec.specialization_id}
+                          className="flex items-center px-4 py-2 rounded-lg transition-all"
+                          style={{
+                            backgroundColor: darkMode ? "#2B2C3A" : "#F0F2F5",
+                            color: darkMode ? "#C9CCD1" : "#2D3A4A", // Softer text color
+                          }}
                         >
-                          {value ? value : "-"}
-                        </Typography>
-                      </td>
-                    ))}
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            {/* Specializations Sub-Table */}
-            <div className="mt-5">
-              <Typography
-                variant="small"
-                color="blue-gray"
-                className="font-normal leading-none opacity-70"
-              >
-                Specializations
-              </Typography>
-              <hr className="my-2" /> {/* Line below the heading */}
-              <table className="w-full table-auto border-collapse">
-                <tbody>
-                  <tr
-                    style={{
-                      backgroundColor: "transparent",
-                    }}
-                  >
-                    <td className="p-4">
-                      <div className="flex flex-wrap gap-2">
-                        {" "}
-                        {/* Reduced spacing */}
-                        {specializations.map((spec) => (
-                          <div
-                            key={spec.specialization_id}
-                            className="flex items-center bg-gray-100 text-black px-4 py-2 rounded-lg"
+                          <Typography
+                            variant="small"
+                            className="font-poppins font-normal"
                           >
-                            <Typography
-                              variant="small"
-                              className="font-poppins font-normal"
-                              style={{
-                                color: darkMode ? "#E4E6EB" : "#1C1E21",
-                              }}
-                            >
-                              {spec.specialization}
-                            </Typography>
-                            <button
-                              onClick={() =>
-                                deleteSpecialization(spec.specialization_id)
-                              }
-                              className="ml-2 text-red-600 hover:text-red-800 text-sm"
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </td>
-                  </tr>
+                            {spec.specialization}
+                          </Typography>
+                          <button
+                            onClick={() =>
+                              deleteSpecialization(spec.specialization_id)
+                            }
+                            className="ml-2 text-red-600 hover:text-red-800 text-sm"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </td>
+                </tr>
 
-                  {/* Add New Specialization */}
-                  <tr>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2">
-                        <select
-                          value={newSpecialization}
-                          onChange={(e) => setNewSpecialization(e.target.value)}
-                          className="border border-gray-300 rounded px-2 py-1"
-                        >
-                          <option value="">Select Specialization</option>
-                          {specializationOptions.map(
-                            (specialization, index) => (
-                              <option key={index} value={specialization}>
-                                {specialization}
-                              </option>
-                            )
-                          )}
-                        </select>
-                        <button
-                          onClick={addSpecialization}
-                          className="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 transition-transform hover:scale-105"
-                        >
-                          Add
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        </div>
+                {/* Add New Specialization */}
+                <tr>
+                  <td className="p-4">
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={newSpecialization}
+                        onChange={(e) => setNewSpecialization(e.target.value)}
+                        className="border rounded px-2 py-1 transition-all"
+                        style={{
+                          backgroundColor: darkMode ? "#161B22" : "#FFFFFF",
+                          color: darkMode ? "#C9CCD1" : "#2D3A4A", // Softer text color
+                          borderColor: darkMode ? "#21262D" : "#DADDE1",
+                        }}
+                      >
+                        <option value="">Select Specialization</option>
+                        {specializationOptions.map((specialization, index) => (
+                          <option key={index} value={specialization}>
+                            {specialization}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={addSpecialization}
+                        className="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 transition-transform hover:scale-105"
+                      >
+                        Add
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </Card>
       </div>
     </div>
   );

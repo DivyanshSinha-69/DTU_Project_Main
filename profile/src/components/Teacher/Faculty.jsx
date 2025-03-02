@@ -217,10 +217,12 @@ const Faculty = () => {
               top: 20,
               right: 20,
               zIndex: 1000,
-              backgroundColor: darkMode ? "#222831" : "#F4F5F7",
+              backgroundColor: darkMode ? "#1E1E2E" : "#F4F5F7", // Adjusted dark mode background
               color: darkMode ? "#F8F9FA" : "#1F252E",
-
-              "&:hover": { backgroundColor: darkMode ? "#2E323A" : "#DDE1E7" },
+              transition: "background-color 0.3s, color 0.3s", // Smooth transition
+              "&:hover": {
+                backgroundColor: darkMode ? "#2B2C3A" : "#DDE1E7", // Adjusted hover colors
+              },
             }}
           >
             {darkMode ? <Brightness7Icon /> : <Brightness4Icon />}
@@ -241,46 +243,47 @@ const Faculty = () => {
             {/* Main Content */}
             <div
               className="flex-1 overflow-y-auto pt-2 px-4"
-              style={{ backgroundColor: darkMode ? "#161722" : "#F4F5F7" }}
+              style={{ backgroundColor: darkMode ? "#1E1E2E" : "#F4F5F7" }} // Adjusted dark mode background
             >
               <div
-                style={{ backgroundColor: darkMode ? "#161722" : "#F4F5F7" }}
+                style={{ backgroundColor: darkMode ? "#1E1E2E" : "#F4F5F7" }}
                 className="pt-2"
               >
                 <div
-                  className="rounded-2xl shadow-2xl w-full "
+                  className="rounded-2xl shadow-2xl w-full"
                   style={{
                     backgroundColor: darkMode ? "#0D1117" : "#FFFFFF",
                     padding: "1px",
+                    boxShadow: darkMode
+                      ? "0 4px 12px rgba(0, 0, 0, 0.3)"
+                      : "0 4px 12px rgba(0, 0, 0, 0.1)", // Subtle shadow for depth
                   }}
                 >
                   {/* Hero Section with Profile */}
                   <div className="relative w-full">
                     {/* Background Cover Image */}
                     <div
-                      className="h-32 md:h-60 lg:h-60 w-full relative rounded-t-2xl"
+                      className="relative w-full h-[25vh] md:h-[30vh] lg:h-[37vh] rounded-t-2xl"
                       style={{
                         backgroundImage: `url(${dtuImg})`,
                         backgroundSize: "cover",
-                        backgroundPosition: "center",
-                        backgroundColor: darkMode ? "#1f1f1f" : "#e3e3e3",
+                        backgroundPosition: "center 60%",
+                        backgroundColor: darkMode ? "#2B2C3A" : "#E0E0E0", // Adjusted background color
                       }}
                     >
                       {/* Profile Image */}
                       <div className="absolute bottom-0 left-4 md:left-8 transform translate-y-1/3">
-                        {/* Profile Image */}
                         <img
-                          className="rounded-full h-30 w-30 md:h-36 md:w-36 border-4 border-white dark:border-gray-800 shadow-lg"
+                          className="rounded-full h-24 w-24 md:h-36 md:w-36 border-4 border-white dark:border-gray-800 shadow-lg"
                           src={selectedImage ? selectedImage : teacherImg}
                           alt="Faculty Profile"
                         />
-
-                        {/* Upload Image Icon (Clickable) */}
+                        {/* Upload Image Icon */}
                         <label
                           htmlFor="imageUpload"
                           className={`absolute bottom-0 right-0 p-1 rounded-full cursor-pointer transition-all ${
                             darkMode
-                              ? "bg-gray-500 hover:bg-gray-600"
+                              ? "bg-gray-600 hover:bg-gray-700" // Adjusted hover color
                               : "bg-gray-300 hover:bg-gray-400"
                           }`}
                         >
@@ -302,23 +305,39 @@ const Faculty = () => {
                   </div>
 
                   {/* Grid Layout for Faculty Details and Stats */}
-                  <div className="grid grid-cols-1 md:grid-cols-[1fr_1.5fr] gap-6 mt-20 px-4 md:px-6 mb-6 pb-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-6 mt-16 px-4 md:px-6 mb-6 pb-4">
                     {/* Faculty Details */}
                     <div
-                      className="rounded-xl shadow-lg md:p-6"
+                      className="rounded-xl shadow-lg p-5 md:p-6 text-center md:text-left flex flex-col"
                       style={{
-                        backgroundColor: darkMode ? "#0B1B39" : "#F4F5F7",
+                        backgroundColor: darkMode ? "#0D1117" : "#FFFFFF",
+                        border: darkMode
+                          ? "2px solid #22232B"
+                          : "2px solid #D1D5DB",
                       }}
                     >
+                      {/* Faculty Name */}
                       <h1
-                        className="text-xl md:text-2xl font-bold"
-                        style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
+                        className="text-xl md:text-3xl font-semibold"
+                        style={{ color: darkMode ? "#EAEAEA" : "#1F252E" }}
                       >
                         {faculty_name}
                       </h1>
+
+                      {/* Divider - Softer & closer to the name */}
+                      <div
+                        className="w-full"
+                        style={{
+                          height: "1.2px",
+                          backgroundColor: darkMode ? "#2B2C3A" : "#D1D5DB",
+                          marginTop: "3px",
+                        }}
+                      />
+
+                      {/* Designation */}
                       <h2
-                        className="text-md italic font-medium"
-                        style={{ color: darkMode ? "#DDE1E7" : "#6C757D" }}
+                        className="text-sm md:text-base italic font-medium mt-1"
+                        style={{ color: darkMode ? "#B0B3B8" : "#4A5568" }}
                       >
                         {faculty_designation === 1
                           ? "Professor"
@@ -328,86 +347,88 @@ const Faculty = () => {
                               ? "Assistant Professor"
                               : "Unknown"}
                       </h2>
-                      <h2 className="text-sm md:text-md font-medium">
-                        <span
-                          style={{ color: darkMode ? "#DDE1E7" : "#6C757D" }}
-                        >
-                          Faculty ID:
-                        </span>{" "}
-                        <span
-                          style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
-                        >
-                          {facultyId}
-                        </span>
-                      </h2>
-                      <h2 className="text-sm md:text-md font-medium">
-                        <span
-                          style={{ color: darkMode ? "#DDE1E7" : "#6C757D" }}
-                        >
-                          Department:
-                        </span>{" "}
-                        <span
-                          style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
-                        >
-                          ECE
-                        </span>
-                      </h2>
+
+                      {/* Additional Details - Softer, more uniform */}
+                      <div className="flex flex-col gap-1 text-sm md:text-base font-medium mt-2">
+                        <div className="flex justify-between md:justify-start gap-2">
+                          <span
+                            style={{ color: darkMode ? "#B0B3B8" : "#6B7280" }}
+                          >
+                            Faculty ID:
+                          </span>
+                          <span
+                            style={{ color: darkMode ? "#EAEAEA" : "#1F252E" }}
+                          >
+                            {facultyId}
+                          </span>
+                        </div>
+                        <div className="flex justify-between md:justify-start gap-2">
+                          <span
+                            style={{ color: darkMode ? "#B0B3B8" : "#6B7280" }}
+                          >
+                            Department:
+                          </span>
+                          <span
+                            className="font-medium"
+                            style={{
+                              color: darkMode ? "#EAEAEA" : "#1F252E",
+                              fontSize: "1rem",
+                            }}
+                          >
+                            ECE
+                          </span>
+                        </div>
+                      </div>
                     </div>
 
                     {/* Stats Box with Circular Progress Bar */}
                     <div
-                      className="rounded-xl shadow-lg md:p-2 flex flex-row justify-between items-center gap-x-4"
+                      className="rounded-xl shadow-lg p-4 md:p-6 flex flex-col md:flex-row justify-between items-center gap-6"
                       style={{
-                        backgroundColor: darkMode ? "#0B1B39" : "#F4F5F7",
+                        backgroundColor: darkMode ? "#0D1117" : "#FFFFFF",
+                        border: darkMode
+                          ? "2px solid #22232B"
+                          : "2px solid #D1D5DB",
                       }}
                     >
-                      {/* Stats Grid */}
-                      <div className="grid grid-cols-2 gap-4 ml-12">
-                        <div className="text-center">
-                          <h3
-                            className={`text-lg font-bold ${darkMode ? "text-[#F8F9FA]" : "text-[#1F252E]"}`}
-                          >
-                            7
-                          </h3>
-                          <p className="text-sm text-gray-400">
-                            Research Papers
-                          </p>
-                        </div>
-                        <div className="text-center">
-                          <h3
-                            className={`text-lg font-bold ${darkMode ? "text-[#F8F9FA]" : "text-[#1F252E]"}`}
-                          >
-                            3
-                          </h3>
-                          <p className="text-sm text-gray-400">Patents</p>
-                        </div>
-                        <div className="text-center">
-                          <h3
-                            className={`text-lg font-bold ${darkMode ? "text-[#F8F9FA]" : "text-[#1F252E]"}`}
-                          >
-                            2
-                          </h3>
-                          <p className="text-sm text-gray-400">Books</p>
-                        </div>
-                        <div className="text-center">
-                          <h3
-                            className={`text-lg font-bold ${darkMode ? "text-[#F8F9FA]" : "text-[#1F252E]"}`}
-                          >
-                            0
-                          </h3>
-                          <p className="text-sm text-gray-400">Sponsorships</p>
-                        </div>
+                      {/* Stats Grid - Softer, more balanced layout */}
+                      <div className="grid grid-cols-2 gap-4 flex-grow min-w-0 w-full md:w-auto">
+                        {[
+                          { value: 7, label: "Research Papers" },
+                          { value: 3, label: "Patents Filed/Awarded" },
+                          { value: 2, label: "Book Records" },
+                          { value: 0, label: "Sponsorships" },
+                        ].map((stat, index) => (
+                          <div key={index} className="text-center p-2">
+                            <h3
+                              className="text-2xl font-medium"
+                              style={{
+                                color: darkMode ? "#EAEAEA" : "#1F252E",
+                              }}
+                            >
+                              {stat.value}
+                            </h3>
+                            <p
+                              className="text-xs font-normal"
+                              style={{
+                                color: darkMode ? "#B0B3B8" : "#6B7280",
+                              }}
+                            >
+                              {stat.label}
+                            </p>
+                          </div>
+                        ))}
                       </div>
 
-                      {/* Circular Progress Bar */}
-                      <div className="flex justify-center items-center">
-                        <PieChart width={150} height={150}>
+                      {/* Circular Progress Bar - Softer text */}
+                      <div className="flex justify-center items-center w-full md:w-auto">
+                        <PieChart width={110} height={110}>
                           <Pie
                             data={data}
                             cx="50%"
                             cy="50%"
-                            innerRadius={50} /* Increased inner radius */
-                            outerRadius={60} /* Increased outer radius */
+                            innerRadius={35}
+                            outerRadius={45}
                             fill={darkMode ? "#569CD6" : "#007BFF"}
                             paddingAngle={5}
                             dataKey="value"
@@ -421,9 +442,10 @@ const Faculty = () => {
                           </Pie>
                         </PieChart>
                         <span
-                          className={`text-lg font-bold ml-4 mr-20 ${darkMode ? "text-[#569CD6]" : "text-[#007BFF]"}`}
+                          className="text-s font-medium ml-2"
+                          style={{ color: darkMode ? "#569CD6" : "#007BFF" }}
                         >
-                          {profileCompletion}%
+                          {profileCompletion}% Profile Completed
                         </span>
                       </div>
                     </div>

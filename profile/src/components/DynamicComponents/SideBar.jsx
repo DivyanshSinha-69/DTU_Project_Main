@@ -66,21 +66,28 @@ const Sidebar = ({ menuItems, selectedItem, onSelect, role, faculty_id }) => {
   return (
     <div className="relative">
       <button
-        className="absolute top-4 left-4 z-50 p-2 rounded-md bg-white shadow-md"
+        className="absolute top-4 left-4 z-50 p-2 rounded-md shadow-md transition-all duration-300"
+        style={{
+          backgroundColor: darkMode ? "#2B2C3A" : "#FFFFFF",
+          color: darkMode ? "#EAEAEA" : "#1F252E",
+        }}
         onClick={() => setIsOpen(!isOpen)}
       >
-        <Menu size={24} className="text-gray-700" />
+        <Menu size={24} />
       </button>
       <motion.div
         initial={{ width: isOpen ? 250 : 60 }}
         animate={{ width: isOpen ? 250 : 60 }}
         transition={{ duration: 0.3 }}
         className={`h-screen transition-all duration-300 flex flex-col shadow-lg 
-          ${darkMode ? "bg-[#0B1B39] text-white" : "bg-[#F4F5F7] text-[#2D3A4A]"}`}
+          ${darkMode ? "bg-[#0D1117] text-white" : "bg-[#FFFFFF] text-[#1F252E]"}`}
+        style={{
+          borderRight: darkMode ? "1px solid #22232B" : "1px solid #D1D5DB", // Subtle border
+        }}
       >
         {isOpen && (
           <div className="flex items-center justify-center mt-6 mb-4">
-            <img src={dtuLogo} alt="DTU Logo" className="w-16 h-16" />
+            <img src={dtuLogo} alt="DTU Logo" className="w-24 h-24" />
           </div>
         )}
         <div className="w-full space-y-1">
@@ -92,15 +99,20 @@ const Sidebar = ({ menuItems, selectedItem, onSelect, role, faculty_id }) => {
                 ${
                   selectedItem === item.id && isOpen
                     ? darkMode
-                      ? "bg-[#222755] text-white relative"
-                      : "bg-[#E0E0E0] text-[#2D3A4A] relative"
+                      ? "bg-[#1E1E2E] text-white relative"
+                      : "bg-[#E0E0E0] text-[#1F252E] relative"
                     : darkMode
                       ? "hover:bg-[#2B2C3A]"
-                      : "hover:bg-gray-300"
+                      : "hover:bg-[#DDE1E7]"
                 }`}
             >
               {selectedItem === item.id && (
-                <div className="absolute top-0 left-0 h-full w-2  rounded-l-full"></div>
+                <div
+                  className="absolute top-0 left-0 h-full w-1 rounded-l-full"
+                  style={{
+                    backgroundColor: darkMode ? "#569CD6" : "#007BFF", // Accent color for selected item
+                  }}
+                ></div>
               )}
               {isOpen && (
                 <span className="block text-sm ml-2">{item.label}</span>
@@ -110,7 +122,17 @@ const Sidebar = ({ menuItems, selectedItem, onSelect, role, faculty_id }) => {
         </div>
         <div className="mt-auto mb-4 flex justify-center">
           <button
-            className="p-2 rounded-md text-white bg-[#000000] hover:bg-[#D43F3F] transition-all duration-300 flex items-center"
+            className="p-2 rounded-md transition-all duration-300 flex items-center"
+            style={{
+              backgroundColor: darkMode ? "#D43F3F" : "#E63946", // Default background color
+              color: "#FFFFFF",
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = darkMode ? "#B03030" : "#B22222"; // Hover background color
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = darkMode ? "#D43F3F" : "#E63946"; // Reset background color
+            }}
             onClick={handleLogout}
           >
             {isOpen ? (

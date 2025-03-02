@@ -168,7 +168,7 @@ const Association = ({ setBlurActive }) => {
         designation: "Assistant Professor",
         startDate: assistantProfessorStartDate,
         endDate: assistantProfessorEndDate,
-      },
+      }
     );
   } else if (highestDesignation === "Associate Professor") {
     TABLE_ROWS.push(
@@ -177,7 +177,7 @@ const Association = ({ setBlurActive }) => {
         designation: "Assistant Professor",
         startDate: assistantProfessorStartDate,
         endDate: assistantProfessorEndDate,
-      },
+      }
     );
   } else if (highestDesignation === "Assistant Professor") {
     TABLE_ROWS.push({
@@ -194,7 +194,7 @@ const Association = ({ setBlurActive }) => {
   return (
     <>
       <CustomTable
-        title="Teacher Designation Details"
+        title="Designation Details"
         subtitle="(As per official records)"
         columns={[
           { key: "designation", label: "Designation" },
@@ -202,7 +202,7 @@ const Association = ({ setBlurActive }) => {
           { key: "startDate", label: "Start Date" },
           { key: "endDate", label: "Last Date" },
         ]}
-        data={TABLE_ROWS || []} 
+        data={TABLE_ROWS || []}
         actions={{
           edit: openPopup,
         }}

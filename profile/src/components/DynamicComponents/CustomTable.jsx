@@ -1,6 +1,5 @@
 import React from "react";
-import { Card } from "@material-tailwind/react";
-import { Typography } from "@material-tailwind/react";
+import { Card, Typography } from "@material-tailwind/react";
 import editImg from "../../assets/edit.svg";
 import deleteImg from "../../assets/delete.svg";
 import addImg from "../../assets/add.svg"; // Import Add Icon
@@ -21,7 +20,7 @@ const CustomTable = ({ title, subtitle, columns, data, actions, onAdd }) => {
       className="shadow-2xl rounded-2xl p-6 max-w-7xl w-full mx-auto"
       style={{
         backgroundColor: darkMode ? "#0D1117" : "#FFFFFF", // Updated dark mode color
-        color: darkMode ? "#E4E6EB" : "#1C1E21",
+        color: darkMode ? "#C9CCD1" : "#2D3A4A", // Softer text color
       }}
     >
       {/* Table Header Section */}
@@ -30,13 +29,16 @@ const CustomTable = ({ title, subtitle, columns, data, actions, onAdd }) => {
         <div>
           <Typography
             variant="h5"
-            className="font-poppins font-semibold text-xl"
-            style={{ color: darkMode ? "#E4E6EB" : "#1C1E21" }}
+            className="font-poppins font-semibold text-xl" // Adjusted font size
+            style={{ color: darkMode ? "#C9CCD1" : "#2D3A4A" }} // Softer text color
           >
             {title}
           </Typography>
           {subtitle && (
-            <Typography variant="small" className="text-red-500 mt-1">
+            <Typography
+              variant="small"
+              className="text-red-500 mt-1 font-poppins font-medium" // Updated font style
+            >
               {subtitle}
             </Typography>
           )}
@@ -45,7 +47,7 @@ const CustomTable = ({ title, subtitle, columns, data, actions, onAdd }) => {
         {/* Add Button (Aligned to Right) */}
         <button
           onClick={onAdd}
-          className="p-3 bg-green-600 text-white rounded-full hover:invert hover:scale-110 transition-transform ease-in"
+          className="p-3 bg-green-600 text-white rounded-full hover:bg-green-700 transition-all ease-in" // Improved hover effect
         >
           <img src={addImg} alt="add" className="h-5 w-5" />
         </button>
@@ -57,7 +59,7 @@ const CustomTable = ({ title, subtitle, columns, data, actions, onAdd }) => {
           className="w-full min-w-auto lg:min-w-max table-auto text-left"
           style={{
             backgroundColor: "transparent", // No background, seamless look
-            color: darkMode ? "#E4E6EB" : "#1C1E21",
+            color: darkMode ? "#C9CCD1" : "#2D3A4A", // Softer text color
           }}
         >
           {/* Table Head */}
@@ -65,7 +67,7 @@ const CustomTable = ({ title, subtitle, columns, data, actions, onAdd }) => {
             <tr
               style={{
                 backgroundColor: darkMode ? "#161B22" : "#F0F2F5",
-                color: darkMode ? "#8B949E" : "#65676B", // Updated grey heading color
+                color: darkMode ? "#A0A4A8" : "#6B7280", // Softer text color
               }}
             >
               {columns.map((col) => (
@@ -81,7 +83,7 @@ const CustomTable = ({ title, subtitle, columns, data, actions, onAdd }) => {
                   <Typography
                     variant="small"
                     className="font-poppins font-medium leading-none"
-                    style={{ opacity: 0.8 }}
+                    style={{ opacity: 0.8, letterSpacing: "0.5px" }} // Improved typography
                   >
                     {col.label}
                   </Typography>
@@ -97,7 +99,7 @@ const CustomTable = ({ title, subtitle, columns, data, actions, onAdd }) => {
               return (
                 <tr
                   key={index}
-                  className="hover:bg-opacity-20 transition-all"
+                  className="hover:bg-opacity-10 transition-all" // Subtle hover effect
                   style={{
                     backgroundColor: "transparent",
                     borderBottom: isLast
@@ -110,7 +112,6 @@ const CustomTable = ({ title, subtitle, columns, data, actions, onAdd }) => {
                   {columns.map((col) => {
                     let cellValue = row[col.key];
                     if (col.key === "Document") {
-                      console.log(cellValue);
                       return (
                         <td key={col.key} className="p-4">
                           {cellValue ? (
@@ -118,12 +119,17 @@ const CustomTable = ({ title, subtitle, columns, data, actions, onAdd }) => {
                               href={`${process.env.REACT_APP_BACKEND_URL}/public/${cellValue.name}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-blue-500 hover:underline"
+                              className="text-blue-500 hover:underline font-poppins font-medium" // Updated font style
                             >
                               View
                             </a>
                           ) : (
-                            "Not Uploaded"
+                            <Typography
+                              variant="small"
+                              className="font-poppins font-medium" // Updated font style
+                            >
+                              Not Uploaded
+                            </Typography>
                           )}
                         </td>
                       );
@@ -165,7 +171,10 @@ const CustomTable = ({ title, subtitle, columns, data, actions, onAdd }) => {
                         <Typography
                           variant="small"
                           className="font-poppins font-normal"
-                          style={{ color: darkMode ? "#E4E6EB" : "#1C1E21" }}
+                          style={{
+                            color: darkMode ? "#C9CCD1" : "#2D3A4A", // Softer text color
+                            letterSpacing: "0.3px", // Improved typography
+                          }}
                         >
                           {cellValue ? cellValue : "-"}
                         </Typography>
