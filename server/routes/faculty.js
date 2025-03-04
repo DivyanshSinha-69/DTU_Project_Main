@@ -3,7 +3,7 @@ import {
   uploadResearchPaper,
   uploadFacultyImage,
   compressPDF,
-} from "../config/multerConfig.js";
+} from "../config/facultyMulterConfig.js";
 import { authenticateToken } from "../middlewares/auth.js";
 
 import {
@@ -69,7 +69,7 @@ import {
 
 const router = express.Router();
 
-// router.use(authenticateToken);
+router.use(authenticateToken);
 
 // Credentials Route
 router.get("/facultycredentials", getFacultyCredentials);

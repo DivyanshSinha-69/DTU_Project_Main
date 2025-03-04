@@ -32,34 +32,51 @@ function App() {
   const dispatch = useDispatch();
   const { role } = useSelector((state) => state.user);
 
+  const user1 = useSelector((state) => state.auth.user) || {};
+  
+  console.log("User1", user1);
+  
   useEffect(() => {
     const checkExistingToken = async () => {
       try {
+        let userDetails;
+        if(user1.Position!='faculty'){
+          console.log("I am here at 44");
         const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/cookiescheck`, {
           withCredentials: true,
         });
+        userDetails = response.data;
 
-        const userDetails = response.data;
         dispatch(
           login({
-            user: userDetails.user,
+            user: userDetails?.user,
             facultyId: null,
             accessToken: null,
             refreshToken: null,
           }),
         );
-        dispatch(setRole(userDetails.user.Position));
 
+      }
+        
+       
+        console.log("User Details:", userDetails);
+        if(userDetails)
+          dispatch(setRole(userDetails.user.Position));
+        else
+          dispatch(setRole(user1.Position));
         if (userDetails.user.Position === "student") {
           navigate("/student/portal");
-        } else if (userDetails.user.Position === "faculty") {
+        } else if (userDetails.user.Position === "faculty" || user1.Position === "faculty") {
+          console.log("60");
           navigate("/faculty/portal");
         } else if (userDetails.user.Position === "admin") {
           navigate("/admin/portal");
         } else {
+          console.log(65);
           navigate("/unauthorized");
         }
       } catch (error) {
+        console.log(error);
         console.error("Error checking existing token:", error.message);
       }
     };
@@ -84,7 +101,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
-          {/* <Route path="/login/admin" element={<AdminLogin />} /> */}
+          <Route path="/login/admin" element={<AdminLogin />} />
 
           {role === "student" ? (
             <Route path="/student/portal" element={<Student />} />

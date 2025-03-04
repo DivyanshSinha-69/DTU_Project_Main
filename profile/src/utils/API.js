@@ -1,7 +1,10 @@
 import axios from "axios";
 import { store } from "../redux/Store";
 import { updateAccessToken, logout } from "../redux/reducers/AuthSlice";
-
+import { useSelector } from "react-redux";
+  // const {refreshToken, accessToken} = useSelector((state) => state.auth) || {};
+  const accessToken = store.getState().auth.accessToken;
+  const refreshToken = store.getState().auth.refreshToken;
 const API = axios.create({
   baseURL: `${process.env.REACT_APP_BACKEND_URL}`,
   withCredentials: true, // Ensure cookies are sent if used for refresh tokens
@@ -27,8 +30,9 @@ const isTokenExpired = (token) => {
 };
 // 🔹 Attach Access Token to Every Request
 API.interceptors.request.use(
+
   async (config) => {
-    const token = store.getState().auth.accessToken;
+    const token = accessToken;
 
     if (token) {
       // Check if the token is expired or about to expire (e.g., within 5 minutes)
@@ -38,8 +42,6 @@ API.interceptors.request.use(
         console.log("🔴 Token expired or about to expire. Refreshing token...");
 
         try {
-          const refreshToken = store.getState().auth.refreshToken;
-
           if (!refreshToken) {
             console.error("❌ No refresh token available!");
             store.dispatch(logout());

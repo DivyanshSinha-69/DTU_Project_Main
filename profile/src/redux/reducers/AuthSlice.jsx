@@ -6,7 +6,7 @@ const initialState = {
   facultyId: localStorage.getItem("facultyId") || null,
   accessToken: localStorage.getItem("accessToken") || null,
   refreshToken: localStorage.getItem("refreshToken") || null,
-  isAuthenticated: false,
+  isAuthenticated: localStorage.getItem("isAuthenticated") || false,
 };
 
 export const authSlice = createSlice({
@@ -21,6 +21,7 @@ export const authSlice = createSlice({
       state.isAuthenticated = true;
       localStorage.setItem("user", JSON.stringify(action.payload.user));
       localStorage.setItem("facultyId", action.payload.facultyId);
+      localStorage.setItem("isAuthenticated", state.isAuthenticated);
 
       localStorage.setItem("accessToken", action.payload.accessToken);
       localStorage.setItem("refreshToken", action.payload.refreshToken);
