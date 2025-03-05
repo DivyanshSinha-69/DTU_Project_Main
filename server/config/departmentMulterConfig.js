@@ -1,11 +1,7 @@
 import fs from "fs";
 import path from "path";
 import multer from "multer";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
-
-// Get the current directory
-const __dirname = dirname(fileURLToPath(import.meta.url));
+import { compressImage, compressPDF } from "../utils/fileCompressor.js"; // Import compression utility
 
 /**
  * 📝 Multer Storage for Department Circulars
@@ -46,17 +42,40 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Export Multer instances for department circulars and orders
+// Upload Middleware for Circulars
 const uploadDepartmentCircular = multer({
   storage: departmentCircularStorage,
   fileFilter,
-  limits: { fileSize: 10 * 1024 * 1024 }, // Max 10MB
+  limits: { fileSize: 20 * 1024 * 1024 }, // 10MB limit
 }).single("circular_file");
 
+// Upload Middleware for Orders
 const uploadDepartmentOrder = multer({
   storage: departmentOrderStorage,
   fileFilter,
-  limits: { fileSize: 10 * 1024 * 1024 }, // Max 10MB
+  limits: { fileSize: 20 * 1024 * 1024 }, // 10MB limit
 }).single("order_file");
 
-export { uploadDepartmentCircular, uploadDepartmentOrder };
+// Compression Middleware
+const compressUploadedFile = (req, res, next) => {
+  if (!req.file) return next();
+
+  const filePath = req.file.path;
+  const ext = path.extname(filePath).toLowerCase();
+
+  const handleNext = (err) => {
+    if (err) return res.status(500).json({ message: "Error compressing file", error: err.message });
+    next();
+  };
+
+  if ([".jpeg", ".jpg", ".png"].includes(ext)) {
+    compressImage(filePath, handleNext);
+  } else if (ext === ".pdf") {
+    compressPDF(filePath, handleNext);
+  } else {
+    next();
+  }
+};
+
+// Export Middleware
+export { uploadDepartmentCircular, uploadDepartmentOrder, compressUploadedFile };
