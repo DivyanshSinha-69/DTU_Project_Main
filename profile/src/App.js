@@ -26,6 +26,7 @@ import ResetPassword from "./components/ResetPass";
 import Unauthorized from "./components/Unauthorized";
 import { Toaster } from "react-hot-toast";
 import { ThemeProvider, ThemeProviderWrapper } from "./context/ThemeContext";
+import Department from "./components/Department/Department";
 
 function App() {
   const navigate = Navigate;
@@ -33,40 +34,42 @@ function App() {
   const { role } = useSelector((state) => state.user);
 
   const user1 = useSelector((state) => state.auth.user) || {};
-  
+
   console.log("User1", user1);
-  
+
   useEffect(() => {
     const checkExistingToken = async () => {
       try {
         let userDetails;
-        if(user1.Position!='faculty'){
+        if (user1.Position != "faculty") {
           console.log("I am here at 44");
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/cookiescheck`, {
-          withCredentials: true,
-        });
-        userDetails = response.data;
+          const response = await axios.get(
+            `${process.env.REACT_APP_BACKEND_URL}/cookiescheck`,
+            {
+              withCredentials: true,
+            }
+          );
+          userDetails = response.data;
 
-        dispatch(
-          login({
-            user: userDetails?.user,
-            facultyId: null,
-            accessToken: null,
-            refreshToken: null,
-          }),
-        );
+          dispatch(
+            login({
+              user: userDetails?.user,
+              facultyId: null,
+              accessToken: null,
+              refreshToken: null,
+            })
+          );
+        }
 
-      }
-        
-       
         console.log("User Details:", userDetails);
-        if(userDetails)
-          dispatch(setRole(userDetails.user.Position));
-        else
-          dispatch(setRole(user1.Position));
+        if (userDetails) dispatch(setRole(userDetails.user.Position));
+        else dispatch(setRole(user1.Position));
         if (userDetails.user.Position === "student") {
           navigate("/student/portal");
-        } else if (userDetails.user.Position === "faculty" || user1.Position === "faculty") {
+        } else if (
+          userDetails.user.Position === "faculty" ||
+          user1.Position === "faculty"
+        ) {
           console.log("60");
           navigate("/faculty/portal");
         } else if (userDetails.user.Position === "admin") {
@@ -87,42 +90,43 @@ function App() {
   return (
     <>
       <ThemeProviderWrapper>
-      <Toaster
-        toastOptions={{
-          className: "",
-          duration: 2500,
-          style: {
-            background: "#1f2937",
-            color: "#fff",
-          },
-        }}
-      />
-      <Router>
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/login/admin" element={<AdminLogin />} />
-
-          {role === "student" ? (
-            <Route path="/student/portal" element={<Student />} />
-          ) : role === "faculty" ? (
-            <Route path="/faculty/portal" element={<Faculty />} />
-          ) : role === "admin" ? (
-            <Route path="/admin/portal" element={<Dashboard />} />
-          ) : (
+        <Toaster
+          toastOptions={{
+            className: "",
+            duration: 2500,
+            style: {
+              background: "#1f2937",
+              color: "#fff",
+            },
+          }}
+        />
+        <Router>
+          <Routes>
+            <Route path="/" element={<Login />} />
             <Route path="/login" element={<Login />} />
-          )}
-          <Route path="/parents" element={<Parents />} />
-          <Route path="/loader" element={<Loader />} />
-          <Route path="/alumini" element={<Alumini />} />
-          <Route path="/forgot" element={<Forgot />} />
-          <Route path="/reset-password/:token" element={<ResetPassword />} />
+            <Route path="/login/admin" element={<AdminLogin />} />
+            <Route path="/department/portal" element={<Department />} />
 
-          <Route path="*" element={<Unauthorized />} />
-        </Routes>
-        <Footer />
+            {role === "student" ? (
+              <Route path="/student/portal" element={<Student />} />
+            ) : role === "faculty" ? (
+              <Route path="/faculty/portal" element={<Faculty />} />
+            ) : role === "admin" ? (
+              <Route path="/admin/portal" element={<Dashboard />} />
+            ) : (
+              <Route path="/login" element={<Login />} />
+            )}
+            <Route path="/parents" element={<Parents />} />
+            <Route path="/loader" element={<Loader />} />
+            <Route path="/alumini" element={<Alumini />} />
+            <Route path="/forgot" element={<Forgot />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
+
+            <Route path="*" element={<Unauthorized />} />
+          </Routes>
+          <Footer />
         </Router>
-        </ThemeProviderWrapper>
+      </ThemeProviderWrapper>
     </>
   );
 }
