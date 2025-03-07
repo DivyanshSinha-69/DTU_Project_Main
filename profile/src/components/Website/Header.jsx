@@ -225,9 +225,10 @@ export default function StickyNavbar() {
   return (
     <>
       <div className="font1 bg-inherit border-0 max-h-[768px] w-[calc(100% + 48px)] shadow-none">
-        <Navbar className="bg-white border-0 top-0 z-50 h-max w-full rounded-none p-0 lg:p-0 shadow-none sticky fixed">
-          <div className="flex  bg-inherit border-0 items-center justify-between rounded-none text-blue-gray-900">
-            <Typography className="mr-4 cursor-pointer py-0 font-medium ">
+        <Navbar className="bg-white border-0 top-0 z-50 h-max w-full rounded-none p-0 lg:p-0 shadow-none fixed">
+         <div className="flex  bg-inherit border-0 items-center justify-between rounded-none text-blue-gray-900">
+
+          <Typography className="mr-4 cursor-pointer py-0 font-medium ">
               <div className="flex justify-center text-align">
                 <img src={dtulogo} alt="dtulogo" className="h-20 w-30" />
                 <p className="flex tracking-wide justify-center items-center text-sm lg:text-2xl p-3 text-gray-700 font-bold">
