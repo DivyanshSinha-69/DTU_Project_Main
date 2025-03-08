@@ -25,15 +25,15 @@ import { logout } from "../../redux/reducers/AuthSlice";
 import axios from "axios";
 import { setRole } from "../../redux/reducers/UserSlice";
 import { useNavigate } from "react-router-dom";
-import { removeProfessionalSkills } from "../../redux/reducers/UserProfessionalSkills";
-import { removePersonalDetails } from "../../redux/reducers/UserPersonalDetails";
-import { removeUserImage } from "../../redux/reducers/UserImage";
-import { removePlacement } from "../../redux/reducers/UserPlacementDetail";
-import { removeMtechEducation } from "../../redux/reducers/UserMtechEducationalDetails";
-import { removeEntrepreneurDetails } from "../../redux/reducers/UserEntrepreneurDetails";
-import { removeHigherEducationDetails } from "../../redux/reducers/UserHigherEducationDetails";
-import { removeInterInstitute } from "../../redux/reducers/UserInterInstituteDetails";
-import { removeBtechEducation } from "../../redux/reducers/UserBtechEducationalDetails";
+import { removeProfessionalSkills } from "../../redux/reducers/student/UserProfessionalSkills";
+import { removePersonalDetails } from "../../redux/reducers/student/UserPersonalDetails";
+import { removeUserImage } from "../../redux/reducers/student/UserImage";
+import { removePlacement } from "../../redux/reducers/student/UserPlacementDetail";
+import { removeMtechEducation } from "../../redux/reducers/student/UserMtechEducationalDetails";
+import { removeEntrepreneurDetails } from "../../redux/reducers/student/UserEntrepreneurDetails";
+import { removeHigherEducationDetails } from "../../redux/reducers/student/UserHigherEducationDetails";
+import { removeInterInstitute } from "../../redux/reducers/student/UserInterInstituteDetails";
+import { removeBtechEducation } from "../../redux/reducers/student/UserBtechEducationalDetails";
 
 export default function StickyNavbar() {
   const { isAuthenticated } = useSelector((state) => state.auth);
@@ -147,7 +147,7 @@ export default function StickyNavbar() {
               to="/login?role=alumni"
               className="flex flex-row items-center lg:flex-col"
             >
-              <img src={img7} alt="employer" height={30} width={30} />
+              <img src={img6} alt="employer" height={30} width={30} />
               <p className="lg:ml-0 ml-4">Alumni</p>
             </HashLink>
           </Typography>
@@ -161,7 +161,7 @@ export default function StickyNavbar() {
               to="/login?role=department"
               className="flex flex-row items-center lg:flex-col"
             >
-              <img src={img6} alt="employer" height={30} width={30} />
+              <img src={img7} alt="employer" height={30} width={30} />
               <p className="lg:ml-0 ml-4">Department</p>
             </HashLink>
           </Typography>
@@ -226,9 +226,8 @@ export default function StickyNavbar() {
     <>
       <div className="font1 bg-inherit border-0 max-h-[768px] w-[calc(100% + 48px)] shadow-none">
         <Navbar className="bg-white border-0 top-0 z-50 h-max w-full rounded-none p-0 lg:p-0 shadow-none fixed">
-         <div className="flex  bg-inherit border-0 items-center justify-between rounded-none text-blue-gray-900">
-
-          <Typography className="mr-4 cursor-pointer py-0 font-medium ">
+          <div className="flex  bg-inherit border-0 items-center justify-between rounded-none text-blue-gray-900">
+            <Typography className="mr-4 cursor-pointer py-0 font-medium ">
               <div className="flex justify-center text-align">
                 <img src={dtulogo} alt="dtulogo" className="h-20 w-30" />
                 <p className="flex tracking-wide justify-center items-center text-sm lg:text-2xl p-3 text-gray-700 font-bold">

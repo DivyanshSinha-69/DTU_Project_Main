@@ -6,7 +6,7 @@ import img from "../../../assets/delete.svg";
 import addImg from "../../../assets/add.svg";
 import axios from "axios";
 import AddPlacementsPopup from "../PopupWindow/AddPlacementsPopup.jsx";
-import { deletePlacement } from "../../../redux/reducers/UserPlacementDetail.jsx";
+import { deletePlacement } from "../../../redux/reducers/student/UserPlacementDetail.jsx";
 import toast from "react-hot-toast";
 
 const Placement = ({ setBlurActive }) => {
@@ -42,7 +42,7 @@ const Placement = ({ setBlurActive }) => {
             ID: ID,
           },
           withCredentials: true,
-        },
+        }
       );
 
       toast.success(response.data.message);
@@ -120,7 +120,7 @@ const Placement = ({ setBlurActive }) => {
                     joiningDate,
                     appointmentLetter,
                   },
-                  index,
+                  index
                 ) => {
                   const isLast = index === TABLE_ROWS.length - 1;
                   const classes = isLast
@@ -187,7 +187,7 @@ const Placement = ({ setBlurActive }) => {
                       </td>
                     </tr>
                   );
-                },
+                }
               )}
             </tbody>
           </table>

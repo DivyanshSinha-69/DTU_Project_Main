@@ -2,9 +2,9 @@ import axios from "axios";
 import React, { useState } from "react";
 import { Card, Input, Button, Typography } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
-import { addPlacement } from "../../../redux/reducers/UserPlacementDetail";
+import { addPlacement } from "../../../redux/reducers/student/UserPlacementDetail";
 import ManuscriptPdf from "./ManuscriptPdf";
-import { addPublicationDetails } from "../../../redux/reducers/UserPublicationDetails";
+import { addPublicationDetails } from "../../../redux/reducers/student/UserPublicationDetails";
 import toast from "react-hot-toast";
 
 export default function AddPlacementsPopup(props) {
@@ -44,7 +44,7 @@ export default function AddPlacementsPopup(props) {
 
       if (!urlRegex.test(formData.publishedArticleLink)) {
         toast.error(
-          "Please enter a valid website link for the published article",
+          "Please enter a valid website link for the published article"
         );
         return;
       }
@@ -65,7 +65,7 @@ export default function AddPlacementsPopup(props) {
         },
         {
           withCredentials: true,
-        },
+        }
       );
 
       // Handle success, e.g., show a success message or update state

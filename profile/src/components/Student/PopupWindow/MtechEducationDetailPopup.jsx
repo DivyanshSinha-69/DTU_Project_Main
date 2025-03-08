@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Card, Input, Button, Typography } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
 import MtechScoreCardPdf from "./MtechScoreCardPdf";
-import { setMtechEducation } from "../../../redux/reducers/UserMtechEducationalDetails";
+import { setMtechEducation } from "../../../redux/reducers/student/UserMtechEducationalDetails";
 import toast from "react-hot-toast";
 
 export default function MtechEducationDetailPopup(props) {
@@ -58,7 +58,7 @@ export default function MtechEducationDetailPopup(props) {
             parseFloat(formData.gateMarks) > 100
           ) {
             toast.error(
-              "Gate Marks should only contain digits and be less than or equal to 100",
+              "Gate Marks should only contain digits and be less than or equal to 100"
             );
             return;
           }
@@ -78,7 +78,7 @@ export default function MtechEducationDetailPopup(props) {
           },
           {
             withCredentials: true,
-          },
+          }
         );
 
         const updateddata = {
@@ -107,7 +107,7 @@ export default function MtechEducationDetailPopup(props) {
           },
           {
             withCredentials: true,
-          },
+          }
         );
 
         const updateddata = {

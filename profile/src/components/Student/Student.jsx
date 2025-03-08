@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import StudentProfessionalSkills from "./Tables/ProfessionalSkills";
 import axios from "axios";
-import { setProfessionalSkills } from "../../redux/reducers/UserProfessionalSkills";
+import { setProfessionalSkills } from "../../redux/reducers/student/UserProfessionalSkills";
 import { useDispatch, useSelector } from "react-redux";
 
 import studImg from "../../assets/studImg.png";
@@ -11,22 +11,22 @@ import Placement from "./Tables/Placement";
 import Publication from "./Tables/Publication";
 import Acknowledgement from "./Acknowledgement";
 import "../../styles/popup.css";
-import { setPersonalDetails } from "../../redux/reducers/UserPersonalDetails";
+import { setPersonalDetails } from "../../redux/reducers/student/UserPersonalDetails";
 import Test from "./ImageUpload";
-import { setPlacement } from "../../redux/reducers/UserPlacementDetail";
+import { setPlacement } from "../../redux/reducers/student/UserPlacementDetail";
 import MtechEducationDetails from "./Tables/MtechEducationDetails";
-import { setMtechEducation } from "../../redux/reducers/UserMtechEducationalDetails";
-import { setEntrepreneurDetails } from "../../redux/reducers/UserEntrepreneurDetails";
+import { setMtechEducation } from "../../redux/reducers/student/UserMtechEducationalDetails";
+import { setEntrepreneurDetails } from "../../redux/reducers/student/UserEntrepreneurDetails";
 import HigherEducation from "./Tables/HigherEducation";
-import { setHigherEducationDetails } from "../../redux/reducers/UserHigherEducationDetails";
-import { setPublicationDetails } from "../../redux/reducers/UserPublicationDetails";
+import { setHigherEducationDetails } from "../../redux/reducers/student/UserHigherEducationDetails";
+import { setPublicationDetails } from "../../redux/reducers/student/UserPublicationDetails";
 // import Placement from "./studentportaltables/Placement";
 import { Toaster } from "react-hot-toast";
 import Loader from "../Loader";
 import Activities from "./Tables/Activities";
-import { setInterInstitute } from "../../redux/reducers/UserInterInstituteDetails";
+import { setInterInstitute } from "../../redux/reducers/student/UserInterInstituteDetails";
 import BtechEducationDetails from "./Tables/BtechEducationalDetails";
-import { setBtechEducation } from "../../redux/reducers/UserBtechEducationalDetails";
+import { setBtechEducation } from "../../redux/reducers/student/UserBtechEducationalDetails";
 
 const Student = () => {
   const user = useSelector((state) => state.auth.user) || {}; // Ensure user is never undefined
@@ -51,7 +51,7 @@ const Student = () => {
           },
           {
             withCredentials: true,
-          },
+          }
         );
 
         dispatch(setPersonalDetails(personalDetailsResponse.data.user));
@@ -63,7 +63,7 @@ const Student = () => {
           },
           {
             withCredentials: true,
-          },
+          }
         );
         dispatch(setProfessionalSkills(response.data.user));
 
@@ -74,7 +74,7 @@ const Student = () => {
           },
           {
             withCredentials: true,
-          },
+          }
         );
 
         dispatch(setInterInstitute(interInstituteData.data.user));
@@ -89,10 +89,10 @@ const Student = () => {
               },
               {
                 withCredentials: true,
-              },
+              }
             );
             dispatch(
-              setMtechEducation(mtechEducationDetailsResponse.data.user),
+              setMtechEducation(mtechEducationDetailsResponse.data.user)
             );
           } catch (error) {
             // Handle error
@@ -108,10 +108,10 @@ const Student = () => {
               },
               {
                 withCredentials: true,
-              },
+              }
             );
             dispatch(
-              setBtechEducation(btechEducationDetailsResponse.data.user),
+              setBtechEducation(btechEducationDetailsResponse.data.user)
             );
           } catch (error) {
             // Handle error
@@ -126,7 +126,7 @@ const Student = () => {
           },
           {
             withCredentials: true,
-          },
+          }
         );
         dispatch(setEntrepreneurDetails(entrepreneurDetails.data.user));
 
@@ -137,7 +137,7 @@ const Student = () => {
           },
           {
             withCredentials: true,
-          },
+          }
         );
         dispatch(setHigherEducationDetails(higherEducationDetails.data.user));
 
@@ -148,7 +148,7 @@ const Student = () => {
           },
           {
             withCredentials: true,
-          },
+          }
         );
         dispatch(setPublicationDetails(publicationDetails.data.user));
 
@@ -159,7 +159,7 @@ const Student = () => {
           },
           {
             withCredentials: true,
-          },
+          }
         );
         dispatch(setPlacement(placementresponse.data.user));
         setDataLoaded(true);

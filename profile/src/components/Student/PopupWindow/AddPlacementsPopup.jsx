@@ -2,7 +2,7 @@ import axios from "axios";
 import React, { useState } from "react";
 import { Card, Input, Button, Typography } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
-import { addPlacement } from "../../../redux/reducers/UserPlacementDetail";
+import { addPlacement } from "../../../redux/reducers/student/UserPlacementDetail";
 import PlacementPdf from "./PlacementPdf";
 import toast from "react-hot-toast";
 
@@ -59,7 +59,7 @@ export default function AddPlacementsPopup(props) {
         },
         {
           withCredentials: true,
-        },
+        }
       );
 
       // Handle success, e.g., show a success message or update state

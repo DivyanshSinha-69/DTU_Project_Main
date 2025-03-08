@@ -2,7 +2,7 @@ import axios from "axios";
 import React, { useState } from "react";
 import { Card, Input, Button, Typography } from "@material-tailwind/react";
 import { useDispatch } from "react-redux";
-import { updateProfessionalSkill } from "../../../redux/reducers/UserProfessionalSkills";
+import { updateProfessionalSkill } from "../../../redux/reducers/student/UserProfessionalSkills";
 import toast from "react-hot-toast";
 
 export default function PopupProfessionalSkills(props) {
@@ -68,7 +68,7 @@ export default function PopupProfessionalSkills(props) {
         },
         {
           withCredentials: true,
-        },
+        }
       );
 
       const updateddata = {

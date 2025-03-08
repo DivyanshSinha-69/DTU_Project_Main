@@ -2,7 +2,7 @@ import axios from "axios";
 import React, { useState } from "react";
 import { Card, Input, Button, Typography } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
-import { setEntrepreneurDetails } from "../../../redux/reducers/UserEntrepreneurDetails";
+import { setEntrepreneurDetails } from "../../../redux/reducers/student/UserEntrepreneurDetails";
 import CompanyRegCertPdf from "./CompanyRegCertPdf";
 import toast from "react-hot-toast";
 
@@ -56,7 +56,7 @@ export default function EntrepreneurPopup(props) {
         },
         {
           withCredentials: true,
-        },
+        }
       );
 
       const updateddata = {

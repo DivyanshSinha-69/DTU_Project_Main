@@ -130,11 +130,11 @@ const Faculty = () => {
     }
   };
 
-  // Dummy data for the teacher (replace with actual data later)
   const sectionRefs = {
     "personal-details": useRef(null),
     association: useRef(null),
-    "research-projects": useRef(null),
+    qualification: useRef(null),
+    "research-papers": useRef(null),
     "book-records": useRef(null),
     "patent-records": useRef(null),
     visits: useRef(null),
@@ -181,8 +181,9 @@ const Faculty = () => {
   const sidebarItems = [
     { id: "personal-details", label: "Personal Details" },
     { id: "association", label: "Designation Details" },
-    { id: "research-projects", label: "Research Papers Published" },
-    { id: "book-records", label: "Books Records Published" },
+    { id: "qualification", label: "Qualifications" },
+    { id: "research-papers", label: "Research Papers Published" },
+    { id: "book-records", label: "Book Records Published" },
     { id: "patent-records", label: "Patent Records" },
     {
       id: "visits",
@@ -482,14 +483,14 @@ const Faculty = () => {
                 </div>
                 <div
                   style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
-                  ref={sectionRefs["research-projects"]}
+                  ref={sectionRefs["qualification"]}
                   className={`pt-5 pb-5 ${isBlurActive ? "blur-effect" : ""}`}
                 >
                   <Qualification setBlurActive={setBlurActive} />
                 </div>
                 <div
                   style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
-                  ref={sectionRefs["research-projects"]}
+                  ref={sectionRefs["research-papers"]}
                   className={`pt-5 pb-5 ${isBlurActive ? "blur-effect" : ""}`}
                 >
                   <ResearchProjects setBlurActive={setBlurActive} />

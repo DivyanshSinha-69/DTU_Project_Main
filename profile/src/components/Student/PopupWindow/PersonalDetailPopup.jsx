@@ -2,7 +2,7 @@ import axios from "axios";
 import React, { useState } from "react";
 import { Card } from "@material-tailwind/react";
 import { useDispatch } from "react-redux";
-import { updatePersonalDetails } from "../../../redux/reducers/UserPersonalDetails";
+import { updatePersonalDetails } from "../../../redux/reducers/student/UserPersonalDetails";
 import toast from "react-hot-toast";
 export default function PersonalDetailPopup(props) {
   const {
@@ -54,7 +54,7 @@ export default function PersonalDetailPopup(props) {
         !phoneRegex.test(formData.parentContactNo)
       ) {
         toast.error(
-          "Please enter valid 10-digit phone numbers for Personal and Parent contacts",
+          "Please enter valid 10-digit phone numbers for Personal and Parent contacts"
         );
         return;
       }
@@ -67,7 +67,7 @@ export default function PersonalDetailPopup(props) {
         !emailRegex.test(formData.dtuEmail)
       ) {
         toast.error(
-          "Please enter valid email addresses for Personal and DTU emails",
+          "Please enter valid email addresses for Personal and DTU emails"
         );
         return;
       }
@@ -88,7 +88,7 @@ export default function PersonalDetailPopup(props) {
         },
         {
           withCredentials: true,
-        },
+        }
       );
 
       // Handle success, e.g., show a success message or update state

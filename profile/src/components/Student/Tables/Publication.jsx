@@ -6,7 +6,7 @@ import img from "../../../assets/delete.svg";
 import addImg from "../../../assets/add.svg";
 import axios from "axios";
 import AddPublicationPopup from "../PopupWindow/AddPublicationPopup.jsx";
-import { deletePublicationDetails } from "../../../redux/reducers/UserPublicationDetails.jsx";
+import { deletePublicationDetails } from "../../../redux/reducers/student/UserPublicationDetails.jsx";
 import linkImg from "../../../assets/hyperlink.svg";
 import toast from "react-hot-toast";
 
@@ -44,7 +44,7 @@ const Publication = ({ setBlurActive }) => {
             ID: ID,
           },
           withCredentials: true,
-        },
+        }
       );
 
       toast.success(response.data.message);
@@ -133,7 +133,7 @@ const Publication = ({ setBlurActive }) => {
                     publishedArticleLink,
                     manuscript,
                   },
-                  index,
+                  index
                 ) => {
                   const isLast = index === TABLE_ROWS.length - 1;
                   const classes = isLast
@@ -219,7 +219,7 @@ const Publication = ({ setBlurActive }) => {
                       </td>
                     </tr>
                   );
-                },
+                }
               )}
             </tbody>
           </table>
