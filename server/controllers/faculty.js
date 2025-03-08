@@ -1728,7 +1728,7 @@ export const deleteFacultyImage = (req, res) => {
 
 // Get all faculty patents
 export const getFacultyPatents = (req, res) => {
-  const { faculty_id } = req.params; // Get faculty_id from route parameters (if provided)
+  const { faculty_id } = req.params; 
 
   let query = "SELECT * FROM faculty_patents";
   let params = [];
@@ -1741,29 +1741,17 @@ export const getFacultyPatents = (req, res) => {
   pool.query(query, params, (err, results) => {
     if (err) {
       console.error("Error fetching patents:", err);
-      return res
-        .status(500)
-        .json({ message: "Error fetching patents", error: err });
+      return res.status(500).json({ message: "Error fetching patents" });
     }
-    res
-      .status(200)
-      .json({ message: "Patents fetched successfully", data: results });
+    res.status(200).json({ message: "Patents fetched successfully", data: results });
   });
 };
 
-// Add a new faculty patent
 export const addFacultyPatent = (req, res) => {
-  const {
-    faculty_id,
-    patent_name,
-    patent_publish,
-    patent_filed,
-    patent_award_date,
-  } = req.body;
+  const { faculty_id, patent_name, inventors_name, patent_publish, patent_award_date } = req.body;
 
-  // Check if the faculty_id exists in faculty_details
-  const checkQuery =
-    "SELECT COUNT(*) AS count FROM faculty_details WHERE faculty_id = ?";
+  // Check if the faculty_id exists
+  const checkQuery = "SELECT COUNT(*) AS count FROM faculty_details WHERE faculty_id = ?";
   pool.query(checkQuery, [faculty_id], (err, results) => {
     if (err) {
       console.error("Error checking faculty_id:", err);
@@ -1771,66 +1759,40 @@ export const addFacultyPatent = (req, res) => {
     }
 
     if (results[0].count === 0) {
-      return res
-        .status(400)
-        .json({ message: "faculty_id does not exist in faculty_details" });
+      return res.status(400).json({ message: "faculty_id does not exist" });
     }
 
     // Insert the patent
     const insertQuery = `
-      INSERT INTO faculty_patents (faculty_id, patent_name, patent_publish, patent_filed, patent_award_date)
+      INSERT INTO faculty_patents (faculty_id, patent_name, inventors_name, patent_publish, patent_award_date)
       VALUES (?, ?, ?, ?, ?)
     `;
     pool.query(
       insertQuery,
-      [
-        faculty_id,
-        patent_name,
-        patent_publish,
-        patent_filed || null,
-        patent_award_date || null,
-      ],
+      [faculty_id, patent_name, inventors_name, patent_publish, patent_award_date || null],
       (err, result) => {
         if (err) {
           console.error("Error adding patent:", err);
           return res.status(500).json({ message: "Internal Server Error" });
         }
-        res.status(201).json({
-          message: "Patent added successfully",
-          success: true,
-          id: result.insertId,
-        });
-      },
+        res.status(201).json({ message: "Patent added successfully", id: result.insertId });
+      }
     );
   });
 };
 
-// Update an existing faculty patent
 export const updateFacultyPatent = (req, res) => {
-  const { patent_id } = req.params; // Patent ID
-  const {
-    faculty_id,
-    patent_name,
-    patent_publish,
-    patent_filed,
-    patent_award_date,
-  } = req.body;
+  const { patent_id } = req.params;
+  const { faculty_id, patent_name, inventors_name, patent_publish, patent_award_date } = req.body;
 
   const query = `
     UPDATE faculty_patents
-    SET faculty_id = ?, patent_name = ?, patent_publish = ?, patent_filed = ?, patent_award_date = ?
+    SET faculty_id = ?, patent_name = ?, inventors_name = ?, patent_publish = ?, patent_award_date = ?
     WHERE patent_id = ?
   `;
   pool.query(
     query,
-    [
-      faculty_id,
-      patent_name,
-      patent_publish,
-      patent_filed || null,
-      patent_award_date || null,
-      patent_id,
-    ],
+    [faculty_id, patent_name, inventors_name, patent_publish, patent_award_date || null, patent_id],
     (err, result) => {
       if (err) {
         console.error("Error updating patent:", err);
@@ -1841,16 +1803,13 @@ export const updateFacultyPatent = (req, res) => {
         return res.status(404).json({ message: "Patent not found" });
       }
 
-      res
-        .status(200)
-        .json({ message: "Patent updated successfully", success: true });
-    },
+      res.status(200).json({ message: "Patent updated successfully" });
+    }
   );
 };
 
-// Delete a faculty patent
 export const deleteFacultyPatent = (req, res) => {
-  const { patent_id } = req.params; // Patent ID
+  const { patent_id } = req.params;
 
   const query = "DELETE FROM faculty_patents WHERE patent_id = ?";
   pool.query(query, [patent_id], (err, result) => {
@@ -1863,11 +1822,10 @@ export const deleteFacultyPatent = (req, res) => {
       return res.status(404).json({ message: "Patent not found" });
     }
 
-    res
-      .status(200)
-      .json({ message: "Patent deleted successfully", success: true });
+    res.status(200).json({ message: "Patent deleted successfully" });
   });
 };
+
 
 // ✅ GET all faculty qualifications or specific faculty qualification
 export const getFacultyQualifications = (req, res) => {

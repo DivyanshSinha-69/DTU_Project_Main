@@ -69,7 +69,7 @@ import {
 
 const router = express.Router();
 
-router.use(authenticateToken);
+// router.use(authenticateToken);
 
 // Credentials Route
 router.get("/facultycredentials", getFacultyCredentials);
