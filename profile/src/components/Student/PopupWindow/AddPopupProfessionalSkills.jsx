@@ -2,7 +2,7 @@ import axios from "axios";
 import React, { useState } from "react";
 import { Card, Input, Button, Typography } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
-import { addProfessionalSkill } from "../../../redux/reducers/UserProfessionalSkills";
+import { addProfessionalSkill } from "../../../redux/reducers/student/UserProfessionalSkills";
 import toast from "react-hot-toast";
 
 export default function AddPopupProfessionalSkills(props) {
@@ -60,7 +60,7 @@ export default function AddPopupProfessionalSkills(props) {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       // Handle success, e.g., show a success message or update state
       const updateddata = {

@@ -3,9 +3,9 @@ import React, { useState } from "react";
 import { Card, Input, Button, Typography } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
 import MtechScoreCardPdf from "./MtechScoreCardPdf";
-import { setMtechEducation } from "../../../redux/reducers/UserMtechEducationalDetails";
+import { setMtechEducation } from "../../../redux/reducers/student/UserMtechEducationalDetails";
 import toast from "react-hot-toast";
-import { setBtechEducation } from "../../../redux/reducers/UserBtechEducationalDetails";
+import { setBtechEducation } from "../../../redux/reducers/student/UserBtechEducationalDetails";
 
 export default function BtechEducationDetailPopup(props) {
   const { closeModal, name, air, admittedThrough } = props;
@@ -55,7 +55,7 @@ export default function BtechEducationDetailPopup(props) {
           },
           {
             withCredentials: true,
-          },
+          }
         );
 
         const updateddata = {
@@ -79,7 +79,7 @@ export default function BtechEducationDetailPopup(props) {
           },
           {
             withCredentials: true,
-          },
+          }
         );
 
         const updateddata = {

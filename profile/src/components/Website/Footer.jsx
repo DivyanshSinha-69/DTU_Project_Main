@@ -2,69 +2,94 @@ import { Typography } from "@material-tailwind/react";
 
 export default function Footer() {
   return (
-    <footer className="w-full font1 bg-gray-800 text-black pl-4 pr-4 pt-2 pb-2 ">
-      <div className="flex flex-row flex-wrap items-center justify-center gap-y-6 gap-x-12 text-gray-400  bg-gray-800 text-center md:justify-between backdrop-filter backdrop-blur-md mt-4">
-        <div className="flex flex-col justify-center text-align  lg:pl-28">
-          {/* <img src={dtulogo} alt="dtulogo" className="h-20 w-30 "/> */}
-          <p className="flex justify-center items-center p-0 font-bold text-6xl text-gray-400 tracking-widest">
-            DTU
-          </p>
+    <footer className="w-full bg-gray-900 text-white py-8">
+      <div className="container mx-auto px-10">
+        {/* Main Footer Content */}
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+          {/* DTU Logo Section */}
+          <div className="flex flex-col items-center lg:items-start">
+            <Typography
+              variant="h2"
+              className="text-5xl font-bold text-gray-300 tracking-widest"
+            >
+              DTU
+            </Typography>
+            {/* Copyright Section */}
+            <Typography className="text-center text-sm text-gray-400">
+              &copy; {new Date().getFullYear()} DELHI TECHNOLOGICAL UNIVERSITY.
+            </Typography>
+            <Typography className="text-center text-xs text-gray-400">
+              All rights reserved.
+            </Typography>
+          </div>
+
+          {/* Quick Links */}
+          <ul className="flex flex-wrap justify-center gap-6 lg:gap-8">
+            <li>
+              <Typography
+                as="a"
+                href="https://www.dtu.ac.in/Web/About/history.php"
+                className="text-gray-400 hover:text-white transition-colors text-md font-medium"
+              >
+                About Us
+              </Typography>
+            </li>
+            <li>
+              <Typography
+                as="a"
+                href="https://www.dtu.ac.in/Web/Administrations/Chancellor.php"
+                className="text-gray-400 hover:text-white transition-colors text-md font-medium"
+              >
+                Administration
+              </Typography>
+            </li>
+            <li>
+              <Typography
+                as="a"
+                href="https://dtu.ac.in/Web/dtujac.php"
+                className="text-gray-400 hover:text-white transition-colors text-md font-medium"
+              >
+                Admissions
+              </Typography>
+            </li>
+            <li>
+              <Typography
+                as="a"
+                href="#"
+                className="text-gray-400 hover:text-white transition-colors text-md font-medium"
+              >
+                Contact Us
+              </Typography>
+            </li>
+          </ul>
         </div>
-        <ul className="flex flex-wrap items-center gap-y-2 gap-x-8">
-          <li>
-            <Typography
-              as="a"
-              href="https://www.dtu.ac.in/Web/About/history.php"
-              color="blue-gray"
-              className="font-lg transition-colors "
-            >
-              About Us
-            </Typography>
-          </li>
-          <li>
-            <Typography
-              as="a"
-              href="https://www.dtu.ac.in/Web/Administrations/Chancellor.php"
-              color="blue-gray"
-              className="font-lg transition-colors"
-            >
-              Administration
-            </Typography>
-          </li>
-          <li>
-            <Typography
-              as="a"
-              href="https://dtu.ac.in/Web/dtujac.php"
-              color="blue-gray"
-              className="font-lg transition-colors "
-            >
-              Admissions
-            </Typography>
-          </li>
-          <li>
-            <Typography
-              as="a"
-              href="#"
-              color="blue-gray"
-              className="font-lg transition-colors pr-28"
-            >
-              Contact Us
-            </Typography>
-          </li>
-        </ul>
+
+        {/* Divider */}
+        <hr className="my-6 border-gray-700" />
+
+        {/* Developers Section */}
+        <div className="mt-3 text-center">
+          <Typography className="text-lg text-gray-400 mb-2 ">
+            DEVELOPED BY
+          </Typography>
+          <div className="flex flex-wrap justify-center gap-4">
+            {[
+              "Sumit Khandelwal",
+              "Divyansh Bansal",
+              "Divyansh Sinha",
+              "Divyanshu Sinha",
+            ].map((name, index) => (
+              <Typography
+                key={index}
+                as="span"
+                className="text-md text-gray-400 hover:text-white transition-colors font-sans font-semibold"
+              >
+                {name}
+              </Typography>
+            ))}
+          </div>
+        </div>
       </div>
-      {/* <hr className="my-4 border-blue-gray-50" /> */}
-      <hr class="w-1/2 h-1 mx-auto my-4 bg-gray-500 border-0 rounded md:my-5" />
-      <Typography
-        color="gray"
-        className="mb-2 text-center font-bold text-gray-500"
-      >
-        &copy; DELHI TECHNOLOGICAL UNIVERSITY
-      </Typography>
-      
-      <Typography color="gray" className="mb-2 text-center font-bold text-gray-500">
-  Developed by 3D
-</Typography>
     </footer>
   );
 }

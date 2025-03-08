@@ -56,7 +56,7 @@ const Login = () => {
 
       const { accessToken, refreshToken, user } = response.data;
 
-      if (!accessToken) {
+      if (role === "faculty" && !accessToken) {
         console.error("⚠️ No access token received from the server!");
         toast.error("Invalid credentials. Please try again.");
         return;

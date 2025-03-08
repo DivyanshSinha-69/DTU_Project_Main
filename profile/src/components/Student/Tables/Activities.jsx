@@ -6,7 +6,7 @@ import img from "../../../assets/delete.svg";
 import addImg from "../../../assets/add.svg";
 import axios from "axios";
 import AddPlacementsPopup from "../PopupWindow/AddPlacementsPopup.jsx";
-import { deleteInterInstitute } from "../../../redux/reducers/UserInterInstituteDetails.jsx";
+import { deleteInterInstitute } from "../../../redux/reducers/student/UserInterInstituteDetails.jsx";
 import toast from "react-hot-toast";
 import AddInterInstitutePopup from "../PopupWindow/AddInterInstitutePopup.jsx";
 
@@ -44,7 +44,7 @@ const Activities = ({ setBlurActive }) => {
             ID: ID,
           },
           withCredentials: true,
-        },
+        }
       );
 
       toast.success(response.data.message);
@@ -116,7 +116,7 @@ const Activities = ({ setBlurActive }) => {
                     position,
                     certificate,
                   },
-                  index,
+                  index
                 ) => {
                   const isLast = index === TABLE_ROWS.length - 1;
                   const classes = isLast
@@ -192,7 +192,7 @@ const Activities = ({ setBlurActive }) => {
                       </td>
                     </tr>
                   );
-                },
+                }
               )}
             </tbody>
           </table>

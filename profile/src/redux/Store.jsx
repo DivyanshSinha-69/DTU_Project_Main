@@ -1,20 +1,20 @@
 import { configureStore } from "@reduxjs/toolkit";
 import authSlice from "./reducers/AuthSlice";
 import UserSlice from "./reducers/UserSlice";
-import UserProfessionalSkills from "./reducers/UserProfessionalSkills";
-import UserPersonalDetails from "./reducers/UserPersonalDetails";
-import UserImage from "./reducers/UserImage";
-import UserPlacement from "./reducers/UserPlacementDetail";
-import UserMtechEducationalDetails from "./reducers/UserMtechEducationalDetails";
-import UserEntrepreneurDetails from "./reducers/UserEntrepreneurDetails";
-import UserHigherEducationDetails from "./reducers/UserHigherEducationDetails";
-import UserPublicationDetails from "./reducers/UserPublicationDetails";
-import UserInterInstituteDetails from "./reducers/UserInterInstituteDetails";
-import UserBtechEducationalDetails from "./reducers/UserBtechEducationalDetails";
-import FacultyImageReducer from "./reducers/UserFacultyImage";
-import UserQualificationsReducer from "./reducers/UserQualification";
-import UserAssociationReducer from "./reducers/UserAssocation";
-import userResearchPapersReducer from "./reducers/UserResearchPaper"; // Import the UserResearchPaper reducer
+import UserProfessionalSkills from "./reducers/student/UserProfessionalSkills";
+import UserPersonalDetails from "./reducers/student/UserPersonalDetails";
+import UserImage from "./reducers/student/UserImage";
+import UserPlacement from "./reducers/student/UserPlacementDetail";
+import UserMtechEducationalDetails from "./reducers/student/UserMtechEducationalDetails";
+import UserEntrepreneurDetails from "./reducers/student/UserEntrepreneurDetails";
+import UserHigherEducationDetails from "./reducers/student/UserHigherEducationDetails";
+import UserPublicationDetails from "./reducers/student/UserPublicationDetails";
+import UserInterInstituteDetails from "./reducers/student/UserInterInstituteDetails";
+import UserBtechEducationalDetails from "./reducers/student/UserBtechEducationalDetails";
+import FacultyImageReducer from "./reducers/student/UserFacultyImage";
+import UserQualificationsReducer from "./reducers/student/UserQualification";
+import UserAssociationReducer from "./reducers/student/UserAssocation";
+import userResearchPapersReducer from "./reducers/student/UserResearchPaper"; // Import the UserResearchPaper reducer
 import userVAErecordsReducer from "./reducers/UserVAErecords"; // Import the VAErecords slice
 
 export const store = configureStore({

@@ -7,7 +7,7 @@ import AddPopupProfessionalSkills from "../PopupWindow/AddPopupProfessionalSkill
 import img from "../../../assets/delete.svg";
 import addImg from "../../../assets/add.svg";
 import axios from "axios";
-import { deleteProfessionalSkill } from "../../../redux/reducers/UserProfessionalSkills.jsx";
+import { deleteProfessionalSkill } from "../../../redux/reducers/student/UserProfessionalSkills.jsx";
 import toast from "react-hot-toast";
 
 const StudentProfessionalSkills = ({ setBlurActive }) => {
@@ -48,7 +48,7 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
             ID: ID,
           },
           withCredentials: true,
-        },
+        }
       );
 
       toast.success(response.data.message);
@@ -116,7 +116,7 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
               {TABLE_ROWS.map(
                 (
                   { ID, EventName, Position, Organisation, EventDate, RollNo },
-                  index,
+                  index
                 ) => {
                   const isLast = index === TABLE_ROWS.length - 1;
                   const classes = isLast
@@ -206,7 +206,7 @@ const StudentProfessionalSkills = ({ setBlurActive }) => {
                       </td>
                     </tr>
                   );
-                },
+                }
               )}
             </tbody>
           </table>

@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Card, Input, Button, Typography } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
 import OfferLetterPdf from "./OfferLetterPdf";
-import { setHigherEducationDetails } from "../../../redux/reducers/UserHigherEducationDetails";
+import { setHigherEducationDetails } from "../../../redux/reducers/student/UserHigherEducationDetails";
 import toast from "react-hot-toast";
 
 export default function HigherEducationPopup(props) {
@@ -40,7 +40,7 @@ export default function HigherEducationPopup(props) {
         },
         {
           withCredentials: true,
-        },
+        }
       );
 
       const updateddata = {

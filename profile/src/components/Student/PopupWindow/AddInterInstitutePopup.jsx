@@ -2,7 +2,7 @@ import axios from "axios";
 import React, { useState } from "react";
 import { Card, Input, Button, Typography } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
-import { addInterInstitute } from "../../../redux/reducers/UserInterInstituteDetails";
+import { addInterInstitute } from "../../../redux/reducers/student/UserInterInstituteDetails";
 import toast from "react-hot-toast";
 import InterInstituteCertificates from "./InterInstitutecertificates";
 
@@ -61,7 +61,7 @@ export default function AddInterInstitutePopup(props) {
         },
         {
           withCredentials: true,
-        },
+        }
       );
 
       // Handle success, e.g., show a success message or update state

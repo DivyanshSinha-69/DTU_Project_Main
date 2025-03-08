@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { setUserImage } from "../../redux/reducers/UserImage";
+import { setUserImage } from "../../redux/reducers/student/UserImage";
 import uploadImg from "../../assets/upload.svg";
 import toast from "react-hot-toast";
 const Test = () => {
@@ -22,7 +22,7 @@ const Test = () => {
       .post(
         `${process.env.REACT_APP_BACKEND_URL}/ece/student/getImage`,
         { rollNo: imageId },
-        { responseType: "arraybuffer" },
+        { responseType: "arraybuffer" }
       )
       .then((response) => {
         // Convert the array buffer to base64
@@ -68,7 +68,7 @@ const Test = () => {
             headers: {
               "Content-Type": "multipart/form-data", // Set the content type
             },
-          },
+          }
         );
       } catch (error) {
         console.error("Error uploading image: ", error);
@@ -84,7 +84,7 @@ const Test = () => {
         .post(
           `${process.env.REACT_APP_BACKEND_URL}/ece/student/getImage`,
           { rollNo: imageId },
-          { responseType: "arraybuffer" },
+          { responseType: "arraybuffer" }
         )
         .then((response) => {
           // Convert the array buffer to base64
