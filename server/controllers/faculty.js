@@ -643,150 +643,189 @@ export const deleteFDPRecord = (req, res) => {
   });
 };
 
-function getVAETypeName(typeNumber) {
-  const types = {
-      1: "Visiting",
-      2: "Adjunct",
-      3: "Emeritus"
-  };
-  return types[typeNumber] || "Invalid faculty type";
-}
 
-function getVAETypeNumber(typeName) {
-  const types = {
-      "Visiting": 1,
-      "Adjunct": 2,
-      "Emeritus": 3
-  };
-  return types[typeName] || "Invalid faculty type";
-}
+export const getFacultyInteractions = (req, res) => {
+  const { faculty_id } = req.params; // Extract faculty_id from route parameter
 
-export const getVAERecords = (req, res) => {
-    const { faculty_id } = req.query;
+  let query = `
+      SELECT fi.*, fit.interaction_type
+      FROM faculty_interaction fi
+      JOIN faculty_interaction_types fit ON fi.interaction_id = fit.interaction_id
+  `;
 
-    let query = "SELECT * FROM faculty_VAErecords";
-    const params = [];
+  const params = [];
 
-    if (faculty_id) {
-        query += " WHERE faculty_id = ?";
-        params.push(faculty_id);
-    }
-
-    pool.query(query, params, (err, results) => {
-        if (err) {
-            console.error("Error fetching VAE records:", err);
-            return res.status(500).json({ message: "Error fetching VAE records", error: err });
-        }
-
-        // Convert numeric month and visit_type to string before sending response
-        const formattedResults = results.map(record => ({
-            ...record,
-            month_of_visit: getMonthName(record.month_of_visit),
-            visit_type: getVAETypeName(record.visit_type)
-        }));
-
-        res.status(200).json({ message: "VAE records retrieved successfully", data: formattedResults });
-    });
-};
-
-// 🟢 ADD VAE RECORD
-export const addVAERecord = (req, res) => {
-    const { faculty_id, visit_type, institution, course_taught, year_of_visit, month_of_visit, hours_taught } = req.body;
-
-    // Validate input
-    if (!faculty_id || !visit_type || !institution || !course_taught || !year_of_visit || !month_of_visit || !hours_taught) {
-        return res.status(400).json({ message: "All fields are required" });
-    }
-
-    const monthNumber = getMonthNumber(month_of_visit);
-    if (monthNumber === "Invalid month") {
-        return res.status(400).json({ message: "Invalid month name provided" });
-    }
-
-    const visitTypeNumber = getVAETypeNumber(visit_type);
-    if (visitTypeNumber === "Invalid faculty type") {
-        return res.status(400).json({ message: "Invalid visit type provided" });
-    }
-
-    const query = `
-        INSERT INTO faculty_VAErecords (faculty_id, visit_type, institution, course_taught, year_of_visit, month_of_visit, hours_taught)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    `;
-    const params = [faculty_id, visitTypeNumber, institution, course_taught, year_of_visit, monthNumber, hours_taught];
-
-    pool.query(query, params, (err, result) => {
-        if (err) {
-            console.error("Error adding VAE record:", err);
-            return res.status(500).json({ message: "Error adding VAE record", error: err });
-        }
-        res.status(201).json({
-            message: "VAE record added successfully",
-            data: { id: result.insertId },
-        });
-    });
-};
-
-// 🟢 UPDATE VAE RECORD
-export const updateVAERecord = (req, res) => {
-    const { visit_id } = req.params;
-    const { visit_type, institution, course_taught, year_of_visit, month_of_visit, hours_taught } = req.body;
-
-    // Validate input
-    if (!visit_id || !visit_type || !institution || !course_taught || !year_of_visit || !month_of_visit || !hours_taught) {
-        return res.status(400).json({ message: "All fields are required" });
-    }
-
-    const monthNumber = getMonthNumber(month_of_visit);
-    if (monthNumber === "Invalid month") {
-        return res.status(400).json({ message: "Invalid month name provided" });
-    }
-
-    const visitTypeNumber = getVAETypeNumber(visit_type);
-    if (visitTypeNumber === "Invalid faculty type") {
-        return res.status(400).json({ message: "Invalid visit type provided" });
-    }
-
-    const query = `
-        UPDATE faculty_VAErecords
-        SET visit_type = ?, institution = ?, course_taught = ?, year_of_visit = ?, month_of_visit = ?, hours_taught = ?
-        WHERE visit_id = ?
-    `;
-    const params = [visitTypeNumber, institution, course_taught, year_of_visit, monthNumber, hours_taught, visit_id];
-
-    pool.query(query, params, (err, result) => {
-        if (err) {
-            console.error("Error updating VAE record:", err);
-            return res.status(500).json({ message: "Error updating VAE record", error: err });
-        }
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: "No VAE record found with the given visit_id" });
-        }
-        res.status(200).json({ message: "VAE record updated successfully" });
-    });
-};
-
-export const deleteVAERecord = (req, res) => {
-  const { visit_id } = req.params;
-
-  if (!visit_id) {
-    return res.status(400).json({ message: "visit_id is required" });
+  if (faculty_id) {
+      query += " WHERE fi.faculty_id = ?";
+      params.push(faculty_id);
   }
 
-  const query = "DELETE FROM faculty_VAErecords WHERE visit_id = ?";
+  pool.query(query, params, (err, results) => {
+      if (err) {
+          console.error("Error fetching faculty interactions:", err);
+          return res.status(500).json({ message: "Error fetching faculty interactions", error: err });
+      }
 
-  pool.query(query, [visit_id], (err, result) => {
-    if (err) {
-      console.error("Error deleting VAE record:", err);
-      return res
-        .status(500)
-        .json({ message: "Error deleting VAE record", error: err });
-    }
-    if (result.affectedRows === 0) {
-      return res
-        .status(404)
-        .json({ message: "No VAE record found with the given visit_id" });
-    }
-    res.status(200).json({ message: "VAE record deleted successfully" });
+      res.status(200).json({ message: "Faculty interactions retrieved successfully", data: results });
+  });
+};
+
+
+
+
+export const addFacultyInteraction = (req, res) => {
+  const { faculty_id, interaction_id, institution, description, year_of_visit, month_of_visit, duration_in_days } = req.body;
+
+  if (!faculty_id || !interaction_id || !institution || !description || !year_of_visit || !month_of_visit) {
+      return res.status(400).json({ message: "All fields except duration_in_days are required" });
+  }
+
+  const query = `
+      INSERT INTO faculty_interaction (faculty_id, interaction_id, institution, description, year_of_visit, month_of_visit, duration_in_days)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+  `;
+  const params = [faculty_id, interaction_id, institution, description, year_of_visit, month_of_visit, duration_in_days || null];
+
+  pool.query(query, params, (err, result) => {
+      if (err) {
+          console.error("Error adding faculty interaction:", err);
+          return res.status(500).json({ message: "Error adding faculty interaction", error: err });
+      }
+
+      res.status(201).json({ message: "Faculty interaction added successfully", data: { id: result.insertId } });
+  });
+};
+
+export const updateFacultyInteraction = (req, res) => {
+  const { interact_id } = req.params;
+  const { interaction_id, institution, description, year_of_visit, month_of_visit, duration_in_days } = req.body;
+
+  if (!interact_id || !interaction_id || !institution || !description || !year_of_visit || !month_of_visit) {
+      return res.status(400).json({ message: "All fields except duration_in_days are required" });
+  }
+
+  const query = `
+      UPDATE faculty_interaction
+      SET interaction_id = ?, institution = ?, description = ?, year_of_visit = ?, month_of_visit = ?, duration_in_days = ?
+      WHERE interact_id = ?
+  `;
+  const params = [interaction_id, institution, description, year_of_visit, month_of_visit, duration_in_days || null, interact_id];
+
+  pool.query(query, params, (err, result) => {
+      if (err) {
+          console.error("Error updating faculty interaction:", err);
+          return res.status(500).json({ message: "Error updating faculty interaction", error: err });
+      }
+
+      if (result.affectedRows === 0) {
+          return res.status(404).json({ message: "No faculty interaction found with the given interact_id" });
+      }
+
+      res.status(200).json({ message: "Faculty interaction updated successfully" });
+  });
+};
+
+export const deleteFacultyInteraction = (req, res) => {
+  const { interact_id } = req.params;
+
+  if (!interact_id) {
+      return res.status(400).json({ message: "interact_id is required" });
+  }
+
+  const query = "DELETE FROM faculty_interaction WHERE interact_id = ?";
+
+  pool.query(query, [interact_id], (err, result) => {
+      if (err) {
+          console.error("Error deleting faculty interaction:", err);
+          return res.status(500).json({ message: "Error deleting faculty interaction", error: err });
+      }
+
+      if (result.affectedRows === 0) {
+          return res.status(404).json({ message: "No faculty interaction found with the given interact_id" });
+      }
+
+      res.status(200).json({ message: "Faculty interaction deleted successfully" });
+  });
+};
+
+export const getInteractionTypes = (req, res) => {
+  const query = "SELECT * FROM faculty_interaction_types";
+
+  pool.query(query, (err, results) => {
+      if (err) {
+          console.error("Error fetching interaction types:", err);
+          return res.status(500).json({ message: "Error fetching interaction types", error: err });
+      }
+
+      res.status(200).json({ message: "Interaction types retrieved successfully", data: results });
+  });
+};
+
+export const addInteractionType = (req, res) => {
+  const { interaction_id, interaction_type } = req.body;
+
+  if (!interaction_id || !interaction_type) {
+      return res.status(400).json({ message: "interaction_id and interaction_type are required" });
+  }
+
+  const query = "INSERT INTO faculty_interaction_types (interaction_id, interaction_type) VALUES (?, ?)";
+  const params = [interaction_id, interaction_type];
+
+  pool.query(query, params, (err, result) => {
+      if (err) {
+          console.error("Error adding interaction type:", err);
+          return res.status(500).json({ message: "Error adding interaction type", error: err });
+      }
+
+      res.status(201).json({ message: "Interaction type added successfully" });
+  });
+};
+
+export const updateInteractionType = (req, res) => {
+  const { interaction_id } = req.params;
+  const { interaction_type } = req.body;
+
+  if (!interaction_type) {
+      return res.status(400).json({ message: "interaction_type is required" });
+  }
+
+  const query = "UPDATE faculty_interaction_types SET interaction_type = ? WHERE interaction_id = ?";
+  const params = [interaction_type, interaction_id];
+
+  pool.query(query, params, (err, result) => {
+      if (err) {
+          console.error("Error updating interaction type:", err);
+          return res.status(500).json({ message: "Error updating interaction type", error: err });
+      }
+
+      if (result.affectedRows === 0) {
+          return res.status(404).json({ message: "No interaction type found with the given interaction_id" });
+      }
+
+      res.status(200).json({ message: "Interaction type updated successfully" });
+  });
+};
+
+export const deleteInteractionType = (req, res) => {
+  const { interaction_id } = req.params;
+
+  if (!interaction_id) {
+      return res.status(400).json({ message: "interaction_id is required" });
+  }
+
+  const query = "DELETE FROM faculty_interaction_types WHERE interaction_id = ?";
+
+  pool.query(query, [interaction_id], (err, result) => {
+      if (err) {
+          console.error("Error deleting interaction type:", err);
+          return res.status(500).json({ message: "Error deleting interaction type", error: err });
+      }
+
+      if (result.affectedRows === 0) {
+          return res.status(404).json({ message: "No interaction type found with the given interaction_id" });
+      }
+
+      res.status(200).json({ message: "Interaction type deleted successfully" });
   });
 };
 

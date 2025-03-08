@@ -25,10 +25,10 @@ import {
   addFDPRecord,
   updateFDPRecord,
   deleteFDPRecord,
-  getVAERecords,
-  addVAERecord,
-  updateVAERecord,
-  deleteVAERecord,
+  getFacultyInteractions,
+  addFacultyInteraction,
+  updateFacultyInteraction,
+  deleteFacultyInteraction,
   getBookRecords,
   addBookRecord,
   updateBookRecord,
@@ -64,7 +64,11 @@ import {
   getFacultyQualifications,
   addFacultyQualification,
   updateFacultyQualification,
-  deleteFacultyQualification
+  deleteFacultyQualification,
+  getInteractionTypes,
+  addInteractionType,
+  updateInteractionType,
+  deleteInteractionType,
 } from "../controllers/faculty.js";
 
 const router = express.Router();
@@ -98,12 +102,17 @@ router.post("/fdp-records", addFDPRecord);
 router.put("/fdp-records/:FDP_id", updateFDPRecord);
 router.delete("/fdp-records/:FDP_id", deleteFDPRecord);
 
-// VAE routes
-router.get("/vae", getVAERecords);
-router.get("/vae/:faculty_id", getVAERecords);
-router.post("/vae", addVAERecord);
-router.put("/vae/:visit_id", updateVAERecord);
-router.delete("/vae/:visit_id", deleteVAERecord);
+// Interaction routes
+router.get("/interaction/:faculty_id?", getFacultyInteractions);
+router.post("/interaction", addFacultyInteraction);
+router.put("/interaction/:interact_id", updateFacultyInteraction);
+router.delete("/interaction/:interact_id", deleteFacultyInteraction);
+
+// Interaction Type routes
+router.get("/interaction_type", getInteractionTypes);
+router.post("/interaction_type", addInteractionType);
+router.put("/interaction_type/:interaction_id", updateInteractionType);
+router.delete("/interaction_type/:interaction_id", deleteInteractionType);
 
 // Book routes
 router.get("/books/:faculty_id?", getBookRecords);
