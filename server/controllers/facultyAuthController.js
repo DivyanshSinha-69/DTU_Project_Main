@@ -254,7 +254,7 @@ export const facultyLogin = (req, res) => {
                         faculty_id: user.faculty_id,
                         faculty_name: faculty_name,
                         faculty_designation: designation,
-                        Position: position, // Use fetched position
+                        position: position, // Use fetched position
                         researchCount: research_papers,
                         sponsorCount: sponsorships,
                         patentCount: patents,
