@@ -15,7 +15,6 @@ import FacultyImageReducer from "./reducers/student/UserFacultyImage";
 import UserQualificationsReducer from "./reducers/student/UserQualification";
 import UserAssociationReducer from "./reducers/student/UserAssocation";
 import userResearchPapersReducer from "./reducers/student/UserResearchPaper"; // Import the UserResearchPaper reducer
-import userVAErecordsReducer from "./reducers/UserVAErecords"; // Import the VAErecords slice
 
 export const store = configureStore({
   reducer: {
@@ -35,7 +34,6 @@ export const store = configureStore({
     userQualifications: UserQualificationsReducer,
     userAssociation: UserAssociationReducer,
     userResearchPapers: userResearchPapersReducer, // Add the research papers reducer here
-    userVAErecords: userVAErecordsReducer,
   },
 });
 

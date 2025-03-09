@@ -27,6 +27,12 @@ import Unauthorized from "./components/Unauthorized";
 import { Toaster } from "react-hot-toast";
 import { ThemeProvider, ThemeProviderWrapper } from "./context/ThemeContext";
 import Department from "./components/Department/Department";
+const CURRENT_VERSION = "2.0"; // Change this on every deployment
+if (localStorage.getItem("appVersion") !== CURRENT_VERSION) {
+  localStorage.clear();
+  localStorage.setItem("appVersion", CURRENT_VERSION);
+  window.location.reload(); // Reload the page to apply new changes
+}
 
 function App() {
   const navigate = Navigate;
@@ -41,7 +47,7 @@ function App() {
     const checkExistingToken = async () => {
       try {
         let userDetails;
-        if (user1.Position != "faculty") {
+        if (user1.Position === "student") {
           console.log("I am here at 44");
           const response = await axios.get(
             `${process.env.REACT_APP_BACKEND_URL}/cookiescheck`,
@@ -74,6 +80,8 @@ function App() {
           navigate("/faculty/portal");
         } else if (userDetails.user.Position === "admin") {
           navigate("/admin/portal");
+        } else if (userDetails.user.Position === "department") {
+          navigate("/department/portal");
         } else {
           console.log(65);
           navigate("/unauthorized");

@@ -36,7 +36,7 @@ const Login = () => {
           payload = { faculty_id: rollNo, password };
           break;
         case "department":
-          endpoint = `${process.env.REACT_APP_BACKEND_URL}/department/login`;
+          endpoint = `${process.env.REACT_APP_BACKEND_URL}/ece/department/login`;
           payload = { department_id: rollNo, password };
           break;
         case "alumni":

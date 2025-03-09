@@ -2,9 +2,9 @@ import axios from "axios";
 import { store } from "../redux/Store";
 import { updateAccessToken, logout } from "../redux/reducers/AuthSlice";
 import { useSelector } from "react-redux";
-  // const {refreshToken, accessToken} = useSelector((state) => state.auth) || {};
-  const accessToken = store.getState().auth.accessToken;
-  const refreshToken = store.getState().auth.refreshToken;
+// const {refreshToken, accessToken} = useSelector((state) => state.auth) || {};
+const accessToken = store.getState().auth.accessToken;
+const refreshToken = store.getState().auth.refreshToken;
 const API = axios.create({
   baseURL: `${process.env.REACT_APP_BACKEND_URL}`,
   withCredentials: true, // Ensure cookies are sent if used for refresh tokens
@@ -30,9 +30,9 @@ const isTokenExpired = (token) => {
 };
 // 🔹 Attach Access Token to Every Request
 API.interceptors.request.use(
-
   async (config) => {
     const token = accessToken;
+    console.log("🔐 Access Token:", token);
 
     if (token) {
       // Check if the token is expired or about to expire (e.g., within 5 minutes)
@@ -53,7 +53,7 @@ API.interceptors.request.use(
             `${process.env.REACT_APP_BACKEND_URL}/ece/facultyauth/refresh`,
             {
               refreshToken: refreshToken,
-            },
+            }
           );
 
           if (res.status === 200) {
@@ -78,7 +78,7 @@ API.interceptors.request.use(
 
     return config;
   },
-  (error) => Promise.reject(error),
+  (error) => Promise.reject(error)
 );
 
 // 🔹 Handle Expired Token (401 Unauthorized)
@@ -99,7 +99,7 @@ API.interceptors.response.use(
       const state = store.getState();
       console.log(
         "🔍 Refresh Token Before Refresh Request:",
-        state.auth.refreshToken,
+        state.auth.refreshToken
       );
 
       try {
@@ -115,7 +115,7 @@ API.interceptors.response.use(
           `${process.env.REACT_APP_BACKEND_URL}/ece/facultyauth/refresh`,
           {
             refreshToken: refreshToken, // 🔹 Send stored refresh token
-          },
+          }
         );
 
         console.log("🔹 New Access Token Response:", res.data);
@@ -135,7 +135,7 @@ API.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  },
+  }
 );
 
 export default API;

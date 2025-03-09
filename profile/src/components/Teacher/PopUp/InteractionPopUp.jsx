@@ -2,22 +2,24 @@ import React, { useState } from "react";
 import { Card } from "@material-tailwind/react";
 import toast from "react-hot-toast";
 
-export default function VisitsPopUp({
-  visitType,
+export default function InteractionPopUp({
+  interactionType,
   institutionName,
-  courses,
+  description,
   closeModal,
   handleAddVisit,
   year_of_visit,
-  hours_taught,
+  month_of_visit,
+  duration_in_days,
 }) {
   const [formData, setFormData] = useState({
-    visitType: visitType || "",
+    interactionType: interactionType || "",
     institutionName: institutionName || "",
-    courses: courses || "",
+    description: description || "",
     year_of_visit: year_of_visit || "",
-    month_of_visit: "", // Add this
-    hours_taught: hours_taught || "",
+    month_of_visit: month_of_visit || "",
+    duration_in_days: duration_in_days || "",
+    customInteractionType: "", // For custom interaction types
   });
 
   const handleChange = (e) => {
@@ -28,30 +30,38 @@ export default function VisitsPopUp({
     }));
   };
 
-  const handlepopup = async (e) => {
+  const handlePopup = async (e) => {
     e.preventDefault();
     const {
-      visitType,
+      interactionType,
       institutionName,
-      courses,
+      description,
       year_of_visit,
       month_of_visit,
-      hours_taught,
+      duration_in_days,
+      customInteractionType,
     } = formData;
+
+    // Use customInteractionType if "Other" is selected
+    const selectedInteractionType =
+      interactionType === "Other" ? customInteractionType : interactionType;
+
     if (
-      !visitType ||
+      !selectedInteractionType ||
       !institutionName ||
-      !courses ||
+      !description ||
       !year_of_visit ||
-      !month_of_visit ||
-      !hours_taught
+      !month_of_visit
     ) {
       toast.error("Please fill in all required fields.");
       return;
     }
 
     if (handleAddVisit) {
-      handleAddVisit(formData);
+      handleAddVisit({
+        ...formData,
+        interactionType: selectedInteractionType, // Override with custom type if applicable
+      });
     }
     closeModal();
   };
@@ -78,27 +88,54 @@ export default function VisitsPopUp({
       >
         <form
           className="text-white flex flex-col space-y-6"
-          onSubmit={handlepopup}
+          onSubmit={handlePopup}
         >
-          {/* Visit Type Dropdown */}
+          {/* Interaction Type Dropdown */}
           <div className="relative z-0 w-full group">
-            <label htmlFor="visitType" className="block text-sm">
-              Visit Type
+            <label htmlFor="interactionType" className="block text-sm">
+              Interaction Type
             </label>
             <select
-              name="visitType"
-              id="visitType"
+              name="interactionType"
+              id="interactionType"
               className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               onChange={handleChange}
-              value={formData.visitType}
+              value={formData.interactionType}
               required
             >
-              <option value="">Select Visit Type</option>
-              <option value="Visiting">Visiting</option>
-              <option value="Adjunct">Adjunct</option>
-              <option value="Emeritus">Emeritus</option>
+              <option value="">Select Interaction Type</option>
+              <option value="Lecture/Talk">Lecture/Talk</option>
+              <option value="Expert member of any committee">
+                Expert member of any committee
+              </option>
+              <option value="Guest/Chairperson of any event">
+                Guest/Chairperson of any event
+              </option>
+              <option value="Conduction of examination">
+                Conduction of examination
+              </option>
+              <option value="BOS Member">BOS Member</option>
+              <option value="Other">Other</option>
             </select>
           </div>
+
+          {/* Custom Interaction Type Input (Conditional) */}
+          {formData.interactionType === "Other" && (
+            <div className="relative z-0 w-full group">
+              <label htmlFor="customInteractionType" className="block text-sm">
+                Specify Interaction Type
+              </label>
+              <input
+                type="text"
+                name="customInteractionType"
+                id="customInteractionType"
+                className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={handleChange}
+                value={formData.customInteractionType}
+                required={formData.interactionType === "Other"}
+              />
+            </div>
+          )}
 
           {/* Institution Name */}
           <div className="relative z-0 w-full group">
@@ -116,18 +153,17 @@ export default function VisitsPopUp({
             />
           </div>
 
-          {/* Courses */}
+          {/* Description */}
           <div className="relative z-0 w-full group">
-            <label htmlFor="courses" className="block text-sm">
-              Courses
+            <label htmlFor="description" className="block text-sm">
+              Description
             </label>
-            <input
-              type="text"
-              name="courses"
-              id="courses"
+            <textarea
+              name="description"
+              id="description"
               className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               onChange={handleChange}
-              value={formData.courses}
+              value={formData.description}
               required
             />
           </div>
@@ -182,19 +218,18 @@ export default function VisitsPopUp({
             </div>
           </div>
 
-          {/* Hours Taught */}
+          {/* Duration in Days */}
           <div className="relative z-0 w-full group">
-            <label htmlFor="hours_taught" className="block text-sm">
-              Hours Taught
+            <label htmlFor="duration_in_days" className="block text-sm">
+              Duration in Days
             </label>
             <input
               type="number"
-              name="hours_taught"
-              id="hours_taught"
+              name="duration_in_days"
+              id="duration_in_days"
               className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               onChange={handleChange}
-              value={formData.hours_taught}
-              required
+              value={formData.duration_in_days}
               min="0"
             />
           </div>
@@ -205,7 +240,7 @@ export default function VisitsPopUp({
               type="submit"
               className="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
             >
-              {visitType ? "Update Visit" : "Add Visit"}
+              {interactionType ? "Update Interaction" : "Add Interaction"}
             </button>
             <button
               type="button"
