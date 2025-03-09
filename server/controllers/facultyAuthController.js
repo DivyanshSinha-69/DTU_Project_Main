@@ -15,13 +15,14 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// ==================== Generate Tokens ====================
+// ==================== Generate Access Tokens ====================
 const generateAccessToken = (faculty_id, position) => {
   return jwt.sign({ faculty_id, position }, process.env.JWT_SECRET, {
     expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
   });
 };
 
+// ==================== Generate Refresh Token ====================
 const generateRefreshToken = (faculty_id, position) => {
   const expiryDays = parseInt(process.env.REFRESH_TOKEN_EXPIRY) || 7;
   const expirySeconds = expiryDays * 24 * 60 * 60;

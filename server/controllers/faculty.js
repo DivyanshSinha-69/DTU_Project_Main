@@ -653,12 +653,10 @@ export const getFDPRecords = (req, res) => {
       month_conducted: getMonthName(record.month_conducted),
     }));
 
-    res
-      .status(200)
-      .json({
-        message: "FDP details fetched successfully",
-        data: modifiedResults,
-      });
+    res.status(200).json({
+      message: "FDP details fetched successfully",
+      data: modifiedResults,
+    });
   });
 };
 
@@ -667,6 +665,7 @@ export const addFDPRecord = (req, res) => {
   const {
     faculty_id,
     FDP_name,
+    FDP_progress,
     year_conducted,
     month_conducted, // This will be received as a name
     days_contributed,
@@ -679,12 +678,13 @@ export const addFDPRecord = (req, res) => {
   }
 
   const query = `
-      INSERT INTO faculty_FDP (faculty_id, FDP_name, year_conducted, month_conducted, days_contributed)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO faculty_FDP (faculty_id, FDP_name, FDP_progress, year_conducted, month_conducted, days_contributed)
+      VALUES (?, ?, ?, ?, ?, ?)
   `;
   const params = [
     faculty_id,
     FDP_name,
+    FDP_progress,
     year_conducted,
     monthNumber,
     days_contributed,
@@ -710,6 +710,7 @@ export const updateFDPRecord = (req, res) => {
   const {
     faculty_id,
     FDP_name,
+    FDP_progress,
     year_conducted,
     month_conducted, // Received as a name
     days_contributed,
@@ -723,12 +724,13 @@ export const updateFDPRecord = (req, res) => {
 
   const query = `
       UPDATE faculty_FDP 
-      SET faculty_id = ?, FDP_name = ?, year_conducted = ?, month_conducted = ?, days_contributed = ?
+      SET faculty_id = ?, FDP_name = ?, FDP_progress = ?, year_conducted = ?, month_conducted = ?, days_contributed = ?
       WHERE FDP_id = ?
   `;
   const params = [
     faculty_id,
     FDP_name,
+    FDP_progress,
     year_conducted,
     monthNumber,
     days_contributed,
@@ -750,6 +752,7 @@ export const updateFDPRecord = (req, res) => {
     res.status(200).json({ message: "FDP record updated successfully" });
   });
 };
+
 // 4. Delete an FDP record using FDP_id
 export const deleteFDPRecord = (req, res) => {
   const { FDP_id } = req.params;
@@ -1169,13 +1172,14 @@ export const deleteBookRecord = (req, res) => {
 /**
  * Get all PhD awarded records
  */
-export const getPhDAwardedRecords = (req, res) => {
-  const query = "SELECT * FROM faculty_PhD_awarded";
+// 1. Get all faculty guidance records
+export const getFacultyGuidanceRecords = (req, res) => {
+  const query = "SELECT * FROM faculty_guidance";
 
   pool.query(query, (err, results) => {
     if (err) {
       return res.status(500).json({
-        message: "Error fetching PhD awarded records",
+        message: "Error fetching faculty guidance records",
         error: err,
       });
     }
@@ -1190,26 +1194,27 @@ export const getPhDAwardedRecords = (req, res) => {
   });
 };
 
-export const getPhDAwardedRecordsByFacultyId = (req, res) => {
+// 2. Get faculty guidance records by faculty_id
+export const getFacultyGuidanceRecordsByFacultyId = (req, res) => {
   const { faculty_id } = req.params;
 
   const query = `
-    SELECT PHD_id, mentee_name, mentee_rn, passing_year, passing_month 
-    FROM faculty_PhD_awarded 
+    SELECT Guidance_id, degree, mentee_name, mentee_rn, passing_year, passing_month 
+    FROM faculty_guidance 
     WHERE faculty_id = ?
   `;
 
   pool.query(query, [faculty_id], (err, results) => {
     if (err) {
       return res.status(500).json({
-        message: "Error fetching PhD awarded records",
+        message: "Error fetching faculty guidance records",
         error: err,
       });
     }
 
     if (results.length === 0) {
       return res.status(404).json({
-        message: "No PhD awarded records found for the given faculty_id",
+        message: "No faculty guidance records found for the given faculty_id",
       });
     }
 
@@ -1223,9 +1228,9 @@ export const getPhDAwardedRecordsByFacultyId = (req, res) => {
   });
 };
 
-export const addPhDAwardedRecord = (req, res) => {
-  let { faculty_id, mentee_name, mentee_rn, passing_year, passing_month } =
-    req.body;
+// 3. Add a new faculty guidance record
+export const addFacultyGuidanceRecord = (req, res) => {
+  let { faculty_id, degree, mentee_name, mentee_rn, passing_year, passing_month } = req.body;
 
   // Convert string month to numeric month if it's a valid month name
   if (isNaN(passing_month)) {
@@ -1237,12 +1242,13 @@ export const addPhDAwardedRecord = (req, res) => {
   }
 
   const query = `
-    INSERT INTO faculty_PhD_awarded (faculty_id, mentee_name, mentee_rn, passing_year, passing_month)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO faculty_guidance (faculty_id, degree, mentee_name, mentee_rn, passing_year, passing_month)
+    VALUES (?, ?, ?, ?, ?, ?)
   `;
 
   const queryParams = [
     faculty_id,
+    degree,
     mentee_name,
     mentee_rn,
     passing_year,
@@ -1252,23 +1258,24 @@ export const addPhDAwardedRecord = (req, res) => {
   pool.query(query, queryParams, (err, result) => {
     if (err) {
       return res.status(500).json({
-        message: "Error adding PhD awarded record",
+        message: "Error adding faculty guidance record",
         error: err,
       });
     }
     res.status(201).json({
-      message: "PhD awarded record added successfully",
+      message: "Faculty guidance record added successfully",
       recordId: result.insertId,
     });
   });
 };
 
-export const updatePhDAwardedRecord = (req, res) => {
-  let { mentee_name, passing_year, passing_month, mentee_rn } = req.body;
-  const { PHD_id } = req.params;
+// 4. Update an existing faculty guidance record
+export const updateFacultyGuidanceRecord = (req, res) => {
+  let { degree, mentee_name, passing_year, passing_month, mentee_rn } = req.body;
+  const { Guidance_id } = req.params;
 
-  if (!PHD_id) {
-    return res.status(400).json({ message: "PHD_id is required" });
+  if (!Guidance_id) {
+    return res.status(400).json({ message: "Guidance_id is required" });
   }
 
   // Convert string month to numeric month if it's a valid month name
@@ -1281,57 +1288,57 @@ export const updatePhDAwardedRecord = (req, res) => {
   }
 
   const query = `
-    UPDATE faculty_PhD_awarded
-    SET mentee_name = ?, passing_year = ?, passing_month = ?, mentee_rn = ?
-    WHERE PHD_id = ?
+    UPDATE faculty_guidance
+    SET degree = ?, mentee_name = ?, passing_year = ?, passing_month = ?, mentee_rn = ?
+    WHERE Guidance_id = ?
   `;
 
   const queryParams = [
+    degree,
     mentee_name,
     passing_year,
     passing_month,
     mentee_rn,
-    PHD_id,
+    Guidance_id,
   ];
 
   pool.query(query, queryParams, (err, result) => {
     if (err) {
       return res.status(500).json({
-        message: "Error updating PhD awarded record",
+        message: "Error updating faculty guidance record",
         error: err,
       });
     }
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "PhD awarded record not found" });
+      return res.status(404).json({ message: "Faculty guidance record not found" });
     }
     res.status(200).json({
-      message: "PhD awarded record updated successfully",
+      message: "Faculty guidance record updated successfully",
     });
   });
 };
 
-/**
- * Delete a PhD record using PHD_id
- */
-export const deletePhDAwardedRecord = (req, res) => {
-  const { PHD_id } = req.params;
+// 5. Delete a faculty guidance record
+export const deleteFacultyGuidanceRecord = (req, res) => {
+  const { Guidance_id } = req.params;
 
-  const query = "DELETE FROM faculty_PhD_awarded WHERE PHD_id = ?";
+  const query = "DELETE FROM faculty_guidance WHERE Guidance_id = ?";
 
-  pool.query(query, [PHD_id], (err, result) => {
+  pool.query(query, [Guidance_id], (err, result) => {
     if (err) {
-      return res
-        .status(500)
-        .json({ message: "Error deleting PhD awarded record", error: err });
+      return res.status(500).json({
+        message: "Error deleting faculty guidance record",
+        error: err,
+      });
     }
     if (result.affectedRows === 0) {
       return res
         .status(404)
-        .json({ message: "No PhD awarded record found with the given PHD_id" });
+        .json({ message: "No faculty guidance record found with the given Guidance_id" });
     }
     res
       .status(200)
-      .json({ message: "PhD awarded record deleted successfully" });
+      .json({ message: "Faculty guidance record deleted successfully" });
   });
 };
 

@@ -33,11 +33,11 @@ import {
   addBookRecord,
   updateBookRecord,
   deleteBookRecord,
-  getPhDAwardedRecords,
-  getPhDAwardedRecordsByFacultyId,
-  addPhDAwardedRecord,
-  updatePhDAwardedRecord,
-  deletePhDAwardedRecord,
+  getFacultyGuidanceRecords,
+  getFacultyGuidanceRecordsByFacultyId,
+  addFacultyGuidanceRecord,
+  updateFacultyGuidanceRecord,
+  deleteFacultyGuidanceRecord,
   getSponsoredResearchByFaculty,
   addSponsoredResearch,
   updateSponsoredResearch,
@@ -121,11 +121,11 @@ router.put("/books/:Book_id", authorizeRoles("faculty"), updateBookRecord);
 router.delete("/books/:Book_id", authorizeRoles("faculty"), deleteBookRecord);
 
 // PHD awarded routes
-router.get("/phd-awarded", authorizeRoles("faculty"), getPhDAwardedRecords);
-router.get("/phd-awarded/:faculty_id", authorizeRoles("faculty"), getPhDAwardedRecordsByFacultyId);
-router.post("/phd-awarded", authorizeRoles("faculty"), addPhDAwardedRecord);
-router.put("/phd-awarded/:PHD_id", authorizeRoles("faculty"), updatePhDAwardedRecord);
-router.delete("/phd-awarded/:PHD_id", authorizeRoles("faculty"), deletePhDAwardedRecord);
+router.get("/guidance", authorizeRoles("faculty"), getFacultyGuidanceRecords);
+router.get("/guidance/:faculty_id", authorizeRoles("faculty"), getFacultyGuidanceRecordsByFacultyId);
+router.post("/guidance", authorizeRoles("faculty"), addFacultyGuidanceRecord);
+router.put("/guidance/:Guidance_id", authorizeRoles("faculty"), updateFacultyGuidanceRecord);
+router.delete("/guidance/:Guidance_id", authorizeRoles("faculty"), deleteFacultyGuidanceRecord);
 
 // Sponsored Research Routes
 router.get("/sponsored-research/:faculty_id", authorizeRoles("faculty"), getSponsoredResearchByFaculty);
