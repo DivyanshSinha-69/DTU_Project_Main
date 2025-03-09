@@ -15,22 +15,22 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// 🔹 Generate Access Token (Short-lived)
-const generateAccessToken = (faculty_id) => {
-  return jwt.sign({ faculty_id }, process.env.JWT_SECRET, {
+// ==================== Generate Tokens ====================
+const generateAccessToken = (faculty_id, position) => {
+  return jwt.sign({ faculty_id, position }, process.env.JWT_SECRET, {
     expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
   });
 };
 
-// 🔹 Generate Refresh Token (Long-lived)
-const generateRefreshToken = (faculty_id) => {
+const generateRefreshToken = (faculty_id, position) => {
   const expiryDays = parseInt(process.env.REFRESH_TOKEN_EXPIRY) || 7;
   const expirySeconds = expiryDays * 24 * 60 * 60;
 
-  return jwt.sign({ faculty_id }, process.env.JWT_REFRESH_SECRET, {
+  return jwt.sign({ faculty_id, position }, process.env.JWT_REFRESH_SECRET, {
     expiresIn: expirySeconds,
   });
 };
+
 
 // ==================== Forgot Password Controller ====================
 export const forgotPassword = (req, res) => {
@@ -149,18 +149,19 @@ export const resetPassword = (req, res) => {
   }
 };
 
-// ==================== Faculty Login Controller ====================
 export const facultyLogin = (req, res) => {
   const { faculty_id, password } = req.body;
 
   if (!faculty_id || !password) {
-    return res
-      .status(400)
-      .json({ message: "Faculty ID and password are required!" });
+    return res.status(400).json({ message: "Faculty ID and password are required!" });
   }
 
+  // First query to get faculty details
   pool.query(
-    "SELECT * FROM faculty_auth WHERE faculty_id = ?",
+    `SELECT fa.*, pt.position_name 
+     FROM faculty_auth fa
+     LEFT JOIN position_type pt ON fa.position_id = pt.position_id
+     WHERE fa.faculty_id = ?`,
     [faculty_id],
     (err, results) => {
       if (err) {
@@ -173,11 +174,13 @@ export const facultyLogin = (req, res) => {
       }
 
       const user = results[0];
+
+      // Compare passwords
       bcrypt.compare(password, user.password, (err, isMatch) => {
         if (err) return res.status(500).json({ message: "Server error!" });
-        if (!isMatch)
-          return res.status(401).json({ message: "Invalid password!" });
+        if (!isMatch) return res.status(401).json({ message: "Invalid password!" });
 
+        // Second query to get faculty name and designation
         pool.query(
           `SELECT fd.faculty_name, fa.designation 
            FROM faculty_details fd 
@@ -191,14 +194,12 @@ export const facultyLogin = (req, res) => {
             }
 
             if (facultyResults.length === 0) {
-              return res
-                .status(404)
-                .json({ message: "Faculty details not found!" });
+              return res.status(404).json({ message: "Faculty details not found!" });
             }
 
             const { faculty_name, designation } = facultyResults[0];
 
-            // Fetch counts from all tables in a single query
+            // Third query to get faculty counts
             pool.query(
               `SELECT 
                   (SELECT COUNT(*) FROM faculty_research_paper WHERE faculty_id = ?) AS research_papers,
@@ -221,83 +222,101 @@ export const facultyLogin = (req, res) => {
                   consultancy,
                 } = countResults[0];
 
-            const accessToken = generateAccessToken(user.faculty_id);
-            const refreshToken = generateRefreshToken(user.faculty_id);
+                const position = user.position_name;
 
-            const expiryDays = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7;
-            const refreshTokenExpiry = new Date(
-              Date.now() + expiryDays * 24 * 60 * 60 * 1000,
-            )
-              .toISOString()
-              .slice(0, 19)
-              .replace("T", " ");
+                // Generate tokens
+                const accessToken = generateAccessToken(user.faculty_id, position);
+                const refreshToken = generateRefreshToken(user.faculty_id, position);
 
-            pool.query(
-              "UPDATE faculty_auth SET refresh_token = ?, refresh_token_expiry = ? WHERE faculty_id = ?",
-              [refreshToken, refreshTokenExpiry, faculty_id],
-              (err) => {
-                if (err) {
-                  console.error("Database Error:", err);
-                  return res.status(500).json({ message: "Server error!" });
-                }
+                const expiryDays = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7;
+                const refreshTokenExpiry = new Date(
+                  Date.now() + expiryDays * 24 * 60 * 60 * 1000,
+                )
+                  .toISOString()
+                  .slice(0, 19)
+                  .replace("T", " ");
 
-                res.json({
-                  message: "Login successful!",
-                  accessToken,
-                  refreshToken,
-                  user: {
-                    faculty_id: user.faculty_id,
-                    faculty_name: faculty_name,
-                    faculty_designation: designation,
-                    Position: "faculty",
-                    researchCount: research_papers,
-                    sponsorCount: sponsorships,
-                    patentCount: patents,
-                    bookCount: book_records,
-                    consultancyCount: consultancy,
+                // Fourth query to store refresh token
+                pool.query(
+                  "UPDATE faculty_auth SET refresh_token = ?, refresh_token_expiry = ? WHERE faculty_id = ?",
+                  [refreshToken, refreshTokenExpiry, faculty_id],
+                  (err) => {
+                    if (err) {
+                      console.error("Database Error:", err);
+                      return res.status(500).json({ message: "Server error!" });
+                    }
+
+                    res.json({
+                      message: "Login successful!",
+                      accessToken,
+                      refreshToken,
+                      user: {
+                        faculty_id: user.faculty_id,
+                        faculty_name: faculty_name,
+                        faculty_designation: designation,
+                        Position: position, // Use fetched position
+                        researchCount: research_papers,
+                        sponsorCount: sponsorships,
+                        patentCount: patents,
+                        bookCount: book_records,
+                        consultancyCount: consultancy,
+                      },
+                    });
                   },
-                });
+                );
               },
             );
           },
         );
       });
-      });
     },
   );
 };
 
-// ==================== Refresh Token Controller ====================
+
 export const refreshToken = (req, res) => {
   const { refreshToken } = req.body;
   if (!refreshToken) {
     return res.status(401).json({ message: "Refresh token is required!" });
   }
 
+  // First query: Fetch faculty details based on refresh token
   pool.query(
-    "SELECT refresh_token, refresh_token_expiry FROM faculty_auth WHERE refresh_token = ?",
+    `SELECT fa.faculty_id, fa.refresh_token, fa.refresh_token_expiry, pt.position_name 
+     FROM faculty_auth fa
+     LEFT JOIN position_type pt ON fa.position_id = pt.position_id
+     WHERE fa.refresh_token = ?`,
     [refreshToken],
     (err, results) => {
-      if (err) return res.status(500).json({ message: "Server error!" });
-      if (results.length === 0)
-        return res.status(401).json({ message: "Invalid refresh token!" });
+      if (err) {
+        console.error("Database Error:", err);
+        return res.status(500).json({ message: "Server error!" });
+      }
 
-      const tokenExpiry = new Date(results[0].refresh_token_expiry);
+      if (results.length === 0) {
+        return res.status(401).json({ message: "Invalid refresh token!" });
+      }
+
+      const user = results[0];
+      const tokenExpiry = new Date(user.refresh_token_expiry);
+
       if (tokenExpiry < new Date()) {
         return res.status(401).json({ message: "Refresh token expired!" });
       }
 
-      jwt.verify(
-        refreshToken,
-        process.env.JWT_REFRESH_SECRET,
-        (err, decoded) => {
-          if (err)
-            return res
-              .status(401)
-              .json({ message: "Invalid or expired refresh token!" });
-          res.json({ accessToken: generateAccessToken(decoded.faculty_id) });
-        },
-      );
+      // Verify the refresh token
+      jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err, decoded) => {
+        if (err) {
+          return res.status(401).json({ message: "Invalid or expired refresh token!" });
+        }
+
+        // Generate new access token using the stored faculty_id and position
+        const newAccessToken = generateAccessToken(user.faculty_id, user.position_name);
+
+        res.json({
+          accessToken: newAccessToken,
+        });
+      });
     },
   );
 };
@@ -305,15 +324,21 @@ export const refreshToken = (req, res) => {
 // ==================== Logout Controller ====================
 export const logout = (req, res) => {
   const { faculty_id } = req.body;
+
   if (!faculty_id) {
     return res.status(400).json({ message: "Faculty ID is required!" });
   }
 
+  // Query to remove refresh token
   pool.query(
     "UPDATE faculty_auth SET refresh_token = NULL, refresh_token_expiry = NULL WHERE faculty_id = ?",
     [faculty_id],
     (err) => {
-      if (err) return res.status(500).json({ message: "Server error!" });
+      if (err) {
+        console.error("Database Error:", err);
+        return res.status(500).json({ message: "Server error!" });
+      }
+
       res.json({ message: "Logged out successfully!" });
     },
   );

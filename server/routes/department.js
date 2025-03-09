@@ -5,7 +5,7 @@ import {
   compressUploadedFile
 } from "../config/departmentMulterConfig.js";
 
-import { authenticateToken } from "../middlewares/auth.js";
+import { authenticateToken, authorizeRoles } from "../middlewares/auth.js";
 
 import {
   getCirculars,
@@ -32,36 +32,38 @@ import {
 
 const router = express.Router();
 
-// router.use(authenticateToken);
-
-// Circular Routes
-router.get("/circulars/:department_id?", getCirculars);
-router.post("/circulars", uploadDepartmentCircular, compressUploadedFile, addCircular);
-router.put("/circulars/:circular_id", uploadDepartmentCircular, compressUploadedFile, updateCircular);
-router.delete("/circulars/:circular_id", deleteCircular);
-
-// Order Routes
-router.get("/orders/:department_id?", getOrders);
-router.post("/orders", uploadDepartmentOrder, compressUploadedFile, addOrder);
-router.put("/orders/:order_id", uploadDepartmentOrder, compressUploadedFile, updateOrder);
-router.delete("/orders/:order_id", deleteOrder);
-
-// Faculty Orders Routes
-router.get("/faculty-orders/:faculty_id?", getFacultyOrders);
-router.post("/faculty-orders", addFacultyOrder);
-router.put("/faculty-orders/:id", updateFacultyOrder);
-router.delete("/faculty-orders/:id", deleteFacultyOrder);
-router.get("/faculty-orders/order/:order_number", getFacultiesForOrder);
-
-// Department Details Routes
-router.get("/departments/:department_id?", getDepartments);
-router.post("/departments", addDepartment);
-router.put("/departments/:department_id", updateDepartment);
-router.delete("/departments/:department_id", deleteDepartment);
 
 // Department Session Routes
 router.post("/login", departmentLogin);
 router.post("/refresh", refreshToken);
 router.post("/logout", logout);
+
+
+router.use(authenticateToken);  // Middleware to authenticate token and verify user roles.
+
+// Circular Routes
+router.get("/circulars/:department_id?", authorizeRoles("department"), getCirculars);
+router.post("/circulars", authorizeRoles("department"), uploadDepartmentCircular, compressUploadedFile, addCircular);
+router.put("/circulars/:circular_id", authorizeRoles("department"), uploadDepartmentCircular, compressUploadedFile, updateCircular);
+router.delete("/circulars/:circular_id", authorizeRoles("department"), deleteCircular);
+
+// Order Routes
+router.get("/orders/:department_id?", authorizeRoles("department"), getOrders);
+router.post("/orders", authorizeRoles("department"), uploadDepartmentOrder, compressUploadedFile, addOrder);
+router.put("/orders/:order_id", authorizeRoles("department"), uploadDepartmentOrder, compressUploadedFile, updateOrder);
+router.delete("/orders/:order_id", authorizeRoles("department"), deleteOrder);
+
+// Faculty Orders Routes
+router.get("/faculty-orders/:faculty_id?", authorizeRoles("department"), getFacultyOrders);
+router.post("/faculty-orders", authorizeRoles("department"), addFacultyOrder);
+router.put("/faculty-orders/:id", authorizeRoles("department"), updateFacultyOrder);
+router.delete("/faculty-orders/:id", authorizeRoles("department"), deleteFacultyOrder);
+router.get("/faculty-orders/order/:order_number", authorizeRoles("department"), getFacultiesForOrder);
+
+// Department Details Routes
+router.get("/departments/:department_id?", authorizeRoles("department"), getDepartments);
+router.post("/departments", authorizeRoles("department"), addDepartment);
+router.put("/departments/:department_id", authorizeRoles("department"), updateDepartment);
+router.delete("/departments/:department_id", authorizeRoles("department"), deleteDepartment);
 
 export default router;
