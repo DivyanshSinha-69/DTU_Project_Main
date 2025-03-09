@@ -16,16 +16,36 @@ dotenv.config();
 
 function getMonthName(monthNumber) {
   const months = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
   return months[monthNumber - 1] || "Invalid month";
 }
 
 function getMonthNumber(monthName) {
   const months = {
-      "January": 1, "February": 2, "March": 3, "April": 4, "May": 5, "June": 6,
-      "July": 7, "August": 8, "September": 9, "October": 10, "November": 11, "December": 12
+    January: 1,
+    February: 2,
+    March: 3,
+    April: 4,
+    May: 5,
+    June: 6,
+    July: 7,
+    August: 8,
+    September: 9,
+    October: 10,
+    November: 11,
+    December: 12,
   };
   return months[monthName] || "Invalid month";
 }
@@ -266,7 +286,7 @@ export const addFacultyAssociation = (req, res) => {
           message: "Faculty association added successfully",
           success: true,
         });
-      },
+      }
     );
   });
 };
@@ -324,7 +344,7 @@ export const updateFacultyAssociation = (req, res) => {
         message: "Faculty association updated successfully",
         success: true,
       });
-    },
+    }
   );
 };
 
@@ -355,36 +375,76 @@ export const deleteFacultyAssociation = (req, res) => {
 // Add Research Paper
 
 export const addResearchPaper = (req, res) => {
-  const { faculty_id, paper_type, title_of_paper, domain, publication_name, published_date, citation } = req.body;
+  const {
+    faculty_id,
+    paper_type,
+    title_of_paper,
+    domain,
+    publication_name,
+    published_date,
+    citation,
+  } = req.body;
 
   // Get the compressed file path
   const filePath = req.file ? path.relative("public", req.file.path) : null;
 
   // Check if faculty_id exists
-  pool.query("SELECT * FROM faculty_details WHERE faculty_id = ?", [faculty_id], (error, results) => {
-    if (error) return res.status(500).json({ message: "Error checking faculty details", error });
+  pool.query(
+    "SELECT * FROM faculty_details WHERE faculty_id = ?",
+    [faculty_id],
+    (error, results) => {
+      if (error)
+        return res
+          .status(500)
+          .json({ message: "Error checking faculty details", error });
 
-    if (results.length === 0) {
-      return res.status(400).json({ message: "Faculty ID does not exist in faculty_details table" });
-    }
+      if (results.length === 0) {
+        return res
+          .status(400)
+          .json({
+            message: "Faculty ID does not exist in faculty_details table",
+          });
+      }
 
-    // Insert into faculty_research_paper table
-    const sql = `
+      // Insert into faculty_research_paper table
+      const sql = `
       INSERT INTO faculty_research_paper 
       (faculty_id, paper_type, title_of_paper, domain, publication_name, published_date, pdf_path, citation) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    pool.query(sql, [faculty_id, paper_type, title_of_paper, domain, publication_name, published_date, filePath, citation],
-      (insertError, insertResult) => {
-        if (insertError) return res.status(500).json({ message: "Error adding research paper", error: insertError });
+      pool.query(
+        sql,
+        [
+          faculty_id,
+          paper_type,
+          title_of_paper,
+          domain,
+          publication_name,
+          published_date,
+          filePath,
+          citation,
+        ],
+        (insertError, insertResult) => {
+          if (insertError)
+            return res
+              .status(500)
+              .json({
+                message: "Error adding research paper",
+                error: insertError,
+              });
 
-        res.status(201).json({ message: "Research paper added successfully", data: insertResult });
-      }
-    );
-  });
+          res
+            .status(201)
+            .json({
+              message: "Research paper added successfully",
+              data: insertResult,
+            });
+        }
+      );
+    }
+  );
 };
-
 
 // Get Research Papers by Faculty ID
 export const getResearchPapersByFaculty = (req, res) => {
@@ -409,27 +469,48 @@ export const getResearchPapersByFaculty = (req, res) => {
 
 export const updateResearchPaper = (req, res) => {
   const { research_id } = req.params;
-  const { paper_type, title_of_paper, domain, publication_name, published_date, citation } = req.body;
+  const {
+    paper_type,
+    title_of_paper,
+    domain,
+    publication_name,
+    published_date,
+    citation,
+  } = req.body;
 
   // Get the new compressed file path
   const filePath = req.file ? path.relative("public", req.file.path) : null;
 
   // Check if research paper exists
-  pool.query("SELECT * FROM faculty_research_paper WHERE research_id = ?", [research_id], (err, result) => {
-    if (err) return res.status(500).json({ message: "Error checking research paper", error: err });
+  pool.query(
+    "SELECT * FROM faculty_research_paper WHERE research_id = ?",
+    [research_id],
+    (err, result) => {
+      if (err)
+        return res
+          .status(500)
+          .json({ message: "Error checking research paper", error: err });
 
-    if (result.length === 0) return res.status(404).json({ message: "Research paper not found" });
+      if (result.length === 0)
+        return res.status(404).json({ message: "Research paper not found" });
 
-    const oldPdfPath = result[0].pdf_path;
-    const absoluteOldFilePath = oldPdfPath ? path.join("public", oldPdfPath) : null;
+      const oldPdfPath = result[0].pdf_path;
+      const absoluteOldFilePath = oldPdfPath
+        ? path.join("public", oldPdfPath)
+        : null;
 
-    // If a new file is uploaded, delete the old one
-    if (filePath && filePath !== oldPdfPath && absoluteOldFilePath && fs.existsSync(absoluteOldFilePath)) {
-      fs.unlinkSync(absoluteOldFilePath);
-    }
+      // If a new file is uploaded, delete the old one
+      if (
+        filePath &&
+        filePath !== oldPdfPath &&
+        absoluteOldFilePath &&
+        fs.existsSync(absoluteOldFilePath)
+      ) {
+        fs.unlinkSync(absoluteOldFilePath);
+      }
 
-    // Update research paper details
-    const updateQuery = `
+      // Update research paper details
+      const updateQuery = `
       UPDATE faculty_research_paper
       SET 
         paper_type = ?, 
@@ -442,14 +523,37 @@ export const updateResearchPaper = (req, res) => {
       WHERE research_id = ?
     `;
 
-    pool.query(updateQuery, [paper_type, title_of_paper, domain, publication_name, published_date, citation, filePath, research_id],
-      (updateErr, updateResult) => {
-        if (updateErr) return res.status(500).json({ message: "Error updating research paper", error: updateErr });
+      pool.query(
+        updateQuery,
+        [
+          paper_type,
+          title_of_paper,
+          domain,
+          publication_name,
+          published_date,
+          citation,
+          filePath,
+          research_id,
+        ],
+        (updateErr, updateResult) => {
+          if (updateErr)
+            return res
+              .status(500)
+              .json({
+                message: "Error updating research paper",
+                error: updateErr,
+              });
 
-        res.status(200).json({ message: "Research paper updated successfully", data: updateResult });
-      }
-    );
-  });
+          res
+            .status(200)
+            .json({
+              message: "Research paper updated successfully",
+              data: updateResult,
+            });
+        }
+      );
+    }
+  );
 };
 
 export const deleteResearchPaper = (req, res) => {
@@ -527,61 +631,76 @@ export const getFDPRecords = (req, res) => {
   let params = [];
 
   if (faculty_id) {
-      query += " WHERE faculty_id = ?";
-      params.push(faculty_id);
+    query += " WHERE faculty_id = ?";
+    params.push(faculty_id);
   }
 
   pool.query(query, params, (err, results) => {
-      if (err) {
-          console.error("Error fetching FDP details:", err);
-          return res.status(500).json({ message: "Error fetching FDP details", error: err });
-      }
+    if (err) {
+      console.error("Error fetching FDP details:", err);
+      return res
+        .status(500)
+        .json({ message: "Error fetching FDP details", error: err });
+    }
 
-      if (results.length === 0) {
-          return res.status(404).json({ message: "No FDP details found" });
-      }
+    if (results.length === 0) {
+      return res.status(404).json({ message: "No FDP details found" });
+    }
 
-      // Convert month number to month name
-      const modifiedResults = results.map(record => ({
-          ...record,
-          month_conducted: getMonthName(record.month_conducted)
-      }));
+    // Convert month number to month name
+    const modifiedResults = results.map((record) => ({
+      ...record,
+      month_conducted: getMonthName(record.month_conducted),
+    }));
 
-      res.status(200).json({ message: "FDP details fetched successfully", data: modifiedResults });
+    res
+      .status(200)
+      .json({
+        message: "FDP details fetched successfully",
+        data: modifiedResults,
+      });
   });
 };
 
 // 2. Add a new FDP record
 export const addFDPRecord = (req, res) => {
   const {
-      faculty_id,
-      FDP_name,
-      year_conducted,
-      month_conducted, // This will be received as a name
-      days_contributed
+    faculty_id,
+    FDP_name,
+    year_conducted,
+    month_conducted, // This will be received as a name
+    days_contributed,
   } = req.body;
 
   // Convert month name to number
   const monthNumber = getMonthNumber(month_conducted);
   if (monthNumber === "Invalid month") {
-      return res.status(400).json({ message: "Invalid month name provided" });
+    return res.status(400).json({ message: "Invalid month name provided" });
   }
 
   const query = `
       INSERT INTO faculty_FDP (faculty_id, FDP_name, year_conducted, month_conducted, days_contributed)
       VALUES (?, ?, ?, ?, ?)
   `;
-  const params = [faculty_id, FDP_name, year_conducted, monthNumber, days_contributed];
+  const params = [
+    faculty_id,
+    FDP_name,
+    year_conducted,
+    monthNumber,
+    days_contributed,
+  ];
 
   pool.query(query, params, (err, result) => {
-      if (err) {
-          console.error("Error adding FDP record:", err);
-          return res.status(500).json({ message: "Error adding FDP record", error: err });
-      }
-      res.status(201).json({
-          message: "FDP record added successfully",
-          data: { id: result.insertId }
-      });
+    if (err) {
+      console.error("Error adding FDP record:", err);
+      return res
+        .status(500)
+        .json({ message: "Error adding FDP record", error: err });
+    }
+    res.status(201).json({
+      message: "FDP record added successfully",
+      data: { id: result.insertId },
+    });
   });
 };
 
@@ -589,17 +708,17 @@ export const addFDPRecord = (req, res) => {
 export const updateFDPRecord = (req, res) => {
   const { FDP_id } = req.params;
   const {
-      faculty_id,
-      FDP_name,
-      year_conducted,
-      month_conducted, // Received as a name
-      days_contributed
+    faculty_id,
+    FDP_name,
+    year_conducted,
+    month_conducted, // Received as a name
+    days_contributed,
   } = req.body;
 
   // Convert month name to number
   const monthNumber = getMonthNumber(month_conducted);
   if (monthNumber === "Invalid month") {
-      return res.status(400).json({ message: "Invalid month name provided" });
+    return res.status(400).json({ message: "Invalid month name provided" });
   }
 
   const query = `
@@ -607,17 +726,28 @@ export const updateFDPRecord = (req, res) => {
       SET faculty_id = ?, FDP_name = ?, year_conducted = ?, month_conducted = ?, days_contributed = ?
       WHERE FDP_id = ?
   `;
-  const params = [faculty_id, FDP_name, year_conducted, monthNumber, days_contributed, FDP_id];
+  const params = [
+    faculty_id,
+    FDP_name,
+    year_conducted,
+    monthNumber,
+    days_contributed,
+    FDP_id,
+  ];
 
   pool.query(query, params, (err, result) => {
-      if (err) {
-          console.error("Error updating FDP record:", err);
-          return res.status(500).json({ message: "Error updating FDP record", error: err });
-      }
-      if (result.affectedRows === 0) {
-          return res.status(404).json({ message: "No FDP record found with the given FDP_id" });
-      }
-      res.status(200).json({ message: "FDP record updated successfully" });
+    if (err) {
+      console.error("Error updating FDP record:", err);
+      return res
+        .status(500)
+        .json({ message: "Error updating FDP record", error: err });
+    }
+    if (result.affectedRows === 0) {
+      return res
+        .status(404)
+        .json({ message: "No FDP record found with the given FDP_id" });
+    }
+    res.status(200).json({ message: "FDP record updated successfully" });
   });
 };
 // 4. Delete an FDP record using FDP_id
@@ -643,7 +773,6 @@ export const deleteFDPRecord = (req, res) => {
   });
 };
 
-
 export const getFacultyInteractions = (req, res) => {
   const { faculty_id } = req.params; // Extract faculty_id from route parameter
 
@@ -656,52 +785,104 @@ export const getFacultyInteractions = (req, res) => {
   const params = [];
 
   if (faculty_id) {
-      query += " WHERE fi.faculty_id = ?";
-      params.push(faculty_id);
+    query += " WHERE fi.faculty_id = ?";
+    params.push(faculty_id);
   }
 
   pool.query(query, params, (err, results) => {
-      if (err) {
-          console.error("Error fetching faculty interactions:", err);
-          return res.status(500).json({ message: "Error fetching faculty interactions", error: err });
-      }
+    if (err) {
+      console.error("Error fetching faculty interactions:", err);
+      return res
+        .status(500)
+        .json({ message: "Error fetching faculty interactions", error: err });
+    }
 
-      res.status(200).json({ message: "Faculty interactions retrieved successfully", data: results });
+    res
+      .status(200)
+      .json({
+        message: "Faculty interactions retrieved successfully",
+        data: results,
+      });
   });
 };
 
-
-
-
 export const addFacultyInteraction = (req, res) => {
-  const { faculty_id, interaction_id, institution, description, year_of_visit, month_of_visit, duration_in_days } = req.body;
+  const {
+    faculty_id,
+    interaction_id,
+    institution,
+    description,
+    year_of_visit,
+    month_of_visit,
+    duration_in_days,
+  } = req.body;
 
-  if (!faculty_id || !interaction_id || !institution || !description || !year_of_visit || !month_of_visit) {
-      return res.status(400).json({ message: "All fields except duration_in_days are required" });
+  if (
+    !faculty_id ||
+    !interaction_id ||
+    !institution ||
+    !description ||
+    !year_of_visit ||
+    !month_of_visit
+  ) {
+    return res
+      .status(400)
+      .json({ message: "All fields except duration_in_days are required" });
   }
 
   const query = `
       INSERT INTO faculty_interaction (faculty_id, interaction_id, institution, description, year_of_visit, month_of_visit, duration_in_days)
       VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
-  const params = [faculty_id, interaction_id, institution, description, year_of_visit, month_of_visit, duration_in_days || null];
+  const params = [
+    faculty_id,
+    interaction_id,
+    institution,
+    description,
+    year_of_visit,
+    month_of_visit,
+    duration_in_days || null,
+  ];
 
   pool.query(query, params, (err, result) => {
-      if (err) {
-          console.error("Error adding faculty interaction:", err);
-          return res.status(500).json({ message: "Error adding faculty interaction", error: err });
-      }
+    if (err) {
+      console.error("Error adding faculty interaction:", err);
+      return res
+        .status(500)
+        .json({ message: "Error adding faculty interaction", error: err });
+    }
 
-      res.status(201).json({ message: "Faculty interaction added successfully", data: { id: result.insertId } });
+    res
+      .status(201)
+      .json({
+        message: "Faculty interaction added successfully",
+        data: { id: result.insertId },
+      });
   });
 };
 
 export const updateFacultyInteraction = (req, res) => {
   const { interact_id } = req.params;
-  const { interaction_id, institution, description, year_of_visit, month_of_visit, duration_in_days } = req.body;
+  const {
+    interaction_id,
+    institution,
+    description,
+    year_of_visit,
+    month_of_visit,
+    duration_in_days,
+  } = req.body;
 
-  if (!interact_id || !interaction_id || !institution || !description || !year_of_visit || !month_of_visit) {
-      return res.status(400).json({ message: "All fields except duration_in_days are required" });
+  if (
+    !interact_id ||
+    !interaction_id ||
+    !institution ||
+    !description ||
+    !year_of_visit ||
+    !month_of_visit
+  ) {
+    return res
+      .status(400)
+      .json({ message: "All fields except duration_in_days are required" });
   }
 
   const query = `
@@ -709,19 +890,35 @@ export const updateFacultyInteraction = (req, res) => {
       SET interaction_id = ?, institution = ?, description = ?, year_of_visit = ?, month_of_visit = ?, duration_in_days = ?
       WHERE interact_id = ?
   `;
-  const params = [interaction_id, institution, description, year_of_visit, month_of_visit, duration_in_days || null, interact_id];
+  const params = [
+    interaction_id,
+    institution,
+    description,
+    year_of_visit,
+    month_of_visit,
+    duration_in_days || null,
+    interact_id,
+  ];
 
   pool.query(query, params, (err, result) => {
-      if (err) {
-          console.error("Error updating faculty interaction:", err);
-          return res.status(500).json({ message: "Error updating faculty interaction", error: err });
-      }
+    if (err) {
+      console.error("Error updating faculty interaction:", err);
+      return res
+        .status(500)
+        .json({ message: "Error updating faculty interaction", error: err });
+    }
 
-      if (result.affectedRows === 0) {
-          return res.status(404).json({ message: "No faculty interaction found with the given interact_id" });
-      }
+    if (result.affectedRows === 0) {
+      return res
+        .status(404)
+        .json({
+          message: "No faculty interaction found with the given interact_id",
+        });
+    }
 
-      res.status(200).json({ message: "Faculty interaction updated successfully" });
+    res
+      .status(200)
+      .json({ message: "Faculty interaction updated successfully" });
   });
 };
 
@@ -729,22 +926,30 @@ export const deleteFacultyInteraction = (req, res) => {
   const { interact_id } = req.params;
 
   if (!interact_id) {
-      return res.status(400).json({ message: "interact_id is required" });
+    return res.status(400).json({ message: "interact_id is required" });
   }
 
   const query = "DELETE FROM faculty_interaction WHERE interact_id = ?";
 
   pool.query(query, [interact_id], (err, result) => {
-      if (err) {
-          console.error("Error deleting faculty interaction:", err);
-          return res.status(500).json({ message: "Error deleting faculty interaction", error: err });
-      }
+    if (err) {
+      console.error("Error deleting faculty interaction:", err);
+      return res
+        .status(500)
+        .json({ message: "Error deleting faculty interaction", error: err });
+    }
 
-      if (result.affectedRows === 0) {
-          return res.status(404).json({ message: "No faculty interaction found with the given interact_id" });
-      }
+    if (result.affectedRows === 0) {
+      return res
+        .status(404)
+        .json({
+          message: "No faculty interaction found with the given interact_id",
+        });
+    }
 
-      res.status(200).json({ message: "Faculty interaction deleted successfully" });
+    res
+      .status(200)
+      .json({ message: "Faculty interaction deleted successfully" });
   });
 };
 
@@ -752,12 +957,19 @@ export const getInteractionTypes = (req, res) => {
   const query = "SELECT * FROM faculty_interaction_types";
 
   pool.query(query, (err, results) => {
-      if (err) {
-          console.error("Error fetching interaction types:", err);
-          return res.status(500).json({ message: "Error fetching interaction types", error: err });
-      }
+    if (err) {
+      console.error("Error fetching interaction types:", err);
+      return res
+        .status(500)
+        .json({ message: "Error fetching interaction types", error: err });
+    }
 
-      res.status(200).json({ message: "Interaction types retrieved successfully", data: results });
+    res
+      .status(200)
+      .json({
+        message: "Interaction types retrieved successfully",
+        data: results,
+      });
   });
 };
 
@@ -765,19 +977,24 @@ export const addInteractionType = (req, res) => {
   const { interaction_id, interaction_type } = req.body;
 
   if (!interaction_id || !interaction_type) {
-      return res.status(400).json({ message: "interaction_id and interaction_type are required" });
+    return res
+      .status(400)
+      .json({ message: "interaction_id and interaction_type are required" });
   }
 
-  const query = "INSERT INTO faculty_interaction_types (interaction_id, interaction_type) VALUES (?, ?)";
+  const query =
+    "INSERT INTO faculty_interaction_types (interaction_id, interaction_type) VALUES (?, ?)";
   const params = [interaction_id, interaction_type];
 
   pool.query(query, params, (err, result) => {
-      if (err) {
-          console.error("Error adding interaction type:", err);
-          return res.status(500).json({ message: "Error adding interaction type", error: err });
-      }
+    if (err) {
+      console.error("Error adding interaction type:", err);
+      return res
+        .status(500)
+        .json({ message: "Error adding interaction type", error: err });
+    }
 
-      res.status(201).json({ message: "Interaction type added successfully" });
+    res.status(201).json({ message: "Interaction type added successfully" });
   });
 };
 
@@ -786,23 +1003,30 @@ export const updateInteractionType = (req, res) => {
   const { interaction_type } = req.body;
 
   if (!interaction_type) {
-      return res.status(400).json({ message: "interaction_type is required" });
+    return res.status(400).json({ message: "interaction_type is required" });
   }
 
-  const query = "UPDATE faculty_interaction_types SET interaction_type = ? WHERE interaction_id = ?";
+  const query =
+    "UPDATE faculty_interaction_types SET interaction_type = ? WHERE interaction_id = ?";
   const params = [interaction_type, interaction_id];
 
   pool.query(query, params, (err, result) => {
-      if (err) {
-          console.error("Error updating interaction type:", err);
-          return res.status(500).json({ message: "Error updating interaction type", error: err });
-      }
+    if (err) {
+      console.error("Error updating interaction type:", err);
+      return res
+        .status(500)
+        .json({ message: "Error updating interaction type", error: err });
+    }
 
-      if (result.affectedRows === 0) {
-          return res.status(404).json({ message: "No interaction type found with the given interaction_id" });
-      }
+    if (result.affectedRows === 0) {
+      return res
+        .status(404)
+        .json({
+          message: "No interaction type found with the given interaction_id",
+        });
+    }
 
-      res.status(200).json({ message: "Interaction type updated successfully" });
+    res.status(200).json({ message: "Interaction type updated successfully" });
   });
 };
 
@@ -810,22 +1034,29 @@ export const deleteInteractionType = (req, res) => {
   const { interaction_id } = req.params;
 
   if (!interaction_id) {
-      return res.status(400).json({ message: "interaction_id is required" });
+    return res.status(400).json({ message: "interaction_id is required" });
   }
 
-  const query = "DELETE FROM faculty_interaction_types WHERE interaction_id = ?";
+  const query =
+    "DELETE FROM faculty_interaction_types WHERE interaction_id = ?";
 
   pool.query(query, [interaction_id], (err, result) => {
-      if (err) {
-          console.error("Error deleting interaction type:", err);
-          return res.status(500).json({ message: "Error deleting interaction type", error: err });
-      }
+    if (err) {
+      console.error("Error deleting interaction type:", err);
+      return res
+        .status(500)
+        .json({ message: "Error deleting interaction type", error: err });
+    }
 
-      if (result.affectedRows === 0) {
-          return res.status(404).json({ message: "No interaction type found with the given interaction_id" });
-      }
+    if (result.affectedRows === 0) {
+      return res
+        .status(404)
+        .json({
+          message: "No interaction type found with the given interaction_id",
+        });
+    }
 
-      res.status(200).json({ message: "Interaction type deleted successfully" });
+    res.status(200).json({ message: "Interaction type deleted successfully" });
   });
 };
 
@@ -945,14 +1176,14 @@ export const getPhDAwardedRecords = (req, res) => {
     if (err) {
       return res.status(500).json({
         message: "Error fetching PhD awarded records",
-        error: err
+        error: err,
       });
     }
 
     // Convert numeric month to string month
-    const updatedResults = results.map(record => ({
+    const updatedResults = results.map((record) => ({
       ...record,
-      passing_month: getMonthName(record.passing_month)
+      passing_month: getMonthName(record.passing_month),
     }));
 
     res.status(200).json(updatedResults);
@@ -972,20 +1203,20 @@ export const getPhDAwardedRecordsByFacultyId = (req, res) => {
     if (err) {
       return res.status(500).json({
         message: "Error fetching PhD awarded records",
-        error: err
+        error: err,
       });
     }
-    
+
     if (results.length === 0) {
       return res.status(404).json({
-        message: "No PhD awarded records found for the given faculty_id"
+        message: "No PhD awarded records found for the given faculty_id",
       });
     }
 
     // Convert numeric month to string month
-    const updatedResults = results.map(record => ({
+    const updatedResults = results.map((record) => ({
       ...record,
-      passing_month: getMonthName(record.passing_month)
+      passing_month: getMonthName(record.passing_month),
     }));
 
     res.status(200).json(updatedResults);
@@ -993,7 +1224,8 @@ export const getPhDAwardedRecordsByFacultyId = (req, res) => {
 };
 
 export const addPhDAwardedRecord = (req, res) => {
-  let { faculty_id, mentee_name, mentee_rn, passing_year, passing_month } = req.body;
+  let { faculty_id, mentee_name, mentee_rn, passing_year, passing_month } =
+    req.body;
 
   // Convert string month to numeric month if it's a valid month name
   if (isNaN(passing_month)) {
@@ -1021,7 +1253,7 @@ export const addPhDAwardedRecord = (req, res) => {
     if (err) {
       return res.status(500).json({
         message: "Error adding PhD awarded record",
-        error: err
+        error: err,
       });
     }
     res.status(201).json({
@@ -1066,14 +1298,14 @@ export const updatePhDAwardedRecord = (req, res) => {
     if (err) {
       return res.status(500).json({
         message: "Error updating PhD awarded record",
-        error: err
+        error: err,
       });
     }
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "PhD awarded record not found" });
     }
     res.status(200).json({
-      message: "PhD awarded record updated successfully"
+      message: "PhD awarded record updated successfully",
     });
   });
 };
@@ -1432,7 +1664,7 @@ export const addFaculty = (req, res) => {
       res
         .status(201)
         .json({ message: "Faculty details added successfully", data: result });
-    },
+    }
   );
 };
 
@@ -1476,7 +1708,7 @@ export const updateFacultyDetails = (req, res) => {
       }
 
       res.status(200).json({ message: "Faculty details updated successfully" });
-    },
+    }
   );
 };
 
@@ -1639,62 +1871,90 @@ export const updateFacultyImage = (req, res) => {
   const uploadDir = path.join(__dirname, "..", "public", "Faculty", "images");
 
   // Compress the image using our callback function
-  compressImage(tempFilePath, uploadDir, newImageFilename, (err, compressedImagePath) => {
-    if (err) {
-      return res.status(500).json({ message: "Error processing image", error: err.message });
-    }
-
-    // Fetch old image path from the database
-    const getQuery = "SELECT faculty_image FROM faculty_image WHERE faculty_id = ?";
-    pool.query(getQuery, [faculty_id], (err, result) => {
+  compressImage(
+    tempFilePath,
+    uploadDir,
+    newImageFilename,
+    (err, compressedImagePath) => {
       if (err) {
-        console.error("❌ Error fetching old image:", err);
-        return res.status(500).json({ message: "Error fetching old image", error: err.message });
+        return res
+          .status(500)
+          .json({ message: "Error processing image", error: err.message });
       }
 
-      const oldImagePath = result.length > 0 ? result[0].faculty_image : null;
-
-      // Delete old image if it exists
-      if (oldImagePath) {
-        const fullOldImagePath = path.join(__dirname, "..", "public", oldImagePath);
-        if (fs.existsSync(fullOldImagePath)) {
-          fs.unlink(fullOldImagePath, (err) => {
-            if (err) console.error("❌ Error deleting old image:", err);
-            else console.log("✅ Old image deleted successfully.");
-          });
-        } else {
-          console.warn("⚠ Old image not found, skipping deletion.");
-        }
-      }
-
-      // Update database with new compressed image path
-      const updateQuery = "UPDATE faculty_image SET faculty_image = ? WHERE faculty_id = ?";
-      pool.query(updateQuery, [`Faculty/images/compressed_${newImageFilename}`, faculty_id], (err) => {
+      // Fetch old image path from the database
+      const getQuery =
+        "SELECT faculty_image FROM faculty_image WHERE faculty_id = ?";
+      pool.query(getQuery, [faculty_id], (err, result) => {
         if (err) {
-          console.error("❌ Error updating faculty image:", err);
-          return res.status(500).json({ message: "Error updating faculty image", error: err.message });
+          console.error("❌ Error fetching old image:", err);
+          return res
+            .status(500)
+            .json({ message: "Error fetching old image", error: err.message });
         }
 
-        // Delete the uncompressed image
-        setTimeout(() => {
-          if (fs.existsSync(tempFilePath)) {
-            fs.rm(tempFilePath, { force: true }, (err) => {
-              if (err) console.error("❌ Error deleting uncompressed image:", err);
-              else console.log("✅ Uncompressed image deleted successfully.");
+        const oldImagePath = result.length > 0 ? result[0].faculty_image : null;
+
+        // Delete old image if it exists
+        if (oldImagePath) {
+          const fullOldImagePath = path.join(
+            __dirname,
+            "..",
+            "public",
+            oldImagePath
+          );
+          if (fs.existsSync(fullOldImagePath)) {
+            fs.unlink(fullOldImagePath, (err) => {
+              if (err) console.error("❌ Error deleting old image:", err);
+              else console.log("✅ Old image deleted successfully.");
             });
           } else {
-            console.warn("⚠ Uncompressed image not found, skipping deletion.");
+            console.warn("⚠ Old image not found, skipping deletion.");
           }
-        }, 500);
+        }
 
-        res.status(200).json({ message: "Faculty image updated successfully" });
+        // Update database with new compressed image path
+        const updateQuery =
+          "UPDATE faculty_image SET faculty_image = ? WHERE faculty_id = ?";
+        pool.query(
+          updateQuery,
+          [`Faculty/images/compressed_${newImageFilename}`, faculty_id],
+          (err) => {
+            if (err) {
+              console.error("❌ Error updating faculty image:", err);
+              return res
+                .status(500)
+                .json({
+                  message: "Error updating faculty image",
+                  error: err.message,
+                });
+            }
+
+            // Delete the uncompressed image
+            setTimeout(() => {
+              if (fs.existsSync(tempFilePath)) {
+                fs.rm(tempFilePath, { force: true }, (err) => {
+                  if (err)
+                    console.error("❌ Error deleting uncompressed image:", err);
+                  else
+                    console.log("✅ Uncompressed image deleted successfully.");
+                });
+              } else {
+                console.warn(
+                  "⚠ Uncompressed image not found, skipping deletion."
+                );
+              }
+            }, 500);
+
+            res
+              .status(200)
+              .json({ message: "Faculty image updated successfully" });
+          }
+        );
       });
-    });
-  });
+    }
+  );
 };
-
-
-
 
 export const deleteFacultyImage = (req, res) => {
   const { faculty_id } = req.params;
@@ -1767,7 +2027,7 @@ export const deleteFacultyImage = (req, res) => {
 
 // Get all faculty patents
 export const getFacultyPatents = (req, res) => {
-  const { faculty_id } = req.params; 
+  const { faculty_id } = req.params;
 
   let query = "SELECT * FROM faculty_patents";
   let params = [];
@@ -1782,15 +2042,24 @@ export const getFacultyPatents = (req, res) => {
       console.error("Error fetching patents:", err);
       return res.status(500).json({ message: "Error fetching patents" });
     }
-    res.status(200).json({ message: "Patents fetched successfully", data: results });
+    res
+      .status(200)
+      .json({ message: "Patents fetched successfully", data: results });
   });
 };
 
 export const addFacultyPatent = (req, res) => {
-  const { faculty_id, patent_name, inventors_name, patent_publish, patent_award_date } = req.body;
+  const {
+    faculty_id,
+    patent_name,
+    inventors_name,
+    patent_publish,
+    patent_award_date,
+  } = req.body;
 
   // Check if the faculty_id exists
-  const checkQuery = "SELECT COUNT(*) AS count FROM faculty_details WHERE faculty_id = ?";
+  const checkQuery =
+    "SELECT COUNT(*) AS count FROM faculty_details WHERE faculty_id = ?";
   pool.query(checkQuery, [faculty_id], (err, results) => {
     if (err) {
       console.error("Error checking faculty_id:", err);
@@ -1808,13 +2077,21 @@ export const addFacultyPatent = (req, res) => {
     `;
     pool.query(
       insertQuery,
-      [faculty_id, patent_name, inventors_name, patent_publish, patent_award_date || null],
+      [
+        faculty_id,
+        patent_name,
+        inventors_name,
+        patent_publish,
+        patent_award_date || null,
+      ],
       (err, result) => {
         if (err) {
           console.error("Error adding patent:", err);
           return res.status(500).json({ message: "Internal Server Error" });
         }
-        res.status(201).json({ message: "Patent added successfully", id: result.insertId });
+        res
+          .status(201)
+          .json({ message: "Patent added successfully", id: result.insertId });
       }
     );
   });
@@ -1822,7 +2099,13 @@ export const addFacultyPatent = (req, res) => {
 
 export const updateFacultyPatent = (req, res) => {
   const { patent_id } = req.params;
-  const { faculty_id, patent_name, inventors_name, patent_publish, patent_award_date } = req.body;
+  const {
+    faculty_id,
+    patent_name,
+    inventors_name,
+    patent_publish,
+    patent_award_date,
+  } = req.body;
 
   const query = `
     UPDATE faculty_patents
@@ -1831,7 +2114,14 @@ export const updateFacultyPatent = (req, res) => {
   `;
   pool.query(
     query,
-    [faculty_id, patent_name, inventors_name, patent_publish, patent_award_date || null, patent_id],
+    [
+      faculty_id,
+      patent_name,
+      inventors_name,
+      patent_publish,
+      patent_award_date || null,
+      patent_id,
+    ],
     (err, result) => {
       if (err) {
         console.error("Error updating patent:", err);
@@ -1865,7 +2155,6 @@ export const deleteFacultyPatent = (req, res) => {
   });
 };
 
-
 // ✅ GET all faculty qualifications or specific faculty qualification
 export const getFacultyQualifications = (req, res) => {
   const { faculty_id } = req.params;
@@ -1886,9 +2175,23 @@ export const getFacultyQualifications = (req, res) => {
 
 // ✅ ADD a new faculty qualification
 export const addFacultyQualification = (req, res) => {
-  const { faculty_id, degree_level, institute, degree_name, year_of_passing, specialization } = req.body;
+  const {
+    faculty_id,
+    degree_level,
+    institute,
+    degree_name,
+    year_of_passing,
+    specialization,
+  } = req.body;
 
-  if (!faculty_id || !degree_level || !institute || !degree_name || !year_of_passing || !specialization) {
+  if (
+    !faculty_id ||
+    !degree_level ||
+    !institute ||
+    !degree_name ||
+    !year_of_passing ||
+    !specialization
+  ) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
@@ -1898,12 +2201,26 @@ export const addFacultyQualification = (req, res) => {
 
   pool.query(
     query,
-    [faculty_id, degree_level, institute, degree_name, year_of_passing, specialization],
+    [
+      faculty_id,
+      degree_level,
+      institute,
+      degree_name,
+      year_of_passing,
+      specialization,
+    ],
     (err, result) => {
       if (err) {
-        return res.status(500).json({ message: "Error adding qualification", error: err });
+        return res
+          .status(500)
+          .json({ message: "Error adding qualification", error: err });
       }
-      res.status(201).json({ message: "Qualification added successfully", education_id: result.insertId });
+      res
+        .status(201)
+        .json({
+          message: "Qualification added successfully",
+          education_id: result.insertId,
+        });
     }
   );
 };
@@ -1911,9 +2228,23 @@ export const addFacultyQualification = (req, res) => {
 // ✅ UPDATE a faculty qualification
 export const updateFacultyQualification = (req, res) => {
   const { education_id } = req.params;
-  const { faculty_id, degree_level, institute, degree_name, year_of_passing, specialization } = req.body;
+  const {
+    faculty_id,
+    degree_level,
+    institute,
+    degree_name,
+    year_of_passing,
+    specialization,
+  } = req.body;
 
-  if (!faculty_id || !degree_level || !institute || !degree_name || !year_of_passing || !specialization) {
+  if (
+    !faculty_id ||
+    !degree_level ||
+    !institute ||
+    !degree_name ||
+    !year_of_passing ||
+    !specialization
+  ) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
@@ -1923,10 +2254,20 @@ export const updateFacultyQualification = (req, res) => {
 
   pool.query(
     query,
-    [faculty_id, degree_level, institute, degree_name, year_of_passing, specialization, education_id],
+    [
+      faculty_id,
+      degree_level,
+      institute,
+      degree_name,
+      year_of_passing,
+      specialization,
+      education_id,
+    ],
     (err, result) => {
       if (err) {
-        return res.status(500).json({ message: "Error updating qualification", error: err });
+        return res
+          .status(500)
+          .json({ message: "Error updating qualification", error: err });
       }
       if (result.affectedRows === 0) {
         return res.status(404).json({ message: "Qualification not found" });
@@ -1944,7 +2285,9 @@ export const deleteFacultyQualification = (req, res) => {
 
   pool.query(query, [education_id], (err, result) => {
     if (err) {
-      return res.status(500).json({ message: "Error deleting qualification", error: err });
+      return res
+        .status(500)
+        .json({ message: "Error deleting qualification", error: err });
     }
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Qualification not found" });

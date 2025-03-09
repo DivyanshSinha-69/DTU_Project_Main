@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 export default function PatentPopUp({
   patentName = "",
   patentPublish = "",
-  patentFiled = "",
+  inventorsName = "",
   patentAwardDate = null,
   patent_id = "",
   closeModal,
@@ -14,7 +14,7 @@ export default function PatentPopUp({
   const [formData, setFormData] = useState({
     patentName: patentName || "",
     patentPublish: patentPublish || "",
-    patentFiled: patentFiled || "",
+    inventorsName: inventorsName || "",
     patentAwardDate: patentAwardDate || "",
     patent_id: patent_id || "",
   });
@@ -29,20 +29,14 @@ export default function PatentPopUp({
 
   const handlePopupSubmit = (e) => {
     e.preventDefault();
-    const { patentName, patentPublish, patentFiled, patentAwardDate } =
+    const { patentName, patentPublish, inventorsName, patentAwardDate } =
       formData;
 
     // Validate required fields
-    if (!patentName || !patentPublish) {
+    if (!patentName || !patentPublish || !inventorsName) {
       toast.error("Please fill in all required fields.");
       return;
     }
-
-    // Validate dates (optional: ensure award date is after publish date)
-    // if (patentAwardDate && new Date(patentAwardDate) < new Date(patentPublish)) {
-    //   toast.error("Award date cannot be before the publish date.");
-    //   return;
-    // }
 
     if (handleAddPatent) {
       handleAddPatent(formData);
@@ -77,10 +71,26 @@ export default function PatentPopUp({
             />
           </div>
 
+          {/* Inventors/Co-Inventors */}
+          <div className="relative z-0 w-full group">
+            <label htmlFor="inventorsName" className="block text-sm">
+              Inventors/Co-Inventors
+            </label>
+            <input
+              type="text"
+              name="inventorsName"
+              id="inventorsName"
+              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={handleChange}
+              value={formData.inventorsName}
+              required
+            />
+          </div>
+
           {/* Publish Date */}
           <div className="relative z-0 w-full group">
             <label htmlFor="patentPublish" className="block text-sm">
-              Publish Date
+              Published Date
             </label>
             <input
               type="date"
@@ -90,21 +100,6 @@ export default function PatentPopUp({
               onChange={handleChange}
               value={formData.patentPublish}
               required
-            />
-          </div>
-
-          {/* Filed Date */}
-          <div className="relative z-0 w-full group">
-            <label htmlFor="patentFiled" className="block text-sm">
-              Filed Date (Optional)
-            </label>
-            <input
-              type="date"
-              name="patentFiled"
-              id="patentFiled"
-              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onChange={handleChange}
-              value={formData.patentFiled}
             />
           </div>
 

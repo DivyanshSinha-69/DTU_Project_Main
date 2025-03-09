@@ -5,7 +5,7 @@ import PersonalDetails from "./Tables/PersonalDetails";
 import ResearchProjects from "./Tables/ResearchProjects";
 import BookRecordsPublished from "./Tables/BookRecords.jsx";
 import Association from "./Tables/Association";
-import Visits from "./Tables/Visits";
+import Interaction from "./Tables/Interaction.jsx";
 import FacultyDevelopmentProgram from "./Tables/FDP";
 import PhDsAwarded from "./Tables/PhDsAwarded";
 import SponsoredResearch from "./Tables/SponsoredResearch";
@@ -137,7 +137,7 @@ const Faculty = () => {
     "research-papers": useRef(null),
     "book-records": useRef(null),
     "patent-records": useRef(null),
-    visits: useRef(null),
+    interaction: useRef(null),
     fdp: useRef(null),
     phds: useRef(null),
     "sponsored-research": useRef(null),
@@ -186,8 +186,8 @@ const Faculty = () => {
     { id: "book-records", label: "Book Records Published" },
     { id: "patent-records", label: "Patent Records" },
     {
-      id: "visits",
-      label: "Interaction with the Outside World as Guest Faculty",
+      id: "interaction",
+      label: "Interaction with the Outside World",
     },
     {
       id: "fdp",
@@ -511,10 +511,10 @@ const Faculty = () => {
                 </div>
                 <div
                   style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
-                  ref={sectionRefs["visits"]}
+                  ref={sectionRefs["interaction"]}
                   className={`pt-5 pb-5 ${isBlurActive ? "blur-effect" : ""}`}
                 >
-                  <Visits setBlurActive={setBlurActive} />
+                  <Interaction setBlurActive={setBlurActive} />
                 </div>
                 <div
                   ref={sectionRefs["fdp"]}

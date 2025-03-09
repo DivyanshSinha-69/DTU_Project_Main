@@ -38,7 +38,7 @@ const PatentRecords = ({ setBlurActive }) => {
           patent_id: patent.patent_id,
           patent_name: patent.patent_name,
           patent_publish: formatDateForInput(patent.patent_publish),
-          patent_filed: formatDateForInput(patent.patent_filed),
+          inventors_name: patent.inventors_name,
           patent_award_date: formatDateForInput(patent.patent_award_date),
         }))
       );
@@ -58,8 +58,8 @@ const PatentRecords = ({ setBlurActive }) => {
     const patentData = {
       patent_name: newPatent.patentName,
       faculty_id: facultyId,
+      inventors_name: newPatent.inventorsName,
       patent_publish: newPatent.patentPublish,
-      patent_filed: newPatent.patentFiled || null,
       patent_award_date: newPatent.patentAwardDate || null,
     };
 
@@ -105,14 +105,14 @@ const PatentRecords = ({ setBlurActive }) => {
 
   const TABLE_HEAD = [
     "Patent Name",
+    "Inventors/Co-inventors",
     "Published Date",
-    "Filed Date",
     "Award Date",
     "Actions",
   ];
 
   const formatDateForInputPopup = (date) => {
-    const [day, month, year] = date.split("/");
+    const [day, month, year] = date?.split("/");
     return `${year}-${month}-${day}`; // yyyy-MM-dd
   };
   return (
@@ -123,8 +123,8 @@ const PatentRecords = ({ setBlurActive }) => {
         subtitle="(Details of patents filed/awarded)"
         columns={[
           { key: "patent_name", label: "Patent Name" },
-          { key: "patent_publish", label: "Publish Date" },
-          { key: "patent_filed", label: "Filed Date" },
+          { key: "inventors_name", label: "Inventors/Co-inventors" },
+          { key: "patent_publish", label: "Published Date" },
           { key: "patent_award_date", label: "Award Date" },
           { key: "actions", label: "Actions" },
         ]}
@@ -137,7 +137,7 @@ const PatentRecords = ({ setBlurActive }) => {
             setSelectedPatent({
               patentName: patent.patent_name,
               patentPublish: formatDateForInputPopup(patent.patent_publish),
-              patentFiled: formatDateForInputPopup(patent.patent_filed),
+              inventorsName: patent.inventors_name,
               patentAwardDate: formatDateForInputPopup(
                 patent.patent_award_date
               ),
@@ -177,7 +177,7 @@ const PatentRecords = ({ setBlurActive }) => {
               <PatentPopUp
                 patentName={selectedPatent.patentName}
                 patentPublish={selectedPatent.patentPublish}
-                patentFiled={selectedPatent.patentFiled}
+                inventorsName={selectedPatent.inventorsName}
                 patentAwardDate={selectedPatent.patentAwardDate}
                 patent_id={selectedPatent.patent_id}
                 closeModal={closePopup}
