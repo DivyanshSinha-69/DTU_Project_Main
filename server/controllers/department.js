@@ -12,32 +12,6 @@ const generateAccessToken = (department_id, position) => {
     });
   };
   
-  const generateRefreshToken = (department_id, position) => {
-    const expiryDays = parseInt(process.env.REFRESH_TOKEN_EXPIRY) || 7;
-    const expirySeconds = expiryDays * 24 * 60 * 60;
-  
-    return jwt.sign({ department_id, position }, process.env.JWT_REFRESH_SECRET, {
-      expiresIn: expirySeconds,
-    });
-  };
-  
-export const getCirculars = (req, res) => {
-    const { department_id } = req.params;
-    
-    let query = "SELECT * FROM department_circular";
-    let params = [];
-
-    if (department_id) {
-        query += " WHERE department_id = ?";
-        params.push(department_id);
-    }
-
-    pool.query(query, params, (err, results) => {
-        if (err) {
-            console.error("Error fetching circulars:", err);
-            return res.status(500).json({ message: "Error fetching circulars", error: err });
-        }
-
 // 🔹 Generate Refresh Token (Long-lived)
 const generateRefreshToken = (department_id) => {
   const expiryDays = parseInt(process.env.REFRESH_TOKEN_EXPIRY) || 7;
@@ -963,4 +937,3 @@ export const logout = (req, res) => {
       }
     );
   };
-  
