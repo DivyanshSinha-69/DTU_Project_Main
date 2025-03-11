@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  role: null,
+  role: localStorage.getItem("role") || null, // Add role to store user
   facultyId: null, // Add facultyId to store faculty login ID
 };
 
@@ -11,6 +11,7 @@ export const userSlice = createSlice({
   reducers: {
     setRole: (state, action) => {
       state.role = action.payload;
+      localStorage.setItem("role", action.payload);
     },
   },
 });
