@@ -27,7 +27,7 @@ import Unauthorized from "./components/Unauthorized";
 import { Toaster } from "react-hot-toast";
 import { ThemeProvider, ThemeProviderWrapper } from "./context/ThemeContext";
 import Department from "./components/Department/Department";
-const CURRENT_VERSION = "2.0"; // Change this on every deployment
+const CURRENT_VERSION = "1.0"; // Change this on every deployment
 if (localStorage.getItem("appVersion") !== CURRENT_VERSION) {
   localStorage.clear();
   localStorage.setItem("appVersion", CURRENT_VERSION);
