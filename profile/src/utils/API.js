@@ -36,6 +36,7 @@ API.interceptors.request.use(
 
     if (token) {
       // Check if the token is expired or about to expire (e.g., within 5 minutes)
+      console.log("39");
       const isExpired = isTokenExpired(token);
 
       if (isExpired) {
@@ -73,6 +74,7 @@ API.interceptors.request.use(
         config.headers["Authorization"] = `Bearer ${token}`;
       }
     } else {
+      console.log("76");
       console.warn("⚠️ No token found in Redux store!");
     }
 

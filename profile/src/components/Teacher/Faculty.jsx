@@ -7,7 +7,7 @@ import BookRecordsPublished from "./Tables/BookRecords.jsx";
 import Association from "./Tables/Association";
 import Interaction from "./Tables/Interaction.jsx";
 import FacultyDevelopmentProgram from "./Tables/FDP";
-import PhDsAwarded from "./Tables/PhDsAwarded";
+import Guidance from "./Tables/Guidance";
 import SponsoredResearch from "./Tables/SponsoredResearch";
 import "../../styles/popup.css";
 import { Toaster } from "react-hot-toast";
@@ -526,7 +526,7 @@ const Faculty = () => {
                   ref={sectionRefs["phds"]}
                   className={`pt-5 pb-5 ${isBlurActive ? "blur-effect" : ""}`}
                 >
-                  <PhDsAwarded setBlurActive={setBlurActive} />
+                  <Guidance setBlurActive={setBlurActive} />
                 </div>
                 <div
                   ref={sectionRefs["sponsored-research"]}

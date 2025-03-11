@@ -5,6 +5,7 @@ import {
   MobileNav,
   Typography,
   IconButton,
+  Collapse,
 } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -36,7 +37,7 @@ import { removeInterInstitute } from "../../redux/reducers/student/UserInterInst
 import { removeBtechEducation } from "../../redux/reducers/student/UserBtechEducationalDetails";
 
 export default function StickyNavbar() {
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   const { role } = useSelector((state) => state.user);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -279,14 +280,14 @@ export default function StickyNavbar() {
           </div>
 
           {openNav === true && (
-            <MobileNav
+            <Collapse
               className="text-black bg-white customclass "
               style={{ zIndex: 15 }}
               open={openNav}
               onClick={closeMobileNav}
             >
               {navList}
-            </MobileNav>
+            </Collapse>
           )}
         </Navbar>
       </div>

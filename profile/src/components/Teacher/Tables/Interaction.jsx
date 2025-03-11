@@ -20,18 +20,17 @@ const Interaction = ({ setBlurActive }) => {
   const { faculty_id } = user;
   const FACULTY_ID = faculty_id;
 
+  const fetchInteractions = async () => {
+    try {
+      const response = await API.get(`ece/faculty/interaction/${FACULTY_ID}`);
+      setInteractionDetails(response.data.data || []);
+      console.log("Interaction Details:", response.data.data);
+    } catch (error) {
+      console.error("Error fetching interaction details:", error);
+    }
+  };
   // Fetch interaction records from the API
   useEffect(() => {
-    const fetchInteractions = async () => {
-      try {
-        const response = await API.get(`ece/faculty/interaction/${FACULTY_ID}`);
-        setInteractionDetails(response.data.data || []);
-        console.log("Interaction Details:", response.data.data);
-      } catch (error) {
-        console.error("Error fetching interaction details:", error);
-      }
-    };
-
     fetchInteractions();
   }, [FACULTY_ID]);
 
@@ -89,6 +88,7 @@ const Interaction = ({ setBlurActive }) => {
         );
       }
       closePopup();
+      fetchInteractions();
     } catch (error) {
       console.error("Error saving interaction details:", error);
     }
