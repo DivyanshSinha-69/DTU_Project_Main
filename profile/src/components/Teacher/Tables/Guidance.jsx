@@ -17,7 +17,7 @@ const dummyPhDDetails = [
   { menteeName: "Alice Johnson", rollNo: "345678", passingYear: 2022 },
 ];
 
-const PhDsAwarded = ({ setBlurActive }) => {
+const Guidance = ({ setBlurActive }) => {
   const [phdDetails, setPhdDetails] = useState([]);
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [selectedPhD, setSelectedPhD] = useState(null);
@@ -143,7 +143,7 @@ const PhDsAwarded = ({ setBlurActive }) => {
     <>
       {/* Reusable Custom Table Component */}
       <CustomTable
-        title="PhD Guidance Details"
+        title="PhD/M.Tech Guidance Details"
         subtitle="(Mention your students who have completed their PhD)"
         columns={[
           { key: "menteeName", label: "Mentee Name" },
@@ -207,4 +207,4 @@ const PhDsAwarded = ({ setBlurActive }) => {
   );
 };
 
-export default PhDsAwarded;
+export default Guidance;

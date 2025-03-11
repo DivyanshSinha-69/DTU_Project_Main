@@ -21,29 +21,29 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
   const { faculty_id } = user;
   const { darkMode } = useThemeContext();
   const facultyId = faculty_id;
-  useEffect(() => {
-    const fetchFDPDetails = async () => {
-      try {
-        const response = await API.get(`/ece/faculty/fdp-records/${facultyId}`);
-        console.log(response.data.data);
+  const fetchFDPDetails = async () => {
+    try {
+      const response = await API.get(`/ece/faculty/fdp-records/${facultyId}`);
+      console.log(response.data.data);
 
-        if (Array.isArray(response.data.data)) {
-          setFdpDetails(
-            response.data.data.map((fdp) => ({
-              FDP_id: fdp.FDP_id,
-              FDP_name: fdp.FDP_name,
-              year_conducted: fdp.year_conducted,
-              month_conducted: fdp.month_conducted,
-              days_contributed: fdp.days_contributed,
-            }))
-          );
-        }
-      } catch (error) {
-        console.error("Error fetching FDP details:", error);
-        toast.error("Error while fetching FDP details");
+      if (Array.isArray(response.data.data)) {
+        setFdpDetails(
+          response.data.data.map((fdp) => ({
+            FDP_id: fdp.FDP_id,
+            FDP_name: fdp.FDP_name,
+            FDP_progress: fdp.FDP_progress,
+            year_conducted: fdp.year_conducted,
+            month_conducted: fdp.month_conducted,
+            days_contributed: fdp.days_contributed,
+          }))
+        );
       }
-    };
-
+    } catch (error) {
+      console.error("Error fetching FDP details:", error);
+      toast.error("Error while fetching FDP details");
+    }
+  };
+  useEffect(() => {
     fetchFDPDetails();
   }, []);
 
@@ -60,7 +60,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
   };
 
   const handleAddFDP = async (newFDP) => {
-    const { programName, year, month, days } = newFDP;
+    const { programName, year, month, days, type } = newFDP;
 
     const payload = {
       faculty_id: facultyId,
@@ -68,51 +68,46 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
       year_conducted: year,
       month_conducted: month,
       days_contributed: days,
+      FDP_progress: type,
     };
-
+    console.log("Payload:", payload);
     try {
       let response;
       if (isAddFDP) {
         response = await API.post("/ece/faculty/fdp-records", payload);
       } else {
+        console.log("Selected FDP:", selectedFDP);
+
         response = await API.put(
           `/ece/faculty/fdp-records/${selectedFDP.FDP_id}`,
           payload
         );
       }
 
-      console.log("API Response:", response.data); // Debugging
-
       if (response && response.data) {
         toast.success("FDP record successfully saved");
-
-        // Ensure the new data matches the expected format
-        const newFDPRecord = {
-          FDP_id: response.data.data.id || selectedFDP.FDP_id, // Ensure ID exists
-          FDP_name: response.data.FDP_name || programName,
-          year_conducted: response.data.year_conducted || year,
-          month_conducted: response.data.month_conducted || month,
-          days_contributed: response.data.days_contributed || days,
-        };
-
-        if (isAddFDP) {
-          setFdpDetails((prev) => [...prev, newFDPRecord]);
-        } else {
-          setFdpDetails((prev) =>
-            prev.map((fdp) =>
-              fdp.FDP_id === selectedFDP.FDP_id ? newFDPRecord : fdp
-            )
-          );
-        }
+        console.log("FDP Record Saved:", response.data);
 
         closePopup();
+        fetchFDPDetails();
       } else {
         toast.error("Failed to save FDP record.");
       }
     } catch (error) {
       toast.error("Error connecting to the server.");
+      console.log("Error saving FDP record:", error);
     }
   };
+
+  const TABLE_HEAD = [
+    "FDP/Short Term Training Program",
+    "Type", // Add the Type column
+
+    "Year of Participation",
+    "Month of Participation",
+    "Duration(in days)",
+    "Actions",
+  ];
 
   const handleDeleteFDP = async (fdpId) => {
     try {
@@ -129,27 +124,21 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
     }
   };
 
-  const TABLE_HEAD = [
-    "Title of Faculty development/training activities/STTP",
-    "Year of Participation",
-    "Month of Participation",
-    "Duration of Participation(in days)",
-    "Actions",
-  ];
-
   return (
     <>
       {/* Header Section */}
 
       {/* Reusable Custom Table Component */}
       <CustomTable
-        title="Participation in Faculty Development/Training Activities/STTP"
-        subtitle="(Details of FDPs conducted or attended)"
+        title="FDP/Short Term Training Program"
+        subtitle="(Details of FDP/Short Term Training Program)"
         columns={[
           { key: "FDP_name", label: "Program Name" },
+          { key: "FDP_progress", label: "Type" },
           { key: "year_conducted", label: "Year" },
           { key: "month_conducted", label: "Month" },
-          { key: "days_contributed", label: "Days" },
+          { key: "days_contributed", label: "Duration(in days)" },
+          // Add the Type column
           { key: "actions", label: "Actions" },
         ]}
         data={fdpDetails} // FDP data array
@@ -191,6 +180,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
               year=""
               month=""
               days=""
+              type=""
               closeModal={closePopup}
               handleAddFDP={handleAddFDP}
             />
@@ -201,6 +191,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
                 year={selectedFDP.year_conducted}
                 month={selectedFDP.month_conducted}
                 days={selectedFDP.days_contributed}
+                type={selectedFDP.FDP_progress}
                 closeModal={closePopup}
                 handleAddFDP={handleAddFDP}
               />
