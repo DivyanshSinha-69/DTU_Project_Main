@@ -240,9 +240,9 @@ export const deleteCircular = (req, res) => {
   );
 };
 
+// Get Orders
 export const getOrders = (req, res) => {
   const { department_id } = req.params;
-
   let query = "SELECT * FROM department_duty_orders";
   let params = [];
 
@@ -254,105 +254,96 @@ export const getOrders = (req, res) => {
   pool.query(query, params, (err, results) => {
     if (err) {
       console.error("Error fetching orders:", err);
-      return res
-        .status(500)
-        .json({ message: "Error fetching orders", error: err });
+      return res.status(500).json({ message: "Error fetching orders", error: err });
     }
 
     if (department_id && results.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No orders found for this department" });
+      return res.status(404).json({ message: "No orders found for this department" });
     }
 
-    res
-      .status(200)
-      .json({ message: "Orders retrieved successfully", data: results });
+    res.status(200).json({ message: "Orders retrieved successfully", data: results });
   });
 };
 
-// 📌 Add Order with File Upload
+// Add Order
 export const addOrder = (req, res) => {
   const {
     department_id,
     order_number,
     order_name,
     order_date,
-    execution_date,
-    subject,
-    faculty_ids,
+    start_date,
+    end_date,
+    subject,  
   } = req.body;
 
-  // Extract file path from the uploaded file
+  let { faculty_ids, student_ids } = req.body;
+
   const order_path = req.file ? req.file.path : null;
 
-  // Ensure faculty_ids is an array (handle comma-separated string from form-data)
-  const processedFacultyIds =
-    typeof faculty_ids === "string" ? faculty_ids.split(",") : faculty_ids;
-
-  // Validate required fields
-  if (
-    !department_id ||
-    !order_number ||
-    !order_name ||
-    !order_date ||
-    !execution_date ||
-    !subject ||
-    !order_path ||
-    !Array.isArray(processedFacultyIds) ||
-    processedFacultyIds.length === 0
-  ) {
-    return res.status(400).json({
-      message:
-        "All fields are required, including at least one faculty_id and a file",
-    });
+  if (!department_id || !order_number || !order_name || !order_date || !start_date || !end_date || !subject) {
+    return res.status(400).json({ message: "All required fields must be provided." });
   }
 
   const orderQuery =
-    "INSERT INTO department_duty_orders (department_id, order_number, order_name, order_date, execution_date, subject, order_path) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    "INSERT INTO department_duty_orders (department_id, order_number, order_name, order_date, start_date, end_date, subject, order_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
   const orderParams = [
     department_id,
     order_number,
     order_name,
     order_date,
-    execution_date,
+    start_date,
+    end_date,
     subject,
-    order_path,
+    order_path
   ];
 
   pool.query(orderQuery, orderParams, (err, result) => {
     if (err) {
       console.error("Error adding order:", err);
-      return res
-        .status(500)
-        .json({ message: "Error adding order", error: err });
+      return res.status(500).json({ message: "Error adding order", error: err });
     }
 
-    // Insert faculty_id and order_number into faculty_orders table
-    const facultyQuery =
-      "INSERT INTO faculty_orders (faculty_id, order_number) VALUES ?";
-    const facultyValues = processedFacultyIds.map((faculty_id) => [
-      faculty_id,
-      order_number,
-    ]);
-
-    pool.query(facultyQuery, [facultyValues], (facultyErr) => {
-      if (facultyErr) {
-        console.error("Error linking faculty to order:", facultyErr);
-        return res.status(500).json({
-          message: "Order added, but failed to link faculty",
-          error: facultyErr,
-        });
+    if (typeof faculty_ids === "string") {
+      try {
+        faculty_ids = JSON.parse(faculty_ids);
+      } catch (error) {
+        console.error("Error parsing faculty_ids:", error);
+        faculty_ids = [];
       }
+    }
+    
 
-      res.status(201).json({
-        message: "Order added successfully and linked to faculty",
-        insertId: result.insertId,
+    if (typeof student_ids === "string") {
+      try {
+        student_ids = JSON.parse(student_ids);
+      } catch (error) {
+        console.error("Error parsing student_ids:", error);
+        student_ids = [];
+      }
+    }
+
+    if (faculty_ids.length > 0) {
+      const facultyQuery = "INSERT INTO mapping_duty_orders_faculty (faculty_id, order_number) VALUES ?";
+      const facultyValues = faculty_ids.map(faculty_id => [faculty_id, order_number]);
+      pool.query(facultyQuery, [facultyValues], (facultyErr) => {
+        if (facultyErr) console.error("Error linking faculty:", facultyErr);
       });
-    });
+    }
+
+    if (student_ids.length > 0) {
+      const studentQuery = "INSERT INTO mapping_duty_orders_students (RollNo, order_number) VALUES ?";
+      const studentValues = student_ids.map(rollNo => [rollNo, order_number]);
+      pool.query(studentQuery, [studentValues], (studentErr) => {
+        if (studentErr) console.error("Error linking students:", studentErr);
+      });
+    }
+
+    res.status(201).json({ message: "Order added successfully", insertId: result.insertId });
   });
 };
 
+// Update Order
 export const updateOrder = (req, res) => {
   const { order_id } = req.params;
   const {
@@ -360,196 +351,89 @@ export const updateOrder = (req, res) => {
     order_number,
     order_name,
     order_date,
-    execution_date,
+    start_date,
+    end_date,
     subject,
-    faculty_ids,
   } = req.body;
 
-  // Process faculty_ids to ensure it's an array
-  const processedFacultyIds =
-    typeof faculty_ids === "string" ? faculty_ids.split(",") : faculty_ids;
+  let { faculty_ids, student_ids } = req.body;
 
-  // Validate required fields
-  if (
-    !department_id ||
-    !order_number ||
-    !order_name ||
-    !order_date ||
-    !execution_date ||
-    !subject ||
-    !Array.isArray(processedFacultyIds) ||
-    processedFacultyIds.length === 0
-  ) {
-    return res.status(400).json({
-      message: "All fields are required, including at least one faculty_id",
-    });
-  }
 
-  // Step 1: Fetch the previous file path
-  pool.query(
-    "SELECT order_path FROM department_duty_orders WHERE order_id=?",
-    [order_id],
-    (err, results) => {
-      if (err) {
-        console.error("Error fetching order:", err);
-        return res
-          .status(500)
-          .json({ message: "Error fetching order", error: err });
-      }
-      if (results.length === 0)
-        return res.status(404).json({ message: "Order not found" });
-
-      const oldFilePath = results[0].order_path;
-
-      // Step 2: Delete the old file if a new one is uploaded
-      if (req.file && oldFilePath) {
-        fs.unlink(oldFilePath, (err) => {
-          if (err && err.code !== "ENOENT")
-            console.error("Error deleting previous file:", err);
-        });
-      }
-
-      // Step 3: Get the new file path (uploaded via Multer)
-      const newFilePath = req.file ? req.file.path : oldFilePath; // Keep old path if no new file
-
-      // Step 4: Update the order
-      const updateOrderQuery = `UPDATE department_duty_orders 
-                                  SET department_id=?, order_number=?, order_name=?, order_date=?, execution_date=?, subject=?, order_path=? 
-                                  WHERE order_id=?`;
-      const orderParams = [
-        department_id,
-        order_number,
-        order_name,
-        order_date,
-        execution_date,
-        subject,
-        newFilePath,
-        order_id,
-      ];
-
-      pool.query(updateOrderQuery, orderParams, (err, result) => {
-        if (err) {
-          console.error("Error updating order:", err);
-          return res
-            .status(500)
-            .json({ message: "Error updating order", error: err });
-        }
-        if (result.affectedRows === 0)
-          return res.status(404).json({ message: "Order not found" });
-
-        // Remove old faculty assignments
-        const deleteFacultyQuery =
-          "DELETE FROM faculty_orders WHERE order_number = ?";
-        pool.query(deleteFacultyQuery, [order_number], (deleteErr) => {
-          if (deleteErr) {
-            console.error("Error removing old faculty assignments:", deleteErr);
-            return res.status(500).json({
-              message:
-                "Order updated, but failed to remove old faculty assignments",
-              error: deleteErr,
-            });
-          }
-
-          // Insert new faculty assignments
-          const facultyQuery =
-            "INSERT INTO faculty_orders (faculty_id, order_number) VALUES ?";
-          const facultyValues = processedFacultyIds.map((faculty_id) => [
-            faculty_id,
-            order_number,
-          ]);
-
-          pool.query(facultyQuery, [facultyValues], (facultyErr) => {
-            if (facultyErr) {
-              console.error("Error updating faculty assignments:", facultyErr);
-              return res.status(500).json({
-                message:
-                  "Order updated, but failed to update faculty assignments",
-                error: facultyErr,
-              });
-            }
-
-            res
-              .status(200)
-              .json({ message: "Order updated successfully", newFilePath });
-          });
-        });
-      });
+  pool.query("SELECT order_path FROM department_duty_orders WHERE order_id=?", [order_id], (err, results) => {
+    if (err || results.length === 0) {
+      return res.status(500).json({ message: "Error fetching order", error: err });
     }
-  );
+
+    const oldFilePath = results[0].order_path;
+    if (req.file && oldFilePath) fs.unlink(oldFilePath, () => {});
+    const newFilePath = req.file ? req.file.path : oldFilePath;
+
+    const updateOrderQuery = `UPDATE department_duty_orders SET department_id=?, order_number=?, order_name=?, order_date=?, start_date=?, end_date=?, subject=?, order_path=? WHERE order_id=?`;
+    const orderParams = [department_id, order_number, order_name, order_date, start_date, end_date, subject, newFilePath, order_id];
+
+    if (typeof faculty_ids === "string") {
+      try {
+        faculty_ids = JSON.parse(faculty_ids);
+      } catch (error) {
+        console.error("Error parsing faculty_ids:", error);
+        faculty_ids = [];
+      }
+    }
+    
+
+    if (typeof student_ids === "string") {
+      try {
+        student_ids = JSON.parse(student_ids);
+      } catch (error) {
+        console.error("Error parsing student_ids:", error);
+        student_ids = [];
+      }
+    }
+
+    pool.query(updateOrderQuery, orderParams, (err, result) => {
+      if (err) return res.status(500).json({ message: "Error updating order", error: err });
+      if (result.affectedRows === 0) return res.status(404).json({ message: "Order not found" });
+
+      pool.query("DELETE FROM mapping_duty_orders_faculty WHERE order_number = ?", [order_number]);
+      pool.query("DELETE FROM mapping_duty_orders_students WHERE order_number = ?", [order_number]);
+
+      if (faculty_ids.length > 0) {
+        const facultyQuery = "INSERT INTO mapping_duty_orders_faculty (faculty_id, order_number) VALUES ?";
+        pool.query(facultyQuery, [faculty_ids.map(faculty_id => [faculty_id, order_number])]);
+      }
+
+      if (student_ids.length > 0) {
+        const studentQuery = "INSERT INTO mapping_duty_orders_students (RollNo, order_number) VALUES ?";
+        pool.query(studentQuery, [student_ids.map(rollNo => [rollNo, order_number])]);
+      }
+
+      res.status(200).json({ message: "Order updated successfully", newFilePath });
+    });
+  });
 };
 
+// Delete Order
 export const deleteOrder = (req, res) => {
   const { order_id } = req.params;
+  if (!order_id) return res.status(400).json({ message: "Order ID is required" });
 
-  if (!order_id) {
-    return res.status(400).json({ message: "Order ID is required" });
-  }
+  pool.query("SELECT order_number, order_path FROM department_duty_orders WHERE order_id=?", [order_id], (err, results) => {
+    if (err || results.length === 0) return res.status(404).json({ message: "Order not found" });
 
-  // Step 1: Retrieve file path & order_number before deletion
-  pool.query(
-    "SELECT order_number, order_path FROM department_duty_orders WHERE order_id=?",
-    [order_id],
-    (err, results) => {
-      if (err) {
-        console.error("Error fetching order:", err);
-        return res
-          .status(500)
-          .json({ message: "Error fetching order", error: err });
-      }
-      if (results.length === 0)
-        return res.status(404).json({ message: "Order not found" });
+    const { order_number, order_path } = results[0];
+    pool.query("DELETE FROM mapping_duty_orders_faculty WHERE order_number = ?", [order_number]);
+    pool.query("DELETE FROM mapping_duty_orders_students WHERE order_number = ?", [order_number]);
 
-      const { order_number, order_path } = results[0];
+    if (order_path) fs.unlink(order_path, () => {});
 
-      // Step 2: Delete associated faculty assignments
-      pool.query(
-        "DELETE FROM faculty_orders WHERE order_number=?",
-        [order_number],
-        (facultyErr) => {
-          if (facultyErr) {
-            console.error("Error deleting faculty assignments:", facultyErr);
-            return res.status(500).json({
-              message: "Error deleting faculty assignments",
-              error: facultyErr,
-            });
-          }
-
-          // Step 3: Delete the file if it exists
-          if (order_path) {
-            fs.unlink(order_path, (err) => {
-              if (err && err.code !== "ENOENT") {
-                console.error("Error deleting file:", err);
-              }
-            });
-          }
-
-          // Step 4: Delete the order
-          pool.query(
-            "DELETE FROM department_duty_orders WHERE order_id=?",
-            [order_id],
-            (orderErr, result) => {
-              if (orderErr) {
-                console.error("Error deleting order:", orderErr);
-                return res
-                  .status(500)
-                  .json({ message: "Error deleting order", error: orderErr });
-              }
-
-              if (result.affectedRows === 0) {
-                return res.status(404).json({ message: "Order not found" });
-              }
-
-              res.status(200).json({
-                message:
-                  "Order and related faculty assignments deleted successfully",
-              });
-            }
-          );
-        }
-      );
-    }
-  );
+    pool.query("DELETE FROM department_duty_orders WHERE order_id=?", [order_id], (orderErr, result) => {
+      if (orderErr) return res.status(500).json({ message: "Error deleting order", error: orderErr });
+      if (result.affectedRows === 0) return res.status(404).json({ message: "Order not found" });
+      res.status(200).json({ message: "Order deleted successfully" });
+    });
+  });
 };
+
 
 export const getFacultyOrders = (req, res) => {
   const { faculty_id } = req.params;
