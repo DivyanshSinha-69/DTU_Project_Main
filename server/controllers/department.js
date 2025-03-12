@@ -7,12 +7,12 @@ import path from "path";
 // 🔹 Generate Access Token (Short-lived)
 
 const generateAccessToken = (department_id, position) => {
-    return jwt.sign({ department_id, position }, process.env.JWT_SECRET, {
-      expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
-    });
-  };
-  
-// 🔹 Generate Refresh Token (Long-lived)
+  return jwt.sign({ department_id, position }, process.env.JWT_SECRET, {
+    expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
+  });
+};
+
+//Generate Refresh Token(Long - lived)
 const generateRefreshToken = (department_id) => {
   const expiryDays = parseInt(process.env.REFRESH_TOKEN_EXPIRY) || 7;
   const expirySeconds = expiryDays * 24 * 60 * 60;
@@ -684,140 +684,163 @@ export const deleteDepartment = (req, res) => {
 
 // ==================== Department Login Controller ====================
 export const departmentLogin = (req, res) => {
+  const { department_id, password } = req.body;
 
-    const { department_id, password } = req.body;
-  
-    if (!department_id || !password) {
-      return res.status(400).json({ message: "Department ID and password are required!" });
-    }
-  
-    // Query to get department authentication details along with position name
-    pool.query(
-      `SELECT da.*, pt.position_name 
+  if (!department_id || !password) {
+    return res
+      .status(400)
+      .json({ message: "Department ID and password are required!" });
+  }
+
+  // Query to get department authentication details along with position name
+  pool.query(
+    `SELECT da.*, pt.position_name 
        FROM department_auth da 
        JOIN position_type pt ON da.position_id = pt.position_id
        WHERE da.department_id = ?`,
-      [department_id],
-      (err, results) => {
-        if (err) {
-          console.error("Database Error:", err);
-          return res.status(500).json({ message: "Server error!" });
-        }
-  
-        if (results.length === 0) {
-          return res.status(404).json({ message: "Department ID not found!" });
-        }
-  
-        const user = results[0];
-        bcrypt.compare(password, user.password, (err, isMatch) => {
-          if (err) return res.status(500).json({ message: "Server error!" });
-          if (!isMatch) return res.status(401).json({ message: "Invalid password!" });
-  
-          // Fetch department details
-          pool.query(
-            `SELECT department_name, degree, university, curr_hod 
-             FROM department_details WHERE department_id = ?`,
-            [department_id],
-            (err, departmentResults) => {
-              if (err) {
-                console.error("Database Error:", err);
-                return res.status(500).json({ message: "Server error!" });
-              }
-  
-              if (departmentResults.length === 0) {
-                return res.status(404).json({ message: "Department details not found!" });
-              }
-  
-              const { department_name, degree, university, curr_hod } = departmentResults[0];
-  
-              // Generate access and refresh tokens including position
-              const accessToken = generateAccessToken(user.department_id, user.position_name);
-              const refreshToken = generateRefreshToken(user.department_id, user.position_name);
-  
-              const expiryDays = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7;
-              const refreshTokenExpiry = new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000)
-                .toISOString()
-                .slice(0, 19)
-                .replace("T", " ");
-  
-              // Store refresh token in database
-              pool.query(
-                "UPDATE department_auth SET refresh_token = ?, refresh_token_expiry = ? WHERE department_id = ?",
-                [refreshToken, refreshTokenExpiry, department_id],
-                (err) => {
-                  if (err) {
-                    console.error("Database Error:", err);
-                    return res.status(500).json({ message: "Server error!" });
-                  }
-  
-                  res.json({
-                    message: "Login successful!",
-                    accessToken,
-                    refreshToken,
-                    user: {
-                      department_id: user.department_id,
-                      department_name,
-                      degree,
-                      university,
-                      current_hod: curr_hod,
-                      position: user.position_name,
-                    },
-                  });
-                }
-              );
-            }
-          );
-        });
+    [department_id],
+    (err, results) => {
+      if (err) {
+        console.error("Database Error:", err);
+        return res.status(500).json({ message: "Server error!" });
       }
-    );
-  };
-  
+
+      if (results.length === 0) {
+        return res.status(404).json({ message: "Department ID not found!" });
+      }
+
+      const user = results[0];
+      bcrypt.compare(password, user.password, (err, isMatch) => {
+        if (err) return res.status(500).json({ message: "Server error!" });
+        if (!isMatch)
+          return res.status(401).json({ message: "Invalid password!" });
+
+        // Fetch department details
+        pool.query(
+          `SELECT department_name, degree, university, curr_hod 
+             FROM department_details WHERE department_id = ?`,
+          [department_id],
+          (err, departmentResults) => {
+            if (err) {
+              console.error("Database Error:", err);
+              return res.status(500).json({ message: "Server error!" });
+            }
+
+            if (departmentResults.length === 0) {
+              return res
+                .status(404)
+                .json({ message: "Department details not found!" });
+            }
+
+            const { department_name, degree, university, curr_hod } =
+              departmentResults[0];
+
+            // Generate access and refresh tokens including position
+            const accessToken = generateAccessToken(
+              user.department_id,
+              user.position_name
+            );
+            const refreshToken = generateRefreshToken(
+              user.department_id,
+              user.position_name
+            );
+
+            const expiryDays = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7;
+            const refreshTokenExpiry = new Date(
+              Date.now() + expiryDays * 24 * 60 * 60 * 1000
+            )
+              .toISOString()
+              .slice(0, 19)
+              .replace("T", " ");
+
+            // Store refresh token in database
+            pool.query(
+              "UPDATE department_auth SET refresh_token = ?, refresh_token_expiry = ? WHERE department_id = ?",
+              [refreshToken, refreshTokenExpiry, department_id],
+              (err) => {
+                if (err) {
+                  console.error("Database Error:", err);
+                  return res.status(500).json({ message: "Server error!" });
+                }
+
+                res.json({
+                  message: "Login successful!",
+                  accessToken,
+                  refreshToken,
+                  user: {
+                    department_id: user.department_id,
+                    department_name,
+                    degree,
+                    university,
+                    current_hod: curr_hod,
+                    position: user.position_name,
+                  },
+                });
+              }
+            );
+          }
+        );
+      });
+    }
+  );
+};
+
 // ==================== Refresh Token Controller ====================
 export const refreshToken = (req, res) => {
-    const { refreshToken } = req.body;
-    if (!refreshToken) {
-      return res.status(401).json({ message: "Refresh token is required!" });
-    }
-  
-    pool.query(
-      `SELECT da.refresh_token, da.refresh_token_expiry, da.department_id, pt.position_name
+  const { refreshToken } = req.body;
+  if (!refreshToken) {
+    return res.status(401).json({ message: "Refresh token is required!" });
+  }
+
+  pool.query(
+    `SELECT da.refresh_token, da.refresh_token_expiry, da.department_id, pt.position_name
        FROM department_auth da
        JOIN position_type pt ON da.position_id = pt.position_id
        WHERE da.refresh_token = ?`,
-      [refreshToken],
-      (err, results) => {
-        if (err) return res.status(500).json({ message: "Server error!" });
-        if (results.length === 0) return res.status(401).json({ message: "Invalid refresh token!" });
-  
-        const { department_id, position_name, refresh_token_expiry } = results[0];
-        const tokenExpiry = new Date(refresh_token_expiry);
-  
-        if (tokenExpiry < new Date()) {
-          return res.status(401).json({ message: "Refresh token expired!" });
-        }
-  
-        jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err, decoded) => {
-          if (err) return res.status(401).json({ message: "Invalid or expired refresh token!" });
-  
-          res.json({ accessToken: generateAccessToken(department_id, position_name) });
-        });
+    [refreshToken],
+    (err, results) => {
+      if (err) return res.status(500).json({ message: "Server error!" });
+      if (results.length === 0)
+        return res.status(401).json({ message: "Invalid refresh token!" });
+
+      const { department_id, position_name, refresh_token_expiry } = results[0];
+      const tokenExpiry = new Date(refresh_token_expiry);
+
+      if (tokenExpiry < new Date()) {
+        return res.status(401).json({ message: "Refresh token expired!" });
       }
-    );
-  };
-  
+
+      jwt.verify(
+        refreshToken,
+        process.env.JWT_REFRESH_SECRET,
+        (err, decoded) => {
+          if (err)
+            return res
+              .status(401)
+              .json({ message: "Invalid or expired refresh token!" });
+
+          res.json({
+            accessToken: generateAccessToken(department_id, position_name),
+          });
+        }
+      );
+    }
+  );
+};
+
 // ==================== Logout Controller ====================
 export const logout = (req, res) => {
-    const { department_id } = req.body;
-    if (!department_id) {
-      return res.status(400).json({ message: "Department ID is required!" });
+  const { department_id } = req.body;
+  if (!department_id) {
+    return res.status(400).json({ message: "Department ID is required!" });
+  }
+
+  pool.query(
+    "UPDATE department_auth SET refresh_token = NULL, refresh_token_expiry = NULL WHERE department_id = ?",
+    [department_id],
+    (err) => {
+      if (err) return res.status(500).json({ message: "Server error!" });
+      res.json({ message: "Logged out successfully!" });
     }
-  
-    pool.query(
-      "UPDATE department_auth SET refresh_token = NULL, refresh_token_expiry = NULL WHERE department_id = ?",
-      [department_id],
-      (err) => {
-        if (err) return res.status(500).json({ message: "Server error!" });
-        res.json({ message: "Logged out successfully!" });
-      }
-    );
-  };
+  );
+};

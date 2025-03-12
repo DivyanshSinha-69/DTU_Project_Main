@@ -7,6 +7,7 @@ export default function FacultyDevelopmentPopUp({
   year,
   month,
   days,
+  type,
   closeModal,
   handleAddFDP,
 }) {
@@ -15,6 +16,7 @@ export default function FacultyDevelopmentPopUp({
     year: year || "",
     month: month || "",
     days: days || "",
+    type: type || "Conducted", // Default to "Conducted"
   });
 
   const months = [
@@ -42,15 +44,15 @@ export default function FacultyDevelopmentPopUp({
 
   const handlePopupSubmit = async (e) => {
     e.preventDefault();
-    const { programName, year, month, days } = formData;
+    const { programName, year, month, days, type } = formData;
 
-    if (!programName || !year || !month || !days) {
+    if (!programName || !year || !month || !days || !type) {
       toast.error("Please fill in all required fields.");
       return;
     }
 
     if (handleAddFDP) {
-      handleAddFDP(formData); // Corrected typo here
+      handleAddFDP(formData);
     }
     closeModal();
   };
@@ -94,11 +96,27 @@ export default function FacultyDevelopmentPopUp({
               required
             />
           </div>
-
+          {/* Type Dropdown */}
+          <div className="relative z-0 w-full group">
+            <label htmlFor="type" className="block text-sm">
+              Type
+            </label>
+            <select
+              name="type"
+              id="type"
+              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={handleChange}
+              value={formData.type}
+              required
+            >
+              <option value="Conducted">Conducted</option>
+              <option value="Participated">Participated</option>
+            </select>
+          </div>
           {/* Year Conducted Dropdown */}
           <div className="relative z-0 w-full group">
             <label htmlFor="year" className="block text-sm">
-              Year of Participation
+              Year
             </label>
             <select
               name="year"
@@ -116,7 +134,7 @@ export default function FacultyDevelopmentPopUp({
           {/* Month Conducted Dropdown */}
           <div className="relative z-0 w-full group">
             <label htmlFor="month" className="block text-sm">
-              Month of Participation
+              Month
             </label>
             <select
               name="month"
@@ -138,7 +156,7 @@ export default function FacultyDevelopmentPopUp({
           {/* Days Contributed */}
           <div className="relative z-0 w-full group">
             <label htmlFor="days" className="block text-sm">
-              Duration of Participation(in days)
+              Duration (in days)
             </label>
             <input
               type="number"

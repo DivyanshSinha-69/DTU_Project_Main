@@ -3,8 +3,7 @@ import { store } from "../redux/Store";
 import { updateAccessToken, logout } from "../redux/reducers/AuthSlice";
 import { useSelector } from "react-redux";
 // const {refreshToken, accessToken} = useSelector((state) => state.auth) || {};
-const accessToken = store.getState().auth.accessToken;
-const refreshToken = store.getState().auth.refreshToken;
+
 const API = axios.create({
   baseURL: `${process.env.REACT_APP_BACKEND_URL}`,
   withCredentials: true, // Ensure cookies are sent if used for refresh tokens
@@ -31,8 +30,8 @@ const isTokenExpired = (token) => {
 // 🔹 Attach Access Token to Every Request
 API.interceptors.request.use(
   async (config) => {
-    const token = accessToken;
-    console.log("🔐 Access Token:", token);
+    const state = store.getState(); // Get the latest state
+    const token = state.auth.accessToken; // Access token dynamically
 
     if (token) {
       // Check if the token is expired or about to expire (e.g., within 5 minutes)
@@ -42,6 +41,7 @@ API.interceptors.request.use(
         console.log("🔴 Token expired or about to expire. Refreshing token...");
 
         try {
+          const refreshToken = state.auth.refreshToken; // Access refresh token dynamically
           if (!refreshToken) {
             console.error("❌ No refresh token available!");
             store.dispatch(logout());
@@ -73,6 +73,7 @@ API.interceptors.request.use(
         config.headers["Authorization"] = `Bearer ${token}`;
       }
     } else {
+      console.log("76");
       console.warn("⚠️ No token found in Redux store!");
     }
 

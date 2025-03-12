@@ -5,6 +5,7 @@ import {
   MobileNav,
   Typography,
   IconButton,
+  Collapse,
 } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -36,7 +37,7 @@ import { removeInterInstitute } from "../../redux/reducers/student/UserInterInst
 import { removeBtechEducation } from "../../redux/reducers/student/UserBtechEducationalDetails";
 
 export default function StickyNavbar() {
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   const { role } = useSelector((state) => state.user);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -227,7 +228,10 @@ export default function StickyNavbar() {
       <div className="font1 bg-inherit border-0 max-h-[768px] w-[calc(100% + 48px)] shadow-none">
         <Navbar className="bg-white border-0 top-0 z-50 h-max w-full rounded-none p-0 lg:p-0 shadow-none fixed">
           <div className="flex  bg-inherit border-0 items-center justify-between rounded-none text-blue-gray-900">
-            <Typography className="mr-4 cursor-pointer py-0 font-medium ">
+            <Typography
+              as="div"
+              className="mr-4 cursor-pointer py-0 font-medium "
+            >
               <div className="flex justify-center text-align">
                 <img src={dtulogo} alt="dtulogo" className="h-20 w-30" />
                 <p className="flex tracking-wide justify-center items-center text-sm lg:text-2xl p-3 text-gray-700 font-bold">
@@ -279,14 +283,14 @@ export default function StickyNavbar() {
           </div>
 
           {openNav === true && (
-            <MobileNav
+            <Collapse
               className="text-black bg-white customclass "
               style={{ zIndex: 15 }}
               open={openNav}
               onClick={closeMobileNav}
             >
               {navList}
-            </MobileNav>
+            </Collapse>
           )}
         </Navbar>
       </div>
