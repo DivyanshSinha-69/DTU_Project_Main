@@ -2,7 +2,6 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   user: JSON.parse(localStorage.getItem("user")) || null, // Ensure structure is maintained
-  facultyId: localStorage.getItem("facultyId") || null,
   accessToken: localStorage.getItem("accessToken") || null,
   refreshToken: localStorage.getItem("refreshToken") || null,
   isAuthenticated: localStorage.getItem("isAuthenticated") || false,
@@ -19,7 +18,6 @@ export const authSlice = createSlice({
       state.refreshToken = action.payload.refreshToken;
       state.isAuthenticated = true;
       localStorage.setItem("user", JSON.stringify(action.payload.user));
-      localStorage.setItem("facultyId", action.payload.facultyId);
       localStorage.setItem("isAuthenticated", state.isAuthenticated);
 
       localStorage.setItem("accessToken", action.payload.accessToken);
@@ -31,8 +29,12 @@ export const authSlice = createSlice({
       state.accessToken = null;
       state.refreshToken = null;
       state.isAuthenticated = false;
+      console.log("logging out auth");
 
-      localStorage.clear();
+      localStorage.removeItem("user");
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("isAuthenticated");
     },
     updateAccessToken: (state, action) => {
       console.log("🔄 Updating Access Token in Redux:", action.payload);

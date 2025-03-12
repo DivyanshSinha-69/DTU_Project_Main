@@ -126,9 +126,9 @@ const Sidebar = ({ menuItems, selectedItem, onSelect, role, faculty_id }) => {
                 {selectedItem === item.id && (
                   <div
                     className="absolute top-0 left-0 h-full w-1 rounded-l-full"
-                    style={{
-                      backgroundColor: darkMode ? "#569CD6" : "#007BFF", // Accent color for selected item
-                    }}
+                    // style={{
+                    //   backgroundColor: darkMode ? "#569CD6" : "#007BFF", // Accent color for selected item
+                    // }}
                   ></div>
                 )}
                 <motion.span

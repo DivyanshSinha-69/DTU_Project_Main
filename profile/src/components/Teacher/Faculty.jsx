@@ -37,9 +37,9 @@ const Faculty = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [isOperationInProgress, setOperationInProgress] = useState(false);
 
-  const user = useSelector((state) => state.auth.user) || {};
+  const { faculty_id, faculty_name, faculty_designation } =
+    useSelector((state) => state.auth.user) || {};
   const { role } = useSelector((state) => state.user);
-  const { faculty_id, faculty_name, faculty_designation } = user;
   const facultyId = faculty_id;
 
   const fetchFacultyImage = async () => {
