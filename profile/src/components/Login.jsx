@@ -3,7 +3,7 @@ import backgroundImage from "../assets/dtu.png";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import axios from "axios";
-import { login } from "../redux/reducers/AuthSlice";
+import { login, logout } from "../redux/reducers/AuthSlice";
 import { setRole, setFacultyId } from "../redux/reducers/UserSlice";
 import { useLocation } from "react-router-dom";
 import { toast } from "react-hot-toast";
@@ -53,7 +53,7 @@ const Login = () => {
       const response = await axios.post(endpoint, payload, {
         withCredentials: true,
       });
-
+      console.log("response", response);
       const { accessToken, refreshToken, user } = response.data;
 
       if (role === "faculty" && !accessToken) {
@@ -61,19 +61,18 @@ const Login = () => {
         toast.error("Invalid credentials. Please try again.");
         return;
       }
-
+      console.log("user", user);
       dispatch(setRole(user.Position));
 
       dispatch(
         login({
           user: user,
-          facultyId: role === "faculty" ? user.faculty_id : null,
           accessToken: accessToken,
           refreshToken: refreshToken,
         })
       );
 
-      switch (user.Position) {
+      switch (user.position) {
         case "faculty":
           navigate("/faculty/portal");
           break;
@@ -89,9 +88,11 @@ const Login = () => {
         case "alumni":
           navigate("/alumni/portal");
           break;
-        default:
+        default: {
+          dispatch(logout());
           navigate("/unauthorized");
           break;
+        }
       }
 
       toast.success("Login successful!");
