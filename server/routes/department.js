@@ -16,13 +16,17 @@ import {
   addOrder,
   updateOrder,
   deleteOrder,
-  getFacultyOrders,
-  addFacultyOrder,
-  updateFacultyOrder,
-  deleteFacultyOrder,
-  getFacultiesForOrder,
+  getFacultyMappings,
+  addFacultyMapping,
+  updateFacultyMapping,
+  deleteFacultyMapping,
+  getStudentMappings,
+  addStudentMapping,
+  updateStudentMapping,
+  deleteStudentMapping,
   getDepartments,
   addDepartment,
+  getMappingsByOrderNumber,
   updateDepartment,
   deleteDepartment,
   departmentLogin,
@@ -54,11 +58,19 @@ router.put("/orders/:order_id", authorizeRoles("department"), uploadDepartmentOr
 router.delete("/orders/:order_id", authorizeRoles("department"), deleteOrder);
 
 // Faculty Orders Routes
-router.get("/faculty-orders/:faculty_id?", authorizeRoles("department"), getFacultyOrders);
-router.post("/faculty-orders", authorizeRoles("department"), addFacultyOrder);
-router.put("/faculty-orders/:id", authorizeRoles("department"), updateFacultyOrder);
-router.delete("/faculty-orders/:id", authorizeRoles("department"), deleteFacultyOrder);
-router.get("/faculty-orders/order/:order_number", authorizeRoles("department"), getFacultiesForOrder);
+router.get("/faculty-orders/:faculty_id?", authorizeRoles("department"), getFacultyMappings);
+router.post("/faculty-orders", authorizeRoles("department"), addFacultyMapping);
+router.put("/faculty-orders/:id", authorizeRoles("department"), updateFacultyMapping);
+router.delete("/faculty-orders/:id", authorizeRoles("department"),   deleteFacultyMapping);
+
+// Student Orders Routes
+router.get("/student-orders/:faculty_id?", authorizeRoles("department"), getStudentMappings);
+router.post("/student-orders", authorizeRoles("department"), addStudentMapping);
+router.put("/student-orders/:id", authorizeRoles("department"), updateStudentMapping);
+router.delete("/student-orders/:id", authorizeRoles("department"),   deleteStudentMapping);
+
+// Faculty-Student Mix Route
+router.get("/orders_map", authorizeRoles("department"), getMappingsByOrderNumber);
 
 // Department Details Routes
 router.get("/departments/:department_id?", authorizeRoles("department"), getDepartments);

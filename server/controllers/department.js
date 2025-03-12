@@ -434,125 +434,191 @@ export const deleteOrder = (req, res) => {
   });
 };
 
-
-export const getFacultyOrders = (req, res) => {
-  const { faculty_id } = req.params;
-
-  let query = "SELECT * FROM faculty_orders";
-  let params = [];
+// 1️⃣ Get all faculty mappings or by faculty_id
+export const getFacultyMappings = (req, res) => {
+  const { faculty_id } = req.query;
+  let query = "SELECT * FROM mapping_duty_orders_faculty";
+  let values = [];
 
   if (faculty_id) {
-    query += " WHERE faculty_id = ?";
-    params.push(faculty_id);
+      query += " WHERE faculty_id = ?";
+      values.push(faculty_id);
   }
 
-  pool.query(query, params, (err, results) => {
-    if (err) {
-      console.error("Error fetching faculty orders:", err);
-      return res
-        .status(500)
-        .json({ message: "Internal Server Error", error: err });
-    }
-
-    res.json(results);
+  pool.query(query, values, (err, result) => {
+      if (err) {
+          console.error("Error fetching faculty mappings:", err);
+          return res.status(500).json({ error: "Internal server error" });
+      }
+      res.json(result);
   });
 };
 
-export const addFacultyOrder = (req, res) => {
+// 2️⃣ Add a new faculty mapping
+export const addFacultyMapping = (req, res) => {
   const { faculty_id, order_number } = req.body;
 
   pool.query(
-    "INSERT INTO faculty_orders (faculty_id, order_number) VALUES (?, ?)",
-    [faculty_id, order_number],
-    (err, result) => {
-      if (err) {
-        console.error("Error assigning order:", err);
-        return res
-          .status(500)
-          .json({ message: "Internal Server Error", error: err });
+      "INSERT INTO mapping_duty_orders_faculty (faculty_id, order_number) VALUES (?, ?)",
+      [faculty_id, order_number],
+      (err, result) => {
+          if (err) {
+              console.error("Error adding faculty mapping:", err);
+              return res.status(500).json({ error: "Internal server error" });
+          }
+          res.json({ 
+              success: true, 
+              message: "Faculty mapping added successfully", 
+              id: result.insertId // Returning the newly inserted row's ID
+          });
       }
-
-      res
-        .status(201)
-        .json({ message: "Order assigned successfully", id: result.insertId });
-    }
   );
 };
 
-export const updateFacultyOrder = (req, res) => {
-  const { id } = req.params; // ID from faculty_orders table
-  const { faculty_id, order_number } = req.body; // New faculty_id and order_number to update
+// 3️⃣ Update a faculty mapping
+export const updateFacultyMapping = (req, res) => {
+  const { id } = req.params;
+  const { faculty_id, order_number } = req.body;
 
   pool.query(
-    "UPDATE faculty_orders SET faculty_id = ?, order_number = ? WHERE id = ?",
-    [faculty_id, order_number, id],
-    (err, result) => {
-      if (err) {
-        console.error("Error updating faculty order:", err);
-        return res
-          .status(500)
-          .json({ message: "Internal Server Error", error: err });
+      "UPDATE mapping_duty_orders_faculty SET faculty_id = ?, order_number = ? WHERE id = ?",
+      [faculty_id, order_number, id],
+      (err, result) => {
+          if (err) {
+              console.error("Error updating faculty mapping:", err);
+              return res.status(500).json({ error: "Internal server error" });
+          }
+          res.json({ success: true, message: "Faculty mapping updated successfully" });
       }
-
-      if (result.affectedRows === 0) {
-        return res
-          .status(404)
-          .json({ message: "No matching faculty order found to update" });
-      }
-
-      res.json({ message: "Faculty order updated successfully" });
-    }
   );
 };
 
-export const deleteFacultyOrder = (req, res) => {
-  const { id } = req.params; // ID from faculty_orders table
+// 4️⃣ Delete a faculty mapping
+export const deleteFacultyMapping = (req, res) => {
+  const { id } = req.params;
 
-  pool.query("DELETE FROM faculty_orders WHERE id = ?", [id], (err, result) => {
-    if (err) {
-      console.error("Error deleting faculty order:", err);
-      return res
-        .status(500)
-        .json({ message: "Internal Server Error", error: err });
-    }
-
-    if (result.affectedRows === 0) {
-      return res
-        .status(404)
-        .json({ message: "No matching faculty order found to delete" });
-    }
-
-    res.json({ message: "Faculty order deleted successfully" });
+  pool.query("DELETE FROM mapping_duty_orders_faculty WHERE id = ?", [id], (err, result) => {
+      if (err) {
+          console.error("Error deleting faculty mapping:", err);
+          return res.status(500).json({ error: "Internal server error" });
+      }
+      res.json({ success: true, message: "Faculty mapping deleted successfully" });
   });
 };
 
-export const getFacultiesForOrder = (req, res) => {
-  const { order_number } = req.params;
+// 1️⃣ Get all student mappings or by RollNo
+export const getStudentMappings = (req, res) => {
+  const { RollNo } = req.query;
+  let query = "SELECT * FROM mapping_duty_orders_students";
+  let values = [];
+
+  if (RollNo) {
+      query += " WHERE RollNo = ?";
+      values.push(RollNo);
+  }
+
+  pool.query(query, values, (err, result) => {
+      if (err) {
+          console.error("Error fetching student mappings:", err);
+          return res.status(500).json({ error: "Internal server error" });
+      }
+      res.json(result);
+  });
+};
+
+// 2️⃣ Add a new student mapping
+export const addStudentMapping = (req, res) => {
+  const { RollNo, order_number } = req.body;
 
   pool.query(
-    `SELECT f.faculty_id, f.faculty_name, f.email_id, f.mobile_number
-       FROM faculty_details f
-       JOIN faculty_orders fo ON fo.faculty_id = f.faculty_id
-       WHERE fo.order_number = ?`,
-    [order_number],
-    (err, rows) => {
-      if (err) {
-        console.error("Error fetching faculties for order:", err);
-        return res
-          .status(500)
-          .json({ message: "Internal Server Error", error: err });
+      "INSERT INTO mapping_duty_orders_students (RollNo, order_number) VALUES (?, ?)",
+      [RollNo, order_number],
+      (err, result) => {
+          if (err) {
+              console.error("Error adding student mapping:", err);
+              return res.status(500).json({ error: "Internal server error" });
+          }
+          res.json({ success: true,
+             message: "Student mapping added successfully",
+             id: result.insertId // Returning the newly inserted row's ID
+        });
       }
-
-      if (rows.length === 0) {
-        return res
-          .status(404)
-          .json({ message: "No faculties found for this order" });
-      }
-
-      res.json(rows);
-    }
   );
 };
+
+// 3️⃣ Update a student mapping
+export const updateStudentMapping = (req, res) => {
+  const { id } = req.params;
+  const { RollNo, order_number } = req.body;
+
+  pool.query(
+      "UPDATE mapping_duty_orders_students SET RollNo = ?, order_number = ? WHERE id = ?",
+      [RollNo, order_number, id],
+      (err, result) => {
+          if (err) {
+              console.error("Error updating student mapping:", err);
+              return res.status(500).json({ error: "Internal server error" });
+          }
+          res.json({ success: true, message: "Student mapping updated successfully" });
+      }
+  );
+};
+
+// 4️⃣ Delete a student mapping
+export const deleteStudentMapping = (req, res) => {
+  const { id } = req.params;
+
+  pool.query("DELETE FROM mapping_duty_orders_students WHERE id = ?", [id], (err, result) => {
+      if (err) {
+          console.error("Error deleting student mapping:", err);
+          return res.status(500).json({ error: "Internal server error" });
+      }
+      res.json({ success: true, message: "Student mapping deleted successfully" });
+  });
+};
+
+export const getMappingsByOrderNumber = (req, res) => {
+  const { order_number } = req.query;
+
+  if (!order_number) {
+      return res.status(400).json({ error: "order_number is required" });
+  }
+
+  console.log("Received order_number:", order_number); // Debugging log
+
+  const facultyQuery = `
+      SELECT DISTINCT faculty_id 
+      FROM mapping_duty_orders_faculty
+      WHERE order_number = ?;
+  `;
+
+  const studentQuery = `
+      SELECT DISTINCT RollNo 
+      FROM mapping_duty_orders_students
+      WHERE order_number = ?;
+  `;
+
+  pool.query(facultyQuery, [order_number], (err, facultyResult) => {
+      if (err) {
+          console.error("Error fetching faculty mappings:", err);
+          return res.status(500).json({ error: "Internal server error", details: err.message });
+      }
+
+      pool.query(studentQuery, [order_number], (err, studentResult) => {
+          if (err) {
+              console.error("Error fetching student mappings:", err);
+              return res.status(500).json({ error: "Internal server error", details: err.message });
+          }
+
+          res.json({
+              faculty_ids: facultyResult.map(row => row.faculty_id),
+              roll_numbers: studentResult.map(row => row.RollNo)
+          });
+      });
+  });
+};
+
+
 
 export const getDepartments = (req, res) => {
   const { department_id } = req.params;
