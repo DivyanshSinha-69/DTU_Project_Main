@@ -31,7 +31,6 @@ import Department from "./components/Department/Department";
 import { store } from "./redux/Store";
 const CURRENT_VERSION = "2.2"; // Change this on every deployment
 if (localStorage.getItem("appVersion") !== CURRENT_VERSION) {
-  localStorage.clear();
   store.dispatch(logout());
 
   localStorage.setItem("appVersion", CURRENT_VERSION);
@@ -49,39 +48,43 @@ function App() {
   useEffect(() => {
     const checkExistingToken = async () => {
       try {
-        let userDetails;
-        if (user1.Position === "student") {
-          const response = await axios.get(
-            `${process.env.REACT_APP_BACKEND_URL}/cookiescheck`,
-            {
-              withCredentials: true,
-            }
+        // let userDetails;
+        // if (user1.Position === "student") {
+        //   const response = await axios.get(
+        //     `${process.env.REACT_APP_BACKEND_URL}/cookiescheck`,
+        //     {
+        //       withCredentials: true,
+        //     }
+        //   );
+        //   userDetails = response.data;
+
+        //   if (userDetails) {
+        //     dispatch(
+        //       login({
+        //         user: userDetails?.user,
+        //         facultyId: null,
+        //         accessToken: null,
+        //         refreshToken: null,
+        //       })
+        //     );
+        //   }
+
+        //   dispatch(setRole(userDetails?.user.Position));
+        //   navigate("/student/portal");
+        // } else dispatch(setRole(user1.position));
+        const accessToken = localStorage.getItem("accessToken");
+        const refreshToken = localStorage.getItem("refreshToken");
+        const user = JSON.parse(localStorage.getItem("user"));
+
+        if (accessToken && refreshToken && user) {
+          dispatch(
+            login({
+              user: user,
+              accessToken: accessToken,
+              refreshToken: refreshToken,
+            })
           );
-          userDetails = response.data;
-
-          if (userDetails) {
-            dispatch(
-              login({
-                user: userDetails?.user,
-                facultyId: null,
-                accessToken: null,
-                refreshToken: null,
-              })
-            );
-          }
-
-          dispatch(setRole(userDetails?.user.Position));
-          navigate("/student/portal");
-        } else dispatch(setRole(user1.position));
-        if (user1.position === "faculty") {
-          navigate("/faculty/portal");
-        } else if (user1.position === "admin") {
-          navigate("/admin/portal");
-        } else if (user1.position === "department") {
-          navigate("/department/portal");
-        } else {
-          dispatch(logout());
-          navigate("/login");
+          dispatch(setRole(user.position));
         }
       } catch (error) {
         console.log(error);
@@ -90,7 +93,7 @@ function App() {
     };
 
     checkExistingToken();
-  }, [navigate, dispatch, user1.Position]);
+  }, [navigate, dispatch]);
 
   return (
     <>
@@ -111,18 +114,18 @@ function App() {
           <Route path="/login/admin" element={<AdminLogin />} />
           <Route path="/department/portal" element={<Department />} />
 
-          {role === "student" ? (
+          {role === "student" && (
             <Route path="/student/portal" element={<Student />} />
-          ) : role === "faculty" ? (
-            <Route path="/faculty/portal" element={<Faculty />} />
-          ) : role === "admin" ? (
-            <Route path="/admin/portal" element={<Dashboard />} />
-          ) : role === "department" ? (
-            <Route path="/department/portal" element={<Department />} />
-          ) : (
-            <Route path="/login" element={<Login />} />
           )}
-          {!role && <Route path="/login" element={<Login />} />}
+          {role === "faculty" && (
+            <Route path="/faculty/portal" element={<Faculty />} />
+          )}
+          {role === "admin" && (
+            <Route path="/admin/portal" element={<Dashboard />} />
+          )}
+          {role === "department" && (
+            <Route path="/department/portal" element={<Department />} />
+          )}
           <Route path="/parents" element={<Parents />} />
           <Route path="/loader" element={<Loader />} />
           <Route path="/alumini" element={<Alumini />} />
