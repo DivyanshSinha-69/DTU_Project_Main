@@ -1,8 +1,9 @@
 import express from "express";
 import {
   uploadResearchPaper,
+  uploadFacultyInteraction,
   uploadFacultyImage,
-  compressPDF,
+  compressUploadedFile,
 } from "../config/facultyMulterConfig.js";
 import { authenticateToken, authorizeRoles } from "../middlewares/auth.js";
 
@@ -69,6 +70,7 @@ import {
   addInteractionType,
   updateInteractionType,
   deleteInteractionType,
+  updateLastSeen,
 } from "../controllers/faculty.js";
 
 const router = express.Router();
@@ -91,8 +93,8 @@ router.delete("/facultyassociation/:faculty_id", authorizeRoles("faculty"), dele
 
 // Research Paper Route
 router.get("/researchpaper/:faculty_id", authorizeRoles("faculty"), getResearchPapersByFaculty);
-router.post("/researchpaper", authorizeRoles("faculty"), uploadResearchPaper, compressPDF, addResearchPaper);
-router.put("/researchpaper/:research_id", authorizeRoles("faculty"), uploadResearchPaper, compressPDF, updateResearchPaper);
+router.post("/researchpaper", authorizeRoles("faculty"), uploadResearchPaper, compressUploadedFile, addResearchPaper);
+router.put("/researchpaper/:research_id", authorizeRoles("faculty"), uploadResearchPaper, compressUploadedFile, updateResearchPaper);
 router.delete("/researchpaper/:research_id", authorizeRoles("faculty"), deleteResearchPaper);
 
 // FDP routes
@@ -104,8 +106,8 @@ router.delete("/fdp-records/:FDP_id", authorizeRoles("faculty"), deleteFDPRecord
 
 // Interaction routes
 router.get("/interaction/:faculty_id?", authorizeRoles("faculty"), getFacultyInteractions);
-router.post("/interaction", authorizeRoles("faculty"), addFacultyInteraction);
-router.put("/interaction/:interact_id", authorizeRoles("faculty"), updateFacultyInteraction);
+router.post("/interaction", authorizeRoles("faculty"), uploadFacultyInteraction, compressUploadedFile, addFacultyInteraction);
+router.put("/interaction/:interact_id", authorizeRoles("faculty"), uploadFacultyInteraction, compressUploadedFile, updateFacultyInteraction);
 router.delete("/interaction/:interact_id", authorizeRoles("faculty"), deleteFacultyInteraction);
 
 // Interaction Type routes
@@ -170,5 +172,7 @@ router.get("/qualification/:faculty_id?", authorizeRoles("faculty"), getFacultyQ
 router.post("/qualification", authorizeRoles("faculty"), addFacultyQualification);
 router.put("/qualification/:education_id", authorizeRoles("faculty"), updateFacultyQualification);
 router.delete("/qualification/:education_id", authorizeRoles("faculty"), deleteFacultyQualification);
+
+router.put("/notifications/last-seen/:user_id", authorizeRoles("faculty"), updateLastSeen);
 
 export default router;

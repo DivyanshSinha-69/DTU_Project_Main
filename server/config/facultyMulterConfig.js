@@ -1,15 +1,11 @@
 import fs from "fs";
 import path from "path";
 import multer from "multer";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
-import { PDFDocument } from "pdf-lib";
-import { exec } from "child_process";
+import { compressImage, compressPDF } from "../utils/fileCompressor.js"; // Import compression utility
 
-// Get the current directory
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
-// Multer storage for research papers
+/**
+ * 📝 Multer Storage for Research Papers
+ */
 const researchPaperStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     const faculty_id = req.body.faculty_id;
@@ -22,82 +18,47 @@ const researchPaperStorage = multer.diskStorage({
   },
 });
 
-// Middleware to compress PDF using pdf-lib + Ghostscript
-const compressPDF = async (req, res, next) => {
-  if (!req.file) return next();
+/**
+ * 📜 Multer Storage for Faculty Interactions
+ */
+const facultyInteractionStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = path.join("public", "Faculty", "Interactions");
+    fs.mkdirSync(uploadPath, { recursive: true });
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const uniqueFilename = `interaction_${Date.now()}${path.extname(file.originalname)}`;
+    cb(null, uniqueFilename);
+  },
+});
 
-  const filePath = req.file.path;
-  const tempPdfPath = filePath.replace(".pdf", "_temp.pdf");
-  const finalCompressedPath = filePath.replace(".pdf", "_compressed.pdf");
-
-  try {
-    // 📝 Load PDF using pdf-lib
-    const existingPdfBytes = fs.readFileSync(filePath);
-    const pdfDoc = await PDFDocument.load(existingPdfBytes);
-
-    // Remove metadata
-    pdfDoc.setTitle("");
-    pdfDoc.setAuthor("");
-    pdfDoc.setSubject("");
-    pdfDoc.setKeywords([]);
-    pdfDoc.setProducer("pdf-lib");
-    pdfDoc.setCreator("pdf-lib");
-
-    // Save PDF (without metadata)
-    const pdfBytes = await pdfDoc.save();
-    fs.writeFileSync(tempPdfPath, pdfBytes);
-
-    // 🛠️ Apply Ghostscript for real compression
-    const gsCommand = `gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook -dNOPAUSE -dQUIET -dBATCH -sOutputFile="${finalCompressedPath}" "${tempPdfPath}"`;
-
-    exec(gsCommand, (error) => {
-      if (error) {
-        console.error("Ghostscript Compression Error:", error);
-        return res.status(500).json({ message: "Error compressing PDF", error });
-      }
-
-      const originalSize = fs.statSync(filePath).size;
-      const compressedSize = fs.statSync(finalCompressedPath).size;
-
-      console.log(`📂 Original Size: ${(originalSize / 1024 / 1024).toFixed(2)} MB`);
-      console.log(`📂 Compressed Size: ${(compressedSize / 1024 / 1024).toFixed(2)} MB`);
-
-      // Replace original file with the compressed one if it's smaller
-      if (compressedSize < originalSize) {
-        fs.unlinkSync(filePath);
-        fs.unlinkSync(tempPdfPath);
-        req.file.path = finalCompressedPath;
-        req.file.filename = path.basename(finalCompressedPath);
-      } else {
-        fs.unlinkSync(finalCompressedPath);
-        fs.unlinkSync(tempPdfPath);
-      }
-
-      next();
-    });
-  } catch (error) {
-    console.error("PDF Compression Error:", error);
-    return res.status(500).json({ message: "Error compressing PDF", error });
-  }
-};
-
-// Multer storage for faculty images
+/**
+ * 📂 Multer Storage for Faculty Images
+ */
 const facultyImageStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, "..", "public", "Faculty", "images");
+    const uploadPath = path.join("public", "Faculty", "images");
     fs.mkdirSync(uploadPath, { recursive: true });
     cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
     const faculty_id = req.params.faculty_id;
-    if (!faculty_id) {
-      return cb(new Error("Faculty ID is required"), null);
-    }
+    if (!faculty_id) return cb(new Error("Faculty ID is required"), null);
     const fileExtension = path.extname(file.originalname);
     const uniqueFilename = `${faculty_id}_${Date.now()}${fileExtension}`;
     cb(null, uniqueFilename);
   },
 });
+
+// File filter (accept only PDF, JPG, PNG)
+const fileFilter = (req, file, cb) => {
+  if (["application/pdf", "image/jpeg", "image/png"].includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only PDF, JPG, and PNG files are allowed"), false);
+  }
+};
 
 // File filter for faculty images (JPG only)
 const facultyImageFilter = (req, file, cb) => {
@@ -108,16 +69,54 @@ const facultyImageFilter = (req, file, cb) => {
   }
 };
 
-// Export Multer instances
+// Upload Middleware for Research Papers
 const uploadResearchPaper = multer({
   storage: researchPaperStorage,
-  limits: { fileSize: 20 * 1024 * 1024 },
+  fileFilter,
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB limit
 }).single("pdf");
 
+// Upload Middleware for Faculty Interactions
+const uploadFacultyInteraction = multer({
+  storage: facultyInteractionStorage,
+  fileFilter,
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB limit
+}).single("interaction_document");
+
+// Upload Middleware for Faculty Images
 const uploadFacultyImage = multer({
   storage: facultyImageStorage,
   fileFilter: facultyImageFilter,
-  limits: { fileSize: 2 * 1024 * 1024 },
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
 }).single("faculty_image");
 
-export { uploadResearchPaper, uploadFacultyImage, compressPDF };
+/**
+ * 🛠️ Compression Middleware for Uploaded Files
+ */
+const compressUploadedFile = (req, res, next) => {
+  if (!req.file) return next();
+
+  const filePath = req.file.path;
+  const ext = path.extname(filePath).toLowerCase();
+
+  const handleNext = (err) => {
+    if (err) return res.status(500).json({ message: "Error compressing file", error: err.message });
+    next();
+  };
+
+  if ([".jpeg", ".jpg", ".png"].includes(ext)) {
+    compressImage(filePath, handleNext);
+  } else if (ext === ".pdf") {
+    compressPDF(filePath, handleNext);
+  } else {
+    next();
+  }
+};
+
+// Export Middleware
+export {
+  uploadResearchPaper,
+  uploadFacultyInteraction,
+  uploadFacultyImage,
+  compressUploadedFile,
+};

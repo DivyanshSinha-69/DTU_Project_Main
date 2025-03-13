@@ -1815,3 +1815,45 @@ export const resetPasswordStudent = (req, res) => {
     res.status(400).json({ error: "Invalid or expired token" });
   }
 };
+
+export const updateStudentLastSeen = (req, res) => {
+  const { roll_no } = req.params;
+
+  if (!roll_no) {
+      return res.status(400).json({ error: "roll_no is required" });
+  }
+
+  // Query to update last_seen timestamp
+  const updateQuery = `UPDATE student_details SET last_notifications_seen = NOW() WHERE RollNo = ?`;
+
+  // Query to count seen and unseen notifications
+  const countQuery = `
+      SELECT 
+          COUNT(CASE WHEN created_at > (SELECT last_notifications_seen FROM student_details WHERE RollNo = ?) THEN 1 END) AS unseen_count,
+          COUNT(CASE WHEN created_at <= (SELECT last_notifications_seen FROM student_details WHERE RollNo = ?) THEN 1 END) AS seen_count
+      FROM department_duty_notifications 
+      WHERE user_id = ?
+  `;
+
+  pool.query(updateQuery, [roll_no], (err) => {
+      if (err) {
+          console.error("Error updating last_seen:", err);
+          return res.status(500).json({ error: "Internal server error" });
+      }
+
+      // Fetch notification counts after updating last seen
+      pool.query(countQuery, [roll_no, roll_no, roll_no], (err, result) => {
+          if (err) {
+              console.error("Error fetching notification counts:", err);
+              return res.status(500).json({ error: "Internal server error" });
+          }
+
+          res.json({
+              success: true,
+              message: "Last seen updated successfully",
+              unseen_count: result[0].unseen_count,
+              seen_count: result[0].seen_count
+          });
+      });
+  });
+};

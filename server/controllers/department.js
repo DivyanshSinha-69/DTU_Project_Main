@@ -265,7 +265,16 @@ export const getOrders = (req, res) => {
   });
 };
 
-// Add Order
+import nodemailer from "nodemailer";
+
+const transporter = nodemailer.createTransport({
+  service: "Gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
 export const addOrder = (req, res) => {
   const {
     department_id,
@@ -274,19 +283,21 @@ export const addOrder = (req, res) => {
     order_date,
     start_date,
     end_date,
-    subject,  
+    subject,
+    notification_message,
   } = req.body;
 
   let { faculty_ids, student_ids } = req.body;
-
   const order_path = req.file ? req.file.path : null;
 
   if (!department_id || !order_number || !order_name || !order_date || !start_date || !end_date || !subject) {
     return res.status(400).json({ message: "All required fields must be provided." });
   }
 
-  const orderQuery =
-    "INSERT INTO department_duty_orders (department_id, order_number, order_name, order_date, start_date, end_date, subject, order_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+  const orderQuery = `
+    INSERT INTO department_duty_orders 
+    (department_id, order_number, order_name, order_date, start_date, end_date, subject, order_path) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
   const orderParams = [
     department_id,
     order_number,
@@ -304,46 +315,92 @@ export const addOrder = (req, res) => {
       return res.status(500).json({ message: "Error adding order", error: err });
     }
 
-    if (typeof faculty_ids === "string") {
-      try {
-        faculty_ids = JSON.parse(faculty_ids);
-      } catch (error) {
-        console.error("Error parsing faculty_ids:", error);
-        faculty_ids = [];
-      }
-    }
-    
-
-    if (typeof student_ids === "string") {
-      try {
-        student_ids = JSON.parse(student_ids);
-      } catch (error) {
-        console.error("Error parsing student_ids:", error);
-        student_ids = [];
-      }
+    try {
+      faculty_ids = typeof faculty_ids === "string" ? JSON.parse(faculty_ids) : faculty_ids || [];
+      student_ids = typeof student_ids === "string" ? JSON.parse(student_ids) : student_ids || [];
+    } catch (error) {
+      console.error("Error parsing IDs:", error);
+      return res.status(400).json({ message: "Invalid faculty_ids or student_ids format" });
     }
 
+    // Insert faculty and student mappings
     if (faculty_ids.length > 0) {
       const facultyQuery = "INSERT INTO mapping_duty_orders_faculty (faculty_id, order_number) VALUES ?";
-      const facultyValues = faculty_ids.map(faculty_id => [faculty_id, order_number]);
-      pool.query(facultyQuery, [facultyValues], (facultyErr) => {
+      pool.query(facultyQuery, [faculty_ids.map(id => [id, order_number])], (facultyErr) => {
         if (facultyErr) console.error("Error linking faculty:", facultyErr);
       });
     }
 
     if (student_ids.length > 0) {
       const studentQuery = "INSERT INTO mapping_duty_orders_students (RollNo, order_number) VALUES ?";
-      const studentValues = student_ids.map(rollNo => [rollNo, order_number]);
-      pool.query(studentQuery, [studentValues], (studentErr) => {
+      pool.query(studentQuery, [student_ids.map(id => [id, order_number])], (studentErr) => {
         if (studentErr) console.error("Error linking students:", studentErr);
       });
     }
 
-    res.status(201).json({ message: "Order added successfully", insertId: result.insertId });
+    // Insert notifications for all faculty and students
+    const notificationQuery = `
+      INSERT INTO department_duty_notifications (user_id, order_number, message) VALUES ?`;
+    const message = notification_message || "New duty order assigned"; // Use provided message or default
+
+      const notificationValues = [
+      ...faculty_ids.map(id => [id, order_number, message]),
+      ...student_ids.map(id => [id, order_number, message])
+    ];
+
+    pool.query(notificationQuery, [notificationValues], (notifErr) => {
+      if (notifErr) console.error("Error creating notifications:", notifErr);
+    });
+
+    // Fetch emails of faculties and students
+    const getEmailsQuery = `
+    SELECT email_id AS email FROM faculty_details WHERE faculty_id IN (?) 
+    UNION 
+    SELECT email FROM student_auth WHERE RollNo IN (?)`;
+
+pool.query(getEmailsQuery, [faculty_ids, student_ids], (emailErr, emailResults) => {
+    if (emailErr) {
+        console.error("Error fetching emails:", emailErr);
+        return;
+    }
+
+    console.log("Raw email results:", emailResults); // Debugging log
+
+    // Extract email field correctly
+    const emails = emailResults.map(row => row.email).filter(email => email); // Remove undefined values
+
+    console.log("Valid Recipient Emails:", emails);
+
+    if (emails.length === 0) {
+        console.error("No valid recipient emails found.");
+        return;
+    }
+
+    sendEmailNotifications(emails, order_date, subject);
+});
+
+res.status(201).json({ message: "Order added successfully", insertId: result.insertId });
   });
 };
 
-// Update Order
+// Function to send email notifications
+const sendEmailNotifications = (emails, order_date, subject) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: emails,
+    subject: "New Duty Order Notification",
+    text: `A new office duty order has been assigned to you.\n\nOrder Date: ${order_date}\nSubject: ${subject}\n\nFor more details, please log in to the portal.`,
+  };
+
+  transporter.sendMail(mailOptions, (err, info) => {
+    if (err) {
+      console.error("Error sending email:", err);
+    } else {
+      console.log("Email sent:", info.response);
+    }
+  });
+};
+
 export const updateOrder = (req, res) => {
   const { order_id } = req.params;
   const {
@@ -354,10 +411,10 @@ export const updateOrder = (req, res) => {
     start_date,
     end_date,
     subject,
+    notification_message,
   } = req.body;
 
   let { faculty_ids, student_ids } = req.body;
-
 
   pool.query("SELECT order_path FROM department_duty_orders WHERE order_id=?", [order_id], (err, results) => {
     if (err || results.length === 0) {
@@ -368,51 +425,106 @@ export const updateOrder = (req, res) => {
     if (req.file && oldFilePath) fs.unlink(oldFilePath, () => {});
     const newFilePath = req.file ? req.file.path : oldFilePath;
 
-    const updateOrderQuery = `UPDATE department_duty_orders SET department_id=?, order_number=?, order_name=?, order_date=?, start_date=?, end_date=?, subject=?, order_path=? WHERE order_id=?`;
+    const updateOrderQuery = `
+      UPDATE department_duty_orders 
+      SET department_id=?, order_number=?, order_name=?, order_date=?, start_date=?, end_date=?, subject=?, order_path=? 
+      WHERE order_id=?`;
     const orderParams = [department_id, order_number, order_name, order_date, start_date, end_date, subject, newFilePath, order_id];
 
-    if (typeof faculty_ids === "string") {
-      try {
-        faculty_ids = JSON.parse(faculty_ids);
-      } catch (error) {
-        console.error("Error parsing faculty_ids:", error);
-        faculty_ids = [];
-      }
-    }
-    
-
-    if (typeof student_ids === "string") {
-      try {
-        student_ids = JSON.parse(student_ids);
-      } catch (error) {
-        console.error("Error parsing student_ids:", error);
-        student_ids = [];
-      }
+    try {
+      faculty_ids = typeof faculty_ids === "string" ? JSON.parse(faculty_ids) : faculty_ids || [];
+      student_ids = typeof student_ids === "string" ? JSON.parse(student_ids) : student_ids || [];
+    } catch (error) {
+      console.error("Error parsing IDs:", error);
+      return res.status(400).json({ message: "Invalid faculty_ids or student_ids format" });
     }
 
     pool.query(updateOrderQuery, orderParams, (err, result) => {
       if (err) return res.status(500).json({ message: "Error updating order", error: err });
       if (result.affectedRows === 0) return res.status(404).json({ message: "Order not found" });
 
+      // Delete old faculty and student mappings
       pool.query("DELETE FROM mapping_duty_orders_faculty WHERE order_number = ?", [order_number]);
       pool.query("DELETE FROM mapping_duty_orders_students WHERE order_number = ?", [order_number]);
 
+      // Insert new mappings
       if (faculty_ids.length > 0) {
         const facultyQuery = "INSERT INTO mapping_duty_orders_faculty (faculty_id, order_number) VALUES ?";
-        pool.query(facultyQuery, [faculty_ids.map(faculty_id => [faculty_id, order_number])]);
+        pool.query(facultyQuery, [faculty_ids.map(id => [id, order_number])]);
       }
 
       if (student_ids.length > 0) {
         const studentQuery = "INSERT INTO mapping_duty_orders_students (RollNo, order_number) VALUES ?";
-        pool.query(studentQuery, [student_ids.map(rollNo => [rollNo, order_number])]);
+        pool.query(studentQuery, [student_ids.map(id => [id, order_number])]);
       }
+
+      // Delete old notifications
+      pool.query("DELETE FROM department_duty_notifications WHERE order_number = ?", [order_number]);
+
+      // Insert new notifications
+      const notificationQuery = `
+        INSERT INTO department_duty_notifications (user_id, order_number, message) VALUES ?`;
+      const message = notification_message || "New duty order assigned"; // Use provided message or default
+
+      const notificationValues = [
+        ...faculty_ids.map(id => [id, order_number, "Updated duty order assigned"]),
+        ...student_ids.map(id => [id, order_number, "Updated duty order assigned"])
+      ];
+
+      pool.query(notificationQuery, [notificationValues], (notifErr) => {
+        if (notifErr) console.error("Error creating notifications:", notifErr);
+      });
+
+      // Fetch emails of faculties and students
+      const getEmailsQuery = `
+        SELECT email_id AS email FROM faculty_details WHERE faculty_id IN (?) 
+        UNION 
+        SELECT email FROM student_auth WHERE RollNo IN (?)`;
+
+      pool.query(getEmailsQuery, [faculty_ids, student_ids], (emailErr, emailResults) => {
+        if (emailErr) {
+          console.error("Error fetching emails:", emailErr);
+        } else {
+          console.log("Raw email results:", emailResults); // Debugging log
+
+          // Extract email field correctly
+          const emails = emailResults.map(row => row.email).filter(email => email); // Remove undefined values
+
+          console.log("Valid Recipient Emails:", emails);
+
+          if (emails.length === 0) {
+            console.error("No valid recipient emails found.");
+            return;
+          }
+
+          sendUpdateEmailNotifications(emails, order_date, subject);
+        }
+      });
 
       res.status(200).json({ message: "Order updated successfully", newFilePath });
     });
   });
 };
 
-// Delete Order
+// Function to send update notification emails
+const sendUpdateEmailNotifications = (emails, order_date, subject) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: emails,
+    subject: "Updated Duty Order Notification",
+    text: `The previously assigned duty order has been updated.\n\nUpdated Order Date: ${order_date}\nSubject: ${subject}\n\nPlease log in to the portal to review the updated details.`,
+  };
+
+  transporter.sendMail(mailOptions, (err, info) => {
+    if (err) {
+      console.error("Error sending update email:", err);
+    } else {
+      console.log("Update email sent:", info.response);
+    }
+  });
+};
+
+
 export const deleteOrder = (req, res) => {
   const { order_id } = req.params;
   if (!order_id) return res.status(400).json({ message: "Order ID is required" });
@@ -423,16 +535,18 @@ export const deleteOrder = (req, res) => {
     const { order_number, order_path } = results[0];
     pool.query("DELETE FROM mapping_duty_orders_faculty WHERE order_number = ?", [order_number]);
     pool.query("DELETE FROM mapping_duty_orders_students WHERE order_number = ?", [order_number]);
+    pool.query("DELETE FROM department_duty_notifications WHERE order_number = ?", [order_number]);
 
     if (order_path) fs.unlink(order_path, () => {});
 
     pool.query("DELETE FROM department_duty_orders WHERE order_id=?", [order_id], (orderErr, result) => {
       if (orderErr) return res.status(500).json({ message: "Error deleting order", error: orderErr });
       if (result.affectedRows === 0) return res.status(404).json({ message: "Order not found" });
-      res.status(200).json({ message: "Order deleted successfully" });
+      res.status(200).json({ message: "Order and associated notifications deleted successfully" });
     });
   });
 };
+
 
 // 1️⃣ Get all faculty mappings or by faculty_id
 export const getFacultyMappings = (req, res) => {
@@ -951,7 +1065,8 @@ export const addNotification = (req, res) => {
 };
 
 export const updateNotification = (req, res) => {
-  const { notification_id, user_id, order_number, message } = req.body;
+  const { notification_id } = req.params;
+  const { user_id, order_number, message } = req.body;
 
   if (!notification_id) {
       return res.status(400).json({ error: "notification_id is required" });
@@ -998,7 +1113,7 @@ export const updateLastSeen = (req, res) => {
       return res.status(400).json({ error: "user_id is required" });
   }
 
-  const query = `UPDATE faculty_details SET last_seen = NOW() WHERE faculty_id = ?`;
+  const query = `UPDATE faculty_details SET last_notifications_seen = NOW() WHERE faculty_id = ?`;
 
   pool.query(query, [user_id], (err, result) => {
       if (err) {

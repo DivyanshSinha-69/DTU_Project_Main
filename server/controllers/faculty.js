@@ -776,6 +776,7 @@ export const deleteFDPRecord = (req, res) => {
   });
 };
 
+// Get Faculty Interactions
 export const getFacultyInteractions = (req, res) => {
   const { faculty_id } = req.params;
 
@@ -794,165 +795,182 @@ export const getFacultyInteractions = (req, res) => {
   pool.query(query, params, (err, results) => {
     if (err) {
       console.error("Error fetching faculty interactions:", err);
-      return res
-        .status(500)
-        .json({ message: "Error fetching faculty interactions", error: err });
+      return res.status(500).json({ message: "Error fetching faculty interactions", error: err });
     }
 
+    results.forEach(record => {
+      record.month_of_visit = getMonthName(record.month_of_visit);
+    });
 
-      // Convert month numbers to month names
-      results.forEach(record => {
-          record.month_of_visit = getMonthName(record.month_of_visit);
-      });
-
-      res.status(200).json({ message: "Faculty interactions retrieved successfully", data: results });
+    res.status(200).json({ message: "Faculty interactions retrieved successfully", data: results });
   });
 };
 
+// Add Faculty Interaction with Document Upload
 export const addFacultyInteraction = (req, res) => {
   const { faculty_id, interaction_type, institution, description, year_of_visit, month_of_visit, duration_in_days } = req.body;
 
   if (!faculty_id || !interaction_type || !institution || !description || !year_of_visit || !month_of_visit) {
-      return res.status(400).json({ message: "All fields except duration_in_days are required" });
+    return res.status(400).json({ message: "All fields except duration_in_days are required" });
   }
 
+  if (!req.file) {
+    return res.status(400).json({ message: "Document file is required" });
+  }
+
+  const document_path = req.file.path; // Save document path
   const monthNumber = getMonthNumber(month_of_visit);
+
   if (!monthNumber) {
-      return res.status(400).json({ message: "Invalid month name" });
+    return res.status(400).json({ message: "Invalid month name" });
   }
 
-  // Check if interaction_type exists
   const checkQuery = `SELECT interaction_id FROM faculty_interaction_types WHERE interaction_type = ?`;
 
   pool.query(checkQuery, [interaction_type], (err, result) => {
-      if (err) {
-          console.error("Error checking interaction type:", err);
-          return res.status(500).json({ message: "Error checking interaction type", error: err });
-      }
+    if (err) {
+      console.error("Error checking interaction type:", err);
+      return res.status(500).json({ message: "Error checking interaction type", error: err });
+    }
 
-      if (result.length > 0) {
-          insertFacultyInteraction(result[0].interaction_id);
-      } else {
-          const insertTypeQuery = `INSERT INTO faculty_interaction_types (interaction_type) VALUES (?)`;
-          
-          pool.query(insertTypeQuery, [interaction_type], (err, insertResult) => {
-              if (err) {
-                  console.error("Error inserting new interaction type:", err);
-                  return res.status(500).json({ message: "Error inserting interaction type", error: err });
-              }
+    if (result.length > 0) {
+      insertFacultyInteraction(result[0].interaction_id);
+    } else {
+      const insertTypeQuery = `INSERT INTO faculty_interaction_types (interaction_type) VALUES (?)`;
 
-              insertFacultyInteraction(insertResult.insertId);
-          });
-      }
+      pool.query(insertTypeQuery, [interaction_type], (err, insertResult) => {
+        if (err) {
+          console.error("Error inserting new interaction type:", err);
+          return res.status(500).json({ message: "Error inserting interaction type", error: err });
+        }
+
+        insertFacultyInteraction(insertResult.insertId);
+      });
+    }
   });
 
   function insertFacultyInteraction(interaction_id) {
-      const query = `
-          INSERT INTO faculty_interaction (faculty_id, interaction_id, institution, description, year_of_visit, month_of_visit, duration_in_days)
-          VALUES (?, ?, ?, ?, ?, ?, ?)
-      `;
-      const params = [faculty_id, interaction_id, institution, description, year_of_visit, monthNumber, duration_in_days || null];
+    const query = `
+        INSERT INTO faculty_interaction (faculty_id, interaction_id, institution, description, year_of_visit, month_of_visit, duration_in_days, document_path)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    const params = [faculty_id, interaction_id, institution, description, year_of_visit, monthNumber, duration_in_days || null, document_path];
 
-      pool.query(query, params, (err, result) => {
-          if (err) {
-              console.error("Error adding faculty interaction:", err);
-              return res.status(500).json({ message: "Error adding faculty interaction", error: err });
-          }
+    pool.query(query, params, (err, result) => {
+      if (err) {
+        console.error("Error adding faculty interaction:", err);
+        return res.status(500).json({ message: "Error adding faculty interaction", error: err });
+      }
 
-          res.status(201).json({ message: "Faculty interaction added successfully", data: { id: result.insertId } });
-      });
+      res.status(201).json({ message: "Faculty interaction added successfully", data: { id: result.insertId, documentPath: document_path } });
+    });
   }
 };
 
+// Update Faculty Interaction with Document Upload
 export const updateFacultyInteraction = (req, res) => {
   const { interact_id } = req.params;
   const { interaction_type, institution, description, year_of_visit, month_of_visit, duration_in_days } = req.body;
 
   if (!interact_id || !interaction_type || !institution || !description || !year_of_visit || !month_of_visit) {
-      return res.status(400).json({ message: "All fields except duration_in_days are required" });
+    return res.status(400).json({ message: "All fields except duration_in_days are required" });
   }
 
   const monthNumber = getMonthNumber(month_of_visit);
   if (!monthNumber) {
-      return res.status(400).json({ message: "Invalid month name" });
+    return res.status(400).json({ message: "Invalid month name" });
   }
 
-  // Check if interaction_type exists
-  const checkQuery = `SELECT interaction_id FROM faculty_interaction_types WHERE interaction_type = ?`;
+  // Fetch existing document path
+  pool.query(`SELECT document_path FROM faculty_interaction WHERE interact_id=?`, [interact_id], (err, results) => {
+    if (err) {
+      console.error("Error fetching faculty interaction:", err);
+      return res.status(500).json({ message: "Error fetching faculty interaction", error: err });
+    }
+    if (results.length === 0) return res.status(404).json({ message: "Faculty interaction not found" });
 
-  pool.query(checkQuery, [interaction_type], (err, result) => {
+    const oldFilePath = results[0].document_path;
+    const newFilePath = req.file ? req.file.path : oldFilePath;
+
+    // Delete old document if a new one is uploaded
+    if (req.file && oldFilePath) {
+      fs.unlink(oldFilePath, err => {
+        if (err && err.code !== "ENOENT") console.error("Error deleting old file:", err);
+      });
+    }
+
+    const checkQuery = `SELECT interaction_id FROM faculty_interaction_types WHERE interaction_type = ?`;
+
+    pool.query(checkQuery, [interaction_type], (err, result) => {
       if (err) {
-          console.error("Error checking interaction type:", err);
-          return res.status(500).json({ message: "Error checking interaction type", error: err });
+        console.error("Error checking interaction type:", err);
+        return res.status(500).json({ message: "Error checking interaction type", error: err });
       }
 
       if (result.length > 0) {
-          updateFacultyInteraction(result[0].interaction_id);
+        updateInteraction(result[0].interaction_id);
       } else {
-          const insertTypeQuery = `INSERT INTO faculty_interaction_types (interaction_type) VALUES (?)`;
+        const insertTypeQuery = `INSERT INTO faculty_interaction_types (interaction_type) VALUES (?)`;
 
-          pool.query(insertTypeQuery, [interaction_type], (err, insertResult) => {
-              if (err) {
-                  console.error("Error inserting new interaction type:", err);
-                  return res.status(500).json({ message: "Error inserting interaction type", error: err });
-              }
+        pool.query(insertTypeQuery, [interaction_type], (err, insertResult) => {
+          if (err) {
+            console.error("Error inserting new interaction type:", err);
+            return res.status(500).json({ message: "Error inserting interaction type", error: err });
+          }
 
-              updateFacultyInteraction(insertResult.insertId);
-          });
+          updateInteraction(insertResult.insertId);
+        });
       }
-  });
+    });
 
-  function updateFacultyInteraction(interaction_id) {
+    function updateInteraction(interaction_id) {
       const query = `
           UPDATE faculty_interaction
-          SET interaction_id = ?, institution = ?, description = ?, year_of_visit = ?, month_of_visit = ?, duration_in_days = ?
+          SET interaction_id = ?, institution = ?, description = ?, year_of_visit = ?, month_of_visit = ?, duration_in_days = ?, document_path = ?
           WHERE interact_id = ?
       `;
-      const params = [interaction_id, institution, description, year_of_visit, monthNumber, duration_in_days || null, interact_id];
+      const params = [interaction_id, institution, description, year_of_visit, monthNumber, duration_in_days || null, newFilePath, interact_id];
 
       pool.query(query, params, (err, result) => {
-          if (err) {
-              console.error("Error updating faculty interaction:", err);
-              return res.status(500).json({ message: "Error updating faculty interaction", error: err });
-          }
+        if (err) {
+          console.error("Error updating faculty interaction:", err);
+          return res.status(500).json({ message: "Error updating faculty interaction", error: err });
+        }
 
-          if (result.affectedRows === 0) {
-              return res.status(404).json({ message: "No faculty interaction found with the given interact_id" });
-          }
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ message: "No faculty interaction found with the given interact_id" });
+        }
 
-          res.status(200).json({ message: "Faculty interaction updated successfully" });
+        res.status(200).json({ message: "Faculty interaction updated successfully", documentPath: newFilePath });
       });
-  }
+    }
+  });
 };
 
+// Delete Faculty Interaction with Document Deletion
 export const deleteFacultyInteraction = (req, res) => {
   const { interact_id } = req.params;
 
-  if (!interact_id) {
-    return res.status(400).json({ message: "interact_id is required" });
-  }
-
-  const query = "DELETE FROM faculty_interaction WHERE interact_id = ?";
-
-  pool.query(query, [interact_id], (err, result) => {
+  pool.query(`SELECT document_path FROM faculty_interaction WHERE interact_id=?`, [interact_id], (err, results) => {
     if (err) {
-      console.error("Error deleting faculty interaction:", err);
-      return res
-        .status(500)
-        .json({ message: "Error deleting faculty interaction", error: err });
+      console.error("Error fetching document path:", err);
+      return res.status(500).json({ message: "Error fetching faculty interaction", error: err });
+    }
+    if (results.length === 0) return res.status(404).json({ message: "Faculty interaction not found" });
+
+    const filePath = results[0].document_path;
+
+    if (filePath) {
+      fs.unlink(filePath, err => {
+        if (err && err.code !== "ENOENT") console.error("Error deleting file:", err);
+      });
     }
 
-    if (result.affectedRows === 0) {
-      return res
-        .status(404)
-        .json({
-          message: "No faculty interaction found with the given interact_id",
-        });
-    }
+    pool.query(`DELETE FROM faculty_interaction WHERE interact_id = ?`, [interact_id], (err, result) => {
+      if (err) return res.status(500).json({ message: "Error deleting faculty interaction", error: err });
 
-    res
-      .status(200)
-      .json({ message: "Faculty interaction deleted successfully" });
+      res.status(200).json({ message: "Faculty interaction deleted successfully" });
+    });
   });
 };
 
@@ -2302,3 +2320,50 @@ export const deleteFacultyQualification = (req, res) => {
     res.status(200).json({ message: "Qualification deleted successfully" });
   });
 };
+
+export const updateLastSeen = (req, res) => {
+  const { faculty } = req.params;
+
+  if (!user_id) {
+      return res.status(400).json({ error: "user_id is required" });
+  }
+
+  // Query to update last_seen timestamp
+  const updateQuery = `UPDATE faculty_details SET last_notifications_seen = NOW() WHERE faculty_id = ?`;
+
+  // Query to count seen and unseen notifications
+  const countQuery = `
+      SELECT 
+          COUNT(CASE WHEN created_at > (SELECT last_notifications_seen FROM faculty_details WHERE faculty_id = ?) THEN 1 END) AS unseen_count,
+          COUNT(CASE WHEN created_at <= (SELECT last_notifications_seen FROM faculty_details WHERE faculty_id = ?) THEN 1 END) AS seen_count
+      FROM department_duty_notifications 
+      WHERE user_id = ?
+  `;
+
+  pool.query(updateQuery, [user_id], (err) => {
+      if (err) {
+          console.error("Error updating last_seen:", err);
+          return res.status(500).json({ error: "Internal server error" });
+      }
+
+      // Fetch notification counts after updating last seen
+      pool.query(countQuery, [user_id, user_id, user_id], (err, result) => {
+          if (err) {
+              console.error("Error fetching notification counts:", err);
+              return res.status(500).json({ error: "Internal server error" });
+          }
+
+          res.json({
+              success: true,
+              message: "Last seen updated successfully",
+              unseen_count: result[0].unseen_count,
+              seen_count: result[0].seen_count
+          });
+      });
+  });
+};
+
+// Get orders for faculty
+// Get circulars for faculty
+// Update is_seen in notification table
+

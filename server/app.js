@@ -38,14 +38,10 @@ const allowedOrigins =
   process.env.ALLOWED_ORIGINS === "*"
     ? true
     : process.env.ALLOWED_ORIGINS.split(",");
-    
-    console.log("Allowed Origins:", allowedOrigins);
-    console.log("CORS Methods:", corsMethods);
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      console.log("Incoming Origin:", origin); // Log the incoming origin
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true); // Allow the request
       } else {
