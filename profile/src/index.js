@@ -6,6 +6,7 @@ import { Provider } from "react-redux";
 import { store } from "./redux/Store";
 import { ThemeProviderWrapper } from "./context/ThemeContext";
 import { BrowserRouter as Router } from "react-router-dom"; // Import BrowserRouter
+import { Analytics } from "@vercel/analytics/react"; // Import Vercel Analytics
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
@@ -14,6 +15,7 @@ root.render(
       <Provider store={store}>
         <Router>
           <App />
+          <Analytics /> {/* Add Vercel Analytics */}
         </Router>
       </Provider>
     </ThemeProviderWrapper>
