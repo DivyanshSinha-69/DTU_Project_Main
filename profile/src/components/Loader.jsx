@@ -1,20 +1,22 @@
-import React, { useState } from "react";
+import React from "react";
+import { useThemeContext } from "../context/ThemeContext";
 
 const Loader = () => {
+  const { darkMode } = useThemeContext();
+
   return (
-    <div className="h-screen flex flex-col justify-center items-center gap-8">
-      <div className="border-gray-600 border-t-[5px] border-r-[5px] h-[200px] w-[200px] rounded-full animate-[spin_0.7s_linear_infinite]"></div>
+    <div
+      className={`h-screen flex flex-col justify-center items-center gap-4 transition-all duration-300 ${
+        darkMode ? "bg-[#0D1117] text-white" : "bg-white text-gray-900"
+      }`}
+    >
+      {/* Simple Clean Loader */}
+      <div className="w-16 h-16 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
 
-      <div>
-        <p className="font1 text-3xl">
-          Loading{" "}
-          <span className="animate-[ping_0.7s_alternate_infinite]">...</span>
-        </p>
-      </div>
-
-      <div className="relative max-w-sm">
-        <div className="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none"></div>
-      </div>
+      {/* Cool Minimal Loading Text */}
+      <p className="text-lg font-medium tracking-wide opacity-80 animate-pulse">
+        Loading...
+      </p>
     </div>
   );
 };

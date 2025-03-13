@@ -163,7 +163,7 @@ export default function StickyNavbar() {
               className="flex flex-row items-center lg:flex-col"
             >
               <img src={img7} alt="employer" height={30} width={30} />
-              <p className="lg:ml-0 ml-4">Department</p>
+              <p className="lg:ml-0 ml-4">HOD Office</p>
             </HashLink>
           </Typography>
           <Typography
@@ -193,7 +193,7 @@ export default function StickyNavbar() {
             className="p-1 font-normal hover:translate-y-[-5px] transition-transform ease-in"
           >
             <HashLink
-              to={`${role}/portal`}
+              to={`${role}`}
               className="flex flex-row items-center lg:flex-col"
             >
               <img src={portalimg} alt="portal" height={30} width={30} />

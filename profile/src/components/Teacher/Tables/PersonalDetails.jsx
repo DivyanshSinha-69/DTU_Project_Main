@@ -208,10 +208,11 @@ const PersonalDetails = ({ setBlurActive }) => {
 
         {/* Main Card */}
         <Card
-          className="shadow-2xl rounded-2xl p-6 w-full mx-auto"
+          className=" rounded-2xl p-6 w-full mx-auto"
           style={{
             backgroundColor: darkMode ? "#0D1117" : "#FFFFFF",
             color: darkMode ? "#C9CCD1" : "#2D3A4A", // Softer text color
+            border: darkMode ? "1px solid #22232B" : "1px solid #D1D5DB", // Subtle border
           }}
         >
           {/* Table Header Section */}

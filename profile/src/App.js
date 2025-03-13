@@ -29,6 +29,10 @@ import { Toaster } from "react-hot-toast";
 import { ThemeProvider, ThemeProviderWrapper } from "./context/ThemeContext";
 import Department from "./components/Department/Department";
 import { store } from "./redux/Store";
+import OfficeOrders from "./components/Teacher/OfficeOrders";
+import CircularNotices from "./components/Teacher/CircularNotices";
+import { useThemeContext } from "./context/ThemeContext";
+import { use } from "react";
 const CURRENT_VERSION = "2.2"; // Change this on every deployment
 if (localStorage.getItem("appVersion") !== CURRENT_VERSION) {
   store.dispatch(logout());
@@ -94,6 +98,11 @@ function App() {
 
     checkExistingToken();
   }, [navigate, dispatch]);
+  const { darkMode } = useThemeContext();
+  useEffect(() => {
+    document.body.style.backgroundColor = darkMode ? "#0D1117" : "#FFFFFF";
+    document.body.style.color = darkMode ? "#EAEAEA" : "#000000"; // Optional: Set text color
+  }, [darkMode]);
 
   return (
     <>
@@ -112,19 +121,22 @@ function App() {
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
           <Route path="/login/admin" element={<AdminLogin />} />
-          <Route path="/department/portal" element={<Department />} />
+          <Route path="/department" element={<Department />} />
+          <Route path="/faculty/office-orders" element={<OfficeOrders />} />
+          <Route
+            path="/faculty/circular-notices"
+            element={<CircularNotices />}
+          />
 
           {role === "student" && (
-            <Route path="/student/portal" element={<Student />} />
+            <Route path="/student" element={<Student />} />
           )}
           {role === "faculty" && (
-            <Route path="/faculty/portal" element={<Faculty />} />
+            <Route path="/faculty" element={<Faculty />} />
           )}
-          {role === "admin" && (
-            <Route path="/admin/portal" element={<Dashboard />} />
-          )}
+          {role === "admin" && <Route path="/admin" element={<Dashboard />} />}
           {role === "department" && (
-            <Route path="/department/portal" element={<Department />} />
+            <Route path="/department" element={<Department />} />
           )}
           <Route path="/parents" element={<Parents />} />
           <Route path="/loader" element={<Loader />} />

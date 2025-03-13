@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 export default function PhDsAwardedPopUp({
   menteeName,
   rollNo,
+  degree,
   passingMonth,
   passingYear,
   PHD_id,
@@ -15,6 +16,7 @@ export default function PhDsAwardedPopUp({
     menteeName: menteeName || "",
     rollNo: rollNo || "",
     passingYear: passingYear || "",
+    degree: degree || "PhD", // Default to PhD
     PHD_id: PHD_id || "",
     passingMonth: passingMonth || "",
   });
@@ -29,9 +31,10 @@ export default function PhDsAwardedPopUp({
 
   const handlePopupSubmit = (e) => {
     e.preventDefault();
-    const { menteeName, rollNo, passingMonth, passingYear, PHD_id } = formData;
+    const { menteeName, degree, rollNo, passingMonth, passingYear, PHD_id } =
+      formData;
 
-    if (!menteeName || !rollNo || !passingYear || !passingMonth) {
+    if (!menteeName || !rollNo || !passingYear || !passingMonth || !degree) {
       toast.error("Please fill in all required fields.");
       return;
     }
@@ -51,6 +54,27 @@ export default function PhDsAwardedPopUp({
     return years.map((year) => (
       <option key={year} value={year}>
         {year}
+      </option>
+    ));
+  };
+  const generateMonthOptions = () => {
+    const months = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
+    return months.map((month, index) => (
+      <option key={month} value={month}>
+        {month}
       </option>
     ));
   };
@@ -97,18 +121,39 @@ export default function PhDsAwardedPopUp({
               required
             />
           </div>
+          {/* Degree Dropdown */}
           <div className="relative z-0 w-full group">
-            <label htmlFor="passingYear" className="block text-sm">
+            <label htmlFor="degree" className="block text-sm">
+              Degree
+            </label>
+            <select
+              name="degree"
+              id="degree"
+              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={handleChange}
+              value={formData.degree}
+              required
+            >
+              <option value="PhD">PhD</option>
+              <option value="M.Tech">M.Tech</option>
+            </select>
+          </div>
+          {/* Passing Month Dropdown */}
+          <div className="relative z-0 w-full group">
+            <label htmlFor="passingMonth" className="block text-sm">
               Passing Month
             </label>
-            <input
+            <select
               name="passingMonth"
               id="passingMonth"
               className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               onChange={handleChange}
               value={formData.passingMonth}
               required
-            ></input>
+            >
+              <option value="">Select Month</option>
+              {generateMonthOptions()}
+            </select>
           </div>
 
           {/* Passing Year Dropdown */}

@@ -94,10 +94,12 @@ const Sidebar = ({ menuItems, selectedItem, onSelect, role, faculty_id }) => {
           damping: 15, // Adjust damping for smoother feel
           duration: 0.3, // Add a duration for smoother transitions
         }}
-        className={`h-screen flex flex-col shadow-lg 
+        className={`h-screen flex flex-col shadow-lg rounded-r-2xl
           ${darkMode ? "bg-[#0D1117] text-white" : "bg-[#FFFFFF] text-[#1F252E]"}`}
         style={{
           borderRight: darkMode ? "1px solid #22232B" : "1px solid #D1D5DB", // Subtle border
+          borderTop: darkMode ? "1px solid #22232B" : "1px solid #D1D5DB", // Subtle border
+          borderBottom: darkMode ? "1px solid #22232B" : "1px solid #D1D5DB", // Subtle border
         }}
       >
         {isOpen && (
