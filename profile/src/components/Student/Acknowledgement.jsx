@@ -11,7 +11,7 @@ import {
   pdf,
   StyleSheet,
   PDFViewer,
-} from "@react-pdf";
+} from "@react-pdf/renderer";
 
 import dtulogo from "../../assets/logoDtu.png";
 import ArimoFont from "../../assets/Arimo.ttf"; // Import the font file
