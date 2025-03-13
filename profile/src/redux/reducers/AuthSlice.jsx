@@ -5,6 +5,7 @@ const initialState = {
   accessToken: localStorage.getItem("accessToken") || null,
   refreshToken: localStorage.getItem("refreshToken") || null,
   isAuthenticated: localStorage.getItem("isAuthenticated") || false,
+  darkMoe: false,
 };
 
 export const authSlice = createSlice({
@@ -35,6 +36,7 @@ export const authSlice = createSlice({
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("isAuthenticated");
+      localStorage.removeItem("darkMode");
     },
     updateAccessToken: (state, action) => {
       console.log("🔄 Updating Access Token in Redux:", action.payload);

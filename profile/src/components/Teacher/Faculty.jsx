@@ -30,6 +30,7 @@ import dtuImg from "../../assets/dtufullimage.jpg";
 import { PieChart, Pie, Cell } from "recharts";
 import { FaSun, FaMoon } from "react-icons/fa";
 import Qualification from "./Tables/Qualification.jsx";
+import Header from "./FacultyHeader.jsx";
 
 const Faculty = () => {
   const [isBlurActive, setBlurActive] = useState(false);
@@ -37,8 +38,15 @@ const Faculty = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [isOperationInProgress, setOperationInProgress] = useState(false);
 
-  const { faculty_id, faculty_name, faculty_designation } =
-    useSelector((state) => state.auth.user) || {};
+  const {
+    faculty_id,
+    faculty_name,
+    faculty_designation,
+    researchCount,
+    sponsorCount,
+    patentCount,
+    bookCount,
+  } = useSelector((state) => state.auth.user) || {};
   const { role } = useSelector((state) => state.user);
   const facultyId = faculty_id;
 
@@ -206,12 +214,16 @@ const Faculty = () => {
   ];
   const COLORS = ["#5DB9EE", "#2C2F36"]; // Adjust colors to fit modern design
   return (
-    <div>
+    <div
+      className="pb-4"
+      style={{ backgroundColor: darkMode ? "#1E1E2E" : "#F4F5F7" }} // Adjusted dark mode background
+    >
       {loader ? (
         <Loader />
       ) : (
         <>
-          <motion.div
+          <Header /> {/* Add the Header here */}
+          {/* <motion.div
             className="fixed top-5 right-5 flex items-center z-[1000]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -224,7 +236,7 @@ const Faculty = () => {
               onClick={() => setDarkMode(!darkMode)}
             >
               {/* Toggle Button */}
-              <motion.div
+          {/*<motion.div
                 className={`absolute w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md transition-all duration-500 ${
                   darkMode ? "translate-x-12" : "translate-x-0"
                 }`}
@@ -238,9 +250,8 @@ const Faculty = () => {
                 )}
               </motion.div>
             </div>
-          </motion.div>
-
-          <div className="flex min-h-screen">
+          </motion.div> */}
+          <div className="flex mt-4  min-h-screen">
             {/* Sidebar */}
             <div className="flex-shrink-0 sticky top-0 h-screen">
               <Sidebar
@@ -254,28 +265,31 @@ const Faculty = () => {
 
             {/* Main Content */}
             <div
-              className="flex-1 overflow-y-auto pt-2 px-4"
+              className="flex-1 overflow-y-auto px-4"
               style={{ backgroundColor: darkMode ? "#1E1E2E" : "#F4F5F7" }} // Adjusted dark mode background
             >
               <div
                 style={{ backgroundColor: darkMode ? "#1E1E2E" : "#F4F5F7" }}
-                className="pt-2"
               >
                 <div
-                  className="rounded-2xl shadow-2xl w-full"
+                  className="rounded-2xl shadow-xl w-full"
                   style={{
                     backgroundColor: darkMode ? "#0D1117" : "#FFFFFF",
                     padding: "1px",
+                    border: darkMode
+                      ? "1px solid #22232B"
+                      : "1px solid #D1D5DB", // Subtle border
+
                     boxShadow: darkMode
                       ? "0 4px 12px rgba(0, 0, 0, 0.3)"
                       : "0 4px 12px rgba(0, 0, 0, 0.1)", // Subtle shadow for depth
                   }}
                 >
                   {/* Hero Section with Profile */}
-                  <div className="relative w-full">
+                  <div className="relative w-full shadow-md">
                     {/* Background Cover Image */}
                     <div
-                      className="relative w-full h-[25vh] md:h-[30vh] lg:h-[37vh] rounded-t-2xl"
+                      className="relative w-full h-[25vh] md:h-[30vh] lg:h-[37vh] rounded-t-2xl shadow-md "
                       style={{
                         backgroundImage: `url(${dtuImg})`,
                         backgroundSize: "cover",
@@ -321,7 +335,7 @@ const Faculty = () => {
                   <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-6 mt-16 px-4 md:px-6 mb-6 pb-4">
                     {/* Faculty Details */}
                     <div
-                      className="rounded-xl shadow-lg p-5 md:p-6 text-center md:text-left flex flex-col"
+                      className="rounded-xl shadow-md p-5 md:p-6 text-center md:text-left flex flex-col"
                       style={{
                         backgroundColor: darkMode ? "#0D1117" : "#FFFFFF",
                         border: darkMode
@@ -407,10 +421,13 @@ const Faculty = () => {
                       {/* Stats Grid - Softer, more balanced layout */}
                       <div className="grid grid-cols-2 gap-4 flex-grow min-w-0 w-full md:w-auto">
                         {[
-                          { value: 7, label: "Research Papers" },
-                          { value: 3, label: "Patents Filed/Awarded" },
-                          { value: 2, label: "Book Records" },
-                          { value: 0, label: "Sponsorships" },
+                          { value: researchCount, label: "Research Papers" },
+                          {
+                            value: patentCount,
+                            label: "Patents Filed/Awarded",
+                          },
+                          { value: bookCount, label: "Book Records" },
+                          { value: sponsorCount, label: "Sponsorships" },
                         ].map((stat, index) => (
                           <div key={index} className="text-center p-2">
                             <h3
@@ -470,73 +487,75 @@ const Faculty = () => {
                 <div
                   style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
                   ref={sectionRefs["personal-details"]}
-                  className={`pt-5 pb-5 ${isBlurActive ? "blur-effect" : ""}`}
+                  className={`pt-6 pb-3 ${isBlurActive ? "blur-effect" : ""}`}
                 >
                   <PersonalDetails setBlurActive={setBlurActive} />
                 </div>
                 <div
-                  style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
+                  style={{
+                    color: darkMode ? "#F8F9FA" : "#1F252E",
+                  }}
                   ref={sectionRefs["association"]}
-                  className={`pt-5 pb-5 ${isBlurActive ? "blur-effect" : ""}`}
+                  className={`pt-3 pb-3   ${isBlurActive ? "blur-effect" : ""}`}
                 >
                   <Association setBlurActive={setBlurActive} />
                 </div>
                 <div
                   style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
                   ref={sectionRefs["qualification"]}
-                  className={`pt-5 pb-5 ${isBlurActive ? "blur-effect" : ""}`}
+                  className={`pt-3 pb-3   ${isBlurActive ? "blur-effect" : ""}`}
                 >
                   <Qualification setBlurActive={setBlurActive} />
                 </div>
                 <div
                   style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
                   ref={sectionRefs["research-papers"]}
-                  className={`pt-5 pb-5 ${isBlurActive ? "blur-effect" : ""}`}
+                  className={`pt-3 pb-3   ${isBlurActive ? "blur-effect" : ""}`}
                 >
                   <ResearchProjects setBlurActive={setBlurActive} />
                 </div>
                 <div
                   style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
                   ref={sectionRefs["book-records"]}
-                  className={`pt-5 pb-5 ${isBlurActive ? "blur-effect" : ""}`}
+                  className={`pt-3 pb-3   ${isBlurActive ? "blur-effect" : ""}`}
                 >
                   <BookRecordsPublished setBlurActive={setBlurActive} />
                 </div>
                 <div
                   style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
                   ref={sectionRefs["patent-records"]}
-                  className={`pt-5 pb-5 ${isBlurActive ? "blur-effect" : ""}`}
+                  className={`pt-3 pb-3   ${isBlurActive ? "blur-effect" : ""}`}
                 >
                   <PatentRecords setBlurActive={setBlurActive} />
                 </div>
                 <div
                   style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
                   ref={sectionRefs["interaction"]}
-                  className={`pt-5 pb-5 ${isBlurActive ? "blur-effect" : ""}`}
+                  className={`pt-3 pb-3   ${isBlurActive ? "blur-effect" : ""}`}
                 >
                   <Interaction setBlurActive={setBlurActive} />
                 </div>
                 <div
                   ref={sectionRefs["fdp"]}
-                  className={`pt-5 pb-5 ${isBlurActive ? "blur-effect" : ""}`}
+                  className={`pt-3 pb-3   ${isBlurActive ? "blur-effect" : ""}`}
                 >
                   <FacultyDevelopmentProgram setBlurActive={setBlurActive} />
                 </div>
                 <div
                   ref={sectionRefs["phds"]}
-                  className={`pt-5 pb-5 ${isBlurActive ? "blur-effect" : ""}`}
+                  className={`pt-3 pb-3   ${isBlurActive ? "blur-effect" : ""}`}
                 >
                   <Guidance setBlurActive={setBlurActive} />
                 </div>
                 <div
                   ref={sectionRefs["sponsored-research"]}
-                  className={`pt-5 pb-5 ${isBlurActive ? "blur-effect" : ""}`}
+                  className={`pt-3 pb-3   ${isBlurActive ? "blur-effect" : ""}`}
                 >
                   <SponsoredResearch setBlurActive={setBlurActive} />
                 </div>
                 <div
                   ref={sectionRefs["consultancy"]}
-                  className={`pt-5 pb-5 ${isBlurActive ? "blur-effect" : ""}`}
+                  className={`pt-3 pb-3   ${isBlurActive ? "blur-effect" : ""}`}
                 >
                   <ConsultancyDetails setBlurActive={setBlurActive} />
                 </div>

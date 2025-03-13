@@ -25,7 +25,7 @@ const AdminLogin = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
 
       // Assuming the server returns user details upon successful login
@@ -42,7 +42,7 @@ const AdminLogin = () => {
       // dispatch(setRole("admin"));
       // dispatch(login("admin"));
       // Redirect to the desired page after successful login
-      navigate("/admin/portal");
+      navigate("/admin");
     } catch (error) {
       // Handle login error
       console.error("Login failed:", error.message);

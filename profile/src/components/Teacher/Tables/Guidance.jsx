@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, Typography } from "@material-tailwind/react";
 import Popup from "reactjs-popup";
-import PhDPopUp from "../PopUp/PhDsAwardedPopUp";
+import PhDPopUp from "../PopUp/GuidancePopUp";
 import "../../../styles/popup.css";
 import editImg from "../../../assets/edit.svg";
 import addImg from "../../../assets/add.svg";
@@ -32,16 +32,16 @@ const Guidance = ({ setBlurActive }) => {
   const API_BASE_URL = "/ece/faculty";
   const fetchPhDs = async () => {
     try {
-      const response = await API.get(`/ece/faculty/phd-awarded/${facultyId}`);
-      // If the API returns an array, map the data; otherwise, clear the state.
+      const response = await API.get(`/ece/faculty/guidance/${facultyId}`);
       if (Array.isArray(response.data)) {
         setPhdDetails(
           response.data.map((record) => ({
-            PHD_id: record.PHD_id,
+            Guidance_id: record.Guidance_id,
             menteeName: record.mentee_name,
             rollNo: record.mentee_rn,
             passingYear: record.passing_year,
-            passingMonth: record.passing_month, // Added this field
+            passingMonth: record.passing_month,
+            degree: record.degree, // Added this field
           }))
         );
       } else {
@@ -66,8 +66,9 @@ const Guidance = ({ setBlurActive }) => {
         mentee_rn: newPhD.rollNo,
         passing_year: newPhD.passingYear,
         passing_month: newPhD.passingMonth, // Added this field
+        degree: newPhD.degree, // Added this field
       };
-      await API.post("ece/faculty/phd-awarded", payload);
+      await API.post("ece/faculty/guidance", payload);
       fetchPhDs();
     } catch (error) {
       console.error("Error adding new PhD record:", error);
@@ -82,8 +83,9 @@ const Guidance = ({ setBlurActive }) => {
         mentee_rn: updatedPhD.rollNo,
         passing_year: updatedPhD.passingYear,
         passing_month: updatedPhD.passingMonth, // Added this field
+        degree: updatedPhD.degree, // Added this field
       };
-      await API.put(`ece/faculty/phd-awarded/${updatedPhD.PHD_id}`, payload);
+      await API.put(`ece/faculty/guidance/${updatedPhD.Guidance_id}`, payload);
       fetchPhDs();
     } catch (error) {
       console.error("Error updating PhD record:", error);
@@ -91,9 +93,10 @@ const Guidance = ({ setBlurActive }) => {
   };
 
   // Delete a PhD record
-  const deletePhD = async (PHD_id) => {
+  const deletePhD = async (Guidance_id) => {
+    console.log("Deleting PhD record with ID:", Guidance_id);
     try {
-      await API.delete(`ece/faculty/phd-awarded/${PHD_id}`);
+      await API.delete(`ece/faculty/guidance/${Guidance_id}`);
       fetchPhDs();
     } catch (error) {
       console.error("Error deleting PhD record:", error);
@@ -102,6 +105,7 @@ const Guidance = ({ setBlurActive }) => {
 
   const openPopup = (phd) => {
     setSelectedPhD(phd);
+    console.log("Selected PhD:", phd);
     setPopupOpen(true);
     setBlurActive(true);
   };
@@ -124,15 +128,16 @@ const Guidance = ({ setBlurActive }) => {
   };
 
   const handleDeletePhD = async (indexToDelete) => {
-    const { PHD_id } = phdDetails[indexToDelete];
+    const { Guidance_id } = phdDetails[indexToDelete];
     try {
-      await deletePhD(PHD_id);
+      await deletePhD(Guidance_id);
     } catch (error) {
       console.error("Error deleting PhD record:", error);
     }
   };
   const TABLE_HEAD = [
     "Name of the Student",
+    "Degree",
     "Roll No",
     "Year PhD was Awarded",
     "Month PhD was Awarded", // 👈 Add this
@@ -147,6 +152,7 @@ const Guidance = ({ setBlurActive }) => {
         subtitle="(Mention your students who have completed their PhD)"
         columns={[
           { key: "menteeName", label: "Mentee Name" },
+          { key: "degree", label: "Degree" }, // 👈 Add this
           { key: "rollNo", label: "Roll Number" },
           { key: "passingMonth", label: "Passing Month" },
           { key: "passingYear", label: "Passing Year" },
@@ -160,7 +166,8 @@ const Guidance = ({ setBlurActive }) => {
             openPopup(phd);
           },
           delete: (phd) => {
-            handleDeletePhD(phd.PHD_id);
+            console.log("Deleting PhD record:", phd);
+            handleDeletePhD(phd.Guidance_id);
           },
         }}
         onAdd={() => {
@@ -182,6 +189,7 @@ const Guidance = ({ setBlurActive }) => {
           {isAddPhD ? (
             <PhDPopUp
               menteeName=""
+              degree=""
               rollNo=""
               passingYear=""
               passingMonth=""
@@ -192,10 +200,11 @@ const Guidance = ({ setBlurActive }) => {
             selectedPhD && (
               <PhDPopUp
                 menteeName={selectedPhD?.menteeName || ""}
+                degree={selectedPhD?.degree || ""}
                 rollNo={selectedPhD?.rollNo || ""}
                 passingYear={selectedPhD?.passingYear || ""}
                 passingMonth={selectedPhD?.passingMonth || ""}
-                PHD_id={selectedPhD?.PHD_id || ""}
+                Guidance_id={selectedPhD?.Guidance_id || ""}
                 closeModal={closePopup}
                 handleAddPhD={handleAddPhD}
               />

@@ -74,19 +74,19 @@ const Login = () => {
 
       switch (user.position) {
         case "faculty":
-          navigate("/faculty/portal");
+          navigate("/faculty");
           break;
         case "student":
-          navigate("/student/portal");
+          navigate("/student");
           break;
         case "admin":
-          navigate("/admin/portal");
+          navigate("/admin");
           break;
         case "department":
-          navigate("/department/portal");
+          navigate("/department");
           break;
         case "alumni":
-          navigate("/alumni/portal");
+          navigate("/alumni");
           break;
         default: {
           dispatch(logout());
