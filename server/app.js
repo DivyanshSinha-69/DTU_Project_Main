@@ -38,16 +38,38 @@ const allowedOrigins =
   process.env.ALLOWED_ORIGINS === "*"
     ? true
     : process.env.ALLOWED_ORIGINS.split(",");
+    
+    console.log("Allowed Origins:", allowedOrigins);
+    console.log("CORS Methods:", corsMethods);
+
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      console.log("Incoming Origin:", origin); // Log the incoming origin
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true); // Allow the request
+      } else {
+        callback(new Error("Not allowed by CORS")); // Block the request
+      }
+    },
     methods: corsMethods,
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
-  }),
+  })
 );
 
-app.options("*", cors()); // Allow preflight requests
+app.options("*", (req, res) => {
+  try {
+    res.header("Access-Control-Allow-Origin", req.headers.origin || allowedOrigins[0]);
+    res.header("Access-Control-Allow-Methods", corsMethods.join(","));
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.sendStatus(204); // No content
+  } catch (error) {
+    console.error("Error in preflight handler:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
 // Middleware
 app.use(express.json());

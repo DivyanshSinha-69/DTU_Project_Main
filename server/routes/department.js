@@ -29,6 +29,10 @@ import {
   getMappingsByOrderNumber,
   updateDepartment,
   deleteDepartment,
+  getNotifications,
+  addNotification,
+  updateNotification,
+  deleteNotification,
   departmentLogin,
   refreshToken,
   logout,
@@ -77,5 +81,12 @@ router.get("/departments/:department_id?", authorizeRoles("department"), getDepa
 router.post("/departments", authorizeRoles("department"), addDepartment);
 router.put("/departments/:department_id", authorizeRoles("department"), updateDepartment);
 router.delete("/departments/:department_id", authorizeRoles("department"), deleteDepartment);
+
+
+router.get("/notifications/:user_id?", authorizeRoles("department", "faculty"), getNotifications);
+router.post("/notifications", authorizeRoles("department"), addNotification);
+router.put("/notifications/:notification_id", authorizeRoles("department"), updateNotification);
+router.delete("/notifications/:notification_id", authorizeRoles("department"), deleteNotification);
+
 
 export default router;

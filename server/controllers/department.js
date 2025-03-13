@@ -910,3 +910,101 @@ export const logout = (req, res) => {
     }
   );
 };
+
+export const getNotifications = (req, res) => {
+  const { user_id } = req.query;
+
+  if (!user_id) {
+      return res.status(400).json({ error: "user_id is required" });
+  }
+
+  const query = `SELECT * FROM department_duty_notifications WHERE user_id = ? ORDER BY created_at DESC`;
+
+  pool.query(query, [user_id], (err, results) => {
+      if (err) {
+          console.error("Error fetching notifications:", err);
+          return res.status(500).json({ error: "Internal server error" });
+      }
+      res.json(results);
+  });
+};
+
+export const addNotification = (req, res) => {
+  const { user_id, order_number, message } = req.body;
+
+  if (!user_id || !message) {
+      return res.status(400).json({ error: "user_id and message are required" });
+  }
+
+  const query = `
+      INSERT INTO department_duty_notifications (user_id, order_number, message) 
+      VALUES (?, ?, ?)
+  `;
+
+  pool.query(query, [user_id, order_number || null, message], (err, result) => {
+      if (err) {
+          console.error("Error adding notification:", err);
+          return res.status(500).json({ error: "Internal server error" });
+      }
+      res.json({ success: true, message: "Notification added successfully", notification_id: result.insertId });
+  });
+};
+
+export const updateNotification = (req, res) => {
+  const { notification_id, user_id, order_number, message } = req.body;
+
+  if (!notification_id) {
+      return res.status(400).json({ error: "notification_id is required" });
+  }
+
+  const query = `
+      UPDATE department_duty_notifications
+      SET user_id = ?, order_number = ?, message = ?
+      WHERE notification_id = ?
+  `;
+
+  pool.query(query, [user_id, order_number || null, message, notification_id], (err, result) => {
+      if (err) {
+          console.error("Error updating notification:", err);
+          return res.status(500).json({ error: "Internal server error" });
+      }
+      res.json({ success: true, message: "Notification updated successfully" });
+  });
+};
+
+
+export const deleteNotification = (req, res) => {
+  const { notification_id } = req.params;
+
+  if (!notification_id) {
+      return res.status(400).json({ error: "notification_id is required" });
+  }
+
+  const query = `DELETE FROM department_duty_notifications WHERE notification_id = ?`;
+
+  pool.query(query, [notification_id], (err, result) => {
+      if (err) {
+          console.error("Error deleting notification:", err);
+          return res.status(500).json({ error: "Internal server error" });
+      }
+      res.json({ success: true, message: "Notification deleted successfully" });
+  });
+};
+
+export const updateLastSeen = (req, res) => {
+  const { user_id } = req.body;
+
+  if (!user_id) {
+      return res.status(400).json({ error: "user_id is required" });
+  }
+
+  const query = `UPDATE faculty_details SET last_seen = NOW() WHERE faculty_id = ?`;
+
+  pool.query(query, [user_id], (err, result) => {
+      if (err) {
+          console.error("Error updating last_seen:", err);
+          return res.status(500).json({ error: "Internal server error" });
+      }
+      res.json({ success: true, message: "Last seen updated successfully" });
+  });
+};
