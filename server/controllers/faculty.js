@@ -2366,4 +2366,4 @@ export const updateLastSeen = (req, res) => {
 // Get orders for faculty
 // Get circulars for faculty
 // Update is_seen in notification table
-
+// Get notifications for faculty
