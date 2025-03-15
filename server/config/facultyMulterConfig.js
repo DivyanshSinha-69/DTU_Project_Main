@@ -43,7 +43,7 @@ const facultyImageStorage = multer.diskStorage({
     cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
-    const faculty_id = req.params.faculty_id;
+    const faculty_id = req.params.faculty_id || req.body.faculty_id; // Check both params & body
     if (!faculty_id) return cb(new Error("Faculty ID is required"), null);
     const fileExtension = path.extname(file.originalname);
     const uniqueFilename = `${faculty_id}_${Date.now()}${fileExtension}`;
@@ -89,7 +89,6 @@ const uploadFacultyImage = multer({
   fileFilter: facultyImageFilter,
   limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
 }).single("faculty_image");
-
 /**
  * 🛠️ Compression Middleware for Uploaded Files
  */
@@ -113,10 +112,23 @@ const compressUploadedFile = (req, res, next) => {
   }
 };
 
+const checkFileReceived = (req, res, next) => {
+  console.log("📥 Received request for image upload...");
+  console.log("➡️ req.body:", req.body);
+  console.log("➡️ req.params:", req.params);
+  console.log("➡️ req.file:", req.file); // Should not be undefined or null
+  
+  if (!req.file) {
+    return res.status(400).json({ message: "No file uploaded. Check if frontend is sending correctly." });
+  }
+  next();
+};
+
 // Export Middleware
 export {
   uploadResearchPaper,
   uploadFacultyInteraction,
   uploadFacultyImage,
   compressUploadedFile,
+  checkFileReceived
 };

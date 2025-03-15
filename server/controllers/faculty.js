@@ -5,6 +5,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
+import { uploadFacultyImage } from "../config/facultyMulterConfig.js";
 import { compressImage } from "../utils/fileCompressor.js";
 
 const router = express.Router();
@@ -49,138 +50,6 @@ function getMonthNumber(monthName) {
   };
   return months[monthName] || "Invalid month";
 }
-
-export const getFacultyCredentials = async (req, res) => {
-  try {
-    const sql = "SELECT * FROM faculty_credentials";
-
-    // Using `await` to fetch data
-    const [results] = await pool.query(sql);
-
-    res.status(200).json({
-      credentials: results || [], // Ensures it's always an array
-      success: true,
-    });
-  } catch (err) {
-    console.error("Error executing fetch query:", err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-};
-
-export const getFacultyCredentialsById = (req, res) => {
-  const { faculty_id } = req.params;
-
-  const sql = `
-      SELECT * 
-      FROM faculty_credentials 
-      WHERE faculty_id = ?
-  `;
-
-  pool.query(sql, [faculty_id], (err, results) => {
-    if (err) {
-      console.error("Error executing fetch query:", err);
-      res.status(500).json({ error: "Internal Server Error" });
-      return;
-    }
-
-    // Check if any record is found
-    if (results.length === 0) {
-      res.status(404).json({
-        message: "Faculty credentials not found for the given faculty_id",
-        success: false,
-      });
-      return;
-    }
-
-    res.status(200).json({
-      credentials: results[0], // Return the single credential object
-      success: true,
-    });
-  });
-};
-
-export const addFacultyCredentials = async (req, res) => {
-  const { faculty_id, faculty_name, mobile_number, pass } = req.body;
-  const sql = `
-      INSERT INTO faculty_credentials (faculty_id, faculty_name, mobile_number, pass) 
-      VALUES (?, ?, ?, ?)
-  `;
-
-  try {
-    await pool.query(sql, [faculty_id, faculty_name, mobile_number, pass]);
-    res.status(201).json({
-      message: "Faculty credential added successfully",
-      success: true,
-    });
-  } catch (err) {
-    console.error("Error executing insert query:", err);
-
-    if (err.code === "ER_NO_REFERENCED_ROW_2") {
-      return res.status(400).json({
-        error: "Invalid faculty_id. Ensure it exists in faculty_details.",
-      });
-    }
-
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-};
-
-export const updateFacultyCredentials = async (req, res) => {
-  const { faculty_id } = req.params;
-  const { faculty_name, mobile_number, pass } = req.body;
-
-  const sql = `
-      UPDATE faculty_credentials 
-      SET faculty_name = ?, mobile_number = ?, pass = ? 
-      WHERE faculty_id = ?
-  `;
-
-  try {
-    const [results] = await pool.query(sql, [
-      faculty_name,
-      mobile_number,
-      pass,
-      faculty_id,
-    ]);
-
-    if (results.affectedRows === 0) {
-      return res.status(404).json({ error: "Faculty credential not found" });
-    }
-
-    res.status(200).json({
-      message: "Faculty credential updated successfully",
-      success: true,
-    });
-  } catch (err) {
-    console.error("Error executing update query:", err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-};
-
-export const deleteFacultyCredentials = async (req, res) => {
-  const { faculty_id } = req.params;
-
-  const sql = `
-      DELETE FROM faculty_credentials 
-      WHERE faculty_id = ?
-  `;
-
-  try {
-    const [results] = await pool.query(sql, [faculty_id]);
-
-    if (results.affectedRows === 0) {
-      return res.status(404).json({ error: "Faculty credential not found" });
-    }
-
-    res.status(200).json({
-      message: "Faculty credential deleted successfully",
-      success: true,
-    });
-  } catch (err) {
-    console.error("Error executing delete query:", err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-};
 
 // Fetch all faculty associations
 // 1. Get All Faculty Associations
@@ -1884,101 +1753,61 @@ export const getFacultyImage = (req, res) => {
   });
 };
 
-export const updateFacultyImage = (req, res) => {
-  const { faculty_id } = req.params;
 
-  if (!req.file) {
-    return res.status(400).json({ message: "No image file uploaded" });
-  }
+export const updateFacultyImage = async (req, res) => {
+  try {
+    console.log("✅ Inside updateFacultyImage Controller");
 
-  const newImageFilename = req.file.filename;
-  const tempFilePath = req.file.path;
-  const uploadDir = path.join(__dirname, "..", "public", "Faculty", "images");
+    const facultyId = req.params.faculty_id;
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded." });
+    }
 
-  // Compress the image using our callback function
-  compressImage(
-    tempFilePath,
-    uploadDir,
-    newImageFilename,
-    (err, compressedImagePath) => {
+    const newImageUrl = `/public/Faculty/images/${req.file.filename}`;
+    console.log("🖼️ New Image URL:", newImageUrl);
+
+    // Step 1️⃣: Get the old image filename from the database
+    const getOldImageQuery = `SELECT faculty_image FROM faculty_image WHERE faculty_id = ?`;
+    pool.query(getOldImageQuery, [facultyId], (err, results) => {
       if (err) {
-        return res
-          .status(500)
-          .json({ message: "Error processing image", error: err.message });
+        console.error("❌ Database Fetch Error:", err);
+        return res.status(500).json({ message: "Failed to retrieve old image", error: err.message });
       }
 
-      // Fetch old image path from the database
-      const getQuery =
-        "SELECT faculty_image FROM faculty_image WHERE faculty_id = ?";
-      pool.query(getQuery, [faculty_id], (err, result) => {
-        if (err) {
-          console.error("❌ Error fetching old image:", err);
-          return res
-            .status(500)
-            .json({ message: "Error fetching old image", error: err.message });
-        }
+      const oldImageUrl = results[0]?.faculty_image;
+      console.log("🖼️ Old Image URL:", oldImageUrl);
 
-        const oldImagePath = result.length > 0 ? result[0].faculty_image : null;
-
-        // Delete old image if it exists
-        if (oldImagePath) {
-          const fullOldImagePath = path.join(
-            __dirname,
-            "..",
-            "public",
-            oldImagePath
-          );
-          if (fs.existsSync(fullOldImagePath)) {
-            fs.unlink(fullOldImagePath, (err) => {
-              if (err) console.error("❌ Error deleting old image:", err);
-              else console.log("✅ Old image deleted successfully.");
-            });
-          } else {
-            console.warn("⚠ Old image not found, skipping deletion.");
-          }
-        }
-
-        // Update database with new compressed image path
-        const updateQuery =
-          "UPDATE faculty_image SET faculty_image = ? WHERE faculty_id = ?";
-        pool.query(
-          updateQuery,
-          [`Faculty/images/compressed_${newImageFilename}`, faculty_id],
-          (err) => {
-            if (err) {
-              console.error("❌ Error updating faculty image:", err);
-              return res
-                .status(500)
-                .json({
-                  message: "Error updating faculty image",
-                  error: err.message,
-                });
+      // Step 2️⃣: Delete the old image file (if it exists)
+      if (oldImageUrl) {
+        const oldImagePath = path.join("public", "Faculty", "images", path.basename(oldImageUrl));
+        if (fs.existsSync(oldImagePath)) {
+          fs.unlink(oldImagePath, (unlinkErr) => {
+            if (unlinkErr) {
+              console.error("❌ Error Deleting Old Image:", unlinkErr);
+            } else {
+              console.log("✅ Old Image Deleted Successfully:", oldImagePath);
             }
+          });
+        }
+      }
 
-            // Delete the uncompressed image
-            setTimeout(() => {
-              if (fs.existsSync(tempFilePath)) {
-                fs.rm(tempFilePath, { force: true }, (err) => {
-                  if (err)
-                    console.error("❌ Error deleting uncompressed image:", err);
-                  else
-                    console.log("✅ Uncompressed image deleted successfully.");
-                });
-              } else {
-                console.warn(
-                  "⚠ Uncompressed image not found, skipping deletion."
-                );
-              }
-            }, 500);
+      // Step 3️⃣: Update the database with the new image URL
+      const updateQuery = `UPDATE faculty_image SET faculty_image = ? WHERE faculty_id = ?`;
+      pool.query(updateQuery, [newImageUrl, facultyId], (updateErr, result) => {
+        if (updateErr) {
+          console.error("❌ Database Update Error:", updateErr);
+          return res.status(500).json({ message: "Database update failed", error: updateErr.message });
+        }
 
-            res
-              .status(200)
-              .json({ message: "Faculty image updated successfully" });
-          }
-        );
+        console.log("✅ Database Update Success:", result);
+        return res.status(200).json({ message: "Image updated successfully", imageUrl: newImageUrl });
       });
-    }
-  );
+    });
+
+  } catch (error) {
+    console.error("❌ Error in updateFacultyImage:", error);
+    return res.status(500).json({ message: "Image upload failed", error: error.message });
+  }
 };
 
 export const deleteFacultyImage = (req, res) => {

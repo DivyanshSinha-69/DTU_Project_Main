@@ -4,15 +4,11 @@ import {
   uploadFacultyInteraction,
   uploadFacultyImage,
   compressUploadedFile,
+  checkFileReceived
 } from "../config/facultyMulterConfig.js";
 import { authenticateToken, authorizeRoles } from "../middlewares/auth.js";
 
 import {
-  getFacultyCredentials,
-  getFacultyCredentialsById,
-  addFacultyCredentials,
-  updateFacultyCredentials,
-  deleteFacultyCredentials,
   getFacultyAssociations,
   getFacultyAssociationById,
   addFacultyAssociation,
@@ -79,13 +75,6 @@ import {
 const router = express.Router();
 
 router.use(authenticateToken);
-
-// Credentials Route
-// router.get("/facultycredentials", authorizeRoles("faculty"), getFacultyCredentials);
-// router.get("/facultycredentials/:faculty_id", authorizeRoles("faculty"), getFacultyCredentialsById);
-// router.post("/facultycredentials", authorizeRoles("faculty"), addFacultyCredentials);
-// router.put("/facultycredentials/:faculty_id", authorizeRoles("faculty"), updateFacultyCredentials);
-// router.delete("/facultycredentials/:faculty_id", authorizeRoles("faculty"), deleteFacultyCredentials);
 
 // Association Routes
 router.get("/facultyassociation", authorizeRoles("faculty"), getFacultyAssociations);
@@ -160,7 +149,7 @@ router.delete("/specializations/:specialization_id", authorizeRoles("faculty"), 
 
 // Faculty Image Routes
 router.get("/facultyimage/:faculty_id", authorizeRoles("faculty"), getFacultyImage); // Route to get faculty image
-router.put("/facultyimage/:faculty_id", authorizeRoles("faculty"), uploadFacultyImage, updateFacultyImage); // Route to update faculty image
+router.put("/facultyimage/:faculty_id", authorizeRoles("faculty"), uploadFacultyImage, checkFileReceived, compressUploadedFile, updateFacultyImage); // Route to update faculty image
 router.delete("/facultyimage/:faculty_id", authorizeRoles("faculty"), deleteFacultyImage); // Route to delete faculty image
 
 // Faculty Patent Routes
