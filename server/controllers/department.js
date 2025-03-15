@@ -3,7 +3,15 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import fs from "fs";
 import path from "path";
+import nodemailer from "nodemailer";
 
+const transporter = nodemailer.createTransport({
+  service: "Gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 // 🔹 Generate Access Token (Short-lived)
 
 const generateAccessToken = (department_id, position) => {
@@ -23,7 +31,7 @@ const generateRefreshToken = (department_id) => {
 };
 
 export const getCirculars = (req, res) => {
-  const { department_id } = req.params;
+  const { department_id } = req.query;
 
   let query = "SELECT * FROM department_circular";
   let params = [];
@@ -251,29 +259,57 @@ export const getOrders = (req, res) => {
     params = [department_id];
   }
 
-  pool.query(query, params, (err, results) => {
+  pool.query(query, params, (err, orders) => {
     if (err) {
       console.error("Error fetching orders:", err);
       return res.status(500).json({ message: "Error fetching orders", error: err });
     }
 
-    if (department_id && results.length === 0) {
+    if (department_id && orders.length === 0) {
       return res.status(404).json({ message: "No orders found for this department" });
     }
 
-    res.status(200).json({ message: "Orders retrieved successfully", data: results });
+    // Fetch faculty_ids and student_ids for each order
+    const ordersWithMappings = [];
+
+    const fetchMappings = (index) => {
+      if (index >= orders.length) {
+        return res.status(200).json({ message: "Orders retrieved successfully", data: ordersWithMappings });
+      }
+
+      const order = orders[index];
+      const order_number = order.order_number;
+
+      const facultyQuery = `SELECT DISTINCT faculty_id FROM mapping_duty_orders_faculty WHERE order_number = ?`;
+      const studentQuery = `SELECT DISTINCT RollNo FROM mapping_duty_orders_students WHERE order_number = ?`;
+
+      pool.query(facultyQuery, [order_number], (err, facultyResult) => {
+        if (err) {
+          console.error("Error fetching faculty mappings:", err);
+          return res.status(500).json({ message: "Error fetching faculty mappings", error: err });
+        }
+
+        pool.query(studentQuery, [order_number], (err, studentResult) => {
+          if (err) {
+            console.error("Error fetching student mappings:", err);
+            return res.status(500).json({ message: "Error fetching student mappings", error: err });
+          }
+
+          ordersWithMappings.push({
+            ...order,
+            faculty_ids: facultyResult.map(row => row.faculty_id),
+            student_ids: studentResult.map(row => row.RollNo),
+          });
+
+          fetchMappings(index + 1);
+        });
+      });
+    };
+
+    fetchMappings(0);
   });
 };
 
-import nodemailer from "nodemailer";
-
-const transporter = nodemailer.createTransport({
-  service: "Gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
 
 export const addOrder = (req, res) => {
   const {
@@ -285,28 +321,30 @@ export const addOrder = (req, res) => {
     end_date,
     subject,
     notification_message,
+    undersigned
   } = req.body;
 
   let { faculty_ids, student_ids } = req.body;
   const order_path = req.file ? req.file.path : null;
 
-  if (!department_id || !order_number || !order_name || !order_date || !start_date || !end_date || !subject) {
+  if (!department_id || !order_number || !order_name || !order_date || !subject || !undersigned) {
     return res.status(400).json({ message: "All required fields must be provided." });
   }
 
   const orderQuery = `
     INSERT INTO department_duty_orders 
-    (department_id, order_number, order_name, order_date, start_date, end_date, subject, order_path) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+    (department_id, order_number, order_name, order_date, start_date, end_date, subject, order_path, undersigned) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
   const orderParams = [
     department_id,
     order_number,
     order_name,
     order_date,
-    start_date,
-    end_date,
+    start_date || NULL,
+    end_date || NULL,
     subject,
-    order_path
+    order_path,
+    undersigned
   ];
 
   pool.query(orderQuery, orderParams, (err, result) => {
@@ -412,6 +450,7 @@ export const updateOrder = (req, res) => {
     end_date,
     subject,
     notification_message,
+    undersigned
   } = req.body;
 
   let { faculty_ids, student_ids } = req.body;
@@ -427,9 +466,9 @@ export const updateOrder = (req, res) => {
 
     const updateOrderQuery = `
       UPDATE department_duty_orders 
-      SET department_id=?, order_number=?, order_name=?, order_date=?, start_date=?, end_date=?, subject=?, order_path=? 
+      SET department_id=?, order_number=?, order_name=?, order_date=?, start_date=?, end_date=?, subject=?, order_path=?, undersigned=?
       WHERE order_id=?`;
-    const orderParams = [department_id, order_number, order_name, order_date, start_date, end_date, subject, newFilePath, order_id];
+    const orderParams = [department_id, order_number, order_name, order_date, start_date || NULL, end_date || NULL, subject, newFilePath, undersigned, order_id];
 
     try {
       faculty_ids = typeof faculty_ids === "string" ? JSON.parse(faculty_ids) : faculty_ids || [];
@@ -1103,23 +1142,5 @@ export const deleteNotification = (req, res) => {
           return res.status(500).json({ error: "Internal server error" });
       }
       res.json({ success: true, message: "Notification deleted successfully" });
-  });
-};
-
-export const updateLastSeen = (req, res) => {
-  const { user_id } = req.body;
-
-  if (!user_id) {
-      return res.status(400).json({ error: "user_id is required" });
-  }
-
-  const query = `UPDATE faculty_details SET last_notifications_seen = NOW() WHERE faculty_id = ?`;
-
-  pool.query(query, [user_id], (err, result) => {
-      if (err) {
-          console.error("Error updating last_seen:", err);
-          return res.status(500).json({ error: "Internal server error" });
-      }
-      res.json({ success: true, message: "Last seen updated successfully" });
   });
 };

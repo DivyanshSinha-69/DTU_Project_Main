@@ -2322,48 +2322,166 @@ export const deleteFacultyQualification = (req, res) => {
 };
 
 export const updateLastSeen = (req, res) => {
-  const { faculty } = req.params;
+  const { user_id, position_name, notification_type } = req.body;
+  console.log(user_id, position_name, notification_type);
 
-  if (!user_id) {
-      return res.status(400).json({ error: "user_id is required" });
+  if (!user_id || !position_name || !notification_type) {
+      return res.status(400).json({ error: "user_id, position_name, and notification_type are required" });
   }
 
-  // Query to update last_seen timestamp
-  const updateQuery = `UPDATE faculty_details SET last_notifications_seen = NOW() WHERE faculty_id = ?`;
+  if (!["duty", "circular"].includes(notification_type)) {
+      return res.status(400).json({ error: "Invalid notification_type. Must be 'duty' or 'circular'." });
+  }
 
-  // Query to count seen and unseen notifications
-  const countQuery = `
-      SELECT 
-          COUNT(CASE WHEN created_at > (SELECT last_notifications_seen FROM faculty_details WHERE faculty_id = ?) THEN 1 END) AS unseen_count,
-          COUNT(CASE WHEN created_at <= (SELECT last_notifications_seen FROM faculty_details WHERE faculty_id = ?) THEN 1 END) AS seen_count
-      FROM department_duty_notifications 
-      WHERE user_id = ?
+  // Update last_seen timestamp for the user
+  const updateQuery = `
+      INSERT INTO user_last_seen_notifications (user_id, user_type, notification_type, last_seen)
+      VALUES (?, (SELECT position_id FROM position_type WHERE position_name = ?), ?, NOW())
+      ON DUPLICATE KEY UPDATE last_seen = NOW();
   `;
 
-  pool.query(updateQuery, [user_id], (err) => {
+  pool.query(updateQuery, [user_id, position_name, notification_type], (err) => {
       if (err) {
           console.error("Error updating last_seen:", err);
           return res.status(500).json({ error: "Internal server error" });
       }
 
-      // Fetch notification counts after updating last seen
-      pool.query(countQuery, [user_id, user_id, user_id], (err, result) => {
+      // First, fetch last_seen timestamp separately
+      const lastSeenQuery = `
+          SELECT last_seen FROM user_last_seen_notifications 
+          WHERE user_id = ? AND notification_type = ?;
+      `;
+
+      pool.query(lastSeenQuery, [user_id, notification_type], (err, lastSeenResult) => {
           if (err) {
-              console.error("Error fetching notification counts:", err);
+              console.error("Error fetching last_seen:", err);
               return res.status(500).json({ error: "Internal server error" });
           }
 
-          res.json({
-              success: true,
-              message: "Last seen updated successfully",
-              unseen_count: result[0].unseen_count,
-              seen_count: result[0].seen_count
+          // Default last_seen value if no record exists
+          const lastSeen = lastSeenResult.length > 0 ? lastSeenResult[0].last_seen : '2000-01-01';
+
+          let countQuery;
+          let values = [lastSeen, lastSeen];
+
+          if (notification_type === "duty") {
+              countQuery = `
+                  SELECT 
+                      COUNT(CASE WHEN created_at > ? THEN 1 END) AS unseen_count,
+                      COUNT(CASE WHEN created_at <= ? THEN 1 END) AS seen_count
+                  FROM department_duty_notifications
+                  WHERE user_id = ?;
+              `;
+              values.push(user_id);
+          } else {
+              countQuery = `
+                  SELECT 
+                      COUNT(CASE WHEN created_at > ? THEN 1 END) AS unseen_count,
+                      COUNT(CASE WHEN created_at <= ? THEN 1 END) AS seen_count
+                  FROM department_circular
+                  WHERE department_id IN (SELECT department_id FROM faculty_auth WHERE faculty_id = ?);
+              `;
+              values.push(user_id);
+          }
+
+          pool.query(countQuery, values, (err, result) => {
+              if (err) {
+                  console.error("Error fetching notification counts:", err);
+                  return res.status(500).json({ error: "Internal server error" });
+              }
+
+              res.json({
+                  success: true,
+                  message: `${notification_type} last seen updated successfully`,
+                  unseen_count: result[0].unseen_count,
+                  seen_count: result[0].seen_count
+              });
           });
       });
   });
 };
 
-// Get orders for faculty
-// Get circulars for faculty
-// Update is_seen in notification table
-// Get notifications for faculty
+
+
+export const getUserDutyOrders = (req, res) => {
+  const { user_id } = req.query;
+  let query = `
+      SELECT ddo.order_id, ddo.order_number, ddo.order_name, ddo.order_date, 
+             ddo.start_date, ddo.end_date, ddo.subject, ddo.order_path, 
+             ddo.undersigned, dn.is_seen, dn.created_at AS notified_at
+      FROM department_duty_orders ddo
+      JOIN department_duty_notifications dn ON ddo.order_number = dn.order_number
+  `;
+  let values = [];
+
+  if (user_id) {
+      query += " WHERE dn.user_id = ?";
+      values.push(user_id);
+  }
+
+  pool.query(query, values, (err, result) => {
+      if (err) {
+          console.error("Error fetching duty orders:", err);
+          return res.status(500).json({ error: "Internal server error" });
+      }
+      res.json(result);
+  });
+};
+
+export const getCirculars = (req, res) => {
+  const { department_id } = req.query;
+
+  let query = "SELECT * FROM department_circular";
+  let params = [];
+
+  if (department_id) {
+    query += " WHERE department_id = ?";
+    params.push(department_id);
+  }
+
+  pool.query(query, params, (err, results) => {
+    if (err) {
+      console.error("Error fetching circulars:", err);
+      return res
+        .status(500)
+        .json({ message: "Error fetching circulars", error: err });
+    }
+
+    if (department_id && results.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No circulars found for this department" });
+    }
+
+    res
+      .status(200)
+      .json({ message: "Circulars retrieved successfully", data: results });
+  });
+};
+
+export const markDutyOrderAsSeen = (req, res) => {
+  const { user_id, order_number } = req.body;
+
+  if (!user_id || !order_number) {
+    return res.status(400).json({ message: "User ID and Duty Order ID are required!" });
+  }
+
+  const updateQuery = `
+    UPDATE department_duty_notifications 
+    SET is_seen = 1 
+    WHERE user_id = ? AND order_number = ?
+  `;
+
+  pool.query(updateQuery, [user_id, order_number], (err, result) => {
+    if (err) {
+      console.error("Database Error:", err);
+      return res.status(500).json({ message: "Server error!" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Notification not found or already seen!" });
+    }
+
+    res.json({ message: "Duty order marked as seen!" });
+  });
+};

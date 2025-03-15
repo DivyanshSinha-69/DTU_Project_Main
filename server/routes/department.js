@@ -50,7 +50,7 @@ router.post("/logout", logout);
 router.use(authenticateToken);  // Middleware to authenticate token and verify user roles.
 
 // Circular Routes
-router.get("/circulars/:department_id?", authorizeRoles("department"), getCirculars);
+router.get("/circulars", authorizeRoles("department"), getCirculars);
 router.post("/circulars", authorizeRoles("department"), uploadDepartmentCircular, compressUploadedFile, addCircular);
 router.put("/circulars/:circular_id", authorizeRoles("department"), uploadDepartmentCircular, compressUploadedFile, updateCircular);
 router.delete("/circulars/:circular_id", authorizeRoles("department"), deleteCircular);

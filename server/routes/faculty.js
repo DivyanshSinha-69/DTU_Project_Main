@@ -71,6 +71,9 @@ import {
   updateInteractionType,
   deleteInteractionType,
   updateLastSeen,
+  getUserDutyOrders,
+  getCirculars,
+  markDutyOrderAsSeen
 } from "../controllers/faculty.js";
 
 const router = express.Router();
@@ -173,6 +176,13 @@ router.post("/qualification", authorizeRoles("faculty"), addFacultyQualification
 router.put("/qualification/:education_id", authorizeRoles("faculty"), updateFacultyQualification);
 router.delete("/qualification/:education_id", authorizeRoles("faculty"), deleteFacultyQualification);
 
-router.put("/notifications/last-seen/:user_id", authorizeRoles("faculty"), updateLastSeen);
+// Duty Orders Route
+router.get('/duty-orders', authorizeRoles("faculty"), getUserDutyOrders);
+
+router.get('/circulars', authorizeRoles("faculty"), getCirculars);
+
+router.put('/last-seen', authorizeRoles("faculty"), updateLastSeen);
+
+router.put('/duty-orders/mark_seen', authorizeRoles("faculty"), markDutyOrderAsSeen);
 
 export default router;

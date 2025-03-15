@@ -1857,3 +1857,84 @@ export const updateStudentLastSeen = (req, res) => {
       });
   });
 };
+
+export const updateLastSeen = (req, res) => {
+  const { user_id, position_name, notification_type } = req.body;
+  console.log(user_id, position_name, notification_type);
+
+  if (!user_id || !position_name || !notification_type) {
+      return res.status(400).json({ error: "user_id, position_name, and notification_type are required" });
+  }
+
+  if (!["duty", "circular"].includes(notification_type)) {
+      return res.status(400).json({ error: "Invalid notification_type. Must be 'duty' or 'circular'." });
+  }
+
+  // Update last_seen timestamp for the user
+  const updateQuery = `
+      INSERT INTO user_last_seen_notifications (user_id, user_type, notification_type, last_seen)
+      VALUES (?, (SELECT position_id FROM position_type WHERE position_name = ?), ?, NOW())
+      ON DUPLICATE KEY UPDATE last_seen = NOW();
+  `;
+
+  pool.query(updateQuery, [user_id, position_name, notification_type], (err) => {
+      if (err) {
+          console.error("Error updating last_seen:", err);
+          return res.status(500).json({ error: "Internal server error" });
+      }
+
+      // First, fetch last_seen timestamp separately
+      const lastSeenQuery = `
+          SELECT last_seen FROM user_last_seen_notifications 
+          WHERE user_id = ? AND notification_type = ?;
+      `;
+
+      pool.query(lastSeenQuery, [user_id, notification_type], (err, lastSeenResult) => {
+          if (err) {
+              console.error("Error fetching last_seen:", err);
+              return res.status(500).json({ error: "Internal server error" });
+          }
+
+          // Default last_seen value if no record exists
+          const lastSeen = lastSeenResult.length > 0 ? lastSeenResult[0].last_seen : '2000-01-01';
+
+          let countQuery;
+          let values = [lastSeen, lastSeen];
+
+          if (notification_type === "duty") {
+              countQuery = `
+                  SELECT 
+                      COUNT(CASE WHEN created_at > ? THEN 1 END) AS unseen_count,
+                      COUNT(CASE WHEN created_at <= ? THEN 1 END) AS seen_count
+                  FROM department_duty_notifications
+                  WHERE user_id = ?;
+              `;
+              values.push(user_id);
+          } else {
+              countQuery = `
+                  SELECT 
+                      COUNT(CASE WHEN created_at > ? THEN 1 END) AS unseen_count,
+                      COUNT(CASE WHEN created_at <= ? THEN 1 END) AS seen_count
+                  FROM department_circular
+                  WHERE department_id IN (SELECT department_id FROM student_auth WHERE RollNo = ?);
+              `;
+              values.push(user_id);
+          }
+
+          pool.query(countQuery, values, (err, result) => {
+              if (err) {
+                  console.error("Error fetching notification counts:", err);
+                  return res.status(500).json({ error: "Internal server error" });
+              }
+
+              res.json({
+                  success: true,
+                  message: `${notification_type} last seen updated successfully`,
+                  unseen_count: result[0].unseen_count,
+                  seen_count: result[0].seen_count
+              });
+          });
+      });
+  });
+};
+

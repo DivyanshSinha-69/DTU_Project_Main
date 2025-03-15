@@ -159,7 +159,7 @@ export const facultyLogin = (req, res) => {
 
   // First query to get faculty details
   pool.query(
-    `SELECT fa.*, pt.position_name 
+    `SELECT fa.*, pt.position_name
      FROM faculty_auth fa
      LEFT JOIN position_type pt ON fa.position_id = pt.position_id
      WHERE fa.faculty_id = ?`,
@@ -183,7 +183,7 @@ export const facultyLogin = (req, res) => {
 
         // Second query to get faculty name and designation
         pool.query(
-          `SELECT fd.faculty_name, fa.designation 
+          `SELECT fd.faculty_name, fa.designation
            FROM faculty_details fd 
            LEFT JOIN faculty_association fa ON fd.faculty_id = fa.faculty_id 
            WHERE fd.faculty_id = ?`,
@@ -225,6 +225,26 @@ export const facultyLogin = (req, res) => {
 
                 const position = user.position_name;
 
+                 // Fourth query: Fetch unread duty and circular notifications
+                 pool.query(
+                  `SELECT 
+                      (SELECT COUNT(*) FROM department_duty_notifications 
+                      WHERE user_id = ? AND is_seen = 0) AS unread_duties,
+                      
+                      (SELECT COUNT(*) FROM department_circular 
+                       WHERE department_id = (SELECT department_id FROM faculty_auth WHERE faculty_id = ?)
+                       AND created_at > COALESCE((SELECT last_seen FROM user_last_seen_notifications 
+                                                  WHERE user_id = ? AND notification_type = 'circular'), '2000-01-01')) 
+                       AS unread_circulars`,
+                  [faculty_id, faculty_id, faculty_id, faculty_id],
+                  (err, unreadResults) => {
+                      if (err) {
+                          console.error("Database Error:", err);
+                          return res.status(500).json({ message: "Server error!" });
+                      }
+
+                      const { unread_duties, unread_circulars } = unreadResults[0];
+
                 // Generate tokens
                 const accessToken = generateAccessToken(user.faculty_id, position);
                 const refreshToken = generateRefreshToken(user.faculty_id, position);
@@ -261,6 +281,8 @@ export const facultyLogin = (req, res) => {
                         patentCount: patents,
                         bookCount: book_records,
                         consultancyCount: consultancy,
+                        unreadDuties: unread_duties,
+                        unreadCirculars: unread_circulars,
                       },
                     });
                   },
@@ -270,6 +292,7 @@ export const facultyLogin = (req, res) => {
           },
         );
       });
+    });
     },
   );
 };
