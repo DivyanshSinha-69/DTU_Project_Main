@@ -1,6 +1,6 @@
 import CustomTable from "../../DynamicComponents/CustomTable.jsx";
 import { useState, useEffect } from "react";
-import API from "../../../utils/API";
+import API from "../../../utils/API.js";
 
 const CircularsNotices = () => {
   const [circulars, setCirculars] = useState([]); // State to store circulars

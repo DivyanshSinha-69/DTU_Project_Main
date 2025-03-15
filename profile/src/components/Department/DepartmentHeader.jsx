@@ -7,29 +7,20 @@ import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { logout } from "../../redux/reducers/AuthSlice";
 import { setRole } from "../../redux/reducers/UserSlice";
-import { removeProfessionalSkills } from "../../redux/reducers/student/UserProfessionalSkills";
-import { removePersonalDetails } from "../../redux/reducers/student/UserPersonalDetails";
-import { removeUserImage } from "../../redux/reducers/student/UserImage";
-import { removePlacement } from "../../redux/reducers/student/UserPlacementDetail";
-import { removeMtechEducation } from "../../redux/reducers/student/UserMtechEducationalDetails";
-import { removeEntrepreneurDetails } from "../../redux/reducers/student/UserEntrepreneurDetails";
-import { removeHigherEducationDetails } from "../../redux/reducers/student/UserHigherEducationDetails";
-import { removeInterInstitute } from "../../redux/reducers/student/UserInterInstituteDetails";
-import { removeBtechEducation } from "../../redux/reducers/student/UserBtechEducationalDetails";
+
 import { LogOut } from "lucide-react";
 
-const FacultyHeader = () => {
+const DepartmentHeader = () => {
   const { darkMode, setDarkMode } = useThemeContext();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { faculty_id } = useSelector((state) => state.auth.user);
-  const { role } = useSelector((state) => state.user);
+  const { role } = useSelector((state) => state.auth);
+  const { department_id } = useSelector((state) => state.auth.user);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Navigation links
   const navLinks = [
-    { name: "Faculty Details", path: "/faculty", icon: <FaUser /> },
-    { name: "Office Orders", path: "office-orders", icon: <FaBook /> },
+    { name: "Office Orders", path: "", icon: <FaBook /> },
     {
       name: "Circulars/Notices",
       path: "circular-notices",
@@ -40,33 +31,17 @@ const FacultyHeader = () => {
   const handleLogout = async (e) => {
     e.preventDefault();
     try {
-      let logoutUrl = `${process.env.REACT_APP_BACKEND_URL}/logout`;
-      const logoutData = {};
-      if (role === "faculty" && faculty_id) {
-        logoutUrl = `${process.env.REACT_APP_BACKEND_URL}/ece/facultyauth/logout`;
-        logoutData.faculty_id = faculty_id;
-      }
-      let response;
-      if (role === "student") {
-        response = await axios.get(logoutUrl, { withCredentials: true });
-      } else {
-        response = await axios.post(logoutUrl, logoutData, {
-          withCredentials: true,
-        });
-      }
+      const logoutUrl = `${process.env.REACT_APP_BACKEND_URL}/ece/department/logout`;
+      const logoutData = { department_id }; // Include department_id in the request body
+
+      const response = await axios.post(logoutUrl, logoutData, {
+        withCredentials: true,
+      });
+
       if (response.status === 200) {
         console.log("✅ Logged out successfully");
         dispatch(logout());
         dispatch(setRole(null));
-        dispatch(removeProfessionalSkills());
-        dispatch(removePersonalDetails());
-        dispatch(removeUserImage());
-        dispatch(removePlacement());
-        dispatch(removeMtechEducation());
-        dispatch(removeEntrepreneurDetails());
-        dispatch(removeHigherEducationDetails());
-        dispatch(removeInterInstitute());
-        dispatch(removeBtechEducation());
         navigate("/");
       } else {
         console.error("⚠️ Logout failed:", response.data.message);
@@ -89,7 +64,7 @@ const FacultyHeader = () => {
         {/* Logo and Dark Mode Toggle */}
         <div className="flex items-center space-x-4">
           <Link
-            to="/faculty"
+            to="/department/office-orders"
             className="text-xl font-semibold flex items-center space-x-2"
           >
             <motion.span
@@ -97,7 +72,7 @@ const FacultyHeader = () => {
               whileHover={{ opacity: 0.8 }}
               transition={{ duration: 0.2 }}
             >
-              Faculty Portal
+              Department Portal
             </motion.span>
           </Link>
 
@@ -225,4 +200,4 @@ const FacultyHeader = () => {
   );
 };
 
-export default FacultyHeader;
+export default DepartmentHeader;
