@@ -83,7 +83,7 @@ const Login = () => {
           navigate("/admin");
           break;
         case "department":
-          navigate("/department");
+          navigate("/department/office-orders");
           break;
         case "alumni":
           navigate("/alumni");

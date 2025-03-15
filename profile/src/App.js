@@ -33,6 +33,7 @@ import OfficeOrders from "./components/Teacher/OfficeOrders";
 import CircularNotices from "./components/Teacher/CircularNotices";
 import { useThemeContext } from "./context/ThemeContext";
 import { use } from "react";
+import CircularsNotices from "./components/Department/Pages/CircularsNotices";
 const CURRENT_VERSION = "2.2"; // Change this on every deployment
 if (localStorage.getItem("appVersion") !== CURRENT_VERSION) {
   store.dispatch(logout());
@@ -122,21 +123,25 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/login/admin" element={<AdminLogin />} />
           <Route path="/department" element={<Department />} />
-          <Route path="/faculty/office-orders" element={<OfficeOrders />} />
-          <Route
-            path="/faculty/circular-notices"
-            element={<CircularNotices />}
-          />
 
           {role === "student" && (
             <Route path="/student" element={<Student />} />
           )}
           {role === "faculty" && (
-            <Route path="/faculty" element={<Faculty />} />
+            <Route path="/faculty">
+              <Route index element={<Faculty />} />{" "}
+              <Route path="office-orders" element={<OfficeOrders />} />{" "}
+              <Route path="circulars" element={<CircularNotices />} />{" "}
+            </Route>
           )}
           {role === "admin" && <Route path="/admin" element={<Dashboard />} />}
           {role === "department" && (
-            <Route path="/department" element={<Department />} />
+            <Route path="/department">
+              <Route index element={<Department />} />{" "}
+              {/* Default route for /department */}
+              <Route path="office-orders" element={<Department />} />{" "}
+              <Route path="circulars" element={<CircularsNotices />} />{" "}
+            </Route>
           )}
           <Route path="/parents" element={<Parents />} />
           <Route path="/loader" element={<Loader />} />

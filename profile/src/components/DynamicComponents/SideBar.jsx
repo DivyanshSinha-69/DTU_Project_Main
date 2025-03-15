@@ -76,10 +76,11 @@ const Sidebar = ({ menuItems, selectedItem, onSelect, role, faculty_id }) => {
   return (
     <div className="relative">
       <button
-        className="absolute top-4 left-4 z-50 p-2 rounded-md shadow-md transition-all duration-300"
+        className="absolute top-3 left-2 z-50 p-2 rounded-md  transition-all duration-300"
         style={{
           backgroundColor: darkMode ? "#2B2C3A" : "#FFFFFF",
           color: darkMode ? "#EAEAEA" : "#1F252E",
+          border: darkMode ? "1px solid #22232B" : "1px solid #D1D5DB", // Subtle border
         }}
         onClick={() => setIsOpen(!isOpen)}
       >
@@ -97,9 +98,8 @@ const Sidebar = ({ menuItems, selectedItem, onSelect, role, faculty_id }) => {
         className={`h-screen flex flex-col shadow-lg rounded-r-2xl
           ${darkMode ? "bg-[#0D1117] text-white" : "bg-[#FFFFFF] text-[#1F252E]"}`}
         style={{
-          borderRight: darkMode ? "1px solid #22232B" : "1px solid #D1D5DB", // Subtle border
-          borderTop: darkMode ? "1px solid #22232B" : "1px solid #D1D5DB", // Subtle border
-          borderBottom: darkMode ? "1px solid #22232B" : "1px solid #D1D5DB", // Subtle border
+          borderTop: darkMode ? "1px solid #2E2E3E" : "1px solid #E5E7EB", // Complementary border colors
+          borderBottom: darkMode ? "1px solid #2E2E3E" : "1px solid #E5E7EB", // Complementary border colors
         }}
       >
         {isOpen && (
@@ -145,32 +145,6 @@ const Sidebar = ({ menuItems, selectedItem, onSelect, role, faculty_id }) => {
             ))}
           </div>
         )}
-        {/* Logout button is always visible */}
-        <div className="mt-auto mb-4 flex justify-center">
-          <button
-            className="p-2 rounded-md transition-all duration-300 flex items-center"
-            style={{
-              backgroundColor: darkMode ? "#D43F3F" : "#E63946", // Default background color
-              color: "#FFFFFF",
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = darkMode ? "#B03030" : "#B22222"; // Hover background color
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = darkMode ? "#D43F3F" : "#E63946"; // Reset background color
-            }}
-            onClick={handleLogout}
-          >
-            <motion.span
-              className="text-sm"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }} // Always visible
-              transition={{ duration: 0.3 }}
-            >
-              {isOpen ? "Logout" : <LogOut size={20} />}
-            </motion.span>
-          </button>
-        </div>
       </motion.div>
     </div>
   );

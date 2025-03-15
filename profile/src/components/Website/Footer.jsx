@@ -72,9 +72,9 @@ export default function Footer() {
           <Typography className="text-lg text-gray-400 mb-2 ">
             DEVELOPED BY
           </Typography>
-          <div className="flex flex-wrap justify-center gap-4">
+          <div className="flex flex-wrap justify-center gap-5">
             {[
-              "Sumit Khandelwal",
+              "Sumit Kumar Khandelwal",
               "Divyansh Bansal",
               "Divyansh Sinha",
               "Divyanshu Sinha",

@@ -37,6 +37,7 @@ export const authSlice = createSlice({
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("isAuthenticated");
       localStorage.removeItem("darkMode");
+      localStorage.removeItem("role");
     },
     updateAccessToken: (state, action) => {
       console.log("🔄 Updating Access Token in Redux:", action.payload);

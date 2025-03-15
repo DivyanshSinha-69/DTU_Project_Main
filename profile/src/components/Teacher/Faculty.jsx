@@ -31,6 +31,7 @@ import { PieChart, Pie, Cell } from "recharts";
 import { FaSun, FaMoon } from "react-icons/fa";
 import Qualification from "./Tables/Qualification.jsx";
 import Header from "./FacultyHeader.jsx";
+import FacultyHeader from "./FacultyHeader.jsx";
 
 const Faculty = () => {
   const [isBlurActive, setBlurActive] = useState(false);
@@ -222,35 +223,7 @@ const Faculty = () => {
         <Loader />
       ) : (
         <>
-          <Header /> {/* Add the Header here */}
-          {/* <motion.div
-            className="fixed top-5 right-5 flex items-center z-[1000]"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div
-              className={`relative flex w-24 h-12 rounded-full p-1 cursor-pointer transition-colors duration-500 ${
-                darkMode ? "bg-gray-900" : "bg-gray-300"
-              }`}
-              onClick={() => setDarkMode(!darkMode)}
-            >
-              {/* Toggle Button */}
-          {/*<motion.div
-                className={`absolute w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md transition-all duration-500 ${
-                  darkMode ? "translate-x-12" : "translate-x-0"
-                }`}
-                layout
-                transition={{ type: "spring", stiffness: 700, damping: 20 }}
-              >
-                {darkMode ? (
-                  <FaMoon className="text-gray-700" />
-                ) : (
-                  <FaSun className="text-yellow-500" />
-                )}
-              </motion.div>
-            </div>
-          </motion.div> */}
+          <FacultyHeader /> {/* Add the Header here */}
           <div className="flex mt-4  min-h-screen">
             {/* Sidebar */}
             <div className="flex-shrink-0 sticky top-0 h-screen">
@@ -289,7 +262,7 @@ const Faculty = () => {
                   <div className="relative w-full shadow-md">
                     {/* Background Cover Image */}
                     <div
-                      className="relative w-full h-[25vh] md:h-[30vh] lg:h-[37vh] rounded-t-2xl shadow-md "
+                      className="relative w-full h-[25vh] md:h-[30vh] lg:h-[37vh] rounded-t-2xl  "
                       style={{
                         backgroundImage: `url(${dtuImg})`,
                         backgroundSize: "cover",
@@ -301,7 +274,7 @@ const Faculty = () => {
                       {/* Profile Image */}
                       <div className="absolute bottom-0 left-4 md:left-8 transform translate-y-1/3">
                         <img
-                          className="rounded-full h-24 w-24 md:h-36 md:w-36 border-4 border-white dark:border-gray-800 shadow-lg"
+                          className="rounded-full h-24 w-24 md:h-36 md:w-36 border-4 border-white dark:border-gray-800 "
                           src={selectedImage ? selectedImage : teacherImg}
                           alt="Faculty Profile"
                         />
@@ -335,7 +308,7 @@ const Faculty = () => {
                   <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-6 mt-16 px-4 md:px-6 mb-6 pb-4">
                     {/* Faculty Details */}
                     <div
-                      className="rounded-xl shadow-md p-5 md:p-6 text-center md:text-left flex flex-col"
+                      className="rounded-xl  p-5 md:p-6 text-center md:text-left flex flex-col"
                       style={{
                         backgroundColor: darkMode ? "#0D1117" : "#FFFFFF",
                         border: darkMode
@@ -410,7 +383,7 @@ const Faculty = () => {
 
                     {/* Stats Box with Circular Progress Bar */}
                     <div
-                      className="rounded-xl shadow-lg p-4 md:p-6 flex flex-col md:flex-row justify-between items-center gap-6"
+                      className="rounded-xl p-4 md:p-6 flex flex-col md:flex-row justify-between items-center gap-6"
                       style={{
                         backgroundColor: darkMode ? "#0D1117" : "#FFFFFF",
                         border: darkMode

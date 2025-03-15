@@ -197,7 +197,7 @@ export default function StickyNavbar() {
               className="flex flex-row items-center lg:flex-col"
             >
               <img src={portalimg} alt="portal" height={30} width={30} />
-              <p className="lg:ml-0 ml-4">MyPortal</p>
+              <p className="lg:ml-0 ml-4">My Portal</p>
             </HashLink>
           </Typography>
 
