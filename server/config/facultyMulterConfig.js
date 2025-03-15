@@ -14,7 +14,13 @@ const researchPaperStorage = multer.diskStorage({
     cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
-    cb(null, file.originalname);
+    if (!file || !file.originalname) return cb(new Error("Invalid file upload"), null);
+
+    const timestamp = Date.now();
+    const ext = path.extname(file.originalname);
+    const baseName = path.basename(file.originalname, ext);
+    const uniqueFilename = `${baseName}_${timestamp}${ext}`; // Adding timestamp to filename
+    cb(null, uniqueFilename);
   },
 });
 

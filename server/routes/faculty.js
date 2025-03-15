@@ -149,7 +149,7 @@ router.delete("/specializations/:specialization_id", authorizeRoles("faculty"), 
 
 // Faculty Image Routes
 router.get("/facultyimage/:faculty_id", authorizeRoles("faculty"), getFacultyImage); // Route to get faculty image
-router.put("/facultyimage/:faculty_id", authorizeRoles("faculty"), uploadFacultyImage, checkFileReceived, compressUploadedFile, updateFacultyImage); // Route to update faculty image
+router.put("/facultyimage/:faculty_id", authorizeRoles("faculty"), uploadFacultyImage, compressUploadedFile, updateFacultyImage); // Route to update faculty image
 router.delete("/facultyimage/:faculty_id", authorizeRoles("faculty"), deleteFacultyImage); // Route to delete faculty image
 
 // Faculty Patent Routes
