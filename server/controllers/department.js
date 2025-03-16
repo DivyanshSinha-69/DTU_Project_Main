@@ -262,11 +262,15 @@ export const getOrders = (req, res) => {
   pool.query(query, params, (err, orders) => {
     if (err) {
       console.error("Error fetching orders:", err);
-      return res.status(500).json({ message: "Error fetching orders", error: err });
+      return res
+        .status(500)
+        .json({ message: "Error fetching orders", error: err });
     }
 
     if (department_id && orders.length === 0) {
-      return res.status(404).json({ message: "No orders found for this department" });
+      return res
+        .status(404)
+        .json({ message: "No orders found for this department" });
     }
 
     // Fetch faculty_ids and student_ids for each order
@@ -274,7 +278,10 @@ export const getOrders = (req, res) => {
 
     const fetchMappings = (index) => {
       if (index >= orders.length) {
-        return res.status(200).json({ message: "Orders retrieved successfully", data: ordersWithMappings });
+        return res.status(200).json({
+          message: "Orders retrieved successfully",
+          data: ordersWithMappings,
+        });
       }
 
       const order = orders[index];
@@ -286,19 +293,23 @@ export const getOrders = (req, res) => {
       pool.query(facultyQuery, [order_number], (err, facultyResult) => {
         if (err) {
           console.error("Error fetching faculty mappings:", err);
-          return res.status(500).json({ message: "Error fetching faculty mappings", error: err });
+          return res
+            .status(500)
+            .json({ message: "Error fetching faculty mappings", error: err });
         }
 
         pool.query(studentQuery, [order_number], (err, studentResult) => {
           if (err) {
             console.error("Error fetching student mappings:", err);
-            return res.status(500).json({ message: "Error fetching student mappings", error: err });
+            return res
+              .status(500)
+              .json({ message: "Error fetching student mappings", error: err });
           }
 
           ordersWithMappings.push({
             ...order,
-            faculty_ids: facultyResult.map(row => row.faculty_id),
-            student_ids: studentResult.map(row => row.RollNo),
+            faculty_ids: facultyResult.map((row) => row.faculty_id),
+            student_ids: studentResult.map((row) => row.RollNo),
           });
 
           fetchMappings(index + 1);
@@ -310,7 +321,6 @@ export const getOrders = (req, res) => {
   });
 };
 
-
 export const addOrder = (req, res) => {
   const {
     department_id,
@@ -321,14 +331,24 @@ export const addOrder = (req, res) => {
     end_date,
     subject,
     notification_message,
-    undersigned
+    undersigned,
   } = req.body;
 
   let { faculty_ids, student_ids } = req.body;
   const order_path = req.file ? req.file.path : null;
 
-  if (!department_id || !order_number || !order_name || !order_date || !subject || !undersigned) {
-    return res.status(400).json({ message: "All required fields must be provided." });
+  if (
+    !department_id ||
+    !order_number ||
+    !order_name ||
+    !order_date ||
+    !subject ||
+    !undersigned ||
+    !order_path
+  ) {
+    return res
+      .status(400)
+      .json({ message: "All required fields must be provided." });
   }
 
   const orderQuery = `
@@ -344,36 +364,56 @@ export const addOrder = (req, res) => {
     end_date || NULL,
     subject,
     order_path,
-    undersigned
+    undersigned,
   ];
 
   pool.query(orderQuery, orderParams, (err, result) => {
     if (err) {
       console.error("Error adding order:", err);
-      return res.status(500).json({ message: "Error adding order", error: err });
+      return res
+        .status(500)
+        .json({ message: "Error adding order", error: err });
     }
 
     try {
-      faculty_ids = typeof faculty_ids === "string" ? JSON.parse(faculty_ids) : faculty_ids || [];
-      student_ids = typeof student_ids === "string" ? JSON.parse(student_ids) : student_ids || [];
+      faculty_ids =
+        typeof faculty_ids === "string"
+          ? JSON.parse(faculty_ids)
+          : faculty_ids || [];
+      student_ids =
+        typeof student_ids === "string"
+          ? JSON.parse(student_ids)
+          : student_ids || [];
     } catch (error) {
       console.error("Error parsing IDs:", error);
-      return res.status(400).json({ message: "Invalid faculty_ids or student_ids format" });
+      return res
+        .status(400)
+        .json({ message: "Invalid faculty_ids or student_ids format" });
     }
 
     // Insert faculty and student mappings
     if (faculty_ids.length > 0) {
-      const facultyQuery = "INSERT INTO mapping_duty_orders_faculty (faculty_id, order_number) VALUES ?";
-      pool.query(facultyQuery, [faculty_ids.map(id => [id, order_number])], (facultyErr) => {
-        if (facultyErr) console.error("Error linking faculty:", facultyErr);
-      });
+      const facultyQuery =
+        "INSERT INTO mapping_duty_orders_faculty (faculty_id, order_number) VALUES ?";
+      pool.query(
+        facultyQuery,
+        [faculty_ids.map((id) => [id, order_number])],
+        (facultyErr) => {
+          if (facultyErr) console.error("Error linking faculty:", facultyErr);
+        }
+      );
     }
 
     if (student_ids.length > 0) {
-      const studentQuery = "INSERT INTO mapping_duty_orders_students (RollNo, order_number) VALUES ?";
-      pool.query(studentQuery, [student_ids.map(id => [id, order_number])], (studentErr) => {
-        if (studentErr) console.error("Error linking students:", studentErr);
-      });
+      const studentQuery =
+        "INSERT INTO mapping_duty_orders_students (RollNo, order_number) VALUES ?";
+      pool.query(
+        studentQuery,
+        [student_ids.map((id) => [id, order_number])],
+        (studentErr) => {
+          if (studentErr) console.error("Error linking students:", studentErr);
+        }
+      );
     }
 
     // Insert notifications for all faculty and students
@@ -381,9 +421,9 @@ export const addOrder = (req, res) => {
       INSERT INTO department_duty_notifications (user_id, order_number, message) VALUES ?`;
     const message = notification_message || "New duty order assigned"; // Use provided message or default
 
-      const notificationValues = [
-      ...faculty_ids.map(id => [id, order_number, message]),
-      ...student_ids.map(id => [id, order_number, message])
+    const notificationValues = [
+      ...faculty_ids.map((id) => [id, order_number, message]),
+      ...student_ids.map((id) => [id, order_number, message]),
     ];
 
     pool.query(notificationQuery, [notificationValues], (notifErr) => {
@@ -396,28 +436,36 @@ export const addOrder = (req, res) => {
     UNION 
     SELECT email FROM student_auth WHERE RollNo IN (?)`;
 
-pool.query(getEmailsQuery, [faculty_ids, student_ids], (emailErr, emailResults) => {
-    if (emailErr) {
-        console.error("Error fetching emails:", emailErr);
-        return;
-    }
+    pool.query(
+      getEmailsQuery,
+      [faculty_ids, student_ids],
+      (emailErr, emailResults) => {
+        if (emailErr) {
+          console.error("Error fetching emails:", emailErr);
+          return;
+        }
 
-    console.log("Raw email results:", emailResults); // Debugging log
+        console.log("Raw email results:", emailResults); // Debugging log
 
-    // Extract email field correctly
-    const emails = emailResults.map(row => row.email).filter(email => email); // Remove undefined values
+        // Extract email field correctly
+        const emails = emailResults
+          .map((row) => row.email)
+          .filter((email) => email); // Remove undefined values
 
-    console.log("Valid Recipient Emails:", emails);
+        console.log("Valid Recipient Emails:", emails);
 
-    if (emails.length === 0) {
-        console.error("No valid recipient emails found.");
-        return;
-    }
+        if (emails.length === 0) {
+          console.error("No valid recipient emails found.");
+          return;
+        }
 
-    sendEmailNotifications(emails, order_date, subject);
-});
+        sendEmailNotifications(emails, order_date, subject);
+      }
+    );
 
-res.status(201).json({ message: "Order added successfully", insertId: result.insertId });
+    res
+      .status(201)
+      .json({ message: "Order added successfully", insertId: result.insertId });
   });
 };
 
@@ -450,99 +498,160 @@ export const updateOrder = (req, res) => {
     end_date,
     subject,
     notification_message,
-    undersigned
+    undersigned,
   } = req.body;
 
   let { faculty_ids, student_ids } = req.body;
 
-  pool.query("SELECT order_path FROM department_duty_orders WHERE order_id=?", [order_id], (err, results) => {
-    if (err || results.length === 0) {
-      return res.status(500).json({ message: "Error fetching order", error: err });
-    }
+  pool.query(
+    "SELECT order_path FROM department_duty_orders WHERE order_id=?",
+    [order_id],
+    (err, results) => {
+      if (err || results.length === 0) {
+        return res
+          .status(500)
+          .json({ message: "Error fetching order", error: err });
+      }
 
-    const oldFilePath = results[0].order_path;
-    if (req.file && oldFilePath) fs.unlink(oldFilePath, () => {});
-    const newFilePath = req.file ? req.file.path : oldFilePath;
+      const oldFilePath = results[0].order_path;
+      if (req.file && oldFilePath) fs.unlink(oldFilePath, () => {});
+      const newFilePath = req.file ? req.file.path : oldFilePath;
 
-    const updateOrderQuery = `
+      const updateOrderQuery = `
       UPDATE department_duty_orders 
       SET department_id=?, order_number=?, order_name=?, order_date=?, start_date=?, end_date=?, subject=?, order_path=?, undersigned=?
       WHERE order_id=?`;
-    const orderParams = [department_id, order_number, order_name, order_date, start_date || NULL, end_date || NULL, subject, newFilePath, undersigned, order_id];
-
-    try {
-      faculty_ids = typeof faculty_ids === "string" ? JSON.parse(faculty_ids) : faculty_ids || [];
-      student_ids = typeof student_ids === "string" ? JSON.parse(student_ids) : student_ids || [];
-    } catch (error) {
-      console.error("Error parsing IDs:", error);
-      return res.status(400).json({ message: "Invalid faculty_ids or student_ids format" });
-    }
-
-    pool.query(updateOrderQuery, orderParams, (err, result) => {
-      if (err) return res.status(500).json({ message: "Error updating order", error: err });
-      if (result.affectedRows === 0) return res.status(404).json({ message: "Order not found" });
-
-      // Delete old faculty and student mappings
-      pool.query("DELETE FROM mapping_duty_orders_faculty WHERE order_number = ?", [order_number]);
-      pool.query("DELETE FROM mapping_duty_orders_students WHERE order_number = ?", [order_number]);
-
-      // Insert new mappings
-      if (faculty_ids.length > 0) {
-        const facultyQuery = "INSERT INTO mapping_duty_orders_faculty (faculty_id, order_number) VALUES ?";
-        pool.query(facultyQuery, [faculty_ids.map(id => [id, order_number])]);
-      }
-
-      if (student_ids.length > 0) {
-        const studentQuery = "INSERT INTO mapping_duty_orders_students (RollNo, order_number) VALUES ?";
-        pool.query(studentQuery, [student_ids.map(id => [id, order_number])]);
-      }
-
-      // Delete old notifications
-      pool.query("DELETE FROM department_duty_notifications WHERE order_number = ?", [order_number]);
-
-      // Insert new notifications
-      const notificationQuery = `
-        INSERT INTO department_duty_notifications (user_id, order_number, message) VALUES ?`;
-      const message = notification_message || "New duty order assigned"; // Use provided message or default
-
-      const notificationValues = [
-        ...faculty_ids.map(id => [id, order_number, "Updated duty order assigned"]),
-        ...student_ids.map(id => [id, order_number, "Updated duty order assigned"])
+      const orderParams = [
+        department_id,
+        order_number,
+        order_name,
+        order_date,
+        start_date || NULL,
+        end_date || NULL,
+        subject,
+        newFilePath,
+        undersigned,
+        order_id,
       ];
 
-      pool.query(notificationQuery, [notificationValues], (notifErr) => {
-        if (notifErr) console.error("Error creating notifications:", notifErr);
-      });
+      try {
+        faculty_ids =
+          typeof faculty_ids === "string"
+            ? JSON.parse(faculty_ids)
+            : faculty_ids || [];
+        student_ids =
+          typeof student_ids === "string"
+            ? JSON.parse(student_ids)
+            : student_ids || [];
+      } catch (error) {
+        console.error("Error parsing IDs:", error);
+        return res
+          .status(400)
+          .json({ message: "Invalid faculty_ids or student_ids format" });
+      }
 
-      // Fetch emails of faculties and students
-      const getEmailsQuery = `
+      pool.query(updateOrderQuery, orderParams, (err, result) => {
+        if (err)
+          return res
+            .status(500)
+            .json({ message: "Error updating order", error: err });
+        if (result.affectedRows === 0)
+          return res.status(404).json({ message: "Order not found" });
+
+        // Delete old faculty and student mappings
+        pool.query(
+          "DELETE FROM mapping_duty_orders_faculty WHERE order_number = ?",
+          [order_number]
+        );
+        pool.query(
+          "DELETE FROM mapping_duty_orders_students WHERE order_number = ?",
+          [order_number]
+        );
+
+        // Insert new mappings
+        if (faculty_ids.length > 0) {
+          const facultyQuery =
+            "INSERT INTO mapping_duty_orders_faculty (faculty_id, order_number) VALUES ?";
+          pool.query(facultyQuery, [
+            faculty_ids.map((id) => [id, order_number]),
+          ]);
+        }
+
+        if (student_ids.length > 0) {
+          const studentQuery =
+            "INSERT INTO mapping_duty_orders_students (RollNo, order_number) VALUES ?";
+          pool.query(studentQuery, [
+            student_ids.map((id) => [id, order_number]),
+          ]);
+        }
+
+        // Delete old notifications
+        pool.query(
+          "DELETE FROM department_duty_notifications WHERE order_number = ?",
+          [order_number]
+        );
+
+        // Insert new notifications
+        const notificationQuery = `
+        INSERT INTO department_duty_notifications (user_id, order_number, message) VALUES ?`;
+        const message = notification_message || "New duty order assigned"; // Use provided message or default
+
+        const notificationValues = [
+          ...faculty_ids.map((id) => [
+            id,
+            order_number,
+            "Updated duty order assigned",
+          ]),
+          ...student_ids.map((id) => [
+            id,
+            order_number,
+            "Updated duty order assigned",
+          ]),
+        ];
+
+        pool.query(notificationQuery, [notificationValues], (notifErr) => {
+          if (notifErr)
+            console.error("Error creating notifications:", notifErr);
+        });
+
+        // Fetch emails of faculties and students
+        const getEmailsQuery = `
         SELECT email_id AS email FROM faculty_details WHERE faculty_id IN (?) 
         UNION 
         SELECT email FROM student_auth WHERE RollNo IN (?)`;
 
-      pool.query(getEmailsQuery, [faculty_ids, student_ids], (emailErr, emailResults) => {
-        if (emailErr) {
-          console.error("Error fetching emails:", emailErr);
-        } else {
-          console.log("Raw email results:", emailResults); // Debugging log
+        pool.query(
+          getEmailsQuery,
+          [faculty_ids, student_ids],
+          (emailErr, emailResults) => {
+            if (emailErr) {
+              console.error("Error fetching emails:", emailErr);
+            } else {
+              console.log("Raw email results:", emailResults); // Debugging log
 
-          // Extract email field correctly
-          const emails = emailResults.map(row => row.email).filter(email => email); // Remove undefined values
+              // Extract email field correctly
+              const emails = emailResults
+                .map((row) => row.email)
+                .filter((email) => email); // Remove undefined values
 
-          console.log("Valid Recipient Emails:", emails);
+              console.log("Valid Recipient Emails:", emails);
 
-          if (emails.length === 0) {
-            console.error("No valid recipient emails found.");
-            return;
+              if (emails.length === 0) {
+                console.error("No valid recipient emails found.");
+                return;
+              }
+
+              sendUpdateEmailNotifications(emails, order_date, subject);
+            }
           }
+        );
 
-          sendUpdateEmailNotifications(emails, order_date, subject);
-        }
+        res
+          .status(200)
+          .json({ message: "Order updated successfully", newFilePath });
       });
-
-      res.status(200).json({ message: "Order updated successfully", newFilePath });
-    });
-  });
+    }
+  );
 };
 
 // Function to send update notification emails
@@ -563,29 +672,52 @@ const sendUpdateEmailNotifications = (emails, order_date, subject) => {
   });
 };
 
-
 export const deleteOrder = (req, res) => {
   const { order_id } = req.params;
-  if (!order_id) return res.status(400).json({ message: "Order ID is required" });
+  if (!order_id)
+    return res.status(400).json({ message: "Order ID is required" });
 
-  pool.query("SELECT order_number, order_path FROM department_duty_orders WHERE order_id=?", [order_id], (err, results) => {
-    if (err || results.length === 0) return res.status(404).json({ message: "Order not found" });
+  pool.query(
+    "SELECT order_number, order_path FROM department_duty_orders WHERE order_id=?",
+    [order_id],
+    (err, results) => {
+      if (err || results.length === 0)
+        return res.status(404).json({ message: "Order not found" });
 
-    const { order_number, order_path } = results[0];
-    pool.query("DELETE FROM mapping_duty_orders_faculty WHERE order_number = ?", [order_number]);
-    pool.query("DELETE FROM mapping_duty_orders_students WHERE order_number = ?", [order_number]);
-    pool.query("DELETE FROM department_duty_notifications WHERE order_number = ?", [order_number]);
+      const { order_number, order_path } = results[0];
+      pool.query(
+        "DELETE FROM mapping_duty_orders_faculty WHERE order_number = ?",
+        [order_number]
+      );
+      pool.query(
+        "DELETE FROM mapping_duty_orders_students WHERE order_number = ?",
+        [order_number]
+      );
+      pool.query(
+        "DELETE FROM department_duty_notifications WHERE order_number = ?",
+        [order_number]
+      );
 
-    if (order_path) fs.unlink(order_path, () => {});
+      if (order_path) fs.unlink(order_path, () => {});
 
-    pool.query("DELETE FROM department_duty_orders WHERE order_id=?", [order_id], (orderErr, result) => {
-      if (orderErr) return res.status(500).json({ message: "Error deleting order", error: orderErr });
-      if (result.affectedRows === 0) return res.status(404).json({ message: "Order not found" });
-      res.status(200).json({ message: "Order and associated notifications deleted successfully" });
-    });
-  });
+      pool.query(
+        "DELETE FROM department_duty_orders WHERE order_id=?",
+        [order_id],
+        (orderErr, result) => {
+          if (orderErr)
+            return res
+              .status(500)
+              .json({ message: "Error deleting order", error: orderErr });
+          if (result.affectedRows === 0)
+            return res.status(404).json({ message: "Order not found" });
+          res.status(200).json({
+            message: "Order and associated notifications deleted successfully",
+          });
+        }
+      );
+    }
+  );
 };
-
 
 // 1️⃣ Get all faculty mappings or by faculty_id
 export const getFacultyMappings = (req, res) => {
@@ -594,16 +726,16 @@ export const getFacultyMappings = (req, res) => {
   let values = [];
 
   if (faculty_id) {
-      query += " WHERE faculty_id = ?";
-      values.push(faculty_id);
+    query += " WHERE faculty_id = ?";
+    values.push(faculty_id);
   }
 
   pool.query(query, values, (err, result) => {
-      if (err) {
-          console.error("Error fetching faculty mappings:", err);
-          return res.status(500).json({ error: "Internal server error" });
-      }
-      res.json(result);
+    if (err) {
+      console.error("Error fetching faculty mappings:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+    res.json(result);
   });
 };
 
@@ -612,19 +744,19 @@ export const addFacultyMapping = (req, res) => {
   const { faculty_id, order_number } = req.body;
 
   pool.query(
-      "INSERT INTO mapping_duty_orders_faculty (faculty_id, order_number) VALUES (?, ?)",
-      [faculty_id, order_number],
-      (err, result) => {
-          if (err) {
-              console.error("Error adding faculty mapping:", err);
-              return res.status(500).json({ error: "Internal server error" });
-          }
-          res.json({ 
-              success: true, 
-              message: "Faculty mapping added successfully", 
-              id: result.insertId // Returning the newly inserted row's ID
-          });
+    "INSERT INTO mapping_duty_orders_faculty (faculty_id, order_number) VALUES (?, ?)",
+    [faculty_id, order_number],
+    (err, result) => {
+      if (err) {
+        console.error("Error adding faculty mapping:", err);
+        return res.status(500).json({ error: "Internal server error" });
       }
+      res.json({
+        success: true,
+        message: "Faculty mapping added successfully",
+        id: result.insertId, // Returning the newly inserted row's ID
+      });
+    }
   );
 };
 
@@ -634,15 +766,18 @@ export const updateFacultyMapping = (req, res) => {
   const { faculty_id, order_number } = req.body;
 
   pool.query(
-      "UPDATE mapping_duty_orders_faculty SET faculty_id = ?, order_number = ? WHERE id = ?",
-      [faculty_id, order_number, id],
-      (err, result) => {
-          if (err) {
-              console.error("Error updating faculty mapping:", err);
-              return res.status(500).json({ error: "Internal server error" });
-          }
-          res.json({ success: true, message: "Faculty mapping updated successfully" });
+    "UPDATE mapping_duty_orders_faculty SET faculty_id = ?, order_number = ? WHERE id = ?",
+    [faculty_id, order_number, id],
+    (err, result) => {
+      if (err) {
+        console.error("Error updating faculty mapping:", err);
+        return res.status(500).json({ error: "Internal server error" });
       }
+      res.json({
+        success: true,
+        message: "Faculty mapping updated successfully",
+      });
+    }
   );
 };
 
@@ -650,13 +785,20 @@ export const updateFacultyMapping = (req, res) => {
 export const deleteFacultyMapping = (req, res) => {
   const { id } = req.params;
 
-  pool.query("DELETE FROM mapping_duty_orders_faculty WHERE id = ?", [id], (err, result) => {
+  pool.query(
+    "DELETE FROM mapping_duty_orders_faculty WHERE id = ?",
+    [id],
+    (err, result) => {
       if (err) {
-          console.error("Error deleting faculty mapping:", err);
-          return res.status(500).json({ error: "Internal server error" });
+        console.error("Error deleting faculty mapping:", err);
+        return res.status(500).json({ error: "Internal server error" });
       }
-      res.json({ success: true, message: "Faculty mapping deleted successfully" });
-  });
+      res.json({
+        success: true,
+        message: "Faculty mapping deleted successfully",
+      });
+    }
+  );
 };
 
 // 1️⃣ Get all student mappings or by RollNo
@@ -666,16 +808,16 @@ export const getStudentMappings = (req, res) => {
   let values = [];
 
   if (RollNo) {
-      query += " WHERE RollNo = ?";
-      values.push(RollNo);
+    query += " WHERE RollNo = ?";
+    values.push(RollNo);
   }
 
   pool.query(query, values, (err, result) => {
-      if (err) {
-          console.error("Error fetching student mappings:", err);
-          return res.status(500).json({ error: "Internal server error" });
-      }
-      res.json(result);
+    if (err) {
+      console.error("Error fetching student mappings:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+    res.json(result);
   });
 };
 
@@ -684,18 +826,19 @@ export const addStudentMapping = (req, res) => {
   const { RollNo, order_number } = req.body;
 
   pool.query(
-      "INSERT INTO mapping_duty_orders_students (RollNo, order_number) VALUES (?, ?)",
-      [RollNo, order_number],
-      (err, result) => {
-          if (err) {
-              console.error("Error adding student mapping:", err);
-              return res.status(500).json({ error: "Internal server error" });
-          }
-          res.json({ success: true,
-             message: "Student mapping added successfully",
-             id: result.insertId // Returning the newly inserted row's ID
-        });
+    "INSERT INTO mapping_duty_orders_students (RollNo, order_number) VALUES (?, ?)",
+    [RollNo, order_number],
+    (err, result) => {
+      if (err) {
+        console.error("Error adding student mapping:", err);
+        return res.status(500).json({ error: "Internal server error" });
       }
+      res.json({
+        success: true,
+        message: "Student mapping added successfully",
+        id: result.insertId, // Returning the newly inserted row's ID
+      });
+    }
   );
 };
 
@@ -705,15 +848,18 @@ export const updateStudentMapping = (req, res) => {
   const { RollNo, order_number } = req.body;
 
   pool.query(
-      "UPDATE mapping_duty_orders_students SET RollNo = ?, order_number = ? WHERE id = ?",
-      [RollNo, order_number, id],
-      (err, result) => {
-          if (err) {
-              console.error("Error updating student mapping:", err);
-              return res.status(500).json({ error: "Internal server error" });
-          }
-          res.json({ success: true, message: "Student mapping updated successfully" });
+    "UPDATE mapping_duty_orders_students SET RollNo = ?, order_number = ? WHERE id = ?",
+    [RollNo, order_number, id],
+    (err, result) => {
+      if (err) {
+        console.error("Error updating student mapping:", err);
+        return res.status(500).json({ error: "Internal server error" });
       }
+      res.json({
+        success: true,
+        message: "Student mapping updated successfully",
+      });
+    }
   );
 };
 
@@ -721,20 +867,27 @@ export const updateStudentMapping = (req, res) => {
 export const deleteStudentMapping = (req, res) => {
   const { id } = req.params;
 
-  pool.query("DELETE FROM mapping_duty_orders_students WHERE id = ?", [id], (err, result) => {
+  pool.query(
+    "DELETE FROM mapping_duty_orders_students WHERE id = ?",
+    [id],
+    (err, result) => {
       if (err) {
-          console.error("Error deleting student mapping:", err);
-          return res.status(500).json({ error: "Internal server error" });
+        console.error("Error deleting student mapping:", err);
+        return res.status(500).json({ error: "Internal server error" });
       }
-      res.json({ success: true, message: "Student mapping deleted successfully" });
-  });
+      res.json({
+        success: true,
+        message: "Student mapping deleted successfully",
+      });
+    }
+  );
 };
 
 export const getMappingsByOrderNumber = (req, res) => {
   const { order_number } = req.query;
 
   if (!order_number) {
-      return res.status(400).json({ error: "order_number is required" });
+    return res.status(400).json({ error: "order_number is required" });
   }
 
   console.log("Received order_number:", order_number); // Debugging log
@@ -752,26 +905,28 @@ export const getMappingsByOrderNumber = (req, res) => {
   `;
 
   pool.query(facultyQuery, [order_number], (err, facultyResult) => {
+    if (err) {
+      console.error("Error fetching faculty mappings:", err);
+      return res
+        .status(500)
+        .json({ error: "Internal server error", details: err.message });
+    }
+
+    pool.query(studentQuery, [order_number], (err, studentResult) => {
       if (err) {
-          console.error("Error fetching faculty mappings:", err);
-          return res.status(500).json({ error: "Internal server error", details: err.message });
+        console.error("Error fetching student mappings:", err);
+        return res
+          .status(500)
+          .json({ error: "Internal server error", details: err.message });
       }
 
-      pool.query(studentQuery, [order_number], (err, studentResult) => {
-          if (err) {
-              console.error("Error fetching student mappings:", err);
-              return res.status(500).json({ error: "Internal server error", details: err.message });
-          }
-
-          res.json({
-              faculty_ids: facultyResult.map(row => row.faculty_id),
-              roll_numbers: studentResult.map(row => row.RollNo)
-          });
+      res.json({
+        faculty_ids: facultyResult.map((row) => row.faculty_id),
+        roll_numbers: studentResult.map((row) => row.RollNo),
       });
+    });
   });
 };
-
-
 
 export const getDepartments = (req, res) => {
   const { department_id } = req.params;
@@ -1068,17 +1223,17 @@ export const getNotifications = (req, res) => {
   const { user_id } = req.query;
 
   if (!user_id) {
-      return res.status(400).json({ error: "user_id is required" });
+    return res.status(400).json({ error: "user_id is required" });
   }
 
   const query = `SELECT * FROM department_duty_notifications WHERE user_id = ? ORDER BY created_at DESC`;
 
   pool.query(query, [user_id], (err, results) => {
-      if (err) {
-          console.error("Error fetching notifications:", err);
-          return res.status(500).json({ error: "Internal server error" });
-      }
-      res.json(results);
+    if (err) {
+      console.error("Error fetching notifications:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+    res.json(results);
   });
 };
 
@@ -1086,7 +1241,7 @@ export const addNotification = (req, res) => {
   const { user_id, order_number, message } = req.body;
 
   if (!user_id || !message) {
-      return res.status(400).json({ error: "user_id and message are required" });
+    return res.status(400).json({ error: "user_id and message are required" });
   }
 
   const query = `
@@ -1095,11 +1250,15 @@ export const addNotification = (req, res) => {
   `;
 
   pool.query(query, [user_id, order_number || null, message], (err, result) => {
-      if (err) {
-          console.error("Error adding notification:", err);
-          return res.status(500).json({ error: "Internal server error" });
-      }
-      res.json({ success: true, message: "Notification added successfully", notification_id: result.insertId });
+    if (err) {
+      console.error("Error adding notification:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+    res.json({
+      success: true,
+      message: "Notification added successfully",
+      notification_id: result.insertId,
+    });
   });
 };
 
@@ -1108,7 +1267,7 @@ export const updateNotification = (req, res) => {
   const { user_id, order_number, message } = req.body;
 
   if (!notification_id) {
-      return res.status(400).json({ error: "notification_id is required" });
+    return res.status(400).json({ error: "notification_id is required" });
   }
 
   const query = `
@@ -1117,30 +1276,33 @@ export const updateNotification = (req, res) => {
       WHERE notification_id = ?
   `;
 
-  pool.query(query, [user_id, order_number || null, message, notification_id], (err, result) => {
+  pool.query(
+    query,
+    [user_id, order_number || null, message, notification_id],
+    (err, result) => {
       if (err) {
-          console.error("Error updating notification:", err);
-          return res.status(500).json({ error: "Internal server error" });
+        console.error("Error updating notification:", err);
+        return res.status(500).json({ error: "Internal server error" });
       }
       res.json({ success: true, message: "Notification updated successfully" });
-  });
+    }
+  );
 };
-
 
 export const deleteNotification = (req, res) => {
   const { notification_id } = req.params;
 
   if (!notification_id) {
-      return res.status(400).json({ error: "notification_id is required" });
+    return res.status(400).json({ error: "notification_id is required" });
   }
 
   const query = `DELETE FROM department_duty_notifications WHERE notification_id = ?`;
 
   pool.query(query, [notification_id], (err, result) => {
-      if (err) {
-          console.error("Error deleting notification:", err);
-          return res.status(500).json({ error: "Internal server error" });
-      }
-      res.json({ success: true, message: "Notification deleted successfully" });
+    if (err) {
+      console.error("Error deleting notification:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+    res.json({ success: true, message: "Notification deleted successfully" });
   });
 };

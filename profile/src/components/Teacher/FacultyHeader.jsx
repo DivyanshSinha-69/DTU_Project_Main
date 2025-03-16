@@ -29,10 +29,10 @@ const FacultyHeader = () => {
   // Navigation links
   const navLinks = [
     { name: "Faculty Details", path: "/faculty", icon: <FaUser /> },
-    { name: "Office Orders", path: "office-orders", icon: <FaBook /> },
+    { name: "Office Orders", path: "/faculty/office-orders", icon: <FaBook /> },
     {
       name: "Circulars/Notices",
-      path: "circular-notices",
+      path: "/faculty/circular-notices",
       icon: <FaEnvelope />,
     },
   ];
