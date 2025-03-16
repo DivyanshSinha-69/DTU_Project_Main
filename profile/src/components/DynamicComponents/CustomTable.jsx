@@ -181,7 +181,11 @@ const CustomTable = ({
                     {/* Table Data */}
                     {columns.map((col) => {
                       let cellValue = row[col.key];
-                      if (col.key === "Document" || col.key === "order_path") {
+                      if (
+                        col.key === "Document" ||
+                        col.key === "order_path" ||
+                        col.key === "circular_path"
+                      ) {
                         return (
                           <td key={col.key} className="p-4">
                             {cellValue ? (
@@ -349,10 +353,12 @@ const CustomTable = ({
                                   >
                                     {col.label}
                                   </Typography>
-                                  {col.key === "Document" ? (
+                                  {col.key === "Document" ||
+                                  col.key === "order_path" ||
+                                  col.key === "circular_path" ? (
                                     row[col.key] ? (
                                       <a
-                                        href={`${process.env.REACT_APP_BACKEND_URL}/public/${row[col.key].name}`}
+                                        href={`${process.env.REACT_APP_BACKEND_URL}/public/${row[col.key]}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="text-blue-500 hover:underline font-poppins font-medium"
