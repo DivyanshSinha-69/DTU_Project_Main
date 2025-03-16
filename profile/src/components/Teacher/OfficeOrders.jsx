@@ -236,7 +236,18 @@ const FacultyOfficeOrders = () => {
   const currentItems = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
+  const wordLimit = 3; // Set your desired word limit here
+  const truncateText = (text, wordLimit) => {
+    if (!text) return { truncated: "-", full: "-" };
+    const words = text.split(" ");
+    if (words.length > wordLimit) {
+      return {
+        truncated: words.slice(0, wordLimit).join(" ") + "...",
+        full: text,
+      };
+    }
+    return { truncated: text, full: text };
+  };
   return (
     <div
       style={{ backgroundColor: darkMode ? "#1E1E2E" : "#F4F5F7" }} // Adjusted dark mode background
@@ -525,6 +536,7 @@ const FacultyOfficeOrders = () => {
                                       color: darkMode ? "#C9CCD1" : "#2D3A4A",
                                       letterSpacing: "0.3px",
                                     }}
+                                    title={row[col.key] || "-"} // Show full text on hover
                                   >
                                     {col.key === "order_path" ? (
                                       row[col.key] ? (
@@ -551,7 +563,10 @@ const FacultyOfficeOrders = () => {
                                       // Show only the length of the array in normal view
                                       row[col.key]?.length || "-"
                                     ) : (
-                                      row[col.key] || "-"
+                                      truncateText(
+                                        row[col.key] || "-",
+                                        wordLimit
+                                      ).truncated // Apply truncateText function
                                     )}
                                   </Typography>
                                 </td>
