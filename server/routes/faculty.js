@@ -69,7 +69,8 @@ import {
   updateLastSeen,
   getUserDutyOrders,
   getCirculars,
-  markDutyOrderAsSeen
+  markDutyOrderAsSeen,
+  getFacultyMappingByDepartment 
 } from "../controllers/faculty.js";
 
 const router = express.Router();
@@ -173,5 +174,7 @@ router.get('/circulars', authorizeRoles("faculty"), getCirculars);
 router.put('/last-seen', authorizeRoles("faculty"), updateLastSeen);
 
 router.put('/duty-orders/mark_seen', authorizeRoles("faculty"), markDutyOrderAsSeen);
+
+router.get("/faculty-mapping", authorizeRoles("faculty", "department"), getFacultyMappingByDepartment);
 
 export default router;

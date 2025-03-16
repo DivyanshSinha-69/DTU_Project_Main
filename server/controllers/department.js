@@ -936,7 +936,7 @@ export const departmentLogin = (req, res) => {
 
         // Fetch department details
         pool.query(
-          `SELECT department_name, degree, university, curr_hod 
+          `SELECT department_name, university, curr_hod 
              FROM department_details WHERE department_id = ?`,
           [department_id],
           (err, departmentResults) => {
@@ -951,7 +951,7 @@ export const departmentLogin = (req, res) => {
                 .json({ message: "Department details not found!" });
             }
 
-            const { department_name, degree, university, curr_hod } =
+            const { department_name, university, curr_hod } =
               departmentResults[0];
 
             // Generate access and refresh tokens including position
@@ -989,7 +989,6 @@ export const departmentLogin = (req, res) => {
                   user: {
                     department_id: user.department_id,
                     department_name,
-                    degree,
                     university,
                     current_hod: curr_hod,
                     position: user.position_name,

@@ -115,7 +115,7 @@ export const getImage = (req, res) => {
 };
 
 export const getall = (req, res) => {
-  pool.query("SELECT * FROM student_data", (error, results) => {
+  pool.query("SELECT * FROM Student_data", (error, results) => {
     if (error) {
       console.error("Error querying database: " + error.stack);
       res.status(500).json({ error: "Internal Server Error" });
