@@ -252,7 +252,7 @@ export const addResearchPaper = (req, res) => {
     citation,
     authors,
   } = req.body;
-  const filePath = req.file ? path.relative("public", req.file.path).replace(/\\/g, "/") : null;
+  const filePath = req.file ?  req.file.path : null;
 
   pool.query(
     "SELECT * FROM faculty_details WHERE faculty_id = ?",
