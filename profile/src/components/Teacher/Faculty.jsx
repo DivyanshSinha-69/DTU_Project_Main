@@ -56,10 +56,7 @@ const Faculty = () => {
 
     try {
       const response = await API.get(`/ece/faculty/facultyimage/${facultyId}`);
-      console.log(
-        "🚀 ~ file: Faculty.jsx ~ line 47 ~ fetchFacultyImage ~ response",
-        response.data
-      );
+
       if (response.data && response.data.faculty_image) {
         const imagePath = `${process.env.REACT_APP_BACKEND_URL}/${response.data.faculty_image}`; // Ensure correct path
         setSelectedImage(imagePath);
@@ -275,9 +272,9 @@ const Faculty = () => {
                       }}
                     >
                       {/* Profile Image */}
-                      <div className="absolute bottom-0 left-4 md:left-8 transform translate-y-1/3">
+                      <div className="absolute bottom-0 left-4 md:left-8 transform translate-y-1/3 ">
                         <img
-                          className="rounded-full h-24 w-24 md:h-36 md:w-36 border-4 border-white dark:border-gray-800 "
+                          className="rounded-full h-24 w-24 md:h-36 md:w-36 border-4 border-white dark:border-gray-800 object-cover"
                           src={selectedImage ? selectedImage : teacherImg}
                           alt="Faculty Profile"
                         />

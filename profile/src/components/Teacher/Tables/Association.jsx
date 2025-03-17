@@ -26,7 +26,6 @@ const Association = ({ setBlurActive }) => {
     const date = new Date(isoDate);
     return date.toLocaleDateString("en-GB"); // "dd/mm/yyyy" format
   };
-  // Load data from localStorage on mount or set dummy data
 
   useEffect(() => {
     if (!facultyId) return; // Prevent API call if facultyId is null
@@ -80,8 +79,6 @@ const Association = ({ setBlurActive }) => {
     setPopupOpen(false);
     setBlurActive(false);
   };
-
-  // Function to update data and save to localStorage
 
   const updateAssociationDetails = async (data) => {
     try {

@@ -22,17 +22,17 @@ const getFileSize = (filePath) => {
  */
 export const compressImage = (filePath, callback) => {
   console.log(`Original Image Size: ${getFileSize(filePath)}`);
-  
+
   const outputFilePath = filePath.replace(/\.(jpeg|jpg|png)$/, "_compressed$&");
 
   sharp(filePath)
-    .resize({ width: 1024 }) // Resize to 1024px width
+    .resize({ width: 512, height: 512, fit: "cover" }) // Resize to 1024px width
     .jpeg({ quality: 70 }) // Reduce quality to 70%
     .toFile(outputFilePath, (err) => {
       if (err) return callback(err);
-      
+
       console.log(`Compressed Image Size: ${getFileSize(outputFilePath)}`);
-      
+
       // Replace original file with compressed one
       fs.unlink(filePath, () => {
         fs.rename(outputFilePath, filePath, callback);
@@ -44,10 +44,10 @@ export const compressImage = (filePath, callback) => {
  * 📌 Compress PDF using Ghostscript
  */
 // 🔹 Change this path based on your installation
-const gsCommand = os.platform() === "win32" 
-  ? `"C:\\Program Files\\gs\\gs10.04.0\\bin\\gswin64c.exe"`
-  : "gs"; // Linux uses "gs"
-
+const gsCommand =
+  os.platform() === "win32"
+    ? `"C:\\Program Files\\gs\\gs10.04.0\\bin\\gswin64c.exe"`
+    : "gs"; // Linux uses "gs"
 
 export const compressPDF = (filePath, callback) => {
   const outputFilePath = filePath.replace(".pdf", "_compressed.pdf");
@@ -62,7 +62,9 @@ export const compressPDF = (filePath, callback) => {
     const compressedSize = fs.statSync(outputFilePath).size;
     console.log(`📄 PDF Compression: ${filePath}`);
     console.log(`   ➤ Original Size: ${(originalSize / 1024).toFixed(2)} KB`);
-    console.log(`   ➤ Compressed Size: ${(compressedSize / 1024).toFixed(2)} KB`);
+    console.log(
+      `   ➤ Compressed Size: ${(compressedSize / 1024).toFixed(2)} KB`
+    );
 
     // Replace the original file with the compressed one
     fs.unlink(filePath, () => {

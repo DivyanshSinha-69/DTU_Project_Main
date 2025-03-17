@@ -20,7 +20,11 @@ const DepartmentHeader = () => {
 
   // Navigation links
   const navLinks = [
-    { name: "Office Orders", path: "", icon: <FaBook /> },
+    {
+      name: "Office Orders",
+      path: "/department/office-orders",
+      icon: <FaBook />,
+    },
     {
       name: "Circulars/Notices",
       path: "/department/circular-notices",
