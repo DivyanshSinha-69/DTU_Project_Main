@@ -5,7 +5,6 @@ import fs from "fs";
 import path from "path";
 import nodemailer from "nodemailer";
 import { fileURLToPath } from "url";
-import axios from "axios";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -774,6 +773,7 @@ export const deleteOrder = (req, res) => {
       const facultyQuery = `SELECT DISTINCT faculty_id FROM mapping_duty_orders_faculty WHERE order_number = ?;`;
       const studentQuery = `SELECT DISTINCT RollNo FROM mapping_duty_orders_students WHERE order_number = ?;`;
 
+      // Fetch Faculty IDs
       pool.query(facultyQuery, [order_number], (facultyErr, facultyResult) => {
         if (facultyErr) {
           console.error("Error fetching faculty mappings:", facultyErr);
@@ -782,6 +782,7 @@ export const deleteOrder = (req, res) => {
 
         const facultyIds = facultyResult.map((row) => row.faculty_id).filter(Boolean);
 
+        // Fetch Faculty Emails
         if (facultyIds.length > 0) {
           pool.query(
             `SELECT email_id FROM faculty_details WHERE faculty_id IN (?)`,
@@ -793,16 +794,13 @@ export const deleteOrder = (req, res) => {
                 const facultyEmails = emailResults.map((row) => row.email_id).filter(Boolean);
                 if (facultyEmails.length > 0) {
                   sendDeleteEmailNotifications(facultyEmails, order_name, order_number, order_date, subject);
-                } else {
-                  console.log("No faculty emails found for this order.");
                 }
               }
             }
           );
-        } else {
-          console.log("No faculties assigned to this order.");
         }
 
+        // Fetch Student Roll Numbers
         pool.query(studentQuery, [order_number], (studentErr, studentResult) => {
           if (studentErr) {
             console.error("Error fetching student mappings:", studentErr);
@@ -810,31 +808,36 @@ export const deleteOrder = (req, res) => {
             const studentRollNos = studentResult.map((row) => row.RollNo).filter(Boolean);
             if (studentRollNos.length > 0) {
               console.log("Affected students:", studentRollNos);
-            } else {
-              console.log("No students assigned to this order.");
             }
           }
-        
-          // **Move this inside the student query callback**
-          if (facultyIds.length > 0 || (studentResult && studentResult.length > 0)) {
-            pool.query("DELETE FROM mapping_duty_orders_faculty WHERE order_number = ?", [order_number]);
-            pool.query("DELETE FROM mapping_duty_orders_students WHERE order_number = ?", [order_number]);
-            pool.query("DELETE FROM department_duty_notifications WHERE order_number = ?", [order_number]);
+
+          // **Delete all related records only after processing emails**
+          pool.query("DELETE FROM mapping_duty_orders_faculty WHERE order_number = ?", [order_number]);
+          pool.query("DELETE FROM mapping_duty_orders_students WHERE order_number = ?", [order_number]);
+          pool.query("DELETE FROM department_duty_notifications WHERE order_number = ?", [order_number]);
+
+          // **Delete the file if it exists**
+          if (order_path) {
+            try {
+              fs.unlinkSync(order_path);
+            } catch (fsErr) {
+              console.error("Error deleting file:", fsErr);
+            }
           }
-        
-          if (order_path) fs.unlink(order_path, () => {});
-        
+
+          // **Finally, delete the order**
           pool.query("DELETE FROM department_duty_orders WHERE order_id=?", [order_id], (orderErr, result) => {
             if (orderErr) return res.status(500).json({ message: "Error deleting order", error: orderErr });
             if (result.affectedRows === 0) return res.status(404).json({ message: "Order not found" });
-        
+
             res.status(200).json({ message: "Order and associated notifications deleted successfully" });
           });
         });
+      });
     }
   );
-});
-}
+};
+
 
 const sendDeleteEmailNotifications = (emails, order_name, order_number, order_date, subject) => {
   if (!emails || emails.length === 0) {
