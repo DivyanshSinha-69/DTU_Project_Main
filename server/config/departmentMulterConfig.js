@@ -46,14 +46,14 @@ const fileFilter = (req, file, cb) => {
 const uploadDepartmentCircular = multer({
   storage: departmentCircularStorage,
   fileFilter,
-  limits: { fileSize: 20 * 1024 * 1024 }, // 10MB limit
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB limit
 }).single("circular_file");
 
 // Upload Middleware for Orders
 const uploadDepartmentOrder = multer({
   storage: departmentOrderStorage,
   fileFilter,
-  limits: { fileSize: 20 * 1024 * 1024 }, // 10MB limit
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB limit
 }).single("order_file");
 
 // Compression Middleware
