@@ -5,8 +5,8 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
-import { uploadFacultyImage } from "../config/facultyMulterConfig.js";
-import { compressImage } from "../utils/fileCompressor.js";
+import puppeteer from "puppeteer";
+
 
 const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
@@ -2409,6 +2409,42 @@ export const markDutyOrderAsSeen = (req, res) => {
   });
 };
 
+
+
+
+export const downloadFacultySummary = async (req, res) => {
+  const { faculty_id } = req.params;
+
+  pool.query("SELECT * FROM faculty_details WHERE faculty_id = ?", [faculty_id], async (err, results) => {
+    if (err) return res.status(500).json({ message: "Error fetching faculty data", error: err });
+    if (results.length === 0) return res.status(404).json({ message: "Faculty not found" });
+
+    const faculty = results[0];
+
+    try {
+      const browser = await puppeteer.launch({ headless: "new" });
+      const page = await browser.newPage();
+
+      // ✅ Open the React Page (Hosted on Frontend)
+      const frontendURL = `https://dtu-eceportal.com/faculty-summary?faculty_id=${faculty_id}`;
+      await page.goto(frontendURL, { waitUntil: "networkidle2" });
+
+      // ✅ Generate PDF
+      const pdfBuffer = await page.pdf({ format: "A4" });
+
+      await browser.close();
+
+      // ✅ Send PDF as Response
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename="faculty_${faculty_id}.pdf"`);
+      res.send(pdfBuffer);
+    } catch (error) {
+      res.status(500).json({ message: "Error generating PDF", error });
+    }
+  });
+};
+
+
 export const getFacultyMappingByDepartment = (req, res) => {
   const { department_id } = req.query;
 
@@ -2420,14 +2456,10 @@ export const getFacultyMappingByDepartment = (req, res) => {
   `;
 
   pool.query(query, [department_id], (err, results) => {
-    if (err)
-      return res
-        .status(500)
-        .json({ message: "Error fetching faculty mapping", error: err });
-    if (results.length === 0)
-      return res
-        .status(404)
-        .json({ message: "No faculty found for this department." });
+
+    if (err) return res.status(500).json({ message: "Error fetching faculty mapping", error: err });
+    if (results.length === 0) return res.status(404).json({ message: "No faculty found for this department." });
+
 
     res.status(200).json(results);
   });

@@ -70,7 +70,7 @@ import {
   getUserDutyOrders,
   getCirculars,
   markDutyOrderAsSeen,
-  getFacultyMappingByDepartment,
+  getFacultyMappingByDepartment 
 } from "../controllers/faculty.js";
 
 const router = express.Router();
@@ -361,5 +361,7 @@ router.get(
   authorizeRoles("department", "faculty"),
   getFacultyMappingByDepartment
 );
+
+router.get("/faculty-mapping", authorizeRoles("faculty", "department"), getFacultyMappingByDepartment);
 
 export default router;
