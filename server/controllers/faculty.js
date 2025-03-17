@@ -247,12 +247,12 @@ export const addResearchPaper = (req, res) => {
     faculty_id,
     paper_type,
     title_of_paper,
-    area_of_research,
+    area_of_research, // This is a text value (we need to convert it to an ID)
     published_year,
     citation,
     authors,
   } = req.body;
-  const filePath = req.file ? path.relative("public", req.file.path) : null;
+  const filePath = req.file ? path.relative("public", req.file.path).replace(/\\/g, "/") : null;
 
   pool.query(
     "SELECT * FROM faculty_details WHERE faculty_id = ?",
@@ -268,40 +268,83 @@ export const addResearchPaper = (req, res) => {
         });
       }
 
-      const sql = `INSERT INTO faculty_research_paper (faculty_id, paper_type, title_of_paper, area_of_research, published_year, pdf_path, citation, authors) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-
+      // Step 1: Check if the research area already exists
       pool.query(
-        sql,
-        [
-          faculty_id,
-          paper_type,
-          title_of_paper,
-          area_of_research,
-          published_year,
-          filePath,
-          citation,
-          authors,
-        ],
-        (insertError, insertResult) => {
-          if (insertError)
+        "SELECT id FROM research_areas WHERE area_of_research = ?",
+        [area_of_research],
+        (err, areaResults) => {
+          if (err) {
             return res.status(500).json({
-              message: "Error adding research paper",
-              error: insertError,
+              message: "Error checking research area",
+              error: err,
             });
-          res.status(201).json({
-            message: "Research paper added successfully",
-            data: insertResult,
-          });
+          }
+
+          if (areaResults.length > 0) {
+            // If the area exists, use its ID
+            insertResearchPaper(areaResults[0].id);
+          } else {
+            // If not, insert the new research area and get its ID
+            pool.query(
+              "INSERT INTO research_areas (area_of_research) VALUES (?)",
+              [area_of_research],
+              (insertErr, insertResult) => {
+                if (insertErr) {
+                  return res.status(500).json({
+                    message: "Error inserting new research area",
+                    error: insertErr,
+                  });
+                }
+                insertResearchPaper(insertResult.insertId); // Use the new ID
+              }
+            );
+          }
         }
       );
+
+      // Step 2: Insert research paper with the correct area_of_research ID
+      function insertResearchPaper(researchAreaId) {
+        const sql = `INSERT INTO faculty_research_paper 
+          (faculty_id, paper_type, title_of_paper, area_of_research, published_year, pdf_path, citation, authors) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+
+        pool.query(
+          sql,
+          [
+            faculty_id,
+            paper_type,
+            title_of_paper,
+            researchAreaId, // Using ID instead of text
+            published_year,
+            filePath,
+            citation,
+            authors,
+          ],
+          (insertError, insertResult) => {
+            if (insertError)
+              return res.status(500).json({
+                message: "Error adding research paper",
+                error: insertError,
+              });
+            res.status(201).json({
+              message: "Research paper added successfully",
+              data: insertResult,
+            });
+          }
+        );
+      }
     }
   );
 };
 
-// ✅ Get Research Papers by Faculty
+
 export const getResearchPapersByFaculty = (req, res) => {
   const { faculty_id } = req.params;
-  const query = `SELECT frp.*, ra.area_of_research FROM faculty_research_paper frp LEFT JOIN research_areas ra ON frp.area_of_research = ra.id WHERE faculty_id = ?`;
+  const query = `
+    SELECT frp.*, ra.area_of_research 
+    FROM faculty_research_paper frp 
+    LEFT JOIN research_areas ra ON frp.area_of_research = ra.id 
+    WHERE faculty_id = ?`;
 
   pool.query(query, [faculty_id], (err, results) => {
     if (err)
@@ -322,12 +365,12 @@ export const updateResearchPaper = (req, res) => {
   const {
     paper_type,
     title_of_paper,
-    area_of_research,
+    area_of_research, // This is text; we need to convert it to an ID
     published_year,
     citation,
     authors,
   } = req.body;
-  const filePath = req.file ? path.relative("public", req.file.path) : null;
+  const filePath = req.file ? path.relative("public", req.file.path).replace(/\\/g, "/") : null;
 
   pool.query(
     "SELECT * FROM faculty_research_paper WHERE research_id = ?",
@@ -355,32 +398,74 @@ export const updateResearchPaper = (req, res) => {
         fs.unlinkSync(absoluteOldFilePath);
       }
 
-      const updateQuery = `UPDATE faculty_research_paper SET paper_type = ?, title_of_paper = ?, area_of_research = ?, published_year = ?, citation = ?, authors = ?, pdf_path = COALESCE(?, pdf_path) WHERE research_id = ?`;
-
+      // Step 1: Check if the research area exists
       pool.query(
-        updateQuery,
-        [
-          paper_type,
-          title_of_paper,
-          area_of_research,
-          published_year,
-          citation,
-          authors,
-          filePath,
-          research_id,
-        ],
-        (updateErr, updateResult) => {
-          if (updateErr)
+        "SELECT id FROM research_areas WHERE area_of_research = ?",
+        [area_of_research],
+        (err, areaResults) => {
+          if (err) {
             return res.status(500).json({
-              message: "Error updating research paper",
-              error: updateErr,
+              message: "Error checking research area",
+              error: err,
             });
-          res.status(200).json({
-            message: "Research paper updated successfully",
-            data: updateResult,
-          });
+          }
+
+          if (areaResults.length > 0) {
+            // If it exists, use its ID
+            updateResearchPaperEntry(areaResults[0].id);
+          } else {
+            // If not, insert new research area and use new ID
+            pool.query(
+              "INSERT INTO research_areas (area_of_research) VALUES (?)",
+              [area_of_research],
+              (insertErr, insertResult) => {
+                if (insertErr) {
+                  return res.status(500).json({
+                    message: "Error inserting new research area",
+                    error: insertErr,
+                  });
+                }
+                updateResearchPaperEntry(insertResult.insertId);
+              }
+            );
+          }
         }
       );
+
+      // Step 2: Update research paper with the correct area_of_research ID
+      function updateResearchPaperEntry(researchAreaId) {
+        const updateQuery = `
+          UPDATE faculty_research_paper 
+          SET paper_type = ?, title_of_paper = ?, area_of_research = ?, 
+              published_year = ?, citation = ?, authors = ?, 
+              pdf_path = COALESCE(?, pdf_path) 
+          WHERE research_id = ?`;
+
+        pool.query(
+          updateQuery,
+          [
+            paper_type,
+            title_of_paper,
+            researchAreaId, // Using ID instead of text
+            published_year,
+            citation,
+            authors,
+            filePath,
+            research_id,
+          ],
+          (updateErr, updateResult) => {
+            if (updateErr)
+              return res.status(500).json({
+                message: "Error updating research paper",
+                error: updateErr,
+              });
+            res.status(200).json({
+              message: "Research paper updated successfully",
+              data: updateResult,
+            });
+          }
+        );
+      }
     }
   );
 };
@@ -439,6 +524,7 @@ export const deleteResearchPaper = (req, res) => {
     }
   );
 };
+
 
 // 1. Get FDP records
 export const getFDPRecords = (req, res) => {
@@ -657,7 +743,7 @@ export const addFacultyInteraction = (req, res) => {
     return res.status(400).json({ message: "Document file is required" });
   }
 
-  const document_path = req.file.path; // Save document path
+  const document = req.file.path; // Save document path
   const monthNumber = getMonthNumber(month_of_visit);
 
   if (!monthNumber) {
@@ -694,7 +780,7 @@ export const addFacultyInteraction = (req, res) => {
 
   function insertFacultyInteraction(interaction_id) {
     const query = `
-        INSERT INTO faculty_interaction (faculty_id, interaction_id, institution, description, year_of_visit, month_of_visit, duration_in_days, document_path)
+        INSERT INTO faculty_interaction (faculty_id, interaction_id, institution, description, year_of_visit, month_of_visit, duration_in_days, document)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
     const params = [
@@ -705,7 +791,7 @@ export const addFacultyInteraction = (req, res) => {
       year_of_visit,
       monthNumber,
       duration_in_days || null,
-      document_path,
+      document,
     ];
 
     pool.query(query, params, (err, result) => {
@@ -718,7 +804,7 @@ export const addFacultyInteraction = (req, res) => {
 
       res.status(201).json({
         message: "Faculty interaction added successfully",
-        data: { id: result.insertId, documentPath: document_path },
+        data: { id: result.insertId, documentPath: document },
       });
     });
   }
@@ -756,7 +842,7 @@ export const updateFacultyInteraction = (req, res) => {
 
   // Fetch existing document path
   pool.query(
-    `SELECT document_path FROM faculty_interaction WHERE interact_id=?`,
+    `SELECT document FROM faculty_interaction WHERE interact_id=?`,
     [interact_id],
     (err, results) => {
       if (err) {
@@ -770,7 +856,7 @@ export const updateFacultyInteraction = (req, res) => {
           .status(404)
           .json({ message: "Faculty interaction not found" });
 
-      const oldFilePath = results[0].document_path;
+      const oldFilePath = results[0].document;
       const newFilePath = req.file ? req.file.path : oldFilePath;
 
       // Delete old document if a new one is uploaded
@@ -817,7 +903,7 @@ export const updateFacultyInteraction = (req, res) => {
       function updateInteraction(interaction_id) {
         const query = `
           UPDATE faculty_interaction
-          SET interaction_id = ?, institution = ?, description = ?, year_of_visit = ?, month_of_visit = ?, duration_in_days = ?, document_path = ?
+          SET interaction_id = ?, institution = ?, description = ?, year_of_visit = ?, month_of_visit = ?, duration_in_days = ?, document = ?
           WHERE interact_id = ?
       `;
         const params = [
@@ -862,7 +948,7 @@ export const deleteFacultyInteraction = (req, res) => {
   const { interact_id } = req.params;
 
   pool.query(
-    `SELECT document_path FROM faculty_interaction WHERE interact_id=?`,
+    `SELECT document FROM faculty_interaction WHERE interact_id=?`,
     [interact_id],
     (err, results) => {
       if (err) {
@@ -876,7 +962,7 @@ export const deleteFacultyInteraction = (req, res) => {
           .status(404)
           .json({ message: "Faculty interaction not found" });
 
-      const filePath = results[0].document_path;
+      const filePath = results[0].document;
 
       if (filePath) {
         fs.unlink(filePath, (err) => {

@@ -87,7 +87,7 @@ const uploadFacultyInteraction = multer({
   storage: facultyInteractionStorage,
   fileFilter,
   limits: { fileSize: 20 * 1024 * 1024 }, // 20MB limit
-}).single("interaction_document");
+}).single("document");
 
 // Upload Middleware for Faculty Images
 const uploadFacultyImage = multer({
