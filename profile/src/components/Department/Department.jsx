@@ -204,7 +204,7 @@ const Department = () => {
       fetchOrders(); // Refresh the orders list
     } catch (error) {
       console.error("Error adding/updating order:", error);
-      toast.error("Failed to add/update order. Please try again.");
+      toast.error(error, " Please try again.");
     }
   };
 

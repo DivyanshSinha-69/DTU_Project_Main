@@ -46,12 +46,6 @@ const FacultyHeader = () => {
         position_name: role, // Role from Redux
         notification_type: "circular", // Notification type
       });
-
-      if (response.data?.success) {
-        console.log("✅ Last seen updated successfully");
-      } else {
-        console.error("⚠️ Failed to update last seen:", response.data?.message);
-      }
     } catch (error) {
       console.error("❌ Error updating last seen:", error.message);
     }
@@ -62,13 +56,10 @@ const FacultyHeader = () => {
     const previousPath = location.pathname;
     return () => {
       const currentPath = window.location.pathname; // Get the current path after navigation
-      console.log("🔔 Previous Path:", previousPath);
-      console.log("🔔 Current Path:", currentPath);
       if (
         previousPath === "/faculty/circular-notices" &&
         currentPath !== "/faculty/circular-notices"
       ) {
-        console.log("🔔 Circulars/Notices page left");
         dispatch(updateUnreadCirculars()); // Dispatch the new action
         const user = JSON.parse(localStorage.getItem("user"));
         if (user) {
@@ -97,7 +88,6 @@ const FacultyHeader = () => {
         });
       }
       if (response.status === 200) {
-        console.log("✅ Logged out successfully");
         dispatch(logout());
         dispatch(setRole(null));
         navigate("/");

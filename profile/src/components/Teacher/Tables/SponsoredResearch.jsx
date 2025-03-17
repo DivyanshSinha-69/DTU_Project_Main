@@ -45,7 +45,6 @@ const SponsoredResearch = ({ setBlurActive }) => {
             sponsorship_id: record.sponsorship_id,
           }))
         );
-        console.log(researchDetails);
       } else {
         setResearchDetails([]);
       }

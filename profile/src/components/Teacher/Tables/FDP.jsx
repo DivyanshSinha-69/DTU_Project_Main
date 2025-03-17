@@ -24,7 +24,6 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
   const fetchFDPDetails = async () => {
     try {
       const response = await API.get(`/ece/faculty/fdp-records/${facultyId}`);
-      console.log(response.data.data);
 
       if (Array.isArray(response.data.data)) {
         setFdpDetails(
@@ -70,14 +69,11 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
       days_contributed: days,
       FDP_progress: type,
     };
-    console.log("Payload:", payload);
     try {
       let response;
       if (isAddFDP) {
         response = await API.post("/ece/faculty/fdp-records", payload);
       } else {
-        console.log("Selected FDP:", selectedFDP);
-
         response = await API.put(
           `/ece/faculty/fdp-records/${selectedFDP.FDP_id}`,
           payload
@@ -86,7 +82,6 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
 
       if (response && response.data) {
         toast.success("FDP record successfully saved");
-        console.log("FDP Record Saved:", response.data);
 
         closePopup();
         fetchFDPDetails();
