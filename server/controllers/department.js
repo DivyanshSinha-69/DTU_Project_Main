@@ -4,6 +4,11 @@ import jwt from "jsonwebtoken";
 import fs from "fs";
 import path from "path";
 import nodemailer from "nodemailer";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 
 const transporter = nodemailer.createTransport({
   service: "Gmail",
@@ -434,7 +439,7 @@ pool.query(finalQuery, queryParams, (emailErr, emailResults) => {
   console.log("📨 Valid Recipient Emails:", emails);
 
   if (emails.length > 0) {
-    sendEmailNotifications(emails, order_date, subject);
+    sendEmailNotifications(emails, order_number, order_name, order_date, subject);
   } else {
     console.warn("⚠️ No valid recipient emails found.");
   }
@@ -445,7 +450,7 @@ pool.query(finalQuery, queryParams, (emailErr, emailResults) => {
   });
 };
 
-const sendEmailNotifications = (emails, order_date, subject) => {
+const sendEmailNotifications = (emails, order_number, order_name, order_date, subject) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: emails,
@@ -460,7 +465,7 @@ const sendEmailNotifications = (emails, order_date, subject) => {
     <p><strong>Order Number:</strong> ${order_number}</p>
     <p><strong>Order Name:</strong> ${order_name}</p>
     <p><strong>Order Date:</strong> ${order_date}</p>
-    <p><strong>Description:</strong> ${subject}</p>
+    <p><strong>Subject:</strong> ${subject}</p>
 
     <p>To ensure smooth coordination, we kindly request you to log in to the ERP portal at 
     <a href="https://www.dtu-eceportal.com" target="_blank">https://www.dtu-eceportal.com</a> and review the details at your earliest convenience. Any updates or modifications regarding this duty will be communicated to you via email and reflected on the portal.</p>
@@ -484,8 +489,10 @@ const sendEmailNotifications = (emails, order_date, subject) => {
             
             <!-- HOD Office Details (Right) -->
             <td style="vertical-align: middle; text-align: left;">
+                <p style="margin: 0; font-size: 16px; font-weight: bold;">
+                <strong>ERP Portal | HOD Office</strong>
+                </p>
                 <p style="margin: 0; font-size: 14px;">
-                    <strong>ERP Portal | HOD Office</strong><br>
                     Department of ECE<br>
                     Delhi Technological University (Formerly DCE)<br>
                     Shahbad Daulatpur Village, Rohini, New Delhi, Delhi, 110042
@@ -496,12 +503,19 @@ const sendEmailNotifications = (emails, order_date, subject) => {
     `,
     attachments: [
       {
-        filename: "emailSignature.png",
-        path: signaturePath,
-        cid: "signature",
+        filename: "collegeLogo.png",
+        path: path.join(__dirname, "..", "public", "assets", "emailSignature.png"),
+        cid: "collegeLogo",
       },
     ],
-  };  
+  }; 
+  transporter.sendMail(mailOptions, (err, info) => {
+    if (err) {
+      console.error("❌ Error sending update email:", err);
+    } else {
+      console.log("✅ Update email sent successfully:", info.response);
+    }
+  }); 
 };
 
 
@@ -660,7 +674,7 @@ export const updateOrder = (req, res) => {
                 return;
               }
 
-              sendUpdateEmailNotifications(emails, order_name, order_date, subject);
+              sendUpdateEmailNotifications(emails, order_number, order_name, order_date, subject);
             }
           }
         );
@@ -674,7 +688,7 @@ export const updateOrder = (req, res) => {
 };
 
 // Function to send update notification emails
-const sendUpdateEmailNotifications = (emails, order_name, order_date, subject) => {
+const sendUpdateEmailNotifications = (emails, order_number, order_name, order_date, subject) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: emails,
@@ -686,6 +700,7 @@ const sendUpdateEmailNotifications = (emails, order_name, order_date, subject) =
       
       <p>We would like to inform you that an update has been made to an Office Order assigned to you by the Department of Electronics and Communication Engineering, Delhi Technological University. Below are the updated details of your assigned duty:</p>
 
+      <p><strong>Order Number:</strong> ${order_number}</p>
       <p><strong>Order Name:</strong> ${order_name}</p>
       <p><strong>Order Date:</strong> ${order_date}</p>
       <p><strong>Description:</strong> ${subject}</p>
@@ -767,7 +782,7 @@ export const deleteOrder = (req, res) => {
 
           // Send email notifications for deletion
           if (facultyEmails.length > 0) {
-            sendDeleteEmailNotifications(facultyEmails, order_name, order_date, subject);
+            sendDeleteEmailNotifications(facultyEmails, order_name, order_number, order_date, subject);
           }
         }
       );
@@ -809,7 +824,7 @@ export const deleteOrder = (req, res) => {
 };
 
 // Function to send email notification for deleted orders
-const sendDeleteEmailNotifications = (emails, order_name, order_date, subject) => {
+const sendDeleteEmailNotifications = (emails, order_name, order_number, order_date, subject) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: emails,
@@ -820,7 +835,7 @@ const sendDeleteEmailNotifications = (emails, order_name, order_date, subject) =
       <p>We hope this email finds you well.</p>
       
       <p>We would like to inform you that an Office Order previously assigned to you by the Department of Electronics and Communication Engineering has been <strong>canceled</strong>. Please find the details below:</p>
-
+      <p><strong>Order Number:</strong> ${order_number}</p>
       <p><strong>Order Name:</strong> ${order_name}</p>
       <p><strong>Order Date:</strong> ${order_date}</p>
       <p><strong>Description:</strong> ${subject}</p>
@@ -857,7 +872,7 @@ const sendDeleteEmailNotifications = (emails, order_name, order_date, subject) =
     attachments: [
       {
         filename: "collegeLogo.png",
-        path: "public/assets/collegeLogo.png",
+        path: path.join(__dirname, "..", "public", "assets", "collegeLogo.png"),        
         cid: "collegeLogo"
       }
     ]
