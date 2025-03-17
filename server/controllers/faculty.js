@@ -2339,12 +2339,70 @@ export const getUserDutyOrders = (req, res) => {
     values.push(user_id);
   }
 
-  pool.query(query, values, (err, result) => {
+  pool.query(query, values, (err, orders) => {
     if (err) {
       console.error("Error fetching duty orders:", err);
       return res.status(500).json({ error: "Internal server error" });
     }
-    res.json(result);
+
+    if (orders.length === 0) {
+      return res.json([]);
+    }
+
+    // Fetch mappings for all retrieved orders
+    const orderNumbers = orders.map((order) => order.order_number);
+
+    const facultyQuery = `
+      SELECT order_number, faculty_id 
+      FROM mapping_duty_orders_faculty
+      WHERE order_number IN (?);
+    `;
+
+    const studentQuery = `
+      SELECT order_number, RollNo 
+      FROM mapping_duty_orders_students
+      WHERE order_number IN (?);
+    `;
+
+    pool.query(facultyQuery, [orderNumbers], (err, facultyResults) => {
+      if (err) {
+        console.error("Error fetching faculty mappings:", err);
+        return res.status(500).json({ error: "Internal server error" });
+      }
+
+      pool.query(studentQuery, [orderNumbers], (err, studentResults) => {
+        if (err) {
+          console.error("Error fetching student mappings:", err);
+          return res.status(500).json({ error: "Internal server error" });
+        }
+
+        // Organizing faculty and student mappings per order
+        const facultyMap = {};
+        const studentMap = {};
+
+        orderNumbers.forEach((order) => {
+          facultyMap[order] = [];
+          studentMap[order] = [];
+        });
+
+        facultyResults.forEach((row) => {
+          facultyMap[row.order_number].push(row.faculty_id);
+        });
+
+        studentResults.forEach((row) => {
+          studentMap[row.order_number].push(row.RollNo);
+        });
+
+        // Attach faculty and student lists to each order
+        const enrichedOrders = orders.map((order) => ({
+          ...order,
+          faculty_ids: facultyMap[order.order_number] || [],
+          student_ids: studentMap[order.order_number] || [],
+        }));
+
+        res.json(enrichedOrders);
+      });
+    });
   });
 };
 

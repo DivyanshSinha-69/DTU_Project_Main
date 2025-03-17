@@ -26,8 +26,10 @@ export const compressImage = (filePath, callback) => {
   const outputFilePath = filePath.replace(/\.(jpeg|jpg|png)$/, "_compressed$&");
 
   sharp(filePath)
-    .resize({ width: 512, height: 512, fit: "cover" }) // Resize to 1024px width
-    .jpeg({ quality: 70 }) // Reduce quality to 70%
+
+    .resize({ width: 2048, height: 2048, fit: "cover" }) // Resize to 1024px width
+    .jpeg({ quality: 80 }) // Reduce quality to 80%
+
     .toFile(outputFilePath, (err) => {
       if (err) return callback(err);
 
