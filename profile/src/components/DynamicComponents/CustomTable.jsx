@@ -27,7 +27,15 @@ const formatDateForInput = (date) => {
   return `${day}-${month}-${year}`;
 };
 
-const CustomTable = ({ title, subtitle, columns, data, actions, onAdd }) => {
+const CustomTable = ({
+  title,
+  subtitle,
+  columns,
+  data,
+  actions,
+  onAdd,
+  facultyMapping,
+}) => {
   const { darkMode } = useThemeContext();
   const wordLimit = 4; // Set your desired word limit here
   const [expandedRow, setExpandedRow] = useState(null); // Track the expanded row
@@ -77,12 +85,14 @@ const CustomTable = ({ title, subtitle, columns, data, actions, onAdd }) => {
         </div>
 
         {/* Add Button (Aligned to Right) */}
-        <button
-          onClick={onAdd}
-          className="p-3 bg-green-600 text-white rounded-full hover:bg-green-700 transition-all ease-in" // Improved hover effect
-        >
-          <img src={addImg} alt="add" className="h-5 w-5" />
-        </button>
+        {onAdd && (
+          <button
+            onClick={onAdd}
+            className="p-3 bg-green-600 text-white rounded-full hover:bg-green-700 transition-all ease-in" // Improved hover effect
+          >
+            <img src={addImg} alt="add" className="h-5 w-5" />
+          </button>
+        )}
       </div>
       {/* Table Container - Seamless Design */}
       <div className="w-full overflow-x-auto">
@@ -110,7 +120,7 @@ const CustomTable = ({ title, subtitle, columns, data, actions, onAdd }) => {
                     : "1px solid #DADDE1",
                 }}
               >
-                {/* Empty header for the expand/collapse button */}
+                Expand{/* Empty header for the expand/collapse button */}
               </th>
               {columns.map((col) => (
                 <th
@@ -171,12 +181,16 @@ const CustomTable = ({ title, subtitle, columns, data, actions, onAdd }) => {
                     {/* Table Data */}
                     {columns.map((col) => {
                       let cellValue = row[col.key];
-                      if (col.key === "Document") {
+                      if (
+                        col.key === "Document" ||
+                        col.key === "order_path" ||
+                        col.key === "circular_path"
+                      ) {
                         return (
                           <td key={col.key} className="p-4">
                             {cellValue ? (
                               <a
-                                href={`${process.env.REACT_APP_BACKEND_URL}/public/${cellValue.name}`}
+                                href={`${process.env.REACT_APP_BACKEND_URL}/public/${cellValue}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-blue-500 hover:underline font-poppins font-medium" // Updated font style
@@ -191,6 +205,22 @@ const CustomTable = ({ title, subtitle, columns, data, actions, onAdd }) => {
                                 Not Uploaded
                               </Typography>
                             )}
+                          </td>
+                        );
+                      } else if (col.key === "faculties") {
+                        // Display the length of the faculties array in normal view
+                        return (
+                          <td key={col.key} className="p-4">
+                            <Typography
+                              variant="small"
+                              className="font-poppins font-normal"
+                              style={{
+                                color: darkMode ? "#C9CCD1" : "#2D3A4A", // Softer text color
+                                letterSpacing: "0.3px", // Improved typography
+                              }}
+                            >
+                              {cellValue ? cellValue.length : 0} Faculty
+                            </Typography>
                           </td>
                         );
                       }
@@ -323,10 +353,12 @@ const CustomTable = ({ title, subtitle, columns, data, actions, onAdd }) => {
                                   >
                                     {col.label}
                                   </Typography>
-                                  {col.key === "Document" ? (
+                                  {col.key === "Document" ||
+                                  col.key === "order_path" ||
+                                  col.key === "circular_path" ? (
                                     row[col.key] ? (
                                       <a
-                                        href={`${process.env.REACT_APP_BACKEND_URL}/public/${row[col.key].name}`}
+                                        href={`${process.env.REACT_APP_BACKEND_URL}/public/${row[col.key]}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="text-blue-500 hover:underline font-poppins font-medium"
@@ -341,6 +373,25 @@ const CustomTable = ({ title, subtitle, columns, data, actions, onAdd }) => {
                                         Not Uploaded
                                       </Typography>
                                     )
+                                  ) : col.key === "faculties" ? (
+                                    // Display faculty names in expanded view
+                                    <div className="flex flex-col gap-1">
+                                      {row[col.key]?.map((facultyId) => (
+                                        <Typography
+                                          key={facultyId}
+                                          variant="small"
+                                          className="font-poppins font-normal"
+                                          style={{
+                                            color: darkMode
+                                              ? "#C9CCD1"
+                                              : "#2D3A4A",
+                                          }}
+                                        >
+                                          {facultyMapping[facultyId] ||
+                                            "Unknown Faculty"}
+                                        </Typography>
+                                      ))}
+                                    </div>
                                   ) : (
                                     <Typography
                                       variant="small"

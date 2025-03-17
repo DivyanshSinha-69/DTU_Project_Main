@@ -56,9 +56,12 @@ const Faculty = () => {
 
     try {
       const response = await API.get(`/ece/faculty/facultyimage/${facultyId}`);
-
+      console.log(
+        "🚀 ~ file: Faculty.jsx ~ line 47 ~ fetchFacultyImage ~ response",
+        response.data
+      );
       if (response.data && response.data.faculty_image) {
-        const imagePath = `${process.env.REACT_APP_BACKEND_URL}/public/${response.data.faculty_image}`; // Ensure correct path
+        const imagePath = `${process.env.REACT_APP_BACKEND_URL}/${response.data.faculty_image}`; // Ensure correct path
         setSelectedImage(imagePath);
       } else {
         setSelectedImage(null);

@@ -43,7 +43,8 @@ export default function StickyNavbar() {
   const dispatch = useDispatch();
   const [openNav, setOpenNav] = React.useState(false);
   const user = useSelector((state) => state.auth.user) || {};
-  const { faculty_id } = user;
+  const { faculty_id, department_id } = user;
+
   React.useEffect(() => {
     window.addEventListener(
       "resize",
@@ -59,11 +60,14 @@ export default function StickyNavbar() {
 
     try {
       let logoutUrl = `${process.env.REACT_APP_BACKEND_URL}/logout`; // Default logout endpoint
-      const logoutData = {}; // Data payload for logout
+      let logoutData = {}; // Data payload for logout
 
       if (role === "faculty" && faculty_id) {
         logoutUrl = `${process.env.REACT_APP_BACKEND_URL}/ece/facultyauth/logout`; // Faculty-specific logout
         logoutData.faculty_id = faculty_id;
+      } else if (role === "department") {
+        logoutUrl = `${process.env.REACT_APP_BACKEND_URL}/ece/department/logout`;
+        logoutData = { department_id }; // Include department_id in the request body
       }
 
       let response;
@@ -72,6 +76,7 @@ export default function StickyNavbar() {
         response = await axios.get(logoutUrl, { withCredentials: true });
       } else {
         // Make a POST request for faculty or other roles
+
         response = await axios.post(logoutUrl, logoutData, {
           withCredentials: true,
         });

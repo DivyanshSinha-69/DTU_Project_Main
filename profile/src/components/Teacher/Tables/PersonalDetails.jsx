@@ -182,6 +182,7 @@ const PersonalDetails = ({ setBlurActive }) => {
   ];
   const title = "Personal Details";
   const subtitle = "(As per official records)";
+
   return (
     <div>
       <div className="h-auto">

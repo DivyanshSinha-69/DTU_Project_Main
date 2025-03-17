@@ -23,7 +23,7 @@ const DepartmentHeader = () => {
     { name: "Office Orders", path: "", icon: <FaBook /> },
     {
       name: "Circulars/Notices",
-      path: "circular-notices",
+      path: "/department/circular-notices",
       icon: <FaEnvelope />,
     },
   ];
