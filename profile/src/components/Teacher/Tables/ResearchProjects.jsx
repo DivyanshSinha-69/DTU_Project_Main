@@ -26,30 +26,14 @@ const ResearchProjects = ({ setBlurActive }) => {
     "Serial No",
     "Type of Paper",
     "Title of Paper",
-    "Domain",
-    "Name of Conference/Journal/Book Chapter/Other",
-    "Published Date",
+    "Area of Research",
+    "Published Year",
     "Document",
     "Citation",
+    "Authors/Co-Authors",
     "Actions",
   ];
 
-  // Converts the numeric paper type from the API to a string.
-  const getPaperType = (type) => {
-    const types = ["Conference", "Journal", "Book Chapter", "Other"];
-    return types[type - 1] || "Unknown";
-  };
-
-  // Converts the paper type string to its corresponding numeric ID.
-  const getPaperTypeId = (type) => {
-    const types = { Conference: 1, Journal: 2, "Book Chapter": 3, Other: 4 };
-    return types[type] || 4;
-  };
-  const formatDateForInput = (isoDate) => {
-    if (!isoDate) return ""; // Handle null/undefined cases
-    const date = new Date(isoDate);
-    return date.toLocaleDateString("en-GB"); // "dd/mm/yyyy" format
-  };
   // Fetch research projects from the API
   const fetchResearchProjects = async () => {
     try {
@@ -58,13 +42,13 @@ const ResearchProjects = ({ setBlurActive }) => {
         setResearchProjectsDetails(
           response.data.map((item) => ({
             research_id: item.research_id,
-            TypeOfPaper: getPaperType(item.paper_type),
+            TypeOfPaper: item.paper_type,
             Title: item.title_of_paper,
-            Domain: item.domain,
-            PublicationName: item.publication_name,
-            PublishedDate: formatDateForInput(item.published_date),
+            AreaOfResearch: item.area_of_research,
+            PublishedYear: item.published_year,
             Document: item.pdf_path ? { name: item.pdf_path } : null,
             Citation: item.citation,
+            Authors: item.authors,
           }))
         );
       } else {
@@ -106,12 +90,12 @@ const ResearchProjects = ({ setBlurActive }) => {
 
     const formData = new FormData();
     formData.append("faculty_id", facultyId);
-    formData.append("paper_type", getPaperTypeId(project.TypeOfPaper));
+    formData.append("paper_type", project.TypeOfPaper);
     formData.append("title_of_paper", project.Title);
-    formData.append("domain", project.Domain);
-    formData.append("publication_name", project.PublicationName);
-    formData.append("published_date", project.PublishedDate);
+    formData.append("area_of_research", project.AreaOfResearch);
+    formData.append("published_year", project.PublishedYear);
     formData.append("citation", project.Citation);
+    formData.append("authors", project.Authors);
 
     if (project.pdf) {
       formData.append("pdf", project.pdf);
@@ -137,13 +121,13 @@ const ResearchProjects = ({ setBlurActive }) => {
               response.data.data.insertId || editProject?.research_id,
             TypeOfPaper: project.TypeOfPaper,
             Title: project.Title,
-            Domain: project.Domain,
-            PublicationName: project.PublicationName,
-            PublishedDate: project.PublishedDate,
+            AreaOfResearch: project.AreaOfResearch,
+            PublishedYear: project.PublishedYear,
             Document: project.pdf
               ? { name: `Faculty\\ResearchPapers\\FAC001\\${project.pdf.name}` }
-              : null, // 🔹 Use project.pdf name
+              : null,
             Citation: project.Citation,
+            Authors: project.Authors,
           };
 
           if (editProject) {
@@ -208,11 +192,11 @@ const ResearchProjects = ({ setBlurActive }) => {
         columns={[
           { key: "TypeOfPaper", label: "Type of Paper" },
           { key: "Title", label: "Title" },
-          { key: "Domain", label: "Domain" },
-          { key: "PublicationName", label: "Publication Name" },
-          { key: "PublishedDate", label: "Published Date" },
+          { key: "AreaOfResearch", label: "Area of Research" },
+          { key: "PublishedYear", label: "Published Year" },
           { key: "Document", label: "Document" }, // View Button for Documents
           { key: "Citation", label: "Citation" },
+          { key: "Authors", label: "Authors/Co-Authors" },
           { key: "actions", label: "Actions" },
         ]}
         data={researchProjectsDetails}

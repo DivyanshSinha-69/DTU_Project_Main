@@ -184,7 +184,8 @@ const CustomTable = ({
                       if (
                         col.key === "Document" ||
                         col.key === "order_path" ||
-                        col.key === "circular_path"
+                        col.key === "circular_path" ||
+                        col.key === "document"
                       ) {
                         return (
                           <td key={col.key} className="p-4">

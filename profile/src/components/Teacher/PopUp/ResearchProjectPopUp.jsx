@@ -10,44 +10,71 @@ export default function ResearchProjectPopup({
   const [formData, setFormData] = useState({
     title: "",
     typeOfPaper: "Conference",
-    domain: "",
-    publicationName: "",
-    publishedDate: "",
+    areaOfResearch: "",
+    publishedYear: "",
     document: null,
     citation: "",
-    pdf: null, // Add this line
+    authors: "",
+    pdf: null,
   });
 
-  const domainOptions = [
-    "Signal Processing",
-    "Artificial Intelligence",
-    "Optical, Wireless and Mobile Communication",
-    "Machine Learning",
-    "Radio Frequency and Microwave",
-    "Cybersecurity",
-    "Blockchain",
-    "IoT",
-  ];
+  const [showOtherInput, setShowOtherInput] = useState(false); // State to toggle "Other" input field
 
-  const formatDateForInput = (date) => {
-    const [date1, time] = date?.split("T");
+  const specializationOptions = [
+    "Image processing",
+    "Signal processing",
+    "Soft computing",
+    "Artificial intelligence",
+    "Computer vision",
+    "Wireless Technology",
+    "Analog electronics",
+    "Microelectronics",
+    "Digital electronics",
+    "VLSI design",
+    "Applied electronics",
+    "Machine learning",
+    "Embedded systems",
+    "Robotics",
+    "Analog design",
+    "Digital design",
+    "Analog integrated circuits",
+    "Microwave Engineering",
+    "Digital signal processing",
+    "Organic electronics",
+    "Device modeling",
+    "Electronics & Communication",
+    "Digital communication",
+    "Nanophotonics/Plasmonics",
+    "Optical communication",
+    "Sensors",
+    "Spintronics",
+    "Semiconductor devices",
+    "Reinforcement learning",
+    "Block chain/Distributed systems",
+    "Deep learning",
+    "Nanotechnology",
+    "Biomedical Image & Signal processing",
+    "Automation/Control Systems",
+  ].sort((a, b) => a.localeCompare(b)); // Sort alphabetically
 
-    const [day, month, year] = date1.split("-");
-    return `${day}-${month}-${year}`; // yyyy-MM-dd
-  };
   // Pre-fill form with existing data if editing
   useEffect(() => {
     if (project) {
       setFormData({
         title: project.Title || "",
         typeOfPaper: project.TypeOfPaper || "Conference",
-        domain: project.Domain || "AI",
-        publicationName: project.PublicationName || "",
-        publishedDate: formatDateForInput(project.PublishedDate) || "",
+        areaOfResearch: project.AreaOfResearch || "",
+        publishedYear: project.PublishedYear || "",
         document: project.Document || null,
-        citation: project.Citation || "", // Add this line
+        citation: project.Citation || "",
+        authors: project.Authors || "",
         pdf: formData.pdf,
       });
+
+      // Check if the area of research is "Other"
+      if (!specializationOptions.includes(project.AreaOfResearch)) {
+        setShowOtherInput(true);
+      }
     }
   }, [project]);
 
@@ -57,6 +84,13 @@ export default function ResearchProjectPopup({
       ...prevData,
       [name]: value,
     }));
+
+    // Handle "Other" selection in Area of Research
+    if (name === "areaOfResearch" && value === "Other") {
+      setShowOtherInput(true);
+    } else if (name === "areaOfResearch") {
+      setShowOtherInput(false);
+    }
   };
 
   const handleFileChange = (e) => {
@@ -75,9 +109,8 @@ export default function ResearchProjectPopup({
     if (
       !formData.title ||
       !formData.typeOfPaper ||
-      !formData.domain ||
-      !formData.publicationName ||
-      !formData.publishedDate
+      !formData.areaOfResearch ||
+      !formData.publishedYear
     ) {
       toast.error("Please fill in all required fields");
       return;
@@ -87,11 +120,11 @@ export default function ResearchProjectPopup({
     const newProject = {
       Title: formData.title,
       TypeOfPaper: formData.typeOfPaper,
-      Domain: formData.domain,
-      PublicationName: formData.publicationName,
-      PublishedDate: formData.publishedDate,
+      AreaOfResearch: formData.areaOfResearch,
+      PublishedYear: formData.publishedYear,
       Document: formData.document,
       Citation: formData.citation,
+      Authors: formData.authors,
       pdf: formData.pdf, // Pass the pdf file for API upload
     };
 
@@ -104,102 +137,119 @@ export default function ResearchProjectPopup({
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-80">
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-80 z-50">
       <Card
         color="transparent"
         shadow={false}
-        className="w-[90%] max-w-[700px] p-8 bg-gray-900 rounded-[20px]"
+        className="w-[90%] max-w-[700px] max-h-[90vh] bg-gray-900 rounded-[20px] overflow-hidden flex flex-col"
       >
-        <form
-          onSubmit={handleSubmit}
-          className="text-white flex flex-col space-y-6"
-        >
-          <div className="relative z-0 w-full group">
-            <label htmlFor="title" className="block text-sm">
-              Title
-            </label>
-            <input
-              type="text"
-              name="title"
-              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder=" "
-              required
-              onChange={handleChange}
-              value={formData.title}
-            />
-          </div>
+        {/* Header */}
+        <div className="p-6 border-b border-gray-700">
+          <h2 className="text-xl font-semibold text-white">
+            {project ? "Edit Research Project" : "Add Research Project"}
+          </h2>
+        </div>
 
-          <div className="relative z-0 w-full group">
-            <label htmlFor="typeOfPaper" className="block text-sm">
-              Type of Paper
-            </label>
-            <select
-              name="typeOfPaper"
-              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-              onChange={handleChange}
-              value={formData.typeOfPaper}
-            >
-              <option value="Conference">Conference</option>
-              <option value="Journal">Journal</option>
-              <option value="Book Chapter">Book Chapter</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
+        {/* Scrollable Content */}
+        <div className="overflow-y-auto flex-1 p-6">
+          <form
+            onSubmit={handleSubmit}
+            className="text-white flex flex-col space-y-6"
+          >
+            <div className="relative z-0 w-full group">
+              <label htmlFor="title" className="block text-sm">
+                Title
+              </label>
+              <input
+                type="text"
+                name="title"
+                className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder=" "
+                required
+                onChange={handleChange}
+                value={formData.title}
+              />
+            </div>
 
-          <div className="relative z-0 w-full group">
-            <label htmlFor="domain" className="block text-sm">
-              Domain
-            </label>
-            <select
-              name="domain"
-              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-              onChange={handleChange}
-              value={formData.domain}
-            >
-              {domainOptions.map((domain) => (
-                <option key={domain} value={domain}>
-                  {domain}
-                </option>
-              ))}
-            </select>
-          </div>
+            <div className="relative z-0 w-full group">
+              <label htmlFor="typeOfPaper" className="block text-sm">
+                Type of Paper
+              </label>
+              <select
+                name="typeOfPaper"
+                className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+                onChange={handleChange}
+                value={formData.typeOfPaper}
+              >
+                <option value="Conference">Conference</option>
+                <option value="Journal">Journal</option>
+                <option value="Book Chapter">Book Chapter</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
 
-          <div className="relative z-0 w-full group">
-            <label htmlFor="publicationName" className="block text-sm">
-              Publication Name
-            </label>
-            <input
-              type="text"
-              name="publicationName"
-              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder=" "
-              required
-              onChange={handleChange}
-              value={formData.publicationName}
-            />
-          </div>
+            <div className="relative z-0 w-full group">
+              <label htmlFor="areaOfResearch" className="block text-sm">
+                Area of Research
+              </label>
+              <select
+                name="areaOfResearch"
+                className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+                onChange={handleChange}
+                value={formData.areaOfResearch}
+              >
+                {specializationOptions.map((area) => (
+                  <option key={area} value={area}>
+                    {area}
+                  </option>
+                ))}
+                <option value="Other">Other</option>
+              </select>
+            </div>
 
-          <div className="relative z-0 w-full group">
-            <label htmlFor="publishedDate" className="block text-sm">
-              Published Date
-            </label>
-            <input
-              type="date"
-              name="publishedDate"
-              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-              onChange={handleChange}
-              value={formData.publishedDate}
-            />
-          </div>
-          <div className="flex gap-4">
-            {" "}
-            {/* Add this flex container */}
-            <div className="relative z-0 w-1/2 group">
-              {" "}
-              {/* Citation field */}
+            {/* Show input field if "Other" is selected */}
+            {showOtherInput && (
+              <div className="relative z-0 w-full group">
+                <label htmlFor="otherAreaOfResearch" className="block text-sm">
+                  Specify Other Area of Research
+                </label>
+                <input
+                  type="text"
+                  name="otherAreaOfResearch"
+                  className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter other area of research"
+                  onChange={(e) =>
+                    setFormData((prevData) => ({
+                      ...prevData,
+                      areaOfResearch: e.target.value,
+                    }))
+                  }
+                  value={
+                    formData.areaOfResearch === "Other"
+                      ? ""
+                      : formData.areaOfResearch
+                  }
+                />
+              </div>
+            )}
+
+            <div className="relative z-0 w-full group">
+              <label htmlFor="publishedYear" className="block text-sm">
+                Published Year
+              </label>
+              <input
+                type="number"
+                name="publishedYear"
+                className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+                onChange={handleChange}
+                value={formData.publishedYear}
+              />
+            </div>
+
+            <div className="relative z-0 w-full group">
               <label htmlFor="citation" className="block text-sm">
                 Citation
               </label>
@@ -212,9 +262,22 @@ export default function ResearchProjectPopup({
                 value={formData.citation}
               />
             </div>
-            <div className="relative z-0 w-1/2 group">
-              {" "}
-              {/* Upload Document field */}
+
+            <div className="relative z-0 w-full group">
+              <label htmlFor="authors" className="block text-sm">
+                Authors/Co-Authors
+              </label>
+              <input
+                type="text"
+                name="authors"
+                className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder=" "
+                onChange={handleChange}
+                value={formData.authors}
+              />
+            </div>
+
+            <div className="relative z-0 w-full group">
               <label htmlFor="document" className="block text-sm">
                 Upload Document
               </label>
@@ -226,23 +289,26 @@ export default function ResearchProjectPopup({
                 onChange={handleFileChange}
               />
             </div>
-          </div>
-          <div className="flex items-center justify-between mt-5">
-            <button
-              type="submit"
-              className="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-            >
-              Save Project
-            </button>
-          </div>
+          </form>
+        </div>
+
+        {/* Footer */}
+        <div className="p-6 border-t border-gray-700 flex justify-end space-x-4">
           <button
             type="button"
             onClick={closeModal}
-            className="w-full px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 mt-4"
+            className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
           >
             Cancel
           </button>
-        </form>
+          <button
+            type="submit"
+            onClick={handleSubmit}
+            className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            Save Project
+          </button>
+        </div>
       </Card>
     </div>
   );

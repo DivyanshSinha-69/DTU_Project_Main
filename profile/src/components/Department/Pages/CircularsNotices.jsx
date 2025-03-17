@@ -51,13 +51,16 @@ const DepartmentCirculars = () => {
         `/ece/department/circulars?department_id=${department_id}`
       );
       if (response.data && Array.isArray(response.data.data)) {
-        const formattedData = response.data.data.map((circular) => ({
-          ...circular,
-          circular_date: formatDateForInput(circular.circular_date),
-          circular_file: circular.circular_path
-            ? { name: circular.circular_path }
-            : null, // Add circular_path as an object with a name property
-        }));
+        const formattedData = response.data.data
+          .map((circular) => ({
+            ...circular,
+            circular_date: formatDateForInput(circular.circular_date),
+            circular_file: circular.circular_path
+              ? { name: circular.circular_path }
+              : null, // Add circular_path as an object with a name property
+          }))
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // Sort by created_at (latest first)
+
         setCirculars(formattedData);
         setFilteredCirculars(formattedData); // Initialize filtered circulars
       }
@@ -154,12 +157,15 @@ const DepartmentCirculars = () => {
   const applyFilters = (searchQuery, startDate, endDate) => {
     let filtered = circulars;
 
-    // Filter by search query (Circular Number or Subject)
+    // Filter by search query (Circular Number or Subject or Name)
     if (searchQuery) {
       filtered = filtered.filter(
         (circular) =>
           circular.circular_number.includes(searchQuery) ||
-          circular.subject.toLowerCase().includes(searchQuery.toLowerCase())
+          circular.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          circular.circular_name
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())
       );
     }
 
@@ -199,49 +205,73 @@ const DepartmentCirculars = () => {
 
             {/* Filters Section */}
             <Card
-              className="rounded-lg p-4 mt-6 shadow-sm border"
+              className="rounded-lg p-6 mt-6 shadow-sm border"
               style={{
                 backgroundColor: darkMode ? "#0D1117" : "#FFFFFF",
                 color: darkMode ? "#C9CCD1" : "#2D3A4A",
                 border: darkMode ? "1px solid #22232B" : "1px solid #D1D5DB",
               }}
             >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Search by Circular Number or Subject */}
-                <Input
-                  type="text"
-                  placeholder="Search by Circular Number or Subject"
-                  value={searchQuery}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="w-full p-2 rounded-lg border transition-all duration-300"
-                  style={{
-                    backgroundColor: darkMode ? "#0D1117" : "#FFFFFF",
-                    borderColor: darkMode ? "#22232B" : "#D1D5DB",
-                    color: darkMode ? "#EAEAEA" : "#1F252E",
-                  }}
-                />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Search by Circular Number / Subject */}
+                <div className="flex flex-col">
+                  <label
+                    className="text-sm font-medium mb-2"
+                    style={{ color: darkMode ? "#B0B3B8" : "#4A5568" }}
+                  >
+                    Circular Number / Name / Subject
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="Enter Circular Number or Name Subject"
+                    value={searchQuery}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    className="w-full p-3 rounded-md border transition-all duration-300"
+                    style={{
+                      backgroundColor: darkMode ? "#161722" : "#FFFFFF",
+                      borderColor: darkMode ? "#464667" : "#D1D5DB",
+                      color: darkMode ? "#EAEAEA" : "#1F252E",
+                    }}
+                  />
+                </div>
 
-                {/* Date Range Filter */}
-                <div className="grid grid-cols-2 gap-4">
+                {/* Start Date */}
+                <div className="flex flex-col">
+                  <label
+                    className="text-sm font-medium mb-2"
+                    style={{ color: darkMode ? "#B0B3B8" : "#4A5568" }}
+                  >
+                    Start Date
+                  </label>
                   <Input
                     type="date"
                     value={startDateFilter}
                     onChange={(e) => setStartDateFilter(e.target.value)}
-                    className="w-full p-2 rounded-lg border transition-all duration-300 cursor-pointer"
+                    className="w-full p-3 rounded-md border transition-all duration-300 cursor-pointer"
                     style={{
-                      backgroundColor: darkMode ? "#0D1117" : "#FFFFFF",
-                      borderColor: darkMode ? "#22232B" : "#D1D5DB",
+                      backgroundColor: darkMode ? "#161722" : "#FFFFFF",
+                      borderColor: darkMode ? "#464667" : "#D1D5DB",
                       color: darkMode ? "#EAEAEA" : "#1F252E",
                     }}
                   />
+                </div>
+
+                {/* End Date */}
+                <div className="flex flex-col">
+                  <label
+                    className="text-sm font-medium mb-2"
+                    style={{ color: darkMode ? "#B0B3B8" : "#4A5568" }}
+                  >
+                    End Date
+                  </label>
                   <Input
                     type="date"
                     value={endDateFilter}
                     onChange={(e) => setEndDateFilter(e.target.value)}
-                    className="w-full p-2 rounded-lg border transition-all duration-300 cursor-pointer"
+                    className="w-full p-3 rounded-md border transition-all duration-300 cursor-pointer"
                     style={{
-                      backgroundColor: darkMode ? "#0D1117" : "#FFFFFF",
-                      borderColor: darkMode ? "#22232B" : "#D1D5DB",
+                      backgroundColor: darkMode ? "#161722" : "#FFFFFF",
+                      borderColor: darkMode ? "#464667" : "#D1D5DB",
                       color: darkMode ? "#EAEAEA" : "#1F252E",
                     }}
                   />
@@ -249,10 +279,10 @@ const DepartmentCirculars = () => {
               </div>
 
               {/* Apply and Reset Buttons */}
-              <div className="flex flex-wrap justify-center md:justify-end gap-3 mt-4">
+              <div className="flex justify-center md:justify-end gap-4 mt-6">
                 <button
                   onClick={handleDateFilter}
-                  className="px-4 py-1.5 rounded-md border-2 font-medium text-sm transition-all duration-300"
+                  className="px-5 py-2 rounded-md border-2 font-medium text-sm transition-all duration-300"
                   style={{
                     borderColor: darkMode ? "#569CD6" : "#007BFF",
                     color: darkMode ? "#569CD6" : "#007BFF",
@@ -268,9 +298,10 @@ const DepartmentCirculars = () => {
                 >
                   Apply
                 </button>
+
                 <button
                   onClick={resetFilters}
-                  className="px-4 py-1.5 rounded-md border-2 font-medium text-sm transition-all duration-300"
+                  className="px-5 py-2 rounded-md border-2 font-medium text-sm transition-all duration-300"
                   style={{
                     borderColor: darkMode ? "#D43F3F" : "#E63946",
                     color: darkMode ? "#D43F3F" : "#E63946",
@@ -288,6 +319,7 @@ const DepartmentCirculars = () => {
                 </button>
               </div>
             </Card>
+
             <div className="mt-6">
               <CustomTable
                 title="Department Circulars"

@@ -36,15 +36,18 @@ const FacultyCircularPage = () => {
         `/ece/faculty/circulars?department_id=${department_id}`
       );
       if (response.data && Array.isArray(response.data.data)) {
-        const formattedData = response.data.data.map((circular) => ({
-          circular_id: circular.circular_id,
-          circular_number: circular.circular_number,
-          circular_name: circular.circular_name,
-          circular_date: formatDateForInput(circular.circular_date),
-          subject: circular.subject,
-          circular_path: circular.circular_path,
-          created_at: formatDateForInput(circular.created_at),
-        }));
+        const formattedData = response.data.data
+          .map((circular) => ({
+            circular_id: circular.circular_id,
+            circular_number: circular.circular_number,
+            circular_name: circular.circular_name,
+            circular_date: formatDateForInput(circular.circular_date),
+            subject: circular.subject,
+            circular_path: circular.circular_path,
+            created_at: circular.created_at,
+          }))
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // Sort by created_at (latest first)
+
         setCircularsData(formattedData);
         setFilteredCirculars(formattedData); // Initialize filtered circulars with all data
       }
@@ -82,12 +85,15 @@ const FacultyCircularPage = () => {
   const applyFilters = (searchQuery, facultyQuery, startDate, endDate) => {
     let filtered = circularsData;
 
-    // Filter by search query (Circular Number or Subject)
+    // Filter by search query (Circular Number or Subject or Name)
     if (searchQuery) {
       filtered = filtered.filter(
         (circular) =>
           circular.circular_number.includes(searchQuery) ||
-          circular.subject.toLowerCase().includes(searchQuery.toLowerCase())
+          circular.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          circular.circular_name
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())
       );
     }
 
@@ -155,11 +161,11 @@ const FacultyCircularPage = () => {
                   className="block text-sm font-medium mb-1"
                   style={{ color: darkMode ? "#C9CCD1" : "#2D3A4A" }}
                 >
-                  Search Circular (Number or Subject)
+                  Circular Number / Name / Subject
                 </label>
                 <Input
                   type="text"
-                  placeholder="Enter circular number or subject"
+                  placeholder="Enter Name Subject or Number"
                   value={searchQuery}
                   onChange={(e) => handleSearch(e.target.value)}
                   className="w-full p-2 rounded-lg border transition-all duration-300"

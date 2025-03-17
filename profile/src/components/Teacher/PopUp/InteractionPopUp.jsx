@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Card } from "@material-tailwind/react";
 import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
 
 export default function InteractionPopUp({
   interactionType,
@@ -11,6 +12,7 @@ export default function InteractionPopUp({
   year_of_visit,
   month_of_visit,
   duration_in_days,
+  document, // New prop for document
 }) {
   const [formData, setFormData] = useState({
     interactionType: interactionType || "",
@@ -20,6 +22,7 @@ export default function InteractionPopUp({
     month_of_visit: month_of_visit || "",
     duration_in_days: duration_in_days || "",
     customInteractionType: "", // For custom interaction types
+    document: document || null, // New field for document
   });
 
   const handleChange = (e) => {
@@ -30,6 +33,15 @@ export default function InteractionPopUp({
     }));
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setFormData((prevData) => ({
+      ...prevData,
+      document: file, // Store the file for display purposes
+    }));
+  };
+  const user = useSelector((state) => state.auth.user) || {};
+  const { faculty_id } = user;
   const handlePopup = async (e) => {
     e.preventDefault();
     const {
@@ -40,6 +52,7 @@ export default function InteractionPopUp({
       month_of_visit,
       duration_in_days,
       customInteractionType,
+      document,
     } = formData;
 
     // Use customInteractionType if "Other" is selected
@@ -57,11 +70,21 @@ export default function InteractionPopUp({
       return;
     }
 
+    // Prepare form data for API
+    const formDataForAPI = new FormData();
+    formDataForAPI.append("faculty_id", faculty_id); // Assuming faculty_id is available
+    formDataForAPI.append("interaction_type", selectedInteractionType);
+    formDataForAPI.append("institution", institutionName);
+    formDataForAPI.append("description", description);
+    formDataForAPI.append("year_of_visit", year_of_visit);
+    formDataForAPI.append("month_of_visit", month_of_visit);
+    formDataForAPI.append("duration_in_days", duration_in_days || "");
+    if (document) {
+      formDataForAPI.append("document", document);
+    }
+
     if (handleAddVisit) {
-      handleAddVisit({
-        ...formData,
-        interactionType: selectedInteractionType, // Override with custom type if applicable
-      });
+      handleAddVisit(formDataForAPI);
     }
     closeModal();
   };
@@ -231,6 +254,21 @@ export default function InteractionPopUp({
               onChange={handleChange}
               value={formData.duration_in_days}
               min="0"
+            />
+          </div>
+
+          {/* Document Upload */}
+          <div className="relative z-0 w-full group">
+            <label htmlFor="document" className="block text-sm">
+              Upload Document
+            </label>
+            <input
+              type="file"
+              name="document"
+              id="document"
+              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={handleFileChange}
+              accept=".pdf,.docx,.jpg,.jpeg"
             />
           </div>
 

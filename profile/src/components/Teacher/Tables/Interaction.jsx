@@ -29,12 +29,11 @@ const Interaction = ({ setBlurActive }) => {
       console.error("Error fetching interaction details:", error);
     }
   };
-  // Fetch interaction records from the API
+
   useEffect(() => {
     fetchInteractions();
   }, [FACULTY_ID]);
 
-  // Open the popup for editing or adding an interaction record
   const openPopup = (interaction) => {
     setSelectedInteraction(interaction);
     setPopupOpen(true);
@@ -47,42 +46,38 @@ const Interaction = ({ setBlurActive }) => {
     setBlurActive(false);
   };
 
-  // Handle adding or updating an interaction record
-  const handleAddOrUpdateInteraction = async (interactionData) => {
-    const formattedInteraction = {
-      faculty_id: FACULTY_ID,
-      interaction_type: interactionData.interactionType,
-      institution: interactionData.institutionName,
-      description: interactionData.description,
-      year_of_visit: interactionData.year_of_visit,
-      month_of_visit: interactionData.month_of_visit,
-      duration_in_days: interactionData.duration_in_days || null,
-    };
-    console.log("interactionData", interactionData);
+  const handleAddOrUpdateInteraction = async (formData) => {
     try {
+      const config = {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      };
+
       if (isAddInteraction) {
         // ADD new interaction record
         const response = await API.post(
           "ece/faculty/interaction",
-          formattedInteraction
+          formData,
+          config
         );
         setInteractionDetails((prev) => [
           ...prev,
           {
-            ...formattedInteraction,
-            interact_id: response.data.data.interact_id,
+            ...response.data.data,
           },
         ]);
       } else {
         // UPDATE existing interaction record
         await API.put(
           `ece/faculty/interaction/${selectedInteraction.interact_id}`,
-          formattedInteraction
+          formData,
+          config
         );
         setInteractionDetails((prev) =>
           prev.map((interaction) =>
             interaction.interact_id === selectedInteraction.interact_id
-              ? { ...interaction, ...formattedInteraction }
+              ? { ...interaction, ...formData }
               : interaction
           )
         );
@@ -94,7 +89,6 @@ const Interaction = ({ setBlurActive }) => {
     }
   };
 
-  // Delete an interaction record
   const handleDeleteInteraction = async (interactId) => {
     try {
       await API.delete(`ece/faculty/interaction/${interactId}`);
@@ -106,19 +100,8 @@ const Interaction = ({ setBlurActive }) => {
     }
   };
 
-  const TABLE_HEAD = [
-    "Interaction Type",
-    "Institution Name",
-    "Description",
-    "Month of Visit",
-    "Year of Visit",
-    "Duration (Days)",
-    "Actions",
-  ];
-
   return (
     <>
-      {/* Reusable Custom Table Component */}
       <CustomTable
         title="Interaction with the Outside World"
         subtitle="(Details of Interactions)"
@@ -129,6 +112,7 @@ const Interaction = ({ setBlurActive }) => {
           { key: "month_of_visit", label: "Month of Visit" },
           { key: "year_of_visit", label: "Year of Visit" },
           { key: "duration_in_days", label: "Duration (Days)" },
+          { key: "document", label: "Document" }, // New column for document
           { key: "actions", label: "Actions" },
         ]}
         data={interactionDetails}
@@ -138,6 +122,7 @@ const Interaction = ({ setBlurActive }) => {
             setPopupOpen(true);
             setBlurActive(true);
             setSelectedInteraction(interaction);
+            console.log(interaction);
           },
           delete: (interaction) => {
             if (interaction?.interact_id) {
@@ -174,18 +159,20 @@ const Interaction = ({ setBlurActive }) => {
               year_of_visit=""
               month_of_visit=""
               duration_in_days=""
+              document={null}
               closeModal={closePopup}
               handleAddVisit={handleAddOrUpdateInteraction}
             />
           ) : (
             selectedInteraction && (
               <InteractionPopUp
-                interactionType={selectedInteraction?.interactionType || ""}
-                institutionName={selectedInteraction?.institutionName || ""}
+                interactionType={selectedInteraction?.interaction_type || ""}
+                institutionName={selectedInteraction?.institution || ""}
                 description={selectedInteraction?.description || ""}
                 year_of_visit={selectedInteraction?.year_of_visit || ""}
                 month_of_visit={selectedInteraction?.month_of_visit || ""}
                 duration_in_days={selectedInteraction?.duration_in_days || ""}
+                document={selectedInteraction?.document || null}
                 closeModal={closePopup}
                 handleAddVisit={handleAddOrUpdateInteraction}
               />

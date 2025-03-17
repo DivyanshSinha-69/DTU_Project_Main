@@ -90,7 +90,9 @@ const Department = () => {
     setSearchQuery(query);
     const filtered = orders.filter(
       (order) =>
-        order.order_number.includes(query) || order.subject.includes(query)
+        order.order_number.includes(query) ||
+        order.subject.toLowerCase().includes(query.toLowerCase()) ||
+        order.order_name.toLowerCase().includes(query.toLowerCase())
     );
     setFilteredOrders(filtered);
     setCurrentPage(1);
@@ -257,93 +259,116 @@ const Department = () => {
 
               {/* Filters Section */}
               <Card
-                className="rounded-lg p-4 mt-6  shadow-sm border"
+                className="rounded-lg p-6 mt-6 shadow-sm border"
                 style={{
                   backgroundColor: darkMode ? "#0D1117" : "#FFFFFF",
                   borderColor: darkMode ? "#22232B" : "#D1D5DB",
                 }}
               >
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Search by Order ID or Subject */}
-                  <Input
-                    type="text"
-                    placeholder="Search by Order ID or Subject"
-                    value={searchQuery}
-                    onChange={(e) => handleSearch(e.target.value)}
-                    className="w-full p-2 rounded-lg border transition-all duration-300"
-                    style={{
-                      backgroundColor: darkMode ? "#0D1117" : "#FFFFFF",
-                      borderColor: darkMode ? "#22232B" : "#D1D5DB",
-                      color: darkMode ? "#EAEAEA" : "#1F252E",
-                    }}
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Search by Order ID / Subject */}
+                  <div className="flex flex-col">
+                    <label
+                      className="text-sm font-medium mb-2"
+                      style={{ color: darkMode ? "#B0B3B8" : "#4A5568" }}
+                    >
+                      Order ID / Name / Subject
+                    </label>
+                    <Input
+                      type="text"
+                      placeholder="Enter Order ID Name or Subject"
+                      value={searchQuery}
+                      onChange={(e) => handleSearch(e.target.value)}
+                      className="w-full p-3 rounded-md border transition-all duration-300"
+                      style={{
+                        backgroundColor: darkMode ? "#161722" : "#FFFFFF",
+                        borderColor: darkMode ? "#464667" : "#D1D5DB",
+                        color: darkMode ? "#EAEAEA" : "#1F252E",
+                      }}
+                    />
+                  </div>
 
                   {/* Search by Faculty Name */}
-                  <Input
-                    type="text"
-                    placeholder="Search by Faculty Name"
-                    value={facultySearchQuery}
-                    onChange={(e) => handleFacultySearch(e.target.value)}
-                    className="w-full p-2 rounded-lg border transition-all duration-300"
-                    style={{
-                      backgroundColor: darkMode ? "#0D1117" : "#FFFFFF",
-                      borderColor: darkMode ? "#22232B" : "#D1D5DB",
-                      color: darkMode ? "#EAEAEA" : "#1F252E",
-                    }}
-                  />
+                  <div className="flex flex-col">
+                    <label
+                      className="text-sm font-medium mb-2"
+                      style={{ color: darkMode ? "#B0B3B8" : "#4A5568" }}
+                    >
+                      Faculty Name
+                    </label>
+                    <Input
+                      type="text"
+                      placeholder="Enter Faculty Name"
+                      value={facultySearchQuery}
+                      onChange={(e) => handleFacultySearch(e.target.value)}
+                      className="w-full p-3 rounded-md border transition-all duration-300"
+                      style={{
+                        backgroundColor: darkMode ? "#161722" : "#FFFFFF",
+                        borderColor: darkMode ? "#464667" : "#D1D5DB",
+                        color: darkMode ? "#EAEAEA" : "#1F252E",
+                      }}
+                    />
+                  </div>
 
-                  {/* Date Range Filter */}
+                  {/* Date Range Filters (Side by Side) */}
                   <div className="grid grid-cols-2 gap-4">
-                    {/* Start Date Field */}
-                    <div className="relative w-full">
-                      <label className="w-full block">
-                        <Input
-                          type="date"
-                          value={startDateFilter}
-                          onChange={(e) => setStartDateFilter(e.target.value)}
-                          className="w-full p-2 rounded-lg border transition-all duration-300 cursor-pointer"
-                          style={{
-                            backgroundColor: darkMode ? "#0D1117" : "#FFFFFF",
-                            borderColor: darkMode ? "#22232B" : "#D1D5DB",
-                            color: darkMode ? "#EAEAEA" : "#1F252E",
-                          }}
-                        />
+                    {/* Start Date */}
+                    <div className="flex flex-col">
+                      <label
+                        className="text-sm font-medium mb-2"
+                        style={{ color: darkMode ? "#B0B3B8" : "#4A5568" }}
+                      >
+                        Start Date
                       </label>
+                      <Input
+                        type="date"
+                        value={startDateFilter}
+                        onChange={(e) => setStartDateFilter(e.target.value)}
+                        className="w-full p-3 rounded-md border transition-all duration-300 cursor-pointer"
+                        style={{
+                          backgroundColor: darkMode ? "#161722" : "#FFFFFF",
+                          borderColor: darkMode ? "#464667" : "#D1D5DB",
+                          color: darkMode ? "#EAEAEA" : "#1F252E",
+                        }}
+                      />
                     </div>
 
-                    {/* End Date Field */}
-                    <div className="relative w-full">
-                      <label className="w-full block">
-                        <Input
-                          type="date"
-                          value={endDateFilter}
-                          onChange={(e) => setEndDateFilter(e.target.value)}
-                          className="w-full p-2  rounded-lg border transition-all duration-300 cursor-pointer"
-                          style={{
-                            backgroundColor: darkMode ? "#0D1117" : "#FFFFFF",
-                            borderColor: darkMode ? "#22232B" : "#D1D5DB",
-                            color: darkMode ? "#EAEAEA" : "#1F252E",
-                          }}
-                        />
-                        {/* Datepicker Icon */}
+                    {/* End Date */}
+                    <div className="flex flex-col">
+                      <label
+                        className="text-sm font-medium mb-2"
+                        style={{ color: darkMode ? "#B0B3B8" : "#4A5568" }}
+                      >
+                        End Date
                       </label>
+                      <Input
+                        type="date"
+                        value={endDateFilter}
+                        onChange={(e) => setEndDateFilter(e.target.value)}
+                        className="w-full p-3 rounded-md border transition-all duration-300 cursor-pointer"
+                        style={{
+                          backgroundColor: darkMode ? "#161722" : "#FFFFFF",
+                          borderColor: darkMode ? "#464667" : "#D1D5DB",
+                          color: darkMode ? "#EAEAEA" : "#1F252E",
+                        }}
+                      />
                     </div>
                   </div>
                 </div>
-                {/* Apply and Reset Buttons */}
-                <div className="flex flex-wrap justify-center md:justify-end gap-3 mt-4">
+
+                {/* Apply and Reset Buttons (Perfectly Aligned) */}
+                <div className="flex justify-center md:justify-end gap-4 mt-6">
                   <button
                     onClick={handleDateFilter}
-                    className="px-4 py-1.5 rounded-md border-2 font-medium text-sm transition-all duration-300"
+                    className="px-5 py-2 rounded-md border-2 font-medium text-sm transition-all duration-300"
                     style={{
-                      borderColor: darkMode ? "#569CD6" : "#007BFF",
-                      color: darkMode ? "#569CD6" : "#007BFF",
+                      borderColor: darkMode ? "#8CA6DB" : "#5A88D6",
+                      color: darkMode ? "#8CA6DB" : "#5A88D6",
                     }}
-                    onMouseEnter={
-                      (e) =>
-                        (e.target.style.backgroundColor = darkMode
-                          ? "rgba(86, 156, 214, 0.1)" // Light hover color for dark mode
-                          : "rgba(0, 123, 255, 0.1)") // Light hover color for light mode
+                    onMouseEnter={(e) =>
+                      (e.target.style.backgroundColor = darkMode
+                        ? "rgba(140, 166, 219, 0.1)"
+                        : "rgba(90, 136, 214, 0.1)")
                     }
                     onMouseLeave={(e) =>
                       (e.target.style.backgroundColor = "transparent")
@@ -360,16 +385,15 @@ const Department = () => {
                       setFacultySearchQuery("");
                       setFilteredOrders(orders);
                     }}
-                    className="px-4 py-1.5 rounded-md border-2 font-medium text-sm transition-all duration-300"
+                    className="px-5 py-2 rounded-md border-2 font-medium text-sm transition-all duration-300"
                     style={{
                       borderColor: darkMode ? "#D43F3F" : "#E63946",
                       color: darkMode ? "#D43F3F" : "#E63946",
                     }}
-                    onMouseEnter={
-                      (e) =>
-                        (e.target.style.backgroundColor = darkMode
-                          ? "rgba(212, 63, 63, 0.1)" // Light hover color for dark mode
-                          : "rgba(230, 57, 70, 0.1)") // Light hover color for light mode
+                    onMouseEnter={(e) =>
+                      (e.target.style.backgroundColor = darkMode
+                        ? "rgba(212, 63, 63, 0.1)"
+                        : "rgba(230, 57, 70, 0.1)")
                     }
                     onMouseLeave={(e) =>
                       (e.target.style.backgroundColor = "transparent")
