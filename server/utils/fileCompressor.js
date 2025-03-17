@@ -2,6 +2,7 @@ import sharp from "sharp";
 import { exec } from "child_process";
 import path from "path";
 import fs from "fs";
+import os from "os";
 
 /**
  * 📌 Get file size
@@ -43,14 +44,17 @@ export const compressImage = (filePath, callback) => {
  * 📌 Compress PDF using Ghostscript
  */
 // 🔹 Change this path based on your installation
-const gsPath = `"C:\\Program Files\\gs\\gs10.04.0\\bin\\gswin64c.exe"`;
+const gsCommand = os.platform() === "win32" 
+  ? `"C:\\Program Files\\gs\\gs10.04.0\\bin\\gswin64c.exe"`
+  : "gs"; // Linux uses "gs"
+
 
 export const compressPDF = (filePath, callback) => {
   const outputFilePath = filePath.replace(".pdf", "_compressed.pdf");
 
-  const gsCommand = `${gsPath} -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook -dNOPAUSE -dQUIET -dBATCH -sOutputFile="${outputFilePath}" "${filePath}"`;
+  const cmd = `${gsCommand} -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook -dNOPAUSE -dQUIET -dBATCH -sOutputFile="${outputFilePath}" "${filePath}"`;
 
-  exec(gsCommand, (error) => {
+  exec(cmd, (error) => {
     if (error) return callback(error);
 
     // 🔹 Log file sizes before and after compression

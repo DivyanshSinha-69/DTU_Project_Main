@@ -2324,6 +2324,7 @@ export const updateLastSeen = (req, res) => {
 
 export const getUserDutyOrders = (req, res) => {
   const { user_id } = req.query;
+
   let query = `
       SELECT ddo.order_id, ddo.order_number, ddo.order_name, ddo.order_date, 
              ddo.start_date, ddo.end_date, ddo.subject, ddo.order_path, 
@@ -2346,6 +2347,7 @@ export const getUserDutyOrders = (req, res) => {
     res.json(result);
   });
 };
+
 
 export const getCirculars = (req, res) => {
   const { department_id } = req.query;

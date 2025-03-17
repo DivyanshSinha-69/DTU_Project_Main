@@ -175,7 +175,7 @@ export const facultyLogin = (req, res) => {
       }
 
       const user = results[0];
-
+      const deptid = user.department_id;
       // Compare passwords
       bcrypt.compare(password, user.password, (err, isMatch) => {
         if (err) return res.status(500).json({ message: "Server error!" });
@@ -283,6 +283,7 @@ export const facultyLogin = (req, res) => {
                         consultancyCount: consultancy,
                         unreadDuties: unread_duties,
                         unreadCirculars: unread_circulars,
+                        department_id: deptid,
                       },
                     });
                   },

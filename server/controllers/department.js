@@ -337,18 +337,8 @@ export const addOrder = (req, res) => {
   let { faculty_ids, student_ids } = req.body;
   const order_path = req.file ? req.file.path : null;
 
-  if (
-    !department_id ||
-    !order_number ||
-    !order_name ||
-    !order_date ||
-    !subject ||
-    !undersigned ||
-    !order_path
-  ) {
-    return res
-      .status(400)
-      .json({ message: "All required fields must be provided." });
+  if (!department_id || !order_number || !order_name || !order_date || !subject || !undersigned || !order_path) {
+    return res.status(400).json({ message: "All required fields must be provided." });
   }
 
   const orderQuery = `
