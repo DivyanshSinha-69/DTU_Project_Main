@@ -261,21 +261,17 @@ export const getOrders = (req, res) => {
 
   pool.query(query, params, (err, orders) => {
     if (err) {
-      console.error("Error fetching orders:", err);
-      return res
-        .status(500)
-        .json({ message: "Error fetching orders", error: err });
+      console.error("❌ Error fetching orders:", err);
+      return res.status(500).json({ message: "Error fetching orders", error: err });
     }
 
     if (department_id && orders.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No orders found for this department" });
+      return res.status(404).json({ message: "No orders found for this department" });
     }
 
-    // Fetch faculty_ids and student_ids for each order
+    // Fetch faculty_ids, student_ids, and created_at for each order
     const ordersWithMappings = [];
-
+    
     const fetchMappings = (index) => {
       if (index >= orders.length) {
         return res.status(200).json({
@@ -289,30 +285,35 @@ export const getOrders = (req, res) => {
 
       const facultyQuery = `SELECT DISTINCT faculty_id FROM mapping_duty_orders_faculty WHERE order_number = ?`;
       const studentQuery = `SELECT DISTINCT RollNo FROM mapping_duty_orders_students WHERE order_number = ?`;
+      const notificationQuery = `SELECT created_at FROM department_duty_notifications WHERE order_number = ? ORDER BY created_at DESC LIMIT 1`;
 
       pool.query(facultyQuery, [order_number], (err, facultyResult) => {
         if (err) {
-          console.error("Error fetching faculty mappings:", err);
-          return res
-            .status(500)
-            .json({ message: "Error fetching faculty mappings", error: err });
+          console.error("❌ Error fetching faculty mappings:", err);
+          return res.status(500).json({ message: "Error fetching faculty mappings", error: err });
         }
 
         pool.query(studentQuery, [order_number], (err, studentResult) => {
           if (err) {
-            console.error("Error fetching student mappings:", err);
-            return res
-              .status(500)
-              .json({ message: "Error fetching student mappings", error: err });
+            console.error("❌ Error fetching student mappings:", err);
+            return res.status(500).json({ message: "Error fetching student mappings", error: err });
           }
 
-          ordersWithMappings.push({
-            ...order,
-            faculty_ids: facultyResult.map((row) => row.faculty_id),
-            student_ids: studentResult.map((row) => row.RollNo),
-          });
+          pool.query(notificationQuery, [order_number], (err, notificationResult) => {
+            if (err) {
+              console.error("❌ Error fetching notification timestamps:", err);
+              return res.status(500).json({ message: "Error fetching notification timestamps", error: err });
+            }
 
-          fetchMappings(index + 1);
+            ordersWithMappings.push({
+              ...order,
+              faculty_ids: facultyResult.map((row) => row.faculty_id),
+              student_ids: studentResult.map((row) => row.RollNo),
+              created_at: notificationResult.length > 0 ? notificationResult[0].created_at : null,
+            });
+
+            fetchMappings(index + 1);
+          });
         });
       });
     };
@@ -320,6 +321,7 @@ export const getOrders = (req, res) => {
     fetchMappings(0);
   });
 };
+
 
 export const addOrder = (req, res) => {
   const {
@@ -448,16 +450,58 @@ const sendEmailNotifications = (emails, order_date, subject) => {
     from: process.env.EMAIL_USER,
     to: emails,
     subject: "New Duty Order Notification",
-    text: `A new office duty order has been assigned to you.\n\nOrder Date: ${order_date}\nSubject: ${subject}\n\nFor more details, please log in to the portal.`,
-  };
+    html: `
+    <p>Dear Faculty Member(s),</p>
+    
+    <p>We hope this email finds you well.</p>
+    
+    <p>This is to notify you that you have been assigned a new departmental duty as per the office order issued by the Department of Electronics and Communication Engineering, Delhi Technological University. Below are the details of your assigned duty:</p>
 
-  transporter.sendMail(mailOptions, (err, info) => {
-    if (err) {
-      console.error("❌ Error sending email:", err);
-    } else {
-      console.log("📩 Email sent successfully:", info.response);
-    }
-  });
+    <p><strong>Order Number:</strong> ${order_number}</p>
+    <p><strong>Order Name:</strong> ${order_name}</p>
+    <p><strong>Order Date:</strong> ${order_date}</p>
+    <p><strong>Description:</strong> ${subject}</p>
+
+    <p>To ensure smooth coordination, we kindly request you to log in to the ERP portal at 
+    <a href="https://www.dtu-eceportal.com" target="_blank">https://www.dtu-eceportal.com</a> and review the details at your earliest convenience. Any updates or modifications regarding this duty will be communicated to you via email and reflected on the portal.</p>
+
+    <p>For any queries or clarifications, feel free to reach out to the department office.</p>
+
+    <br/>
+    <p>Best regards,</p>
+    <p><strong>HOD Office, Department of ECE</strong></p>
+    <p>Delhi Technological University</p>
+
+    <br/>
+
+    <!-- Footer with Logo and Details -->
+    <table width="100%" style="border-top: 1px solid #ccc; padding-top: 10px; margin-top: 20px;">
+        <tr>
+            <!-- College Logo (Left) -->
+            <td width="80" style="padding-right: 20px;">
+                <img src="cid:collegeLogo" alt="DTU Logo" style="width: 80px; height: auto;">
+            </td>
+            
+            <!-- HOD Office Details (Right) -->
+            <td style="vertical-align: middle; text-align: left;">
+                <p style="margin: 0; font-size: 14px;">
+                    <strong>ERP Portal | HOD Office</strong><br>
+                    Department of ECE<br>
+                    Delhi Technological University (Formerly DCE)<br>
+                    Shahbad Daulatpur Village, Rohini, New Delhi, Delhi, 110042
+                </p>
+            </td>
+        </tr>
+    </table>
+    `,
+    attachments: [
+      {
+        filename: "emailSignature.png",
+        path: signaturePath,
+        cid: "signature",
+      },
+    ],
+  };  
 };
 
 
@@ -616,7 +660,7 @@ export const updateOrder = (req, res) => {
                 return;
               }
 
-              sendUpdateEmailNotifications(emails, order_date, subject);
+              sendUpdateEmailNotifications(emails, order_name, order_date, subject);
             }
           }
         );
@@ -630,22 +674,72 @@ export const updateOrder = (req, res) => {
 };
 
 // Function to send update notification emails
-const sendUpdateEmailNotifications = (emails, order_date, subject) => {
+const sendUpdateEmailNotifications = (emails, order_name, order_date, subject) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: emails,
-    subject: "Updated Duty Order Notification",
-    text: `The previously assigned duty order has been updated.\n\nUpdated Order Date: ${order_date}\nSubject: ${subject}\n\nPlease log in to the portal to review the updated details.`,
+    subject: "Updated Office Order - Please Review Changes",
+    html: `
+      <p>Dear Faculty Member(s),</p>
+      
+      <p>We hope this email finds you well.</p>
+      
+      <p>We would like to inform you that an update has been made to an Office Order assigned to you by the Department of Electronics and Communication Engineering, Delhi Technological University. Below are the updated details of your assigned duty:</p>
+
+      <p><strong>Order Name:</strong> ${order_name}</p>
+      <p><strong>Order Date:</strong> ${order_date}</p>
+      <p><strong>Description:</strong> ${subject}</p>
+
+      <p>To ensure smooth coordination, we kindly request you to log in to the ERP portal at 
+      <a href="https://www.dtu-eceportal.com" target="_blank">https://www.dtu-eceportal.com</a> and review the details at your earliest convenience. Any updates or modifications regarding this duty will be communicated to you via email and reflected on the portal.</p>
+
+      <p>For any queries or clarifications, feel free to reach out to the department office.</p>
+
+      <br/>
+      <p>Best regards,</p>
+      <p><strong>HOD Office, Department of ECE</strong></p>
+      <p>Delhi Technological University</p>
+
+      <br/>
+
+      <!-- Footer with Logo and Details -->
+      <table width="100%" style="border-top: 1px solid #ccc; padding-top: 10px; margin-top: 20px;">
+          <tr>
+              <!-- College Logo (Left) -->
+              <td width="80" style="padding-right: 20px;">
+                  <img src="cid:collegeLogo" alt="DTU Logo" style="width: 80px; height: auto;">
+              </td>
+              
+              <!-- HOD Office Details (Right) -->
+              <td style="vertical-align: middle; text-align: left;">
+                  <p style="margin: 0; font-size: 14px;">
+                      <strong>ERP Portal | HOD Office</strong><br>
+                      Department of ECE<br>
+                      Delhi Technological University (Formerly DCE)<br>
+                      Shahbad Daulatpur Village, Rohini, New Delhi, Delhi, 110042
+                  </p>
+              </td>
+          </tr>
+      </table>
+    `,
+    attachments: [
+      {
+        filename: "collegeLogo.png",
+        path: "public/assets/collegeLogo.png",
+        cid: "collegeLogo"
+      }
+    ]
   };
 
   transporter.sendMail(mailOptions, (err, info) => {
     if (err) {
-      console.error("Error sending update email:", err);
+      console.error("❌ Error sending update email:", err);
     } else {
-      console.log("Update email sent:", info.response);
+      console.log("✅ Update email sent successfully:", info.response);
     }
   });
 };
+
 
 export const deleteOrder = (req, res) => {
   const { order_id } = req.params;
@@ -653,13 +747,32 @@ export const deleteOrder = (req, res) => {
     return res.status(400).json({ message: "Order ID is required" });
 
   pool.query(
-    "SELECT order_number, order_path FROM department_duty_orders WHERE order_id=?",
+    "SELECT order_number, order_name, order_date, subject, order_path FROM department_duty_orders WHERE order_id=?",
     [order_id],
     (err, results) => {
       if (err || results.length === 0)
         return res.status(404).json({ message: "Order not found" });
 
-      const { order_number, order_path } = results[0];
+      const { order_number, order_name, order_date, subject, order_path } =
+        results[0];
+
+      // Fetch emails of affected faculty members
+      pool.query(
+        "SELECT email FROM faculty_users WHERE faculty_id IN (SELECT faculty_id FROM mapping_duty_orders_faculty WHERE order_number = ?)",
+        [order_number],
+        (facultyErr, facultyResults) => {
+          if (facultyErr) console.error("Error fetching faculty emails:", facultyErr);
+
+          const facultyEmails = facultyResults.map((row) => row.email);
+
+          // Send email notifications for deletion
+          if (facultyEmails.length > 0) {
+            sendDeleteEmailNotifications(facultyEmails, order_name, order_date, subject);
+          }
+        }
+      );
+
+      // Delete related records
       pool.query(
         "DELETE FROM mapping_duty_orders_faculty WHERE order_number = ?",
         [order_number]
@@ -685,6 +798,7 @@ export const deleteOrder = (req, res) => {
               .json({ message: "Error deleting order", error: orderErr });
           if (result.affectedRows === 0)
             return res.status(404).json({ message: "Order not found" });
+
           res.status(200).json({
             message: "Order and associated notifications deleted successfully",
           });
@@ -693,6 +807,71 @@ export const deleteOrder = (req, res) => {
     }
   );
 };
+
+// Function to send email notification for deleted orders
+const sendDeleteEmailNotifications = (emails, order_name, order_date, subject) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: emails,
+    subject: "Cancellation of Office Order",
+    html: `
+      <p>Dear Faculty Member(s),</p>
+      
+      <p>We hope this email finds you well.</p>
+      
+      <p>We would like to inform you that an Office Order previously assigned to you by the Department of Electronics and Communication Engineering has been <strong>canceled</strong>. Please find the details below:</p>
+
+      <p><strong>Order Name:</strong> ${order_name}</p>
+      <p><strong>Order Date:</strong> ${order_date}</p>
+      <p><strong>Description:</strong> ${subject}</p>
+
+      <p>To ensure smooth coordination, we kindly request you to log in to the ERP portal at 
+      <a href="https://www.dtu-eceportal.com" target="_blank">https://www.dtu-eceportal.com</a> and review the details at your earliest convenience.</p>
+
+      <p>For any queries or clarifications, feel free to reach out to the department office.</p>
+
+      <br/>
+      <p>Best regards,</p>
+      <p><strong>HOD Office, Department of ECE</strong></p>
+      <p>Delhi Technological University</p>
+
+      <br/>
+
+      <!-- Footer with Logo and Details -->
+      <table width="100%" style="border-top: 1px solid #ccc; padding-top: 10px; margin-top: 20px;">
+          <tr>
+              <td width="80" style="padding-right: 20px;">
+                  <img src="cid:collegeLogo" alt="DTU Logo" style="width: 80px; height: auto;">
+              </td>
+              <td style="vertical-align: middle; text-align: left;">
+                  <p style="margin: 0; font-size: 14px;">
+                      <strong>ERP Portal | HOD Office</strong><br>
+                      Department of ECE<br>
+                      Delhi Technological University (Formerly DCE)<br>
+                      Shahbad Daulatpur Village, Rohini, New Delhi, Delhi, 110042
+                  </p>
+              </td>
+          </tr>
+      </table>
+    `,
+    attachments: [
+      {
+        filename: "collegeLogo.png",
+        path: "public/assets/collegeLogo.png",
+        cid: "collegeLogo"
+      }
+    ]
+  };
+
+  transporter.sendMail(mailOptions, (err, info) => {
+    if (err) {
+      console.error("❌ Error sending cancellation email:", err);
+    } else {
+      console.log("✅ Cancellation email sent successfully:", info.response);
+    }
+  });
+};
+
 
 // 1️⃣ Get all faculty mappings or by faculty_id
 export const getFacultyMappings = (req, res) => {
