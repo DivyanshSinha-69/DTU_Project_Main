@@ -5,6 +5,7 @@ import fs from "fs";
 import path from "path";
 import nodemailer from "nodemailer";
 import { fileURLToPath } from "url";
+import axios from "axios";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -518,8 +519,6 @@ const sendEmailNotifications = (emails, order_number, order_name, order_date, su
   }); 
 };
 
-
-
 export const updateOrder = (req, res) => {
   const { order_id } = req.params;
   const {
@@ -559,8 +558,8 @@ export const updateOrder = (req, res) => {
         order_number,
         order_name,
         order_date,
-        start_date || NULL,
-        end_date || NULL,
+        start_date || null,
+        end_date || null,
         subject,
         newFilePath,
         undersigned,
@@ -627,7 +626,7 @@ export const updateOrder = (req, res) => {
         // Insert new notifications
         const notificationQuery = `
         INSERT INTO department_duty_notifications (user_id, order_number, message) VALUES ?`;
-        const message = notification_message || "New duty order assigned"; // Use provided message or default
+        const message = notification_message || "New duty order assigned";
 
         const notificationValues = [
           ...faculty_ids.map((id) => [
@@ -648,25 +647,29 @@ export const updateOrder = (req, res) => {
         });
 
         // Fetch emails of faculties and students
-        const getEmailsQuery = `
-        SELECT email_id AS email FROM faculty_details WHERE faculty_id IN (?) 
-        UNION 
-        SELECT email FROM student_auth WHERE RollNo IN (?)`;
+        let getEmailsQuery = "";
+        let emailQueryParams = [];
 
-        pool.query(
-          getEmailsQuery,
-          [faculty_ids, student_ids],
-          (emailErr, emailResults) => {
+        if (faculty_ids.length > 0 && student_ids.length > 0) {
+          getEmailsQuery = `
+            SELECT email_id AS email FROM faculty_details WHERE faculty_id IN (?) 
+            UNION 
+            SELECT email FROM student_auth WHERE RollNo IN (?)`;
+          emailQueryParams = [faculty_ids, student_ids];
+        } else if (faculty_ids.length > 0) {
+          getEmailsQuery = `SELECT email_id AS email FROM faculty_details WHERE faculty_id IN (?)`;
+          emailQueryParams = [faculty_ids];
+        } else if (student_ids.length > 0) {
+          getEmailsQuery = `SELECT email FROM student_auth WHERE RollNo IN (?)`;
+          emailQueryParams = [student_ids];
+        }
+
+        if (getEmailsQuery) {
+          pool.query(getEmailsQuery, emailQueryParams, (emailErr, emailResults) => {
             if (emailErr) {
               console.error("Error fetching emails:", emailErr);
             } else {
-              console.log("Raw email results:", emailResults); // Debugging log
-
-              // Extract email field correctly
-              const emails = emailResults
-                .map((row) => row.email)
-                .filter((email) => email); // Remove undefined values
-
+              const emails = emailResults.map((row) => row.email).filter(Boolean);
               console.log("Valid Recipient Emails:", emails);
 
               if (emails.length === 0) {
@@ -676,8 +679,8 @@ export const updateOrder = (req, res) => {
 
               sendUpdateEmailNotifications(emails, order_number, order_name, order_date, subject);
             }
-          }
-        );
+          });
+        }
 
         res
           .status(200)
@@ -686,6 +689,7 @@ export const updateOrder = (req, res) => {
     }
   );
 };
+
 
 // Function to send update notification emails
 const sendUpdateEmailNotifications = (emails, order_number, order_name, order_date, subject) => {
@@ -740,7 +744,7 @@ const sendUpdateEmailNotifications = (emails, order_number, order_name, order_da
     attachments: [
       {
         filename: "collegeLogo.png",
-        path: "public/assets/collegeLogo.png",
+        path: "public/assets/emailSignature.png",
         cid: "collegeLogo"
       }
     ]
@@ -755,109 +759,117 @@ const sendUpdateEmailNotifications = (emails, order_number, order_name, order_da
   });
 };
 
-
 export const deleteOrder = (req, res) => {
   const { order_id } = req.params;
-  if (!order_id)
-    return res.status(400).json({ message: "Order ID is required" });
+  if (!order_id) return res.status(400).json({ message: "Order ID is required" });
 
   pool.query(
     "SELECT order_number, order_name, order_date, subject, order_path FROM department_duty_orders WHERE order_id=?",
     [order_id],
     (err, results) => {
-      if (err || results.length === 0)
-        return res.status(404).json({ message: "Order not found" });
+      if (err || results.length === 0) return res.status(404).json({ message: "Order not found" });
 
-      const { order_number, order_name, order_date, subject, order_path } =
-        results[0];
+      const { order_number, order_name, order_date, subject, order_path } = results[0];
 
-      // Fetch emails of affected faculty members
-      pool.query(
-        "SELECT email FROM faculty_users WHERE faculty_id IN (SELECT faculty_id FROM mapping_duty_orders_faculty WHERE order_number = ?)",
-        [order_number],
-        (facultyErr, facultyResults) => {
-          if (facultyErr) console.error("Error fetching faculty emails:", facultyErr);
+      const facultyQuery = `SELECT DISTINCT faculty_id FROM mapping_duty_orders_faculty WHERE order_number = ?;`;
+      const studentQuery = `SELECT DISTINCT RollNo FROM mapping_duty_orders_students WHERE order_number = ?;`;
 
-          const facultyEmails = facultyResults.map((row) => row.email);
+      pool.query(facultyQuery, [order_number], (facultyErr, facultyResult) => {
+        if (facultyErr) {
+          console.error("Error fetching faculty mappings:", facultyErr);
+          return res.status(500).json({ message: "Error fetching faculty mappings" });
+        }
 
-          // Send email notifications for deletion
-          if (facultyEmails.length > 0) {
-            sendDeleteEmailNotifications(facultyEmails, order_name, order_number, order_date, subject);
+        const facultyIds = facultyResult.map((row) => row.faculty_id).filter(Boolean);
+
+        if (facultyIds.length > 0) {
+          pool.query(
+            `SELECT email_id FROM faculty_details WHERE faculty_id IN (?)`,
+            [facultyIds],
+            (emailErr, emailResults) => {
+              if (emailErr) {
+                console.error("Error fetching faculty emails:", emailErr);
+              } else {
+                const facultyEmails = emailResults.map((row) => row.email_id).filter(Boolean);
+                if (facultyEmails.length > 0) {
+                  sendDeleteEmailNotifications(facultyEmails, order_name, order_number, order_date, subject);
+                } else {
+                  console.log("No faculty emails found for this order.");
+                }
+              }
+            }
+          );
+        } else {
+          console.log("No faculties assigned to this order.");
+        }
+
+        pool.query(studentQuery, [order_number], (studentErr, studentResult) => {
+          if (studentErr) {
+            console.error("Error fetching student mappings:", studentErr);
+          } else {
+            const studentRollNos = studentResult.map((row) => row.RollNo).filter(Boolean);
+            if (studentRollNos.length > 0) {
+              console.log("Affected students:", studentRollNos);
+            } else {
+              console.log("No students assigned to this order.");
+            }
           }
-        }
-      );
-
-      // Delete related records
-      pool.query(
-        "DELETE FROM mapping_duty_orders_faculty WHERE order_number = ?",
-        [order_number]
-      );
-      pool.query(
-        "DELETE FROM mapping_duty_orders_students WHERE order_number = ?",
-        [order_number]
-      );
-      pool.query(
-        "DELETE FROM department_duty_notifications WHERE order_number = ?",
-        [order_number]
-      );
-
-      if (order_path) fs.unlink(order_path, () => {});
-
-      pool.query(
-        "DELETE FROM department_duty_orders WHERE order_id=?",
-        [order_id],
-        (orderErr, result) => {
-          if (orderErr)
-            return res
-              .status(500)
-              .json({ message: "Error deleting order", error: orderErr });
-          if (result.affectedRows === 0)
-            return res.status(404).json({ message: "Order not found" });
-
-          res.status(200).json({
-            message: "Order and associated notifications deleted successfully",
+        
+          // **Move this inside the student query callback**
+          if (facultyIds.length > 0 || (studentResult && studentResult.length > 0)) {
+            pool.query("DELETE FROM mapping_duty_orders_faculty WHERE order_number = ?", [order_number]);
+            pool.query("DELETE FROM mapping_duty_orders_students WHERE order_number = ?", [order_number]);
+            pool.query("DELETE FROM department_duty_notifications WHERE order_number = ?", [order_number]);
+          }
+        
+          if (order_path) fs.unlink(order_path, () => {});
+        
+          pool.query("DELETE FROM department_duty_orders WHERE order_id=?", [order_id], (orderErr, result) => {
+            if (orderErr) return res.status(500).json({ message: "Error deleting order", error: orderErr });
+            if (result.affectedRows === 0) return res.status(404).json({ message: "Order not found" });
+        
+            res.status(200).json({ message: "Order and associated notifications deleted successfully" });
           });
-        }
-      );
+        });
     }
   );
-};
+});
+}
 
-// Function to send email notification for deleted orders
 const sendDeleteEmailNotifications = (emails, order_name, order_number, order_date, subject) => {
+  if (!emails || emails.length === 0) {
+    console.log("No valid email recipients found. Skipping email notification.");
+    return;
+  }
+
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: emails,
-    subject: "Cancellation of Office Order",
+    subject: "Updated Office Order - Please Review Changes",
     html: `
       <p>Dear Faculty Member(s),</p>
-      
       <p>We hope this email finds you well.</p>
-      
-      <p>We would like to inform you that an Office Order previously assigned to you by the Department of Electronics and Communication Engineering has been <strong>canceled</strong>. Please find the details below:</p>
+      <p>We would like to inform you that an Office Order previously assigned to you Department of Electronics and Communication engineering has been canceled. Please find the details below:</p>
       <p><strong>Order Number:</strong> ${order_number}</p>
       <p><strong>Order Name:</strong> ${order_name}</p>
       <p><strong>Order Date:</strong> ${order_date}</p>
       <p><strong>Description:</strong> ${subject}</p>
-
-      <p>To ensure smooth coordination, we kindly request you to log in to the ERP portal at 
-      <a href="https://www.dtu-eceportal.com" target="_blank">https://www.dtu-eceportal.com</a> and review the details at your earliest convenience.</p>
-
+      <p>To ensure smooth coordination, we kindly request you to log in to the ERP portal at https://www.dtu-eceportal.com and review the details at your earliest convenience.</p>
       <p>For any queries or clarifications, feel free to reach out to the department office.</p>
-
-      <br/>
       <p>Best regards,</p>
       <p><strong>HOD Office, Department of ECE</strong></p>
-      <p>Delhi Technological University</p>
-
+      <p><strong>Delhi Technological University</strong></p>
       <br/>
 
       <!-- Footer with Logo and Details -->
       <table width="100%" style="border-top: 1px solid #ccc; padding-top: 10px; margin-top: 20px;">
           <tr>
+              <!-- College Logo (Left) -->
               <td width="80" style="padding-right: 20px;">
                   <img src="cid:collegeLogo" alt="DTU Logo" style="width: 80px; height: auto;">
               </td>
+              
+              <!-- HOD Office Details (Right) -->
               <td style="vertical-align: middle; text-align: left;">
                   <p style="margin: 0; font-size: 14px;">
                       <strong>ERP Portal | HOD Office</strong><br>
@@ -872,18 +884,15 @@ const sendDeleteEmailNotifications = (emails, order_name, order_number, order_da
     attachments: [
       {
         filename: "collegeLogo.png",
-        path: path.join(__dirname, "..", "public", "assets", "collegeLogo.png"),        
+        path: "public/assets/emailSignature.png",
         cid: "collegeLogo"
       }
     ]
   };
 
   transporter.sendMail(mailOptions, (err, info) => {
-    if (err) {
-      console.error("❌ Error sending cancellation email:", err);
-    } else {
-      console.log("✅ Cancellation email sent successfully:", info.response);
-    }
+    if (err) console.error("❌ Error sending update email:", err);
+    else console.log("✅ Delete email sent successfully:", info.response);
   });
 };
 
