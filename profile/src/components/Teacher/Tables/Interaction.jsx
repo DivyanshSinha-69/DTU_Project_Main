@@ -24,7 +24,6 @@ const Interaction = ({ setBlurActive }) => {
     try {
       const response = await API.get(`ece/faculty/interaction/${FACULTY_ID}`);
       setInteractionDetails(response.data.data || []);
-      console.log("Interaction Details:", response.data.data);
     } catch (error) {
       console.error("Error fetching interaction details:", error);
     }
@@ -122,7 +121,6 @@ const Interaction = ({ setBlurActive }) => {
             setPopupOpen(true);
             setBlurActive(true);
             setSelectedInteraction(interaction);
-            console.log(interaction);
           },
           delete: (interaction) => {
             if (interaction?.interact_id) {

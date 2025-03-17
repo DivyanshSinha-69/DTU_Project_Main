@@ -53,7 +53,6 @@ const Login = () => {
       const response = await axios.post(endpoint, payload, {
         withCredentials: true,
       });
-      console.log("response", response);
       const { accessToken, refreshToken, user } = response.data;
 
       if (role === "faculty" && !accessToken) {
@@ -61,7 +60,6 @@ const Login = () => {
         toast.error("Invalid credentials. Please try again.");
         return;
       }
-      console.log("user", user);
       dispatch(setRole(user.Position));
 
       dispatch(

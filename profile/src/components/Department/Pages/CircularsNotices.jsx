@@ -8,6 +8,7 @@ import { useThemeContext } from "../../../context/ThemeContext";
 import { useSelector } from "react-redux";
 import Popup from "reactjs-popup";
 import CircularPopup from "../PopUp/CircularPopUp.jsx";
+import toast from "react-hot-toast";
 
 const DepartmentCirculars = () => {
   const user = useSelector((state) => state.auth.user);
@@ -23,6 +24,7 @@ const DepartmentCirculars = () => {
   const [filteredCirculars, setFilteredCirculars] = useState([]);
   const [isPopupOpen, setPopupOpen] = useState(false); // State to handle popup visibility
   const [editCircular, setEditCircular] = useState(null); // State to handle editing circular
+
   // Columns for the table
   const columns = [
     { key: "circular_number", label: "Circular Number" },
@@ -70,6 +72,7 @@ const DepartmentCirculars = () => {
       setLoading(false);
     }
   };
+
   // Handle adding a new circular
   const openPopup = (circular = null) => {
     setEditCircular(circular);
@@ -85,7 +88,6 @@ const DepartmentCirculars = () => {
   // Handle adding or updating a circular
   const saveCircular = async (circular) => {
     const method = editCircular ? "PUT" : "POST";
-    console.log("circular", circular);
     const url = editCircular
       ? `/ece/department/circulars/${editCircular.circular_id}`
       : "/ece/department/circulars";
@@ -117,6 +119,11 @@ const DepartmentCirculars = () => {
       }
     } catch (error) {
       console.error("Error saving circular:", error);
+      toast.error(
+        editCircular
+          ? (error, " Failed to edit circular. Please try again.")
+          : (error, "Failed to add circular. Please try again.")
+      );
     }
   };
 
@@ -126,21 +133,16 @@ const DepartmentCirculars = () => {
       const response = await API.delete(
         `/ece/department/circulars/${circularId}`
       );
-      if (
-        response.data.message &&
-        response.data.message.includes("successfully")
-      ) {
+      console.log(response);
+      if (response.status === 200) {
+        toast.success("Circular deleted successfully!");
         fetchCirculars(); // Refresh the list
       }
     } catch (error) {
       console.error("Error deleting circular:", error);
+      toast.error("Failed to delete circular. Please try again.");
     }
   };
-
-  // Fetch data when the component mounts
-  useEffect(() => {
-    fetchCirculars();
-  }, [department_id]);
 
   // Handle search by Circular Number or Subject
   const handleSearch = (query) => {

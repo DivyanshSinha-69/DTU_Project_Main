@@ -28,7 +28,6 @@ const Qualification = ({ setBlurActive }) => {
         const response = await API.get(
           `ece/faculty/qualification/${facultyId}`
         );
-        console.log(response.data);
 
         if (Array.isArray(response.data)) {
           setQualificationDetails(
@@ -91,8 +90,6 @@ const Qualification = ({ setBlurActive }) => {
           payload
         );
       }
-
-      console.log("API Response:", response.data); // Debugging
 
       if (response && response.data) {
         toast.success("Qualification record successfully saved");
