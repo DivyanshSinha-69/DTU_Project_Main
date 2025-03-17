@@ -350,8 +350,8 @@ export const addOrder = (req, res) => {
     order_number,
     order_name,
     order_date,
-    start_date || NULL,
-    end_date || NULL,
+    start_date || null,
+    end_date || null,
     subject,
     order_path,
     undersigned,
@@ -359,107 +359,90 @@ export const addOrder = (req, res) => {
 
   pool.query(orderQuery, orderParams, (err, result) => {
     if (err) {
-      console.error("Error adding order:", err);
-      return res
-        .status(500)
-        .json({ message: "Error adding order", error: err });
+      console.error("❌ Error adding order:", err);
+      return res.status(500).json({ message: "Error adding order", error: err });
     }
+
+    console.log("✅ Order added successfully:", result.insertId);
 
     try {
-      faculty_ids =
-        typeof faculty_ids === "string"
-          ? JSON.parse(faculty_ids)
-          : faculty_ids || [];
-      student_ids =
-        typeof student_ids === "string"
-          ? JSON.parse(student_ids)
-          : student_ids || [];
+      faculty_ids = typeof faculty_ids === "string" ? JSON.parse(faculty_ids) : faculty_ids || [];
+      student_ids = typeof student_ids === "string" ? JSON.parse(student_ids) : student_ids || [];
     } catch (error) {
-      console.error("Error parsing IDs:", error);
-      return res
-        .status(400)
-        .json({ message: "Invalid faculty_ids or student_ids format" });
+      console.error("❌ Error parsing IDs:", error);
+      return res.status(400).json({ message: "Invalid faculty_ids or student_ids format" });
     }
 
-    // Insert faculty and student mappings
     if (faculty_ids.length > 0) {
-      const facultyQuery =
-        "INSERT INTO mapping_duty_orders_faculty (faculty_id, order_number) VALUES ?";
-      pool.query(
-        facultyQuery,
-        [faculty_ids.map((id) => [id, order_number])],
-        (facultyErr) => {
-          if (facultyErr) console.error("Error linking faculty:", facultyErr);
-        }
-      );
+      const facultyQuery = "INSERT INTO mapping_duty_orders_faculty (faculty_id, order_number) VALUES ?";
+      pool.query(facultyQuery, [faculty_ids.map((id) => [id, order_number])], (facultyErr) => {
+        if (facultyErr) console.error("❌ Error linking faculty:", facultyErr);
+      });
     }
 
     if (student_ids.length > 0) {
-      const studentQuery =
-        "INSERT INTO mapping_duty_orders_students (RollNo, order_number) VALUES ?";
-      pool.query(
-        studentQuery,
-        [student_ids.map((id) => [id, order_number])],
-        (studentErr) => {
-          if (studentErr) console.error("Error linking students:", studentErr);
-        }
-      );
+      const studentQuery = "INSERT INTO mapping_duty_orders_students (RollNo, order_number) VALUES ?";
+      pool.query(studentQuery, [student_ids.map((id) => [id, order_number])], (studentErr) => {
+        if (studentErr) console.error("❌ Error linking students:", studentErr);
+      });
     }
 
-    // Insert notifications for all faculty and students
-    const notificationQuery = `
-      INSERT INTO department_duty_notifications (user_id, order_number, message) VALUES ?`;
-    const message = notification_message || "New duty order assigned"; // Use provided message or default
-
+    const notificationQuery = `INSERT INTO department_duty_notifications (user_id, order_number, message) VALUES ?`;
+    const message = notification_message || "New duty order assigned";
     const notificationValues = [
       ...faculty_ids.map((id) => [id, order_number, message]),
       ...student_ids.map((id) => [id, order_number, message]),
     ];
 
     pool.query(notificationQuery, [notificationValues], (notifErr) => {
-      if (notifErr) console.error("Error creating notifications:", notifErr);
+      if (notifErr) console.error("❌ Error creating notifications:", notifErr);
     });
 
-    // Fetch emails of faculties and students
-    const getEmailsQuery = `
-    SELECT email_id AS email FROM faculty_details WHERE faculty_id IN (?) 
-    UNION 
-    SELECT email FROM student_auth WHERE RollNo IN (?)`;
+    // Fetch faculty and student emails
+    const getEmailsQuery = [];
 
-    pool.query(
-      getEmailsQuery,
-      [faculty_ids, student_ids],
-      (emailErr, emailResults) => {
-        if (emailErr) {
-          console.error("Error fetching emails:", emailErr);
-          return;
-        }
+if (faculty_ids.length > 0) {
+  getEmailsQuery.push(
+    `SELECT email_id AS email FROM faculty_details WHERE faculty_id IN (${faculty_ids.map(() => "?").join(",")})`
+  );
+}
+if (student_ids.length > 0) {
+  getEmailsQuery.push(
+    `SELECT email FROM student_auth WHERE RollNo IN (${student_ids.map(() => "?").join(",")})`
+  );
+}
 
-        console.log("Raw email results:", emailResults); // Debugging log
+if (getEmailsQuery.length === 0) {
+  console.warn("⚠️ No faculty or students assigned, skipping email fetch.");
+  return res.status(201).json({ message: "Order added successfully", insertId: result.insertId });
+}
 
-        // Extract email field correctly
-        const emails = emailResults
-          .map((row) => row.email)
-          .filter((email) => email); // Remove undefined values
+const finalQuery = getEmailsQuery.join(" UNION ");
+const queryParams = [...faculty_ids, ...student_ids];
 
-        console.log("Valid Recipient Emails:", emails);
+pool.query(finalQuery, queryParams, (emailErr, emailResults) => {
+  if (emailErr) {
+    console.error("❌ Error fetching emails:", emailErr);
+    return res.status(500).json({ message: "Error fetching emails", error: emailErr });
+  }
 
-        if (emails.length === 0) {
-          console.error("No valid recipient emails found.");
-          return;
-        }
+  console.log("📩 Raw email results:", emailResults);
 
-        sendEmailNotifications(emails, order_date, subject);
-      }
-    );
+  const emails = emailResults.map((row) => row.email).filter(Boolean);
+  console.log("📨 Valid Recipient Emails:", emails);
 
-    res
-      .status(201)
-      .json({ message: "Order added successfully", insertId: result.insertId });
+  if (emails.length > 0) {
+    sendEmailNotifications(emails, order_date, subject);
+  } else {
+    console.warn("⚠️ No valid recipient emails found.");
+  }
+
+  res.status(201).json({ message: "Order added successfully", insertId: result.insertId });
+});
+
   });
 };
 
-// Function to send email notifications
 const sendEmailNotifications = (emails, order_date, subject) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
@@ -470,12 +453,14 @@ const sendEmailNotifications = (emails, order_date, subject) => {
 
   transporter.sendMail(mailOptions, (err, info) => {
     if (err) {
-      console.error("Error sending email:", err);
+      console.error("❌ Error sending email:", err);
     } else {
-      console.log("Email sent:", info.response);
+      console.log("📩 Email sent successfully:", info.response);
     }
   });
 };
+
+
 
 export const updateOrder = (req, res) => {
   const { order_id } = req.params;
