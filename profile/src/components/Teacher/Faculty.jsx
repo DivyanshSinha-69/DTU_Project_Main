@@ -277,7 +277,7 @@ const Faculty = () => {
                       {/* Profile Image */}
                       <div className="absolute bottom-0 left-4 md:left-8 transform translate-y-1/3">
                         <img
-                          className="rounded-full h-24 w-24 md:h-36 md:w-36 border-4 border-white dark:border-gray-800 "
+                          className="rounded-full h-24 w-24 md:h-36 md:w-36 border-4 border-white dark:border-gray-800 object-cover"
                           src={selectedImage ? selectedImage : teacherImg}
                           alt="Faculty Profile"
                         />
