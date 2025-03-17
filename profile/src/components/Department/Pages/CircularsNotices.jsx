@@ -54,7 +54,7 @@ const DepartmentCirculars = () => {
         const formattedData = response.data.data.map((circular) => ({
           ...circular,
           circular_date: formatDateForInput(circular.circular_date),
-          circular_path: circular.circular_path
+          circular_file: circular.circular_path
             ? { name: circular.circular_path }
             : null, // Add circular_path as an object with a name property
         }));
@@ -82,6 +82,7 @@ const DepartmentCirculars = () => {
   // Handle adding or updating a circular
   const saveCircular = async (circular) => {
     const method = editCircular ? "PUT" : "POST";
+    console.log("circular", circular);
     const url = editCircular
       ? `/ece/department/circulars/${editCircular.circular_id}`
       : "/ece/department/circulars";
@@ -92,8 +93,8 @@ const DepartmentCirculars = () => {
     formData.append("circular_name", circular.circular_name);
     formData.append("circular_date", circular.circular_date);
     formData.append("subject", circular.subject);
-    if (circular.circular_path) {
-      formData.append("circular_path", circular.circular_path);
+    if (circular.circular_file) {
+      formData.append("circular_file", circular.circular_file);
     }
 
     try {

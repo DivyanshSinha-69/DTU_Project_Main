@@ -190,7 +190,7 @@ const CustomTable = ({
                           <td key={col.key} className="p-4">
                             {cellValue ? (
                               <a
-                                href={`${process.env.REACT_APP_BACKEND_URL}/public/${cellValue}`}
+                                href={`${process.env.REACT_APP_BACKEND_URL}/${cellValue}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-blue-500 hover:underline font-poppins font-medium" // Updated font style

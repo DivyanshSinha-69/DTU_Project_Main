@@ -5,7 +5,7 @@ const initialState = {
   accessToken: localStorage.getItem("accessToken") || null,
   refreshToken: localStorage.getItem("refreshToken") || null,
   isAuthenticated: localStorage.getItem("isAuthenticated") || false,
-  darkMoe: false,
+  darkMode: false,
 };
 
 export const authSlice = createSlice({
@@ -30,7 +30,6 @@ export const authSlice = createSlice({
       state.accessToken = null;
       state.refreshToken = null;
       state.isAuthenticated = false;
-      console.log("logging out auth");
 
       localStorage.removeItem("user");
       localStorage.removeItem("accessToken");
@@ -44,8 +43,26 @@ export const authSlice = createSlice({
       state.accessToken = action.payload;
       localStorage.setItem("accessToken", action.payload);
     },
+    updateUnreadCirculars: (state) => {
+      if (state.user && state.user.unreadCirculars > 0) {
+        state.user.unreadCirculars = 0; //Set to 0
+        localStorage.setItem("user", JSON.stringify(state.user)); // Update localStorage
+      }
+    },
+    decreaseUnreadDuties: (state) => {
+      if (state.user && state.user.unreadDuties > 0) {
+        state.user.unreadDuties -= 1; // Decrease unreadDuties by 1
+        localStorage.setItem("user", JSON.stringify(state.user)); // Update localStorage
+      }
+    },
   },
 });
 
-export const { login, logout, updateAccessToken } = authSlice.actions;
+export const {
+  login,
+  logout,
+  updateAccessToken,
+  updateUnreadCirculars,
+  decreaseUnreadDuties,
+} = authSlice.actions;
 export default authSlice.reducer;

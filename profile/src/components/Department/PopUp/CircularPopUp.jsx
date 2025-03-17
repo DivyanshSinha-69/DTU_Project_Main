@@ -8,7 +8,7 @@ const CircularPopup = ({ closeModal, saveCircular, circular }) => {
     circular_name: "",
     subject: "",
     circular_date: "",
-    circular_path: null,
+    circular_file: null,
   });
 
   // Pre-fill form with existing data if editing
@@ -19,7 +19,7 @@ const CircularPopup = ({ closeModal, saveCircular, circular }) => {
         circular_name: circular.circular_name || "",
         subject: circular.subject || "",
         circular_date: circular.circular_date || "",
-        circular_path: circular.circular_path || null,
+        circular_file: circular.circular_file || null,
       });
     }
   }, [circular]);
@@ -36,7 +36,7 @@ const CircularPopup = ({ closeModal, saveCircular, circular }) => {
     const file = e.target.files[0];
     setFormData((prevData) => ({
       ...prevData,
-      circular_path: file,
+      circular_file: file,
     }));
   };
 
@@ -60,7 +60,7 @@ const CircularPopup = ({ closeModal, saveCircular, circular }) => {
       circular_name: formData.circular_name,
       subject: formData.subject,
       circular_date: formData.circular_date,
-      circular_path: formData.circular_path,
+      circular_file: formData.circular_file,
     };
 
     // Call the function to save the circular (either add or edit)
@@ -142,12 +142,12 @@ const CircularPopup = ({ closeModal, saveCircular, circular }) => {
           </div>
 
           <div className="relative z-0 w-full group">
-            <label htmlFor="circular_path" className="block text-sm">
+            <label htmlFor="circular_file" className="block text-sm">
               Upload Document
             </label>
             <input
               type="file"
-              name="circular_path"
+              name="circular_file"
               accept=".pdf"
               className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               onChange={handleFileChange}

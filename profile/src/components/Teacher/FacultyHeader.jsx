@@ -1,41 +1,83 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FaUser, FaBook, FaEnvelope, FaSun, FaMoon } from "react-icons/fa";
 import { useThemeContext } from "../../context/ThemeContext.jsx";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
-import { logout } from "../../redux/reducers/AuthSlice";
+import { logout, updateUnreadCirculars } from "../../redux/reducers/AuthSlice"; // Import the new actions
 import { setRole } from "../../redux/reducers/UserSlice";
-import { removeProfessionalSkills } from "../../redux/reducers/student/UserProfessionalSkills";
-import { removePersonalDetails } from "../../redux/reducers/student/UserPersonalDetails";
-import { removeUserImage } from "../../redux/reducers/student/UserImage";
-import { removePlacement } from "../../redux/reducers/student/UserPlacementDetail";
-import { removeMtechEducation } from "../../redux/reducers/student/UserMtechEducationalDetails";
-import { removeEntrepreneurDetails } from "../../redux/reducers/student/UserEntrepreneurDetails";
-import { removeHigherEducationDetails } from "../../redux/reducers/student/UserHigherEducationDetails";
-import { removeInterInstitute } from "../../redux/reducers/student/UserInterInstituteDetails";
-import { removeBtechEducation } from "../../redux/reducers/student/UserBtechEducationalDetails";
 import { LogOut } from "lucide-react";
+import API from "../../utils/API";
 
 const FacultyHeader = () => {
   const { darkMode, setDarkMode } = useThemeContext();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { faculty_id } = useSelector((state) => state.auth.user);
+  const location = useLocation(); // To track route changes
+  const { faculty_id, unreadCirculars, unreadDuties } = useSelector(
+    (state) => state.auth.user
+  );
   const { role } = useSelector((state) => state.user);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Navigation links
   const navLinks = [
     { name: "Faculty Details", path: "/faculty", icon: <FaUser /> },
-    { name: "Office Orders", path: "/faculty/office-orders", icon: <FaBook /> },
+    {
+      name: "Office Orders",
+      path: "/faculty/office-orders",
+      icon: <FaBook />,
+      unreadCount: unreadDuties, // Add unreadDuties for Office Orders
+    },
     {
       name: "Circulars/Notices",
       path: "/faculty/circular-notices",
       icon: <FaEnvelope />,
+      unreadCount: unreadCirculars,
     },
   ];
+
+  // Function to update last seen for Circulars/Notices
+  const updateLastSeenCirculars = async () => {
+    try {
+      const response = await API.put("/ece/faculty/last-seen", {
+        user_id: faculty_id, // Faculty ID from Redux
+        position_name: role, // Role from Redux
+        notification_type: "circular", // Notification type
+      });
+
+      if (response.data?.success) {
+        console.log("✅ Last seen updated successfully");
+      } else {
+        console.error("⚠️ Failed to update last seen:", response.data?.message);
+      }
+    } catch (error) {
+      console.error("❌ Error updating last seen:", error.message);
+    }
+  };
+
+  // Update localStorage and Redux state when navigating away from Circulars/Notices
+  useEffect(() => {
+    const previousPath = location.pathname;
+    return () => {
+      const currentPath = window.location.pathname; // Get the current path after navigation
+      console.log("🔔 Previous Path:", previousPath);
+      console.log("🔔 Current Path:", currentPath);
+      if (
+        previousPath === "/faculty/circular-notices" &&
+        currentPath !== "/faculty/circular-notices"
+      ) {
+        console.log("🔔 Circulars/Notices page left");
+        dispatch(updateUnreadCirculars()); // Dispatch the new action
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (user) {
+          user.unreadCirculars = 0; // Set unreadCirculars to 0
+          localStorage.setItem("user", JSON.stringify(user));
+        }
+      }
+    };
+  }, [location.pathname]); // Trigger when the route changes
 
   const handleLogout = async (e) => {
     e.preventDefault();
@@ -58,15 +100,6 @@ const FacultyHeader = () => {
         console.log("✅ Logged out successfully");
         dispatch(logout());
         dispatch(setRole(null));
-        dispatch(removeProfessionalSkills());
-        dispatch(removePersonalDetails());
-        dispatch(removeUserImage());
-        dispatch(removePlacement());
-        dispatch(removeMtechEducation());
-        dispatch(removeEntrepreneurDetails());
-        dispatch(removeHigherEducationDetails());
-        dispatch(removeInterInstitute());
-        dispatch(removeBtechEducation());
         navigate("/");
       } else {
         console.error("⚠️ Logout failed:", response.data.message);
@@ -82,7 +115,7 @@ const FacultyHeader = () => {
         darkMode ? "bg-[#0D1117] text-white" : "bg-[#FFFFFF] text-[#1F252E]"
       } border-b transition-colors duration-300`}
       style={{
-        borderBottom: darkMode ? "2px solid #2E2E3E" : "2px solid #E5E7EB", // Complementary border colors
+        borderBottom: darkMode ? "2px solid #2E2E3E" : "2px solid #E5E7EB",
       }}
     >
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
@@ -142,10 +175,36 @@ const FacultyHeader = () => {
                   darkMode
                     ? "hover:bg-gray-800 text-gray-300"
                     : "hover:bg-gray-100 text-gray-700"
+                } ${
+                  location.pathname === link.path
+                    ? darkMode
+                      ? "bg-gray-800"
+                      : "bg-gray-100"
+                    : ""
                 }`}
+                onClick={() => {
+                  if (link.name === "Circulars/Notices") {
+                    updateLastSeenCirculars();
+                  }
+                }}
               >
                 {link.icon}
                 <span className="text-sm font-medium">{link.name}</span>
+                {link.unreadCount > 0 && (
+                  <motion.div
+                    style={{
+                      width: "8px",
+                      height: "8px",
+                      borderRadius: "50%",
+                      backgroundColor: "red",
+                      marginLeft: "8px", // Add margin to separate the dot from the text
+                      animation: "pulse 1.5s infinite",
+                    }}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                  />
+                )}
               </Link>
             ))}
           </nav>
@@ -207,14 +266,45 @@ const FacultyHeader = () => {
                 <Link
                   key={index}
                   to={link.path}
-                  className={`p-2 rounded-lg transition-colors ${
+                  className={`p-2 rounded-lg transition-colors flex items-center ${
                     darkMode
                       ? "hover:bg-gray-800 text-gray-300"
                       : "hover:bg-gray-100 text-gray-700"
+                  } ${
+                    location.pathname === link.path
+                      ? darkMode
+                        ? "bg-gray-800"
+                        : "bg-gray-100"
+                      : ""
                   }`}
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    if (link.name === "Circulars/Notices") {
+                      updateLastSeenCirculars();
+                    }
+                  }}
                 >
-                  {link.name}
+                  {link.icon}
+                  <span className="text-sm font-medium ml-2">{link.name}</span>
+                  {link.unreadCount > 0 && (
+                    <motion.div
+                      style={{
+                        width: "8px",
+                        height: "8px",
+                        borderRadius: "50%",
+                        backgroundColor: "red",
+                        marginLeft: "8px", // Add margin to separate the dot from the text
+                        animation: "pulse 1.5s infinite",
+                      }}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 500,
+                        damping: 20,
+                      }}
+                    />
+                  )}
                 </Link>
               ))}
             </div>

@@ -8,11 +8,13 @@ import { Card, Typography, Input } from "@material-tailwind/react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSelector } from "react-redux";
+import Loader from "../Loader";
 
 const FacultyOfficeOrders = () => {
   const user = useSelector((state) => state.auth.user);
   const { department_id, faculty_id } = user;
   const { darkMode } = useThemeContext();
+
   const [ordersData, setOrdersData] = useState([]); // State to store orders data
   const [loading, setLoading] = useState(true); // State to handle loading state
   const [expandedRow, setExpandedRow] = useState(null); // Track the expanded row
@@ -27,7 +29,12 @@ const FacultyOfficeOrders = () => {
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [statusFilter, setStatusFilter] = useState([]); // Status filter: all, ongoing, upcoming, completed
   const [facultyMapping, setFacultyMapping] = useState({});
+  const [loader, setLoader] = useState(true);
 
+  useEffect(() => {
+    // Mocking loader delay for demo purposes
+    setTimeout(() => setLoader(false), 1000);
+  }, []);
   // Format date to "dd/mm/yyyy"
   const formatDate = (isoDate) => {
     if (!isoDate) return ""; // Handle null/undefined cases
