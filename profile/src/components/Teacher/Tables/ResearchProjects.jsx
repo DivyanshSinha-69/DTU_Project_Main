@@ -46,7 +46,7 @@ const ResearchProjects = ({ setBlurActive }) => {
             Title: item.title_of_paper,
             AreaOfResearch: item.area_of_research,
             PublishedYear: item.published_year,
-            Document: item.pdf_path ? { name: item.pdf_path } : null,
+            Document: item.pdf_path,
             Citation: item.citation,
             Authors: item.authors,
           }))
@@ -140,7 +140,7 @@ const ResearchProjects = ({ setBlurActive }) => {
             return [...prevDetails, newProject];
           }
         });
-
+        fetchResearchProjects();
         closePopup();
       }
     } catch (error) {
