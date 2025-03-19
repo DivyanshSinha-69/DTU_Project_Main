@@ -1743,9 +1743,9 @@ export const deleteFaculty = (req, res) => {
 };
 
 export const addSpecialization = (req, res) => {
-  const { faculty_id, specialization } = req.body; // specialization comes as a string
+  const { faculty_id, specialization_name } = req.body; // specialization comes as a string
 
-  if (!faculty_id || !specialization) 
+  if (!faculty_id || !specialization_name) 
     {
       return res.status(400).json({ message: "All fields are required" });
     }
@@ -1755,7 +1755,7 @@ export const addSpecialization = (req, res) => {
     if (facultyResults.length === 0) return res.status(400).json({ message: "Invalid faculty_id" });
 
     // Step 2: Check if specialization already exists
-    pool.query("SELECT id FROM specialization_areas WHERE specialization_name = ?", [specialization], (err, specializationResults) => {
+    pool.query("SELECT id FROM specialization_areas WHERE specialization_name = ?", [specialization_name], (err, specializationResults) => {
       if (err) return res.status(500).json({ message: "Error checking specialization", error: err });
 
       if (specializationResults.length > 0) {
@@ -1763,7 +1763,7 @@ export const addSpecialization = (req, res) => {
         insertFacultySpecialization(specializationResults[0].id);
       } else {
         // Specialization does not exist, insert into specialization_areas first
-        pool.query("INSERT INTO specialization_areas (specialization_name) VALUES (?)", [specialization], (err, insertResult) => {
+        pool.query("INSERT INTO specialization_areas (specialization_name) VALUES (?)", [specialization_name], (err, insertResult) => {
           if (err) return res.status(500).json({ message: "Error inserting specialization", error: err });
 
           insertFacultySpecialization(insertResult.insertId);
@@ -1816,10 +1816,10 @@ export const getSpecializations = (req, res) => {
 
 export const updateSpecialization = (req, res) => {
   const { specialization_id } = req.params;
-  const { specialization } = req.body; // Comes as a string
+  const { specialization_name } = req.body; // Comes as a string
 
   // Step 1: Check if the new specialization exists
-  pool.query("SELECT id FROM specialization_areas WHERE specialization_name = ?", [specialization], (err, specializationResults) => {
+  pool.query("SELECT id FROM specialization_areas WHERE specialization_name = ?", [specialization_name], (err, specializationResults) => {
     if (err) return res.status(500).json({ message: "Error checking specialization", error: err });
 
     if (specializationResults.length > 0) {
@@ -1827,7 +1827,7 @@ export const updateSpecialization = (req, res) => {
       updateSpecialization(specializationResults[0].id);
     } else {
       // Insert new specialization
-      pool.query("INSERT INTO specialization_areas (specialization_name) VALUES (?)", [specialization], (err, insertResult) => {
+      pool.query("INSERT INTO specialization_areas (specialization_name) VALUES (?)", [specialization_name], (err, insertResult) => {
         if (err) return res.status(500).json({ message: "Error inserting specialization", error: err });
 
         updateSpecialization(insertResult.insertId);
