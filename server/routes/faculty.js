@@ -132,18 +132,9 @@ router.delete(
 
 // FDP routes
 router.get("/fdp-records", authorizeRoles("faculty"), getFDPRecords);
-router.get(
-  "/fdp-records/:faculty_id",
-  authorizeRoles("faculty"),
-  getFDPRecords
-);
 router.post("/fdp-records", authorizeRoles("faculty"), addFDPRecord);
 router.put("/fdp-records/:FDP_id", authorizeRoles("faculty"), updateFDPRecord);
-router.delete(
-  "/fdp-records/:FDP_id",
-  authorizeRoles("faculty"),
-  deleteFDPRecord
-);
+router.delete("/fdp-records/:FDP_id", authorizeRoles("faculty"), deleteFDPRecord);
 
 // Interaction routes
 router.get(

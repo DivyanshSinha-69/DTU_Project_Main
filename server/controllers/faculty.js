@@ -538,11 +538,10 @@ export const deleteResearchPaper = (req, res) => {
 };
 
 
-// 1. Get FDP records
 export const getFDPRecords = (req, res) => {
-  const { faculty_id } = req.params;
+  const { faculty_id } = req.query;
 
-  let query = "SELECT * FROM faculty_FDP";
+  let query = "SELECT *, DATEDIFF(end_date, start_date) + 1 AS days_contributed FROM faculty_FDP";
   let params = [];
 
   if (faculty_id) {
@@ -553,64 +552,41 @@ export const getFDPRecords = (req, res) => {
   pool.query(query, params, (err, results) => {
     if (err) {
       console.error("Error fetching FDP details:", err);
-      return res
-        .status(500)
-        .json({ message: "Error fetching FDP details", error: err });
+      return res.status(500).json({ message: "Error fetching FDP details", error: err });
     }
 
     if (results.length === 0) {
       return res.status(404).json({ message: "No FDP details found" });
     }
 
-    // Convert month number to month name
-    const modifiedResults = results.map((record) => ({
-      ...record,
-      month_conducted: getMonthName(record.month_conducted),
-    }));
-
     res.status(200).json({
       message: "FDP details fetched successfully",
-      data: modifiedResults,
+      data: results,
     });
   });
 };
 
-// 2. Add a new FDP record
 export const addFDPRecord = (req, res) => {
-  const {
-    faculty_id,
-    FDP_name,
-    FDP_progress,
-    year_conducted,
-    month_conducted, // This will be received as a name
-    days_contributed,
-  } = req.body;
+  const { faculty_id, FDP_name, FDP_progress, start_date, end_date } = req.body;
 
-  // Convert month name to number
-  const monthNumber = getMonthNumber(month_conducted);
-  if (monthNumber === "Invalid month") {
-    return res.status(400).json({ message: "Invalid month name provided" });
+  if (!faculty_id || !FDP_name || !FDP_progress || !start_date || !end_date) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  if (new Date(start_date) > new Date(end_date)) {
+    return res.status(400).json({ message: "Start date cannot be after end date" });
   }
 
   const query = `
-      INSERT INTO faculty_FDP (faculty_id, FDP_name, FDP_progress, year_conducted, month_conducted, days_contributed)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO faculty_FDP (faculty_id, FDP_name, FDP_progress, start_date, end_date)
+      VALUES (?, ?, ?, ?, ?)
   `;
-  const params = [
-    faculty_id,
-    FDP_name,
-    FDP_progress,
-    year_conducted,
-    monthNumber,
-    days_contributed,
-  ];
+  const params = [faculty_id, FDP_name, FDP_progress, start_date, end_date];
 
   pool.query(query, params, (err, result) => {
     if (err) {
       console.error("Error adding FDP record:", err);
-      return res
-        .status(500)
-        .json({ message: "Error adding FDP record", error: err });
+      return res.status(500).json({ message: "Error adding FDP record", error: err });
     }
     res.status(201).json({
       message: "FDP record added successfully",
@@ -619,56 +595,37 @@ export const addFDPRecord = (req, res) => {
   });
 };
 
-// 3. Update an existing FDP record using FDP_id
 export const updateFDPRecord = (req, res) => {
   const { FDP_id } = req.params;
-  const {
-    faculty_id,
-    FDP_name,
-    FDP_progress,
-    year_conducted,
-    month_conducted, // Received as a name
-    days_contributed,
-  } = req.body;
+  const { faculty_id, FDP_name, FDP_progress, start_date, end_date } = req.body;
 
-  // Convert month name to number
-  const monthNumber = getMonthNumber(month_conducted);
-  if (monthNumber === "Invalid month") {
-    return res.status(400).json({ message: "Invalid month name provided" });
+  if (!faculty_id || !FDP_name || !FDP_progress || !start_date || !end_date) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  if (new Date(start_date) > new Date(end_date)) {
+    return res.status(400).json({ message: "Start date cannot be after end date" });
   }
 
   const query = `
       UPDATE faculty_FDP 
-      SET faculty_id = ?, FDP_name = ?, FDP_progress = ?, year_conducted = ?, month_conducted = ?, days_contributed = ?
+      SET faculty_id = ?, FDP_name = ?, FDP_progress = ?, start_date = ?, end_date = ?
       WHERE FDP_id = ?
   `;
-  const params = [
-    faculty_id,
-    FDP_name,
-    FDP_progress,
-    year_conducted,
-    monthNumber,
-    days_contributed,
-    FDP_id,
-  ];
+  const params = [faculty_id, FDP_name, FDP_progress, start_date, end_date, FDP_id];
 
   pool.query(query, params, (err, result) => {
     if (err) {
       console.error("Error updating FDP record:", err);
-      return res
-        .status(500)
-        .json({ message: "Error updating FDP record", error: err });
+      return res.status(500).json({ message: "Error updating FDP record", error: err });
     }
     if (result.affectedRows === 0) {
-      return res
-        .status(404)
-        .json({ message: "No FDP record found with the given FDP_id" });
+      return res.status(404).json({ message: "No FDP record found with the given FDP_id" });
     }
     res.status(200).json({ message: "FDP record updated successfully" });
   });
 };
 
-// 4. Delete an FDP record using FDP_id
 export const deleteFDPRecord = (req, res) => {
   const { FDP_id } = req.params;
 
@@ -678,14 +635,10 @@ export const deleteFDPRecord = (req, res) => {
   pool.query(query, params, (err, result) => {
     if (err) {
       console.error("Error deleting FDP record:", err);
-      return res
-        .status(500)
-        .json({ message: "Error deleting FDP record", error: err });
+      return res.status(500).json({ message: "Error deleting FDP record", error: err });
     }
     if (result.affectedRows === 0) {
-      return res
-        .status(404)
-        .json({ message: "No FDP record found with the given FDP_id" });
+      return res.status(404).json({ message: "No FDP record found with the given FDP_id" });
     }
     res.status(200).json({ message: "FDP record deleted successfully" });
   });
