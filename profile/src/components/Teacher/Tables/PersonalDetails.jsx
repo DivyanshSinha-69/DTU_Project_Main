@@ -120,13 +120,7 @@ const PersonalDetails = ({ setBlurActive }) => {
         specialization_name: specializationToAdd,
       });
       if (response.data) {
-        setSpecializations([
-          ...specializations,
-          {
-            specialization_id: response.data.id,
-            specialization_name: specializationToAdd,
-          },
-        ]);
+        fetchSpecializations();
         setNewSpecialization("");
         setCustomSpecialization("");
         setIsOtherSelected(false);

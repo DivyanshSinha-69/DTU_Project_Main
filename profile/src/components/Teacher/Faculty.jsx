@@ -412,7 +412,7 @@ const Faculty = () => {
                               {stat.value}
                             </h3>
                             <p
-                              className="text-xs font-normal"
+                              className="text-sm font-medium"
                               style={{
                                 color: darkMode ? "#B0B3B8" : "#6B7280",
                               }}
@@ -424,7 +424,7 @@ const Faculty = () => {
                       </div>
 
                       {/* Circular Progress Bar - Softer text */}
-                      <div className="flex justify-center items-center w-full md:w-auto">
+                      {/* <div className="flex justify-center items-center w-full md:w-auto">
                         <PieChart width={110} height={110}>
                           <Pie
                             data={data}
@@ -450,7 +450,7 @@ const Faculty = () => {
                         >
                           {profileCompletion}% Profile Completed
                         </span>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                 </div>
