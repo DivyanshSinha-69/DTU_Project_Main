@@ -35,6 +35,8 @@ const FacultyCircularPage = () => {
       const response = await API.get(
         `/ece/faculty/circulars?department_id=${department_id}`
       );
+
+      // Check if the response contains valid data
       if (response.data && Array.isArray(response.data.data)) {
         const formattedData = response.data.data
           .map((circular) => ({
@@ -50,15 +52,24 @@ const FacultyCircularPage = () => {
 
         setCircularsData(formattedData);
         setFilteredCirculars(formattedData); // Initialize filtered circulars with all data
+      } else {
+        // No circulars found, but this is not an error
+        setCircularsData([]);
+        setFilteredCirculars([]);
       }
     } catch (error) {
-      console.error("Error fetching circulars:", error);
-      toast.error("Error while fetching circulars");
+      // Only show toast error for server errors (e.g., 500, network issues)
+      if (error.response && error.response.status >= 500) {
+        console.error("❌ Server error fetching circulars:", error);
+        toast.error("⚠️ Failed to fetch circulars due to a server error.");
+      } else {
+        console.error("❌ Error fetching circulars:", error);
+        // Do not show toast error for non-server errors (e.g., 404)
+      }
     } finally {
       setLoading(false); // Set loading to false after fetching data
     }
   };
-
   // Handle search by Circular Number or Subject
   const handleSearch = (query) => {
     setSearchQuery(query);

@@ -64,25 +64,33 @@ const Faculty = () => {
         setSelectedImage(null);
       }
     } catch (error) {
-      console.error("❌ Error fetching faculty image:", error);
-      toast.error("⚠️ Failed to fetch faculty image.");
+      if (error.response && error.response.status >= 500) {
+        console.error("❌ Server error fetching faculty image:", error);
+        toast.error("⚠️ Failed to fetch faculty image due to a server error.");
+      } else {
+        console.error("❌ Error fetching faculty image:", error);
+        // Do not show toast error for non-server errors (e.g., 404)
+      }
     }
   };
 
   useEffect(() => {
     fetchFacultyImage(); // Fetch image on mount
   }, [facultyId]);
-
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const handleImageUploadOrUpdate = async (event) => {
-    if (!event.target.files || event.target.files.length === 0) return;
+    // Early return if no file is selected
+    if (!event.target.files || event.target.files.length === 0) {
+      return; // Exit without showing any error
+    }
 
     setOperationInProgress(true);
     const file = event.target.files[0];
     const fileExtension = file.name.split(".").pop().toLowerCase();
     const allowedExtensions = ["jpg", "jpeg"];
 
+    // Check if the file extension is allowed
     if (!allowedExtensions.includes(fileExtension)) {
       toast.error("Only JPG or JPEG images are allowed.");
       setOperationInProgress(false);

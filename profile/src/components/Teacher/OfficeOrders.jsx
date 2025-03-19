@@ -65,6 +65,8 @@ const FacultyOfficeOrders = () => {
       const response = await API.get(
         `/ece/faculty/duty-orders?user_id=${faculty_id}`
       );
+
+      // Check if the response contains valid data
       if (Array.isArray(response.data)) {
         const formattedData = response.data
           .map((order) => ({
@@ -92,12 +94,22 @@ const FacultyOfficeOrders = () => {
 
         setOrdersData(formattedData);
         setFilteredOrders(formattedData);
+      } else {
+        // No duty orders found, but this is not an error
+        setOrdersData([]);
+        setFilteredOrders([]);
       }
     } catch (error) {
-      console.error("Error fetching duty orders:", error);
-      toast.error("Error while fetching duty orders");
+      // Only show toast error for server errors (e.g., 500, network issues)
+      if (error.response && error.response.status >= 500) {
+        console.error("❌ Server error fetching duty orders:", error);
+        toast.error("⚠️ Failed to fetch duty orders due to a server error.");
+      } else {
+        console.error("❌ Error fetching duty orders:", error);
+        // Do not show toast error for non-server errors (e.g., 404)
+      }
     } finally {
-      setLoading(false);
+      setLoading(false); // Set loading to false after fetching data
     }
   };
   const columns = [
