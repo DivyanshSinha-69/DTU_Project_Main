@@ -1784,112 +1784,117 @@ export const deleteFaculty = (req, res) => {
   });
 };
 
-export const getSpecializations = (req, res) => {
-  const { faculty_id } = req.params; // Get faculty_id from route parameters (if provided)
-
-  let query = "SELECT * FROM faculty_specialization";
-  let params = [];
-
-  if (faculty_id) {
-    query += " WHERE faculty_id = ?";
-    params.push(faculty_id);
-  }
-
-  pool.query(query, params, (err, results) => {
-    if (err) {
-      console.error("Error fetching specializations:", err);
-      return res
-        .status(500)
-        .json({ message: "Error fetching specializations", error: err });
-    }
-    res
-      .status(200)
-      .json({ message: "Specializations fetched successfully", data: results });
-  });
-};
-
 export const addSpecialization = (req, res) => {
-  const { faculty_id, specialization } = req.body;
+  const { faculty_id, specialization } = req.body; // specialization comes as a string
 
-  // Check if the faculty_id exists in faculty_details
-  const checkQuery =
-    "SELECT COUNT(*) AS count FROM faculty_details WHERE faculty_id = ?";
-  pool.query(checkQuery, [faculty_id], (err, results) => {
-    if (err) {
-      console.error("Error checking faculty_id:", err);
-      return res.status(500).json({ message: "Internal Server Error" });
-    }
+  // Step 1: Check if faculty_id exists
+  pool.query("SELECT * FROM faculty_details WHERE faculty_id = ?", [faculty_id], (err, facultyResults) => {
+    if (err) return res.status(500).json({ message: "Error checking faculty", error: err });
+    if (facultyResults.length === 0) return res.status(400).json({ message: "Invalid faculty_id" });
 
-    if (results[0].count === 0) {
-      return res
-        .status(400)
-        .json({ message: "faculty_id does not exist in faculty_details" });
-    }
+    // Step 2: Check if specialization already exists
+    pool.query("SELECT id FROM specialization_areas WHERE specialization_name = ?", [specialization], (err, specializationResults) => {
+      if (err) return res.status(500).json({ message: "Error checking specialization", error: err });
 
-    // Insert the specialization
-    const insertQuery = `
-      INSERT INTO faculty_specialization (faculty_id, specialization)
-      VALUES (?, ?)
-    `;
-    pool.query(insertQuery, [faculty_id, specialization], (err, result) => {
-      if (err) {
-        console.error("Error adding specialization:", err);
-        return res.status(500).json({ message: "Internal Server Error" });
+      if (specializationResults.length > 0) {
+        // Specialization exists, insert into faculty_specialization
+        insertFacultySpecialization(specializationResults[0].id);
+      } else {
+        // Specialization does not exist, insert into specialization_areas first
+        pool.query("INSERT INTO specialization_areas (specialization_name) VALUES (?)", [specialization], (err, insertResult) => {
+          if (err) return res.status(500).json({ message: "Error inserting specialization", error: err });
+
+          insertFacultySpecialization(insertResult.insertId);
+        });
       }
-      res.status(201).json({
-        message: "Specialization added successfully",
-        success: true,
-        id: result.insertId,
-      });
     });
   });
+
+  // Step 3: Insert into faculty_specialization
+  function insertFacultySpecialization(specializationId) {
+    pool.query("INSERT INTO faculty_specialization (faculty_id, specialization) VALUES (?, ?)", [faculty_id, specializationId], (err, result) => {
+      if (err) return res.status(500).json({ message: "Error adding faculty specialization", error: err });
+
+      res.status(201).json({ message: "Faculty specialization added successfully", data: result });
+    });
+  }
 };
 
-export const updateSpecialization = (req, res) => {
-  const { specialization_id } = req.params; // Specialization ID
-  const { specialization } = req.body;
 
-  const query = `
-    UPDATE faculty_specialization
-    SET specialization = ?
-    WHERE specialization_id = ?
-  `;
-  pool.query(query, [specialization, specialization_id], (err, result) => {
-    if (err) {
-      console.error("Error updating specialization:", err);
-      return res.status(500).json({ message: "Internal Server Error" });
+export const getSpecializations = (req, res) => {
+  const { faculty_id } = req.query; // Use query parameters
+
+  let query = `
+    SELECT fs.specialization_id, fs.faculty_id, sa.specialization_name 
+    FROM faculty_specialization fs
+    LEFT JOIN specialization_areas sa ON fs.specialization = sa.id`;
+
+  const queryParams = [];
+
+  if (faculty_id) {
+    query += " WHERE fs.faculty_id = ?";
+    queryParams.push(faculty_id);
+  }
+
+  pool.query(query, queryParams, (err, results) => {
+    if (err) return res.status(500).json({ message: "Error fetching specializations", error: err });
+
+    if (results.length === 0) {
+      return res.status(404).json({
+        message: faculty_id
+          ? "No specializations found for this faculty."
+          : "No specializations found.",
+      });
     }
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Specialization not found" });
-    }
-
-    res
-      .status(200)
-      .json({ message: "Specialization updated successfully", success: true });
+    res.status(200).json(results);
   });
+};
+
+
+export const updateSpecialization = (req, res) => {
+  const { specialization_id } = req.params;
+  const { specialization } = req.body; // Comes as a string
+
+  // Step 1: Check if the new specialization exists
+  pool.query("SELECT id FROM specialization_areas WHERE specialization_name = ?", [specialization], (err, specializationResults) => {
+    if (err) return res.status(500).json({ message: "Error checking specialization", error: err });
+
+    if (specializationResults.length > 0) {
+      // Specialization exists, update faculty_specialization
+      updateSpecialization(specializationResults[0].id);
+    } else {
+      // Insert new specialization
+      pool.query("INSERT INTO specialization_areas (specialization_name) VALUES (?)", [specialization], (err, insertResult) => {
+        if (err) return res.status(500).json({ message: "Error inserting specialization", error: err });
+
+        updateSpecialization(insertResult.insertId);
+      });
+    }
+  });
+
+  // Step 2: Update faculty_specialization with new specialization_id
+  function updateSpecialization(specializationId) {
+    pool.query("UPDATE faculty_specialization SET specialization = ? WHERE specialization_id = ?", [specializationId, specialization_id], (err, result) => {
+      if (err) return res.status(500).json({ message: "Error updating faculty specialization", error: err });
+
+      res.status(200).json({ message: "Faculty specialization updated successfully", data: result });
+    });
+  }
 };
 
 export const deleteSpecialization = (req, res) => {
-  const { specialization_id } = req.params; // Specialization ID
+  const { specialization_id } = req.params;
 
-  const query =
-    "DELETE FROM faculty_specialization WHERE specialization_id = ?";
-  pool.query(query, [specialization_id], (err, result) => {
-    if (err) {
-      console.error("Error deleting specialization:", err);
-      return res.status(500).json({ message: "Internal Server Error" });
-    }
+  pool.query("DELETE FROM faculty_specialization WHERE specialization_id = ?", [specialization_id], (err, result) => {
+    if (err) return res.status(500).json({ message: "Error deleting specialization", error: err });
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Specialization not found" });
-    }
+    if (result.affectedRows === 0) return res.status(404).json({ message: "Specialization not found" });
 
-    res
-      .status(200)
-      .json({ message: "Specialization deleted successfully", success: true });
+    res.status(200).json({ message: "Faculty specialization deleted successfully" });
   });
 };
+
 
 export const getFacultyImage = (req, res) => {
   const { faculty_id } = req.params;

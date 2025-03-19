@@ -271,22 +271,9 @@ router.delete(
 
 // Specialization Routes
 router.get("/specializations", authorizeRoles("faculty"), getSpecializations);
-router.get(
-  "/specializations/:faculty_id",
-  authorizeRoles("faculty"),
-  getSpecializations
-);
 router.post("/specializations", authorizeRoles("faculty"), addSpecialization);
-router.put(
-  "/specializations/:specialization_id",
-  authorizeRoles("faculty"),
-  updateSpecialization
-);
-router.delete(
-  "/specializations/:specialization_id",
-  authorizeRoles("faculty"),
-  deleteSpecialization
-);
+router.put("/specializations/:specialization_id", authorizeRoles("faculty"), updateSpecialization);
+router.delete("/specializations/:specialization_id", authorizeRoles("faculty"), deleteSpecialization);
 
 // Faculty Image Routes
 router.get(
