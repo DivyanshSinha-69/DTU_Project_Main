@@ -3,6 +3,7 @@ import {
   uploadResearchPaper,
   uploadFacultyInteraction,
   uploadFacultyImage,
+  uploadFacultyGuidance,
   compressUploadedFile,
   checkFileReceived,
 } from "../config/facultyMulterConfig.js";
@@ -31,7 +32,6 @@ import {
   updateBookRecord,
   deleteBookRecord,
   getFacultyGuidanceRecords,
-  getFacultyGuidanceRecordsByFacultyId,
   addFacultyGuidanceRecord,
   updateFacultyGuidanceRecord,
   deleteFacultyGuidanceRecord,
@@ -117,44 +117,16 @@ router.put("/fdp-records/:FDP_id", authorizeRoles("faculty"), updateFDPRecord);
 router.delete("/fdp-records/:FDP_id", authorizeRoles("faculty"), deleteFDPRecord);
 
 // Interaction routes
-router.get(
-  "/interaction/:faculty_id?",
-  authorizeRoles("faculty"),
-  getFacultyInteractions
-);
-router.post(
-  "/interaction",
-  authorizeRoles("faculty"),
-  uploadFacultyInteraction,
-  compressUploadedFile,
-  addFacultyInteraction
-);
-router.put(
-  "/interaction/:interact_id",
-  authorizeRoles("faculty"),
-  uploadFacultyInteraction,
-  compressUploadedFile,
-  updateFacultyInteraction
-);
-router.delete(
-  "/interaction/:interact_id",
-  authorizeRoles("faculty"),
-  deleteFacultyInteraction
-);
+router.get("/interaction/:faculty_id?", authorizeRoles("faculty"), getFacultyInteractions);
+router.post("/interaction", authorizeRoles("faculty"), uploadFacultyInteraction, compressUploadedFile, addFacultyInteraction);
+router.put("/interaction/:interact_id", authorizeRoles("faculty"), uploadFacultyInteraction, compressUploadedFile, updateFacultyInteraction);
+router.delete("/interaction/:interact_id", authorizeRoles("faculty"), deleteFacultyInteraction);
 
 // Interaction Type routes
 router.get("/interaction_type", authorizeRoles("faculty"), getInteractionTypes);
 router.post("/interaction_type", authorizeRoles("faculty"), addInteractionType);
-router.put(
-  "/interaction_type/:interaction_id",
-  authorizeRoles("faculty"),
-  updateInteractionType
-);
-router.delete(
-  "/interaction_type/:interaction_id",
-  authorizeRoles("faculty"),
-  deleteInteractionType
-);
+router.put("/interaction_type/:interaction_id", authorizeRoles("faculty"), updateInteractionType);
+router.delete("/interaction_type/:interaction_id", authorizeRoles("faculty"), deleteInteractionType);
 
 // Book routes
 router.get("/books/:faculty_id?", authorizeRoles("faculty"), getBookRecords);
@@ -164,22 +136,9 @@ router.delete("/books/:Book_id", authorizeRoles("faculty"), deleteBookRecord);
 
 // PHD awarded routes
 router.get("/guidance", authorizeRoles("faculty"), getFacultyGuidanceRecords);
-router.get(
-  "/guidance/:faculty_id",
-  authorizeRoles("faculty"),
-  getFacultyGuidanceRecordsByFacultyId
-);
-router.post("/guidance", authorizeRoles("faculty"), addFacultyGuidanceRecord);
-router.put(
-  "/guidance/:Guidance_id",
-  authorizeRoles("faculty"),
-  updateFacultyGuidanceRecord
-);
-router.delete(
-  "/guidance/:Guidance_id",
-  authorizeRoles("faculty"),
-  deleteFacultyGuidanceRecord
-);
+router.post("/guidance", authorizeRoles("faculty"), uploadFacultyGuidance, compressUploadedFile, addFacultyGuidanceRecord);
+router.put("/guidance/:Guidance_id", authorizeRoles("faculty"), uploadFacultyGuidance, compressUploadedFile, updateFacultyGuidanceRecord);
+router.delete("/guidance/:Guidance_id", authorizeRoles("faculty"), deleteFacultyGuidanceRecord);
 
 // Sponsored Research Routes
 router.get(

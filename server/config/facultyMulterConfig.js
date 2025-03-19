@@ -57,6 +57,29 @@ const facultyImageStorage = multer.diskStorage({
   },
 });
 
+const facultyGuidanceStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+      const { faculty_id } = req.body;
+      if (!faculty_id) {
+          return cb(new Error('Faculty ID is required'), null);
+      }
+
+      const uploadPath = path.join("public", "Faculty", "Guidance Proof", faculty_id);
+
+      // Ensure the directory exists
+      fs.mkdirSync(uploadPath, { recursive: true });
+
+      cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+      const timestamp = Date.now();
+      const ext = path.extname(file.originalname);
+      const filename = `${path.basename(file.originalname, ext)}_${timestamp}${ext}`;
+
+      cb(null, filename);
+  }
+});
+
 // File filter (accept only PDF, JPG, PNG)
 const fileFilter = (req, file, cb) => {
   if (["application/pdf", "image/jpeg", "image/png"].includes(file.mimetype)) {
@@ -98,6 +121,13 @@ const uploadFacultyImage = multer({
 /**
  * 🛠️ Compression Middleware for Uploaded Files
  */
+
+const uploadFacultyGuidance = multer({
+  storage: facultyGuidanceStorage,
+  fileFilter,
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB limit
+}).single('document');
+
 const compressUploadedFile = (req, res, next) => {
   if (!req.file) return next();
 
@@ -136,5 +166,6 @@ export {
   uploadFacultyInteraction,
   uploadFacultyImage,
   compressUploadedFile,
-  checkFileReceived
+  checkFileReceived,
+  uploadFacultyGuidance
 };

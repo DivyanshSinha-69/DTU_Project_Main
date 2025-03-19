@@ -1162,77 +1162,48 @@ export const deleteBookRecord = (req, res) => {
   });
 };
 
-/**
- * Get all PhD awarded records
- */
-// 1. Get all faculty guidance records
+// 1️⃣ Get faculty guidance records
 export const getFacultyGuidanceRecords = (req, res) => {
-  const query = "SELECT * FROM faculty_guidance";
-
-  pool.query(query, (err, results) => {
-    if (err) {
-      return res.status(500).json({
-        message: "Error fetching faculty guidance records",
-        error: err,
-      });
-    }
-
-    // Convert numeric month to string month
-    const updatedResults = results.map((record) => ({
-      ...record,
-      passing_month: getMonthName(record.passing_month),
-    }));
-
-    res.status(200).json(updatedResults);
-  });
-};
-
-// 2. Get faculty guidance records by faculty_id
-export const getFacultyGuidanceRecordsByFacultyId = (req, res) => {
   const { faculty_id } = req.params;
 
-  const query = `
-    SELECT Guidance_id, degree, mentee_name, mentee_rn, passing_year, passing_month 
-    FROM faculty_guidance 
-    WHERE faculty_id = ?
-  `;
+  let query = `SELECT * FROM faculty_guidance`;
+  const params = [];
 
-  pool.query(query, [faculty_id], (err, results) => {
+  if (faculty_id) {
+    query += " WHERE faculty_id = ?";
+    params.push(faculty_id);
+  }
+
+  pool.query(query, params, (err, results) => {
     if (err) {
+      console.error("Error fetching faculty guidance records:", err);
       return res.status(500).json({
         message: "Error fetching faculty guidance records",
         error: err,
       });
     }
 
-    if (results.length === 0) {
-      return res.status(404).json({
-        message: "No faculty guidance records found for the given faculty_id",
-      });
-    }
-
-    // Convert numeric month to string month
     const updatedResults = results.map((record) => ({
       ...record,
-      passing_month: getMonthName(record.passing_month),
+      passing_month: record.passing_month ? getMonthName(record.passing_month) : null,
     }));
 
-    res.status(200).json(updatedResults);
+    res.status(200).json({
+      message: "Faculty guidance records retrieved successfully",
+      data: updatedResults,
+    });
   });
 };
 
-// 3. Add a new faculty guidance record
-export const addFacultyGuidanceRecord = (req, res) => {
-  let {
-    faculty_id,
-    degree,
-    mentee_name,
-    mentee_rn,
-    passing_year,
-    passing_month,
-  } = req.body;
 
-  // Convert string month to numeric month if it's a valid month name
+// 3️⃣ Add a new faculty guidance record (with file upload)
+export const addFacultyGuidanceRecord = (req, res) => {
+  let { faculty_id, degree, mentee_name, mentee_rn, passing_year, passing_month } = req.body;
+  
+  if (!faculty_id || !degree || !mentee_name || !mentee_rn || !passing_year || !passing_month) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
   if (isNaN(passing_month)) {
     passing_month = getMonthNumber(passing_month);
   }
@@ -1241,45 +1212,41 @@ export const addFacultyGuidanceRecord = (req, res) => {
     return res.status(400).json({ message: "Invalid passing month" });
   }
 
+  const document = req.file ? req.file.path : null;
+
   const query = `
-    INSERT INTO faculty_guidance (faculty_id, degree, mentee_name, mentee_rn, passing_year, passing_month)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO faculty_guidance (faculty_id, degree, mentee_name, mentee_rn, passing_year, passing_month, document)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
 
-  const queryParams = [
-    faculty_id,
-    degree,
-    mentee_name,
-    mentee_rn,
-    passing_year,
-    passing_month,
-  ];
-
-  pool.query(query, queryParams, (err, result) => {
-    if (err) {
-      return res.status(500).json({
-        message: "Error adding faculty guidance record",
-        error: err,
+  pool.query(
+    query,
+    [faculty_id, degree, mentee_name, mentee_rn, passing_year, passing_month, document],
+    (err, result) => {
+      if (err) {
+        return res.status(500).json({
+          message: "Error adding faculty guidance record",
+          error: err,
+        });
+      }
+      res.status(201).json({
+        message: "Faculty guidance record added successfully",
+        recordId: result.insertId,
+        documentPath: document,
       });
     }
-    res.status(201).json({
-      message: "Faculty guidance record added successfully",
-      recordId: result.insertId,
-    });
-  });
+  );
 };
 
-// 4. Update an existing faculty guidance record
+// 4️⃣ Update an existing faculty guidance record (with file update)
 export const updateFacultyGuidanceRecord = (req, res) => {
-  let { degree, mentee_name, passing_year, passing_month, mentee_rn } =
-    req.body;
   const { Guidance_id } = req.params;
+  let { degree, mentee_name, mentee_rn, passing_year, passing_month } = req.body;
 
   if (!Guidance_id) {
     return res.status(400).json({ message: "Guidance_id is required" });
   }
 
-  // Convert string month to numeric month if it's a valid month name
   if (isNaN(passing_month)) {
     passing_month = getMonthNumber(passing_month);
   }
@@ -1288,62 +1255,90 @@ export const updateFacultyGuidanceRecord = (req, res) => {
     return res.status(400).json({ message: "Invalid passing month" });
   }
 
-  const query = `
-    UPDATE faculty_guidance
-    SET degree = ?, mentee_name = ?, passing_year = ?, passing_month = ?, mentee_rn = ?
-    WHERE Guidance_id = ?
-  `;
+  pool.query(
+    `SELECT document FROM faculty_guidance WHERE Guidance_id = ?`,
+    [Guidance_id],
+    (err, results) => {
+      if (err) {
+        return res.status(500).json({ message: "Error fetching record", error: err });
+      }
 
-  const queryParams = [
-    degree,
-    mentee_name,
-    passing_year,
-    passing_month,
-    mentee_rn,
-    Guidance_id,
-  ];
+      if (results.length === 0) {
+        return res.status(404).json({ message: "Faculty guidance record not found" });
+      }
 
-  pool.query(query, queryParams, (err, result) => {
-    if (err) {
-      return res.status(500).json({
-        message: "Error updating faculty guidance record",
-        error: err,
-      });
+      const oldFilePath = results[0].document;
+      const newFilePath = req.file ? req.file.path : oldFilePath;
+
+      if (req.file && oldFilePath) {
+        fs.unlink(oldFilePath, (err) => {
+          if (err && err.code !== "ENOENT") console.error("Error deleting old file:", err);
+        });
+      }
+
+      const query = `
+        UPDATE faculty_guidance
+        SET degree = ?, mentee_name = ?, mentee_rn = ?, passing_year = ?, passing_month = ?, document = ?
+        WHERE Guidance_id = ?
+      `;
+
+      pool.query(
+        query,
+        [degree, mentee_name, mentee_rn, passing_year, passing_month, newFilePath, Guidance_id],
+        (err, result) => {
+          if (err) {
+            return res.status(500).json({
+              message: "Error updating faculty guidance record",
+              error: err,
+            });
+          }
+          if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Faculty guidance record not found" });
+          }
+          res.status(200).json({
+            message: "Faculty guidance record updated successfully",
+            documentPath: newFilePath,
+          });
+        }
+      );
     }
-    if (result.affectedRows === 0) {
-      return res
-        .status(404)
-        .json({ message: "Faculty guidance record not found" });
-    }
-    res.status(200).json({
-      message: "Faculty guidance record updated successfully",
-    });
-  });
+  );
 };
 
-// 5. Delete a faculty guidance record
+
+// 5️⃣ Delete a faculty guidance record (also delete proof file)
 export const deleteFacultyGuidanceRecord = (req, res) => {
   const { Guidance_id } = req.params;
 
-  const query = "DELETE FROM faculty_guidance WHERE Guidance_id = ?";
+  pool.query(
+    `SELECT document FROM faculty_guidance WHERE Guidance_id = ?`,
+    [Guidance_id],
+    (err, results) => {
+      if (err) {
+        return res.status(500).json({ message: "Error fetching document path", error: err });
+      }
+      if (results.length === 0) {
+        return res.status(404).json({ message: "Faculty guidance record not found" });
+      }
 
-  pool.query(query, [Guidance_id], (err, result) => {
-    if (err) {
-      return res.status(500).json({
-        message: "Error deleting faculty guidance record",
-        error: err,
+      const filePath = results[0].document;
+
+      if (filePath) {
+        fs.unlink(filePath, (err) => {
+          if (err && err.code !== "ENOENT") console.error("Error deleting file:", err);
+        });
+      }
+
+      pool.query(`DELETE FROM faculty_guidance WHERE Guidance_id = ?`, [Guidance_id], (err, result) => {
+        if (err) {
+          return res.status(500).json({ message: "Error deleting faculty guidance record", error: err });
+        }
+        res.status(200).json({ message: "Faculty guidance record deleted successfully" });
       });
     }
-    if (result.affectedRows === 0) {
-      return res.status(404).json({
-        message: "No faculty guidance record found with the given Guidance_id",
-      });
-    }
-    res
-      .status(200)
-      .json({ message: "Faculty guidance record deleted successfully" });
-  });
+  );
 };
+
 
 export const getSponsoredResearchByFaculty = (req, res) => {
   const { faculty_id } = req.params;
