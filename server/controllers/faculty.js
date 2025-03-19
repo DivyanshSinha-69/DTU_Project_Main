@@ -1232,7 +1232,7 @@ export const addFacultyGuidanceRecord = (req, res) => {
       res.status(201).json({
         message: "Faculty guidance record added successfully",
         recordId: result.insertId,
-        documentPath: document,
+        document: document,
       });
     }
   );
@@ -1340,22 +1340,30 @@ export const deleteFacultyGuidanceRecord = (req, res) => {
 };
 
 
-export const getSponsoredResearchByFaculty = (req, res) => {
-  const { faculty_id } = req.params;
+export const getSponsoredResearch = (req, res) => {
+  const { faculty_id } = req.query;
 
-  const query = `SELECT * FROM faculty_sponsored_research WHERE faculty_id = ?`;
-  const queryParams = [faculty_id];
+  let query = "SELECT * FROM faculty_sponsored_research";
+  let queryParams = [];
+
+  if (faculty_id) {
+    query += " WHERE faculty_id = ?";
+    queryParams.push(faculty_id);
+  }
 
   pool.query(query, queryParams, (err, result) => {
     if (err) {
-      return res
-        .status(500)
-        .json({ message: "Error fetching sponsored research", error: err });
+      return res.status(500).json({ 
+        message: "Error fetching sponsored research", 
+        error: err 
+      });
     }
     if (result.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No sponsored research found for this faculty" });
+      return res.status(404).json({ 
+        message: faculty_id 
+          ? "No sponsored research found for this faculty" 
+          : "No sponsored research records found" 
+      });
     }
     res.status(200).json(result);
   });
@@ -1367,36 +1375,41 @@ export const addSponsoredResearch = (req, res) => {
     project_title,
     funding_agency,
     amount_sponsored,
-    research_duration,
     start_date,
     end_date,
+    status,
   } = req.body;
 
-  if (!faculty_id || !project_title || !start_date) {
+  const document = req.file ? req.file.path : null; // Get uploaded file path
+
+  if (!faculty_id || !project_title || !start_date || !funding_agency || !amount_sponsored || !document || !status) {
     return res.status(400).json({
-      message: "Faculty ID, Project Title, and Start Date are required",
+      message: "All fields except end_date are required",
     });
   }
 
   const query = `
-    INSERT INTO faculty_sponsored_research (faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date, end_date)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO faculty_sponsored_research 
+    (faculty_id, project_title, funding_agency, amount_sponsored, start_date, end_date, status, document)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `;
   const queryParams = [
     faculty_id,
     project_title,
     funding_agency,
     amount_sponsored,
-    research_duration,
     start_date,
-    end_date,
+    end_date || null, // Allow null end_date for ongoing projects
+    status,
+    document,
   ];
 
   pool.query(query, queryParams, (err, result) => {
     if (err) {
-      return res
-        .status(500)
-        .json({ message: "Error adding sponsored research", error: err });
+      return res.status(500).json({ 
+        message: "Error adding sponsored research", 
+        error: err 
+      });
     }
     res.status(201).json({
       message: "Sponsored research added successfully",
@@ -1412,60 +1425,120 @@ export const updateSponsoredResearch = (req, res) => {
     project_title,
     funding_agency,
     amount_sponsored,
-    research_duration,
     start_date,
     end_date,
+    status,
   } = req.body;
 
-  const query = `
-    UPDATE faculty_sponsored_research
-    SET faculty_id = ?, project_title = ?, funding_agency = ?, amount_sponsored = ?, research_duration = ?, start_date = ?, end_date = ?
-    WHERE sponsorship_id = ?
-  `;
-  const queryParams = [
-    faculty_id,
-    project_title,
-    funding_agency,
-    amount_sponsored,
-    research_duration,
-    start_date,
-    end_date,
-    sponsorship_id,
-  ];
+  const document = req.file ? req.file.path : null; // Get new uploaded file path
 
-  pool.query(query, queryParams, (err, result) => {
+  if (!faculty_id || !project_title || !start_date || !funding_agency || !amount_sponsored || !status) {
+    return res.status(400).json({
+      message: "All fields except end_date are required",
+    });
+  }
+
+  // 1️⃣ Get the old document path before updating
+  const getOldDocumentQuery = `SELECT document FROM faculty_sponsored_research WHERE sponsorship_id = ?`;
+  
+  pool.query(getOldDocumentQuery, [sponsorship_id], (err, results) => {
     if (err) {
-      return res
-        .status(500)
-        .json({ message: "Error updating sponsored research", error: err });
+      return res.status(500).json({ message: "Error fetching old document", error: err });
     }
-    if (result.affectedRows === 0) {
+    
+    if (results.length === 0) {
       return res.status(404).json({ message: "Sponsored research not found" });
     }
-    res
-      .status(200)
-      .json({ message: "Sponsored research updated successfully" });
+
+    const oldDocumentPath = results[0].document; // Store old file path
+
+    // 2️⃣ Build the update query
+    let updateQuery = `
+      UPDATE faculty_sponsored_research
+      SET faculty_id = ?, project_title = ?, funding_agency = ?, amount_sponsored = ?, start_date = ?, end_date = ?, status = ?
+    `;
+    let queryParams = [
+      faculty_id,
+      project_title,
+      funding_agency,
+      amount_sponsored,
+      start_date,
+      end_date || null, // Allow null end_date for ongoing projects
+      status,
+    ];
+
+    if (document) {
+      updateQuery += ", document = ?";
+      queryParams.push(document);
+    }
+
+    updateQuery += " WHERE sponsorship_id = ?";
+    queryParams.push(sponsorship_id);
+
+    // 3️⃣ Update the record in the database
+    pool.query(updateQuery, queryParams, (updateErr, result) => {
+      if (updateErr) {
+        return res.status(500).json({ message: "Error updating sponsored research", error: updateErr });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: "Sponsored research not found" });
+      }
+
+      // 4️⃣ Delete old document if a new file was uploaded
+      if (document && oldDocumentPath) {
+        fs.unlink(oldDocumentPath, (unlinkErr) => {
+          if (unlinkErr) {
+            console.error("Error deleting old document:", unlinkErr);
+          }
+        });
+      }
+
+      res.status(200).json({ message: "Sponsored research updated successfully" });
+    });
   });
 };
+
 
 export const deleteSponsoredResearch = (req, res) => {
   const { sponsorship_id } = req.params;
 
-  const query = `DELETE FROM faculty_sponsored_research WHERE sponsorship_id = ?`;
-  const queryParams = [sponsorship_id];
+  // 1️⃣ Fetch the document path before deleting the record
+  const getDocumentQuery = `SELECT document FROM faculty_sponsored_research WHERE sponsorship_id = ?`;
 
-  pool.query(query, queryParams, (err, result) => {
+  pool.query(getDocumentQuery, [sponsorship_id], (err, results) => {
     if (err) {
-      return res
-        .status(500)
-        .json({ message: "Error deleting sponsored research", error: err });
+      return res.status(500).json({ message: "Error fetching document path", error: err });
     }
-    if (result.affectedRows === 0) {
+
+    if (results.length === 0) {
       return res.status(404).json({ message: "Sponsored research not found" });
     }
-    res
-      .status(200)
-      .json({ message: "Sponsored research deleted successfully" });
+
+    const documentPath = results[0].document; // Store document file path
+
+    // 2️⃣ Delete the record from the database
+    const deleteQuery = `DELETE FROM faculty_sponsored_research WHERE sponsorship_id = ?`;
+    pool.query(deleteQuery, [sponsorship_id], (deleteErr, result) => {
+      if (deleteErr) {
+        return res.status(500).json({ message: "Error deleting sponsored research", error: deleteErr });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: "Sponsored research not found" });
+      }
+
+      // 3️⃣ Delete the associated file from storage
+      if (documentPath) {
+        fs.unlink(documentPath, (unlinkErr) => {
+          if (unlinkErr) {
+            console.error("⚠️ Error deleting file:", unlinkErr);
+          }
+        });
+      }
+
+      res.status(200).json({ message: "Sponsored research deleted successfully" });
+    });
   });
 };
 

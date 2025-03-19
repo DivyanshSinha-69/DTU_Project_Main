@@ -80,6 +80,31 @@ const facultyGuidanceStorage = multer.diskStorage({
   }
 });
 
+const facultySponsoredResearchStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const { faculty_id } = req.body;
+    if (!faculty_id) {
+      return cb(new Error("Faculty ID is required for file upload"), null);
+    }
+
+    const uploadPath = path.join("public", "Faculty", "SponsoredResearch", faculty_id);
+    fs.mkdirSync(uploadPath, { recursive: true });
+
+    cb(null, uploadPath);
+  },
+
+  filename: (req, file, cb) => {
+    if (!file || !file.originalname) return cb(new Error("Invalid file upload"), null);
+
+    const timestamp = Date.now();
+    const ext = path.extname(file.originalname);
+    const baseName = path.basename(file.originalname, ext);
+    const uniqueFilename = `${baseName}_${timestamp}${ext}`; // Adding timestamp to filename
+
+    cb(null, uniqueFilename);
+  },
+});
+
 // File filter (accept only PDF, JPG, PNG)
 const fileFilter = (req, file, cb) => {
   if (["application/pdf", "image/jpeg", "image/png"].includes(file.mimetype)) {
@@ -128,6 +153,12 @@ const uploadFacultyGuidance = multer({
   limits: { fileSize: 20 * 1024 * 1024 }, // 20MB limit
 }).single('document');
 
+const uploadFacultySponsoredResearch = multer({
+  storage: facultySponsoredResearchStorage,
+  fileFilter,
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB limit
+}).single("document"); // The field name for file upload
+
 const compressUploadedFile = (req, res, next) => {
   if (!req.file) return next();
 
@@ -167,5 +198,6 @@ export {
   uploadFacultyImage,
   compressUploadedFile,
   checkFileReceived,
-  uploadFacultyGuidance
+  uploadFacultyGuidance,
+  uploadFacultySponsoredResearch
 };

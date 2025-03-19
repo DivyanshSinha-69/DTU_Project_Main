@@ -5,6 +5,7 @@ import {
   uploadFacultyImage,
   uploadFacultyGuidance,
   compressUploadedFile,
+  uploadFacultySponsoredResearch,
   checkFileReceived,
 } from "../config/facultyMulterConfig.js";
 import { authenticateToken, authorizeRoles } from "../middlewares/auth.js";
@@ -35,7 +36,7 @@ import {
   addFacultyGuidanceRecord,
   updateFacultyGuidanceRecord,
   deleteFacultyGuidanceRecord,
-  getSponsoredResearchByFaculty,
+  getSponsoredResearch,
   addSponsoredResearch,
   updateSponsoredResearch,
   deleteSponsoredResearch,
@@ -141,26 +142,10 @@ router.put("/guidance/:Guidance_id", authorizeRoles("faculty"), uploadFacultyGui
 router.delete("/guidance/:Guidance_id", authorizeRoles("faculty"), deleteFacultyGuidanceRecord);
 
 // Sponsored Research Routes
-router.get(
-  "/sponsored-research/:faculty_id",
-  authorizeRoles("faculty"),
-  getSponsoredResearchByFaculty
-);
-router.post(
-  "/sponsored-research",
-  authorizeRoles("faculty"),
-  addSponsoredResearch
-);
-router.put(
-  "/sponsored-research/:sponsorship_id",
-  authorizeRoles("faculty"),
-  updateSponsoredResearch
-);
-router.delete(
-  "/sponsored-research/:sponsorship_id",
-  authorizeRoles("faculty"),
-  deleteSponsoredResearch
-);
+router.get("/sponsored-research", authorizeRoles("faculty"), getSponsoredResearch);
+router.post("/sponsored-research", authorizeRoles("faculty"), uploadFacultySponsoredResearch, compressUploadedFile, addSponsoredResearch);
+router.put("/sponsored-research/:sponsorship_id", authorizeRoles("faculty"), uploadFacultySponsoredResearch, compressUploadedFile, updateSponsoredResearch);
+router.delete("/sponsored-research/:sponsorship_id", authorizeRoles("faculty"), deleteSponsoredResearch);
 
 // Consultancy Routes
 router.get(
