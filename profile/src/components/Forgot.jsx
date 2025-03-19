@@ -9,8 +9,8 @@ const Forgot = () => {
   const [userType, setUserType] = useState("student"); // Default to student
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-
   const [loading, setLoading] = useState(false);
+
   const handleForgot = async (e) => {
     e.preventDefault();
 
@@ -132,12 +132,48 @@ const Forgot = () => {
             </div>
           </form>
 
-          {/* Display success or error messages */}
+          {/* Success & Error Messages */}
           {message && (
-            <p className="mt-4 text-center text-black normal-case">{message}</p>
+            <div className="mt-6 text-center">
+              <div className="inline-flex items-center bg-green-50 border border-green-500 text-green-700 px-4 py-2 rounded-lg text-sm font-medium">
+                <svg
+                  className="w-4 h-4 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+                {message}
+              </div>
+            </div>
           )}
           {error && (
-            <p className="mt-4 text-center text-red-600 normal-case">{error}</p>
+            <div className="mt-6 text-center">
+              <div className="inline-flex items-center bg-red-50 border border-red-500 text-red-700 px-4 py-2 rounded-lg text-sm font-medium">
+                <svg
+                  className="w-4 h-4 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                {error}
+              </div>
+            </div>
           )}
         </div>
       </div>
