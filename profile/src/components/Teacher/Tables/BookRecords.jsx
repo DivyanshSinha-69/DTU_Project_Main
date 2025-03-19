@@ -29,16 +29,20 @@ const BookRecordsPublished = ({ setBlurActive }) => {
   const fetchBookRecords = async () => {
     try {
       const response = await API.get(`ece/faculty/books/${facultyId}`);
-      setBookDetails(
-        response.data?.map((book) => ({
-          isbn: book.ISBN,
-          faculty_id: book.faculty_id,
-          title: book.book_title,
-          publication_name: book.publication_name,
-          published_date: formatDateForInput(book.published_date),
-          Book_id: book.Book_id,
-        }))
-      );
+      if (response.data.length === 0) {
+        setBookDetails([]);
+      } else {
+        setBookDetails(
+          response.data?.map((book) => ({
+            isbn: book.ISBN,
+            faculty_id: book.faculty_id,
+            title: book.book_title,
+            publication_name: book.publication_name,
+            published_date: formatDateForInput(book.published_date),
+            Book_id: book.Book_id,
+          }))
+        );
+      }
     } catch (error) {
       console.error("Error fetching book records:", error);
       setBookDetails([]); // Fallback to empty array

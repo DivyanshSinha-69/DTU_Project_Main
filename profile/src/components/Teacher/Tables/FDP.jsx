@@ -33,16 +33,20 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
       );
 
       if (Array.isArray(response.data.data)) {
-        setFdpDetails(
-          response.data.data.map((fdp) => ({
-            FDP_id: fdp.FDP_id,
-            FDP_name: fdp.FDP_name,
-            FDP_progress: fdp.FDP_progress,
-            start_date: formatDate(fdp?.start_date),
-            end_date: formatDate(fdp?.end_date),
-            days_contributed: fdp.days_contributed, // Display days_contributed from backend
-          }))
-        );
+        if (response.data.data.length === 0) {
+          setFdpDetails([]);
+        } else {
+          setFdpDetails(
+            response.data.data.map((fdp) => ({
+              FDP_id: fdp.FDP_id,
+              FDP_name: fdp.FDP_name,
+              FDP_progress: fdp.FDP_progress,
+              start_date: formatDate(fdp?.start_date),
+              end_date: formatDate(fdp?.end_date),
+              days_contributed: fdp.days_contributed, // Display days_contributed from backend
+            }))
+          );
+        }
       }
     } catch (error) {
       console.error("Error fetching FDP details:", error);

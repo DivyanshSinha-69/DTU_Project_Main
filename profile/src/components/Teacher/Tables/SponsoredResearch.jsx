@@ -30,21 +30,25 @@ const SponsoredResearch = ({ setBlurActive }) => {
   const fetchResearchDetails = async () => {
     try {
       const response = await API.get(
-        `ece/faculty/sponsored-research/${facultyId}`
+        `ece/faculty/sponsored-research?faculty_id=${facultyId}`
       );
-      // If the API returns an array, map it; otherwise, set an empty array.
       if (Array.isArray(response.data)) {
-        setResearchDetails(
-          response.data.map((record) => ({
-            project_title: record.project_title,
-            funding_agency: record.funding_agency,
-            amount_sponsored: record.amount_sponsored,
-            research_duration: record.research_duration,
-            start_date: formatDateForInput(record.start_date),
-            end_date: formatDateForInput(record.end_date),
-            sponsorship_id: record.sponsorship_id,
-          }))
-        );
+        if (response.data.length === 0) {
+          setResearchDetails([]);
+        } else {
+          setResearchDetails(
+            response.data.map((record) => ({
+              project_title: record.project_title,
+              funding_agency: record.funding_agency,
+              amount_sponsored: record.amount_sponsored,
+              stat: record.status, // Include the status field
+              start_date: formatDateForInput(record.start_date),
+              end_date: formatDateForInput(record.end_date),
+              sponsorship_id: record.sponsorship_id,
+              document: record.document, // Include the document path
+            }))
+          );
+        }
       } else {
         setResearchDetails([]);
       }
@@ -79,41 +83,40 @@ const SponsoredResearch = ({ setBlurActive }) => {
 
   // Add or update a sponsored research record
   const handleAddResearch = async (newResearch) => {
-    // Build the payload to send to the API
-    const requestPayload = {
-      faculty_id: facultyId,
-      project_title: newResearch.title,
-      funding_agency: newResearch.agency,
-      amount_sponsored: newResearch.amount,
-      research_duration: newResearch.duration,
-      start_date: newResearch.startDate,
-      end_date: newResearch.endDate || null,
-    };
+    const formData = new FormData();
+    formData.append("faculty_id", facultyId);
+    formData.append("project_title", newResearch.title);
+    formData.append("funding_agency", newResearch.agency);
+    formData.append("amount_sponsored", newResearch.amount);
+    formData.append("status", newResearch.stat); // Include status
+    formData.append("start_date", newResearch.startDate);
+    formData.append("end_date", newResearch.endDate || null);
+
+    if (newResearch.document) {
+      formData.append("document", newResearch.document);
+    }
 
     try {
       if (isAddResearch) {
         // Add new research record
         const response = await API.post(
           "ece/faculty/sponsored-research",
-          requestPayload
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
         );
-        setResearchDetails((prev) => [
-          ...prev,
-          { ...newResearch, sponsorship_id: response.data.sponsorship_id },
-        ]);
+        fetchResearchDetails();
       } else {
         // Update existing research record
         await API.put(
           `ece/faculty/sponsored-research/${selectedResearch.sponsorship_id}`,
-          requestPayload
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
         );
-        setResearchDetails((prev) =>
-          prev.map((research) =>
-            research.sponsorship_id === selectedResearch.sponsorship_id
-              ? { ...newResearch }
-              : research
-          )
-        );
+        fetchResearchDetails();
       }
       closePopup();
     } catch (error) {
@@ -125,7 +128,6 @@ const SponsoredResearch = ({ setBlurActive }) => {
       );
     }
   };
-
   // Delete a research record
   const handleDeleteResearch = async (sponsorshipId) => {
     try {
@@ -138,17 +140,6 @@ const SponsoredResearch = ({ setBlurActive }) => {
     }
   };
 
-  // Table headers for displaying research details
-  const TABLE_HEAD = [
-    "Project Title",
-    "Funding Agency",
-    "Amount Sponsored",
-    "Duration (Years)",
-    "Start Date",
-    "End Date",
-    "Actions",
-  ];
-
   // Optional: Format a date string for input fields if needed
   const formatDateForInputPopup = (date) => {
     const [day, month, year] = date?.split("/");
@@ -159,7 +150,7 @@ const SponsoredResearch = ({ setBlurActive }) => {
       {/* Reusable Custom Table Component */}
       <CustomTable
         title="Sponsored Research"
-        subtitle="(Details of sponsored research projects)"
+        subtitle="(Details of sponsored research)"
         columns={[
           { key: "project_title", label: "Project Title" },
           { key: "funding_agency", label: "Funding Agency" },
@@ -167,7 +158,7 @@ const SponsoredResearch = ({ setBlurActive }) => {
             key: "amount_sponsored",
             label: "Amount Sponsored",
           },
-          { key: "research_duration", label: "Duration" },
+          { key: "stat", label: "Status" },
           {
             key: "start_date",
             label: "Start Date",
@@ -176,6 +167,7 @@ const SponsoredResearch = ({ setBlurActive }) => {
             key: "end_date",
             label: "End Date",
           },
+          { key: "document", label: "Document" },
           { key: "actions", label: "Actions" },
         ]}
         data={researchDetails}
@@ -187,9 +179,9 @@ const SponsoredResearch = ({ setBlurActive }) => {
               project_title: research.project_title,
               funding_agency: research.funding_agency,
               amount_sponsored: research.amount_sponsored,
-              research_duration: research.research_duration,
               start_date: research.start_date,
               end_date: research.end_date,
+              stat: research.stat,
             });
           },
           delete: (research) => handleDeleteResearch(research.sponsorship_id),
@@ -215,9 +207,9 @@ const SponsoredResearch = ({ setBlurActive }) => {
               title=""
               agency=""
               amount=""
-              duration=""
               startDate=""
               endDate=""
+              stat=""
               closeModal={closePopup}
               handleAddResearch={handleAddResearch}
             />
@@ -227,7 +219,7 @@ const SponsoredResearch = ({ setBlurActive }) => {
                 title={selectedResearch?.project_title || ""}
                 agency={selectedResearch?.funding_agency || ""}
                 amount={selectedResearch?.amount_sponsored || ""}
-                duration={selectedResearch?.research_duration || ""}
+                stat={selectedResearch?.stat}
                 startDate={formatDateForInputPopup(
                   selectedResearch?.start_date
                 )}

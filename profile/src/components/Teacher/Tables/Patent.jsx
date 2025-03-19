@@ -33,15 +33,19 @@ const PatentRecords = ({ setBlurActive }) => {
           faculty_id: facultyId, // Add facultyId as a query parameter
         },
       });
-      setPatentDetails(
-        response.data?.data?.map((patent) => ({
-          patent_id: patent.patent_id,
-          patent_name: patent.patent_name,
-          patent_publish: formatDateForInput(patent.patent_publish),
-          inventors_name: patent.inventors_name,
-          patent_award_date: formatDateForInput(patent.patent_award_date),
-        }))
-      );
+      if (response.data.length === 0) {
+        setPatentDetails([]);
+      } else {
+        setPatentDetails(
+          response.data?.data?.map((patent) => ({
+            patent_id: patent.patent_id,
+            patent_name: patent.patent_name,
+            patent_publish: formatDateForInput(patent.patent_publish),
+            inventors_name: patent.inventors_name,
+            patent_award_date: formatDateForInput(patent.patent_award_date),
+          }))
+        );
+      }
     } catch (error) {
       console.error("Error fetching patent records:", error);
       setPatentDetails([]);
@@ -120,7 +124,7 @@ const PatentRecords = ({ setBlurActive }) => {
       {/* Reusable Custom Table Component for Patent Records */}
       <CustomTable
         title="Patent Records"
-        subtitle="(Details of patents filed/awarded)"
+        subtitle="(Details of patent records)"
         columns={[
           { key: "patent_name", label: "Patent Name" },
           { key: "inventors_name", label: "Inventors/Co-inventors" },
