@@ -19,38 +19,48 @@ const ConsultancyDetails = ({ setBlurActive }) => {
   const user = useSelector((state) => state.auth.user) || {};
   const { faculty_id } = user;
   const facultyId = faculty_id;
+
   const formatDateForInput = (isoDate) => {
-    if (!isoDate) return ""; // Handle null/undefined cases
+    if (!isoDate) return "";
     const date = new Date(isoDate);
-    return date.toLocaleDateString("en-GB"); // "dd/mm/yyyy" format
+    return date.toLocaleDateString("en-GB");
   };
+
   const fetchConsultancyDetails = async () => {
     try {
-      const response = await API.get(`/ece/faculty/consultancy/${facultyId}`);
+      const response = await API.get(
+        `/ece/faculty/consultancy?faculty_id=${facultyId}`
+      );
       if (Array.isArray(response.data)) {
-        setConsultancyDetails(
-          response.data.map((record) => ({
-            project_title: record.project_title,
-            funding_agency: record.funding_agency,
-            amount_sponsored: record.amount_sponsored,
-            research_duration: record.research_duration,
-            start_date: formatDateForInput(record.start_date),
-            end_date: formatDateForInput(record.end_date),
-            consultancy_id: record.consultancy_id,
-          }))
-        );
+        if (response.data.length === 0) {
+          setConsultancyDetails([]);
+        } else {
+          setConsultancyDetails(
+            response.data.map((record) => ({
+              project_title: record.project_title,
+              funding_agency: record.funding_agency,
+              amount_sponsored: record.amount_sponsored,
+              start_date: formatDateForInput(record.start_date),
+              end_date: formatDateForInput(record.end_date),
+              status: record.status, // Added status
+              document: record.document, // Added document
+              consultancy_id: record.consultancy_id,
+            }))
+          );
+        }
       } else {
-        setConsultancyDetails([]); // Set an empty array if no records are found
+        setConsultancyDetails([]);
       }
     } catch (error) {
       console.error("Error fetching consultancy records:", error);
-      setConsultancyDetails([]); // Fallback to an empty array in case of errors
+      setConsultancyDetails([]);
     }
   };
 
   useEffect(() => {
     fetchConsultancyDetails();
   }, [facultyId]);
+
   const openPopup = (consultancy) => {
     setSelectedConsultancy(consultancy);
     setPopupOpen(true);
@@ -64,29 +74,33 @@ const ConsultancyDetails = ({ setBlurActive }) => {
   };
 
   const handleAddConsultancy = async (newConsultancy) => {
-    try {
-      const payload = {
-        faculty_id: facultyId,
-        project_title: newConsultancy.title,
-        funding_agency: newConsultancy.client || null,
-        amount_sponsored: newConsultancy.amount || 0,
-        research_duration: newConsultancy.duration || null,
-        start_date: newConsultancy.startDate,
-        end_date: newConsultancy.endDate || null,
-      };
+    const formData = new FormData();
+    formData.append("faculty_id", facultyId);
+    formData.append("project_title", newConsultancy.title);
+    formData.append("funding_agency", newConsultancy.client);
+    formData.append("amount_sponsored", newConsultancy.amount);
+    formData.append("status", newConsultancy.status); // Added status
+    formData.append("start_date", newConsultancy.startDate);
+    formData.append("end_date", newConsultancy.endDate || null);
 
+    if (newConsultancy.document) {
+      formData.append("document", newConsultancy.document);
+    }
+
+    try {
       if (isAddConsultancy) {
-        // Add new consultancy
-        await API.post("/ece/faculty/consultancy", payload);
+        await API.post("/ece/faculty/consultancy", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
       } else {
-        // Update existing consultancy
         await API.put(
           `/ece/faculty/consultancy/${selectedConsultancy.consultancy_id}`,
-          payload
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
         );
       }
-
-      // Refresh consultancy details after adding/updating
       fetchConsultancyDetails();
       closePopup();
     } catch (error) {
@@ -94,35 +108,22 @@ const ConsultancyDetails = ({ setBlurActive }) => {
     }
   };
 
-  const handleDeleteConsultancy = async (indexToDelete) => {
-    const consultancyToDelete = consultancyDetails[indexToDelete];
+  const handleDeleteConsultancy = async (consultancyId) => {
     try {
-      await API.delete(
-        `/ece/faculty/consultancy/${consultancyToDelete.consultancy_id}`
-      );
-      // Refresh consultancy details after deleting
+      await API.delete(`/ece/faculty/consultancy/${consultancyId}`);
       fetchConsultancyDetails();
     } catch (error) {
       console.error("Error deleting consultancy:", error);
     }
   };
 
-  const TABLE_HEAD = [
-    "Consultancy Title",
-    "Agency Name",
-    "Funding Amount",
-    "Duration (Years)",
-    "Start Date",
-    "End Date",
-    "Actions",
-  ];
   const formatDateForInputPopup = (date) => {
     const [day, month, year] = date.split("/");
-    return `${year}-${month}-${day}`; // yyyy-MM-dd
+    return `${year}-${month}-${day}`;
   };
+
   return (
     <>
-      {/* Reusable Custom Table Component */}
       <CustomTable
         title="Consultancy Details"
         subtitle="(Details of consultancy projects)"
@@ -134,19 +135,10 @@ const ConsultancyDetails = ({ setBlurActive }) => {
             label: "Amount Sponsored",
             format: (value) => `₹${value?.toLocaleString()}`,
           },
-          {
-            key: "research_duration",
-            label: "Research Duration",
-            format: (value) => `${value} years`,
-          },
-          {
-            key: "start_date",
-            label: "Start Date",
-          },
-          {
-            key: "end_date",
-            label: "End Date",
-          },
+          { key: "status", label: "Status" }, // Added status
+          { key: "start_date", label: "Start Date" },
+          { key: "end_date", label: "End Date" },
+          { key: "document", label: "Document" }, // Added document
           { key: "actions", label: "Actions" },
         ]}
         data={consultancyDetails}
@@ -168,7 +160,6 @@ const ConsultancyDetails = ({ setBlurActive }) => {
         }}
       />
 
-      {/* Popup for Adding/Editing Consultancy Details */}
       <Popup
         open={isPopupOpen}
         onClose={closePopup}
@@ -181,7 +172,6 @@ const ConsultancyDetails = ({ setBlurActive }) => {
               title=""
               client=""
               amount=""
-              duration=""
               startDate=""
               endDate=""
               closeModal={closePopup}
@@ -193,7 +183,6 @@ const ConsultancyDetails = ({ setBlurActive }) => {
                 title={selectedConsultancy?.project_title || ""}
                 client={selectedConsultancy?.funding_agency || ""}
                 amount={selectedConsultancy?.amount_sponsored || ""}
-                duration={selectedConsultancy?.research_duration || ""}
                 startDate={
                   formatDateForInputPopup(selectedConsultancy?.start_date) || ""
                 }

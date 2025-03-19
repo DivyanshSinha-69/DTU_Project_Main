@@ -32,19 +32,25 @@ const Guidance = ({ setBlurActive }) => {
   const API_BASE_URL = "/ece/faculty";
   const fetchPhDs = async () => {
     try {
-      const response = await API.get(`/ece/faculty/guidance?=${facultyId}`);
+      const response = await API.get(
+        `/ece/faculty/guidance?faculty_id=${facultyId}`
+      );
       if (Array.isArray(response.data.data)) {
-        setPhdDetails(
-          response.data.data.map((record) => ({
-            Guidance_id: record.Guidance_id,
-            menteeName: record.mentee_name,
-            rollNo: record.mentee_rn,
-            passingYear: record.passing_year,
-            passingMonth: record.passing_month,
-            degree: record.degree, // Added this field
-            document: record.document,
-          }))
-        );
+        if (response.data.length === 0) {
+          setPhdDetails([]);
+        } else {
+          setPhdDetails(
+            response.data.data.map((record) => ({
+              Guidance_id: record.Guidance_id,
+              menteeName: record.mentee_name,
+              rollNo: record.mentee_rn,
+              passingYear: record.passing_year,
+              passingMonth: record.passing_month,
+              degree: record.degree, // Added this field
+              document: record.document,
+            }))
+          );
+        }
       } else {
         setPhdDetails([]);
       }
@@ -157,7 +163,7 @@ const Guidance = ({ setBlurActive }) => {
       {/* Reusable Custom Table Component */}
       <CustomTable
         title="PhD/M.Tech Guidance Details"
-        subtitle="(Mention your students who have completed their PhD)"
+        subtitle="(Mention your students whom you have mentored)"
         columns={[
           { key: "menteeName", label: "Mentee Name" },
           { key: "degree", label: "Degree" }, // 👈 Add this

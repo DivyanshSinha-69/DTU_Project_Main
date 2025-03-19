@@ -28,18 +28,21 @@ const Qualification = ({ setBlurActive }) => {
         const response = await API.get(
           `ece/faculty/qualification?faculty_id=${facultyId}`
         );
-        console.log(response);
         if (Array.isArray(response.data)) {
-          setQualificationDetails(
-            response.data.map((qualification) => ({
-              education_id: qualification.education_id,
-              degree_level: qualification.degree_level,
-              institute: qualification.institute,
-              degree_name: qualification.degree_name,
-              year_of_passing: qualification.year_of_passing,
-              specialization: qualification.specialization,
-            }))
-          );
+          if (response.data.length === 0) {
+            setQualificationDetails([]);
+          } else {
+            setQualificationDetails(
+              response.data.map((qualification) => ({
+                education_id: qualification.education_id,
+                degree_level: qualification.degree_level,
+                institute: qualification.institute,
+                degree_name: qualification.degree_name,
+                year_of_passing: qualification.year_of_passing,
+                specialization: qualification.specialization,
+              }))
+            );
+          }
         }
       } catch (error) {
         console.error("Error fetching qualification details:", error);

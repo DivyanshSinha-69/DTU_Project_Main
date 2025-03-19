@@ -39,18 +39,22 @@ const ResearchProjects = ({ setBlurActive }) => {
     try {
       const response = await API.get(`/ece/faculty/researchpaper/${facultyId}`);
       if (Array.isArray(response.data)) {
-        setResearchProjectsDetails(
-          response.data.map((item) => ({
-            research_id: item.research_id,
-            TypeOfPaper: item.paper_type,
-            Title: item.title_of_paper,
-            AreaOfResearch: item.area_of_research,
-            PublishedYear: item.published_year,
-            Document: item.pdf_path,
-            Citation: item.citation,
-            Authors: item.authors,
-          }))
-        );
+        if (response.data.length === 0) {
+          setResearchProjectsDetails([]);
+        } else {
+          setResearchProjectsDetails(
+            response.data.map((item) => ({
+              research_id: item.research_id,
+              TypeOfPaper: item.paper_type,
+              Title: item.title_of_paper,
+              AreaOfResearch: item.area_of_research,
+              PublishedYear: item.published_year,
+              Document: item.pdf_path,
+              Citation: item.citation,
+              Authors: item.authors,
+            }))
+          );
+        }
       } else {
         console.error("Unexpected API response:", response.data);
       }

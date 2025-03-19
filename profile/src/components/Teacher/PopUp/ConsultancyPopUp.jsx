@@ -6,7 +6,6 @@ export default function ConsultancyDetailsPopUp({
   title,
   client,
   amount,
-  duration,
   startDate,
   endDate,
   closeModal,
@@ -16,9 +15,10 @@ export default function ConsultancyDetailsPopUp({
     title: title || "",
     client: client || "",
     amount: amount || "",
-    duration: duration || "",
     startDate: startDate || "",
     endDate: endDate || "",
+    document: null, // Added document field
+    status: "Ongoing", // Added status field with default value
   });
 
   const handleChange = (e) => {
@@ -31,9 +31,9 @@ export default function ConsultancyDetailsPopUp({
 
   const handlePopupSubmit = (e) => {
     e.preventDefault();
-    const { title, client, amount, duration, startDate } = formData;
+    const { title, client, amount, startDate, document, status } = formData;
 
-    if (!title || !client || !amount || !duration || !startDate) {
+    if (!title || !client || !amount || !startDate || !document || !status) {
       toast.error("Please fill in all required fields.");
       return;
     }
@@ -104,22 +104,22 @@ export default function ConsultancyDetailsPopUp({
             />
           </div>
 
-          {/* Consultancy Duration */}
+          {/* Status */}
           <div className="relative z-0 w-full group">
-            <label htmlFor="duration" className="block text-sm">
-              Consultancy Duration (Years){" "}
-              <span className="text-red-500">*</span>
+            <label htmlFor="status" className="block text-sm">
+              Status <span className="text-red-500">*</span>
             </label>
-            <input
-              type="number"
-              name="duration"
-              id="duration"
+            <select
+              name="status"
+              id="status"
               className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               onChange={handleChange}
-              value={formData.duration}
+              value={formData.status}
               required
-              min="1"
-            />
+            >
+              <option value="Ongoing">Ongoing</option>
+              <option value="Completed">Completed</option>
+            </select>
           </div>
 
           {/* Start Date & End Date */}
@@ -154,6 +154,28 @@ export default function ConsultancyDetailsPopUp({
                 value={formData.endDate}
               />
             </div>
+          </div>
+
+          {/* Document Upload */}
+          <div className="relative z-0 w-full group">
+            <label htmlFor="document" className="block text-sm">
+              Upload Document <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="file"
+              name="document"
+              id="document"
+              accept=".pdf,.docx"
+              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={(e) => {
+                const file = e.target.files[0];
+                setFormData((prevData) => ({
+                  ...prevData,
+                  document: file,
+                }));
+              }}
+              required
+            />
           </div>
 
           {/* Red Star Explanation */}

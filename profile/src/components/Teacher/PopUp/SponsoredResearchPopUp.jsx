@@ -6,7 +6,7 @@ export default function SponsoredResearchPopUp({
   title,
   agency,
   amount,
-  duration,
+  stat,
   startDate,
   endDate,
   closeModal,
@@ -16,9 +16,10 @@ export default function SponsoredResearchPopUp({
     title: title || "",
     agency: agency || "",
     amount: amount || "",
-    duration: duration || "",
     startDate: startDate || "",
     endDate: endDate || "",
+    document: null,
+    stat: stat || "Ongoing", // Default to "Ongoing"
   });
 
   const handleChange = (e) => {
@@ -31,9 +32,10 @@ export default function SponsoredResearchPopUp({
 
   const handlePopupSubmit = async (e) => {
     e.preventDefault();
-    const { title, agency, amount, duration, startDate } = formData;
+    const { title, agency, amount, duration, startDate, document, stat } =
+      formData;
 
-    if (!title || !agency || !amount || !duration || !startDate) {
+    if (!title || !agency || !amount || !startDate || !document || !stat) {
       toast.error("Please fill in all required fields.");
       return;
     }
@@ -103,22 +105,21 @@ export default function SponsoredResearchPopUp({
               min="0"
             />
           </div>
-
-          {/* Research Duration */}
           <div className="relative z-0 w-full group">
-            <label htmlFor="duration" className="block text-sm">
-              Research Duration (Years) <span className="text-red-500">*</span>
+            <label htmlFor="stat" className="block text-sm">
+              Status <span className="text-red-500">*</span>
             </label>
-            <input
-              type="number"
-              name="duration"
-              id="duration"
+            <select
+              name="stat"
+              id="stat"
               className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               onChange={handleChange}
-              value={formData.duration}
+              value={formData.stat}
               required
-              min="1"
-            />
+            >
+              <option value="Ongoing">Ongoing</option>
+              <option value="Completed">Completed</option>
+            </select>
           </div>
 
           {/* Start Date & End Date */}
@@ -151,6 +152,26 @@ export default function SponsoredResearchPopUp({
                 className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 onChange={handleChange}
                 value={formData.endDate}
+              />
+            </div>
+            <div className="relative z-0 w-full group">
+              <label htmlFor="document" className="block text-sm">
+                Upload Document <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="file"
+                name="document"
+                id="document"
+                accept=".pdf,.docx"
+                className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  setFormData((prevData) => ({
+                    ...prevData,
+                    document: file,
+                  }));
+                }}
+                required
               />
             </div>
           </div>
