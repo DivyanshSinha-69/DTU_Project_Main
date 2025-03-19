@@ -154,7 +154,7 @@ function App() {
           <Route path="/loader" element={<Loader />} />
           <Route path="/alumini" element={<Alumini />} />
           <Route path="/forgot" element={<Forgot />} />
-          <Route path="/reset-password/" element={<ResetPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
 
           <Route path="*" element={<Unauthorized />} />
         </Routes>
