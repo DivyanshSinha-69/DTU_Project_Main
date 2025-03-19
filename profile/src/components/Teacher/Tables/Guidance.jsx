@@ -42,6 +42,7 @@ const Guidance = ({ setBlurActive }) => {
             passingYear: record.passing_year,
             passingMonth: record.passing_month,
             degree: record.degree, // Added this field
+            document: record.document,
           }))
         );
       } else {
@@ -60,15 +61,20 @@ const Guidance = ({ setBlurActive }) => {
   // Add a new PhD record
   const addPhD = async (newPhD) => {
     try {
-      const payload = {
-        faculty_id: facultyId,
-        mentee_name: newPhD.menteeName,
-        mentee_rn: newPhD.rollNo,
-        passing_year: newPhD.passingYear,
-        passing_month: newPhD.passingMonth, // Added this field
-        degree: newPhD.degree, // Added this field
-      };
-      await API.post("ece/faculty/guidance", payload);
+      const formData = new FormData();
+      formData.append("faculty_id", facultyId);
+      formData.append("mentee_name", newPhD.menteeName);
+      formData.append("mentee_rn", newPhD.rollNo);
+      formData.append("passing_year", newPhD.passingYear);
+      formData.append("passing_month", newPhD.passingMonth);
+      formData.append("degree", newPhD.degree);
+      if (newPhD.document) {
+        formData.append("document", newPhD.document);
+      }
+
+      await API.post("ece/faculty/guidance", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       fetchPhDs();
     } catch (error) {
       console.error("Error adding new PhD record:", error);
@@ -84,6 +90,7 @@ const Guidance = ({ setBlurActive }) => {
         passing_year: updatedPhD.passingYear,
         passing_month: updatedPhD.passingMonth, // Added this field
         degree: updatedPhD.degree, // Added this field
+        document: updatePhD.document,
       };
       await API.put(`ece/faculty/guidance/${updatedPhD.Guidance_id}`, payload);
       fetchPhDs();
@@ -141,6 +148,7 @@ const Guidance = ({ setBlurActive }) => {
     "Roll No",
     "Year PhD was Awarded",
     "Month PhD was Awarded", // 👈 Add this
+    "Document",
     "Actions",
   ];
 
@@ -156,6 +164,7 @@ const Guidance = ({ setBlurActive }) => {
           { key: "rollNo", label: "Roll Number" },
           { key: "passingMonth", label: "Passing Month" },
           { key: "passingYear", label: "Passing Year" },
+          { key: "document", label: "Document" },
           { key: "actions", label: "Actions" },
         ]}
         data={phdDetails}

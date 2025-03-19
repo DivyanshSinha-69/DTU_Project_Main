@@ -46,19 +46,20 @@ const AssociationPopUp = ({ currentDetails, onUpdate, closeModal }) => {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-80">
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-80 overflow-y-auto p-4">
       <Card
         color="transparent"
         shadow={false}
-        className="w-[90%] max-w-[700px] h-auto p-8 bg-gray-900 rounded-[20px]"
+        className="w-[90%] max-w-[700px] h-auto max-h-[90vh] p-8 bg-gray-900 rounded-[20px] overflow-y-auto"
       >
         <form
-          className="text-white flex flex-col space-y-6 "
+          className="text-white flex flex-col space-y-6"
           onSubmit={handleSubmit}
         >
+          {/* Highest Designation Field */}
           <div className="relative z-0 w-full group">
             <label htmlFor="highestDesignation" className="block text-sm">
-              Highest Designation
+              Highest Designation <span className="text-red-500">*</span>
             </label>
             <select
               name="highestDesignation"
@@ -75,9 +76,10 @@ const AssociationPopUp = ({ currentDetails, onUpdate, closeModal }) => {
             </select>
           </div>
 
+          {/* Date Attained Field */}
           <div className="relative z-0 w-full group">
             <label htmlFor="highestDesignationDate" className="block text-sm">
-              Date Attained
+              Date Attained <span className="text-red-500">*</span>
             </label>
             <input
               type="date"
@@ -90,6 +92,7 @@ const AssociationPopUp = ({ currentDetails, onUpdate, closeModal }) => {
             />
           </div>
 
+          {/* Conditional Fields for Professor */}
           {formData.highestDesignation === "Professor" && (
             <>
               <div className="relative z-0 w-full group">
@@ -97,7 +100,8 @@ const AssociationPopUp = ({ currentDetails, onUpdate, closeModal }) => {
                   htmlFor="associateProfessorStartDate"
                   className="block text-sm"
                 >
-                  Start Date of Associate Professor
+                  Start Date of Associate Professor{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
@@ -115,7 +119,8 @@ const AssociationPopUp = ({ currentDetails, onUpdate, closeModal }) => {
                   htmlFor="associateProfessorEndDate"
                   className="block text-sm"
                 >
-                  End Date of Associate Professor
+                  End Date of Associate Professor{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
@@ -130,6 +135,7 @@ const AssociationPopUp = ({ currentDetails, onUpdate, closeModal }) => {
             </>
           )}
 
+          {/* Conditional Fields for Professor or Associate Professor */}
           {(formData.highestDesignation === "Professor" ||
             formData.highestDesignation === "Associate Professor") && (
             <>
@@ -138,7 +144,8 @@ const AssociationPopUp = ({ currentDetails, onUpdate, closeModal }) => {
                   htmlFor="assistantProfessorStartDate"
                   className="block text-sm"
                 >
-                  Start Date of Assistant Professor
+                  Start Date of Assistant Professor{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
@@ -156,7 +163,8 @@ const AssociationPopUp = ({ currentDetails, onUpdate, closeModal }) => {
                   htmlFor="assistantProfessorEndDate"
                   className="block text-sm"
                 >
-                  End Date of Assistant Professor
+                  End Date of Assistant Professor{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
@@ -170,20 +178,28 @@ const AssociationPopUp = ({ currentDetails, onUpdate, closeModal }) => {
               </div>
             </>
           )}
+          {/* Red Star Explanation */}
+          <p className="text-sm text-gray-400 mt-4">
+            <span className="text-red-500">*</span> compulsory fields
+          </p>
+          {/* Update Button */}
+          <div className="flex items-center justify-between mt-5 space-x-4">
+            <button
+              type="submit"
+              className="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            >
+              Update
+            </button>
 
-          <button
-            type="submit"
-            className="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-          >
-            Update
-          </button>
-          <button
-            type="button"
-            onClick={closeModal}
-            className="w-full px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 mt-4"
-          >
-            Cancel
-          </button>
+            {/* Cancel Button */}
+            <button
+              type="button"
+              onClick={closeModal}
+              className="w-full px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+            >
+              Cancel
+            </button>
+          </div>
         </form>
       </Card>
     </div>

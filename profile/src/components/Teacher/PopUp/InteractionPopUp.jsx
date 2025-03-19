@@ -40,8 +40,10 @@ export default function InteractionPopUp({
       document: file, // Store the file for display purposes
     }));
   };
+
   const user = useSelector((state) => state.auth.user) || {};
   const { faculty_id } = user;
+
   const handlePopup = async (e) => {
     e.preventDefault();
     const {
@@ -50,7 +52,6 @@ export default function InteractionPopUp({
       description,
       year_of_visit,
       month_of_visit,
-      duration_in_days,
       customInteractionType,
       document,
     } = formData;
@@ -103,11 +104,11 @@ export default function InteractionPopUp({
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-80">
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-80 overflow-y-auto p-4">
       <Card
         color="transparent"
         shadow={false}
-        className="w-[90%] max-w-[700px] h-auto p-8 bg-gray-900 rounded-[20px]"
+        className="w-[90%] max-w-[700px] h-auto max-h-[90vh] p-8 bg-gray-900 rounded-[20px] overflow-y-auto"
       >
         <form
           className="text-white flex flex-col space-y-6"
@@ -116,7 +117,7 @@ export default function InteractionPopUp({
           {/* Interaction Type Dropdown */}
           <div className="relative z-0 w-full group">
             <label htmlFor="interactionType" className="block text-sm">
-              Interaction Type
+              Interaction Type <span className="text-red-500">*</span>
             </label>
             <select
               name="interactionType"
@@ -146,7 +147,7 @@ export default function InteractionPopUp({
           {formData.interactionType === "Other" && (
             <div className="relative z-0 w-full group">
               <label htmlFor="customInteractionType" className="block text-sm">
-                Specify Interaction Type
+                Specify Interaction Type <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -163,7 +164,7 @@ export default function InteractionPopUp({
           {/* Institution Name */}
           <div className="relative z-0 w-full group">
             <label htmlFor="institutionName" className="block text-sm">
-              Institution Name
+              Institution Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -179,7 +180,7 @@ export default function InteractionPopUp({
           {/* Description */}
           <div className="relative z-0 w-full group">
             <label htmlFor="description" className="block text-sm">
-              Description
+              Description <span className="text-red-500">*</span>
             </label>
             <textarea
               name="description"
@@ -196,7 +197,7 @@ export default function InteractionPopUp({
             {/* Year of Visit Dropdown */}
             <div className="relative z-0 w-[48%] group">
               <label htmlFor="year_of_visit" className="block text-sm">
-                Year of Visit
+                Year of Visit <span className="text-red-500">*</span>
               </label>
               <select
                 name="year_of_visit"
@@ -214,7 +215,7 @@ export default function InteractionPopUp({
             {/* Month of Visit Dropdown */}
             <div className="relative z-0 w-[48%] group">
               <label htmlFor="month_of_visit" className="block text-sm">
-                Month of Visit
+                Month of Visit <span className="text-red-500">*</span>
               </label>
               <select
                 name="month_of_visit"
@@ -271,6 +272,11 @@ export default function InteractionPopUp({
               accept=".pdf,.docx,.jpg,.jpeg"
             />
           </div>
+
+          {/* Red Star Explanation */}
+          <p className="text-sm text-gray-400">
+            <span className="text-red-500">*</span> compulsory fields
+          </p>
 
           {/* Buttons */}
           <div className="flex items-center justify-between mt-5 space-x-4">

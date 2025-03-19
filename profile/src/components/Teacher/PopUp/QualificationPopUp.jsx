@@ -70,11 +70,11 @@ export default function QualificationPopUp({
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-80">
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-80 overflow-y-auto p-4">
       <Card
         color="transparent"
         shadow={false}
-        className="w-[90%] max-w-[700px] h-auto p-8 bg-gray-900 rounded-[20px]"
+        className="w-[90%] max-w-[700px] h-auto max-h-[90vh] p-8 bg-gray-900 rounded-[20px] overflow-y-auto"
       >
         <form
           className="text-white flex flex-col space-y-6"
@@ -83,7 +83,7 @@ export default function QualificationPopUp({
           {/* Degree Level Dropdown */}
           <div className="relative z-0 w-full group">
             <label htmlFor="degreeLevel" className="block text-sm">
-              Degree Level
+              Degree Level <span className="text-red-500">*</span>
             </label>
             <select
               name="degreeLevel"
@@ -105,7 +105,7 @@ export default function QualificationPopUp({
           {/* Institute */}
           <div className="relative z-0 w-full group">
             <label htmlFor="institute" className="block text-sm">
-              Institute
+              Institute <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -121,7 +121,7 @@ export default function QualificationPopUp({
           {/* Degree Name */}
           <div className="relative z-0 w-full group">
             <label htmlFor="degreeName" className="block text-sm">
-              Degree Name
+              Degree Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -137,7 +137,7 @@ export default function QualificationPopUp({
           {/* Year of Passing Dropdown */}
           <div className="relative z-0 w-full group">
             <label htmlFor="yearOfPassing" className="block text-sm">
-              Year of Passing
+              Year of Passing <span className="text-red-500">*</span>
             </label>
             <select
               name="yearOfPassing"
@@ -155,7 +155,7 @@ export default function QualificationPopUp({
           {/* Specialization */}
           <div className="relative z-0 w-full group">
             <label htmlFor="specialization" className="block text-sm">
-              Specialization
+              Specialization <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -167,6 +167,11 @@ export default function QualificationPopUp({
               required
             />
           </div>
+
+          {/* Red Star Explanation */}
+          <p className="text-sm text-gray-400">
+            <span className="text-red-500">*</span> compulsory fields
+          </p>
 
           {/* Buttons */}
           <div className="flex items-center justify-between mt-5 space-x-4">

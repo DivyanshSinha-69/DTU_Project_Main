@@ -29,8 +29,7 @@ export default function PatentPopUp({
 
   const handlePopupSubmit = (e) => {
     e.preventDefault();
-    const { patentName, patentPublish, inventorsName, patentAwardDate } =
-      formData;
+    const { patentName, patentPublish, inventorsName } = formData;
 
     // Validate required fields
     if (!patentName || !patentPublish || !inventorsName) {
@@ -45,11 +44,11 @@ export default function PatentPopUp({
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-80">
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-80 overflow-y-auto p-4">
       <Card
         color="transparent"
         shadow={false}
-        className="w-[90%] max-w-[700px] h-auto p-8 bg-gray-900 rounded-[20px]"
+        className="w-[90%] max-w-[700px] h-auto max-h-[90vh] p-8 bg-gray-900 rounded-[20px] overflow-y-auto"
       >
         <form
           className="text-white flex flex-col space-y-6"
@@ -58,7 +57,7 @@ export default function PatentPopUp({
           {/* Patent Name */}
           <div className="relative z-0 w-full group">
             <label htmlFor="patentName" className="block text-sm">
-              Patent Name
+              Patent Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -74,7 +73,7 @@ export default function PatentPopUp({
           {/* Inventors/Co-Inventors */}
           <div className="relative z-0 w-full group">
             <label htmlFor="inventorsName" className="block text-sm">
-              Inventors/Co-Inventors
+              Inventors/Co-Inventors <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -90,7 +89,7 @@ export default function PatentPopUp({
           {/* Publish Date */}
           <div className="relative z-0 w-full group">
             <label htmlFor="patentPublish" className="block text-sm">
-              Published Date
+              Published Date <span className="text-red-500">*</span>
             </label>
             <input
               type="date"
@@ -117,6 +116,11 @@ export default function PatentPopUp({
               value={formData.patentAwardDate}
             />
           </div>
+
+          {/* Red Star Explanation */}
+          <p className="text-sm text-gray-400">
+            <span className="text-red-500">*</span> compulsory fields
+          </p>
 
           {/* Buttons */}
           <div className="flex items-center justify-between mt-5 space-x-4">
