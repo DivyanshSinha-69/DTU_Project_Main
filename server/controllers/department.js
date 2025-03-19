@@ -852,7 +852,7 @@ const sendDeleteEmailNotifications = (emails, order_name, order_number, order_da
     html: `
       <p>Dear Faculty Member(s),</p>
       <p>We hope this email finds you well.</p>
-      <p>We would like to inform you that an Office Order previously assigned to you Department of Electronics and Communication engineering has been canceled. Please find the details below:</p>
+      <p>We would like to inform you that an Office Order previously assigned to you Department of Electronics and Communication engineering has been cancelled. Please find the details below:</p>
       <p><strong>Order Number:</strong> ${order_number}</p>
       <p><strong>Order Name:</strong> ${order_name}</p>
       <p><strong>Order Date:</strong> ${order_date}</p>
