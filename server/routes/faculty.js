@@ -105,30 +105,10 @@ router.delete(
 );
 
 // Research Paper Route
-router.get(
-  "/researchpaper/:faculty_id",
-  authorizeRoles("faculty"),
-  getResearchPapersByFaculty
-);
-router.post(
-  "/researchpaper",
-  authorizeRoles("faculty"),
-  uploadResearchPaper,
-  compressUploadedFile,
-  addResearchPaper
-);
-router.put(
-  "/researchpaper/:research_id",
-  authorizeRoles("faculty"),
-  uploadResearchPaper,
-  compressUploadedFile,
-  updateResearchPaper
-);
-router.delete(
-  "/researchpaper/:research_id",
-  authorizeRoles("faculty"),
-  deleteResearchPaper
-);
+router.get("/researchpaper/:faculty_id", authorizeRoles("faculty"), getResearchPapersByFaculty);
+router.post("/researchpaper", authorizeRoles("faculty"), uploadResearchPaper, compressUploadedFile, addResearchPaper);
+router.put("/researchpaper/:research_id", authorizeRoles("faculty"), uploadResearchPaper, compressUploadedFile, updateResearchPaper);
+router.delete("/researchpaper/:research_id", authorizeRoles("faculty"), deleteResearchPaper);
 
 // FDP routes
 router.get("/fdp-records", authorizeRoles("faculty"), getFDPRecords);
@@ -289,16 +269,8 @@ router.delete(
 router.get("/patent", authorizeRoles("faculty"), getFacultyPatents); // Get all patents
 router.get("/patent/:faculty_id", authorizeRoles("faculty"), getFacultyPatents); // Get patents by faculty_id
 router.post("/patent", authorizeRoles("faculty"), addFacultyPatent); // Add a new patent
-router.put(
-  "/patent/:patent_id",
-  authorizeRoles("faculty"),
-  updateFacultyPatent
-); // Update a patent
-router.delete(
-  "/patent/:patent_id",
-  authorizeRoles("faculty"),
-  deleteFacultyPatent
-); // Delete a patent
+router.put("/patent/:patent_id", authorizeRoles("faculty"), updateFacultyPatent); // Update a patent
+router.delete("/patent/:patent_id", authorizeRoles("faculty"), deleteFacultyPatent); // Delete a patent
 
 // Faculty Qualification Routes
 router.get("/qualification", authorizeRoles("faculty"), getFacultyQualifications);
@@ -313,16 +285,8 @@ router.get("/circulars", authorizeRoles("faculty"), getCirculars);
 
 router.put("/last-seen", authorizeRoles("faculty"), updateLastSeen);
 
-router.put(
-  "/duty-orders/mark_seen",
-  authorizeRoles("faculty"),
-  markDutyOrderAsSeen
-);
-router.get(
-  "/faculty-mapping",
-  authorizeRoles("department", "faculty"),
-  getFacultyMappingByDepartment
-);
+router.put("/duty-orders/mark_seen", authorizeRoles("faculty"), markDutyOrderAsSeen);
+router.get("/faculty-mapping", authorizeRoles("department", "faculty"), getFacultyMappingByDepartment);
 
 router.get("/faculty-mapping", authorizeRoles("faculty", "department"), getFacultyMappingByDepartment);
 
