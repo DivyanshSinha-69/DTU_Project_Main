@@ -26,7 +26,9 @@ const Forgot = () => {
       const response = await axios.post(endpoint, { email });
       setMessage(response.data.message);
       setError("");
-      setTimeout(() => navigate(`/dtu-eceportal.com/login`), 3000);
+      setTimeout(() => {
+        window.location.href = "https://www.dtu-eceportal.com/login"; // Redirect after 3 seconds
+      }, 3000);
     } catch (error) {
       setError(error.response?.data?.message || "An error occurred");
       setMessage("");
