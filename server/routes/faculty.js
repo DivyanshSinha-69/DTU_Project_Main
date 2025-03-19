@@ -132,18 +132,9 @@ router.delete(
 
 // FDP routes
 router.get("/fdp-records", authorizeRoles("faculty"), getFDPRecords);
-router.get(
-  "/fdp-records/:faculty_id",
-  authorizeRoles("faculty"),
-  getFDPRecords
-);
 router.post("/fdp-records", authorizeRoles("faculty"), addFDPRecord);
 router.put("/fdp-records/:FDP_id", authorizeRoles("faculty"), updateFDPRecord);
-router.delete(
-  "/fdp-records/:FDP_id",
-  authorizeRoles("faculty"),
-  deleteFDPRecord
-);
+router.delete("/fdp-records/:FDP_id", authorizeRoles("faculty"), deleteFDPRecord);
 
 // Interaction routes
 router.get(
@@ -271,22 +262,9 @@ router.delete(
 
 // Specialization Routes
 router.get("/specializations", authorizeRoles("faculty"), getSpecializations);
-router.get(
-  "/specializations/:faculty_id",
-  authorizeRoles("faculty"),
-  getSpecializations
-);
 router.post("/specializations", authorizeRoles("faculty"), addSpecialization);
-router.put(
-  "/specializations/:specialization_id",
-  authorizeRoles("faculty"),
-  updateSpecialization
-);
-router.delete(
-  "/specializations/:specialization_id",
-  authorizeRoles("faculty"),
-  deleteSpecialization
-);
+router.put("/specializations/:specialization_id", authorizeRoles("faculty"), updateSpecialization);
+router.delete("/specializations/:specialization_id", authorizeRoles("faculty"), deleteSpecialization);
 
 // Faculty Image Routes
 router.get(
@@ -323,26 +301,10 @@ router.delete(
 ); // Delete a patent
 
 // Faculty Qualification Routes
-router.get(
-  "/qualification/:faculty_id?",
-  authorizeRoles("faculty"),
-  getFacultyQualifications
-);
-router.post(
-  "/qualification",
-  authorizeRoles("faculty"),
-  addFacultyQualification
-);
-router.put(
-  "/qualification/:education_id",
-  authorizeRoles("faculty"),
-  updateFacultyQualification
-);
-router.delete(
-  "/qualification/:education_id",
-  authorizeRoles("faculty"),
-  deleteFacultyQualification
-);
+router.get("/qualification", authorizeRoles("faculty"), getFacultyQualifications);
+router.post("/qualification", authorizeRoles("faculty"), addFacultyQualification);
+router.put("/qualification/:education_id", authorizeRoles("faculty"), updateFacultyQualification);
+router.delete("/qualification/:education_id", authorizeRoles("faculty"), deleteFacultyQualification);
 
 // Duty Orders Route
 router.get("/duty-orders", authorizeRoles("faculty"), getUserDutyOrders);
