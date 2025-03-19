@@ -4,35 +4,18 @@ import toast from "react-hot-toast";
 
 export default function FacultyDevelopmentPopUp({
   programName,
-  year,
-  month,
-  days,
   type,
+  startDate,
+  endDate,
   closeModal,
   handleAddFDP,
 }) {
   const [formData, setFormData] = useState({
     programName: programName || "",
-    year: year || "",
-    month: month || "",
-    days: days || "",
     type: type || "Conducted", // Default to "Conducted"
+    startDate: startDate || "",
+    endDate: endDate || "",
   });
-
-  const months = [
-    { name: "January", value: 1 },
-    { name: "February", value: 2 },
-    { name: "March", value: 3 },
-    { name: "April", value: 4 },
-    { name: "May", value: 5 },
-    { name: "June", value: 6 },
-    { name: "July", value: 7 },
-    { name: "August", value: 8 },
-    { name: "September", value: 9 },
-    { name: "October", value: 10 },
-    { name: "November", value: 11 },
-    { name: "December", value: 12 },
-  ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -44,9 +27,9 @@ export default function FacultyDevelopmentPopUp({
 
   const handlePopupSubmit = async (e) => {
     e.preventDefault();
-    const { programName, year, month, days, type } = formData;
+    const { programName, type, startDate, endDate } = formData;
 
-    if (!programName || !year || !month || !days || !type) {
+    if (!programName || !type || !startDate || !endDate) {
       toast.error("Please fill in all required fields.");
       return;
     }
@@ -55,19 +38,6 @@ export default function FacultyDevelopmentPopUp({
       handleAddFDP(formData);
     }
     closeModal();
-  };
-
-  const generateYearOptions = () => {
-    const currentYear = new Date().getFullYear();
-    const years = [];
-    for (let year = 2020; year <= currentYear; year++) {
-      years.push(year);
-    }
-    return years.map((year) => (
-      <option key={year} value={year}>
-        {year}
-      </option>
-    ));
   };
 
   return (
@@ -116,60 +86,35 @@ export default function FacultyDevelopmentPopUp({
             </select>
           </div>
 
-          {/* Year Conducted Dropdown */}
+          {/* Start Date */}
           <div className="relative z-0 w-full group">
-            <label htmlFor="year" className="block text-sm">
-              Year <span className="text-red-500">*</span>
-            </label>
-            <select
-              name="year"
-              id="year"
-              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onChange={handleChange}
-              value={formData.year}
-              required
-            >
-              <option value="">Select Year</option>
-              {generateYearOptions()}
-            </select>
-          </div>
-
-          {/* Month Conducted Dropdown */}
-          <div className="relative z-0 w-full group">
-            <label htmlFor="month" className="block text-sm">
-              Month <span className="text-red-500">*</span>
-            </label>
-            <select
-              name="month"
-              id="month"
-              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onChange={handleChange}
-              value={formData.month}
-              required
-            >
-              <option value="">Select Month</option>
-              {months.map((month) => (
-                <option key={month.value} value={month.name}>
-                  {month.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Days Contributed */}
-          <div className="relative z-0 w-full group">
-            <label htmlFor="days" className="block text-sm">
-              Duration (in days) <span className="text-red-500">*</span>
+            <label htmlFor="startDate" className="block text-sm">
+              Start Date <span className="text-red-500">*</span>
             </label>
             <input
-              type="number"
-              name="days"
-              id="days"
+              type="date"
+              name="startDate"
+              id="startDate"
               className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               onChange={handleChange}
-              value={formData.days}
+              value={formData.startDate}
               required
-              min="1"
+            />
+          </div>
+
+          {/* End Date */}
+          <div className="relative z-0 w-full group">
+            <label htmlFor="endDate" className="block text-sm">
+              End Date <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="date"
+              name="endDate"
+              id="endDate"
+              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={handleChange}
+              value={formData.endDate}
+              required
             />
           </div>
 

@@ -32,10 +32,10 @@ const Guidance = ({ setBlurActive }) => {
   const API_BASE_URL = "/ece/faculty";
   const fetchPhDs = async () => {
     try {
-      const response = await API.get(`/ece/faculty/guidance/${facultyId}`);
-      if (Array.isArray(response.data)) {
+      const response = await API.get(`/ece/faculty/guidance?=${facultyId}`);
+      if (Array.isArray(response.data.data)) {
         setPhdDetails(
-          response.data.map((record) => ({
+          response.data.data.map((record) => ({
             Guidance_id: record.Guidance_id,
             menteeName: record.mentee_name,
             rollNo: record.mentee_rn,

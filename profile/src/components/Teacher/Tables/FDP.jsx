@@ -21,9 +21,16 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
   const { faculty_id } = user;
   const { darkMode } = useThemeContext();
   const facultyId = faculty_id;
+  const formatDate = (isoDate) => {
+    if (!isoDate) return ""; // Handle null/undefined cases
+    const date = new Date(isoDate);
+    return date.toLocaleDateString("en-GB"); // "dd/mm/yyyy" format
+  };
   const fetchFDPDetails = async () => {
     try {
-      const response = await API.get(`/ece/faculty/fdp-records/${facultyId}`);
+      const response = await API.get(
+        `/ece/faculty/fdp-records?faculty_id=${facultyId}`
+      );
 
       if (Array.isArray(response.data.data)) {
         setFdpDetails(
@@ -31,9 +38,9 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
             FDP_id: fdp.FDP_id,
             FDP_name: fdp.FDP_name,
             FDP_progress: fdp.FDP_progress,
-            year_conducted: fdp.year_conducted,
-            month_conducted: fdp.month_conducted,
-            days_contributed: fdp.days_contributed,
+            start_date: formatDate(fdp?.start_date),
+            end_date: formatDate(fdp?.end_date),
+            days_contributed: fdp.days_contributed, // Display days_contributed from backend
           }))
         );
       }
@@ -42,6 +49,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
       toast.error("Error while fetching FDP details");
     }
   };
+
   useEffect(() => {
     fetchFDPDetails();
   }, []);
@@ -59,16 +67,16 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
   };
 
   const handleAddFDP = async (newFDP) => {
-    const { programName, year, month, days, type } = newFDP;
+    const { programName, type, startDate, endDate } = newFDP;
 
     const payload = {
       faculty_id: facultyId,
       FDP_name: programName,
-      year_conducted: year,
-      month_conducted: month,
-      days_contributed: days,
       FDP_progress: type,
+      start_date: startDate,
+      end_date: endDate,
     };
+
     try {
       let response;
       if (isAddFDP) {
@@ -82,7 +90,6 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
 
       if (response && response.data) {
         toast.success("FDP record successfully saved");
-
         closePopup();
         fetchFDPDetails();
       } else {
@@ -96,11 +103,10 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
 
   const TABLE_HEAD = [
     "FDP/Short Term Training Program",
-    "Type", // Add the Type column
-
-    "Year of Participation",
-    "Month of Participation",
-    "Duration(in days)",
+    "Type",
+    "Start Date",
+    "End Date",
+    "Duration (in days)",
     "Actions",
   ];
 
@@ -118,25 +124,25 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
       toast.error("Error while deleting FDP");
     }
   };
-
+  const formatDateForInputPopup = (date) => {
+    if (!date) return ""; // Handle null/undefined cases
+    const [day, month, year] = date.split("/");
+    return `${year}-${month}-${day}`; // yyyy-MM-dd
+  };
   return (
     <>
-      {/* Header Section */}
-
-      {/* Reusable Custom Table Component */}
       <CustomTable
         title="FDP/Short Term Training Program"
         subtitle="(Details of FDP/Short Term Training Program)"
         columns={[
           { key: "FDP_name", label: "Program Name" },
           { key: "FDP_progress", label: "Type" },
-          { key: "year_conducted", label: "Year" },
-          { key: "month_conducted", label: "Month" },
-          { key: "days_contributed", label: "Duration(in days)" },
-          // Add the Type column
+          { key: "start_date", label: "Start Date" },
+          { key: "end_date", label: "End Date" },
+          { key: "days_contributed", label: "Duration (in days)" },
           { key: "actions", label: "Actions" },
         ]}
-        data={fdpDetails} // FDP data array
+        data={fdpDetails}
         actions={{
           edit: (fdp) => {
             setIsAddFDP(false);
@@ -161,7 +167,6 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
         }}
       />
 
-      {/* Popup for Adding/Editing FDP */}
       <Popup
         open={isPopupOpen}
         onClose={closePopup}
@@ -172,10 +177,9 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
           {isAddFDP ? (
             <FDPPopUp
               programName=""
-              year=""
-              month=""
-              days=""
               type=""
+              startDate=""
+              endDate=""
               closeModal={closePopup}
               handleAddFDP={handleAddFDP}
             />
@@ -183,10 +187,9 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
             selectedFDP && (
               <FDPPopUp
                 programName={selectedFDP.FDP_name}
-                year={selectedFDP.year_conducted}
-                month={selectedFDP.month_conducted}
-                days={selectedFDP.days_contributed}
                 type={selectedFDP.FDP_progress}
+                startDate={formatDateForInputPopup(selectedFDP?.start_date)}
+                endDate={formatDateForInputPopup(selectedFDP?.end_date)}
                 closeModal={closePopup}
                 handleAddFDP={handleAddFDP}
               />
@@ -197,4 +200,5 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
     </>
   );
 };
+
 export default FacultyDevelopmentProgram;
