@@ -1164,7 +1164,7 @@ export const deleteBookRecord = (req, res) => {
 
 // 1️⃣ Get faculty guidance records
 export const getFacultyGuidanceRecords = (req, res) => {
-  const { faculty_id } = req.params;
+  const { faculty_id } = req.query;
 
   let query = `SELECT * FROM faculty_guidance`;
   const params = [];
