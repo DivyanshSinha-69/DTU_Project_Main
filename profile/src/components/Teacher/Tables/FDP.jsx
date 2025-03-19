@@ -31,7 +31,7 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
       const response = await API.get(
         `/ece/faculty/fdp-records?faculty_id=${facultyId}`
       );
-
+      console.log(response.data.data);
       if (Array.isArray(response.data.data)) {
         if (response.data.data.length === 0) {
           setFdpDetails([]);
@@ -50,7 +50,6 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
       }
     } catch (error) {
       console.error("Error fetching FDP details:", error);
-      toast.error("Error while fetching FDP details");
     }
   };
 
