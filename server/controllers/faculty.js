@@ -1544,72 +1544,83 @@ export const deleteSponsoredResearch = (req, res) => {
 
 // Get consultancy records by faculty_id
 export const getConsultancyByFaculty = (req, res) => {
-  const { faculty_id } = req.params;
+  const { faculty_id } = req.query;
 
-  const query = `SELECT * FROM faculty_consultancy WHERE faculty_id = ?`;
-  const queryParams = [faculty_id];
+  let query = "SELECT * FROM faculty_consultancy";
+  let queryParams = [];
+
+  if (faculty_id) {
+    query += " WHERE faculty_id = ?";
+    queryParams.push(faculty_id);
+  }
 
   pool.query(query, queryParams, (err, result) => {
     if (err) {
-      return res
-        .status(500)
-        .json({ message: "Error fetching consultancy records", error: err });
+      return res.status(500).json({ 
+        message: "Error fetching Consultancy records", 
+        error: err 
+      });
     }
     if (result.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No consultancy records found for this faculty" });
+      return res.status(404).json({ 
+        message: faculty_id 
+          ? "No consultancy records found for this faculty" 
+          : "No consultancy records found" 
+      });
     }
     res.status(200).json(result);
   });
 };
 
-// Add a new consultancy record
 export const addConsultancy = (req, res) => {
   const {
     faculty_id,
     project_title,
     funding_agency,
     amount_sponsored,
-    research_duration,
     start_date,
     end_date,
+    status,
   } = req.body;
 
-  if (!faculty_id || !project_title || !start_date) {
+  const document = req.file ? req.file.path : null; // Get uploaded file path
+
+  if (!faculty_id || !project_title || !start_date || !funding_agency || !amount_sponsored || !document || !status) {
     return res.status(400).json({
-      message: "Faculty ID, Project Title, and Start Date are required",
+      message: "All fields except end_date are required",
     });
   }
 
   const query = `
-    INSERT INTO faculty_consultancy (faculty_id, project_title, funding_agency, amount_sponsored, research_duration, start_date, end_date)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO faculty_consultancy
+    (faculty_id, project_title, funding_agency, amount_sponsored, start_date, end_date, status, document)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `;
   const queryParams = [
     faculty_id,
     project_title,
     funding_agency,
     amount_sponsored,
-    research_duration,
     start_date,
-    end_date,
+    end_date || null, // Allow null end_date for ongoing projects
+    status,
+    document,
   ];
 
   pool.query(query, queryParams, (err, result) => {
     if (err) {
-      return res
-        .status(500)
-        .json({ message: "Error adding consultancy record", error: err });
+      return res.status(500).json({ 
+        message: "Error adding Consultancy record", 
+        error: err 
+      });
     }
     res.status(201).json({
-      message: "Consultancy record added successfully",
+      message: "Consultancy Record added successfully",
       consultancy_id: result.insertId,
     });
   });
 };
 
-// Update an existing consultancy record
 export const updateConsultancy = (req, res) => {
   const { consultancy_id } = req.params;
   const {
@@ -1617,63 +1628,123 @@ export const updateConsultancy = (req, res) => {
     project_title,
     funding_agency,
     amount_sponsored,
-    research_duration,
     start_date,
     end_date,
+    status,
   } = req.body;
 
-  const query = `
-    UPDATE faculty_consultancy
-    SET faculty_id = ?, project_title = ?, funding_agency = ?, amount_sponsored = ?, research_duration = ?, start_date = ?, end_date = ?
-    WHERE consultancy_id = ?
-  `;
-  const queryParams = [
-    faculty_id,
-    project_title,
-    funding_agency,
-    amount_sponsored,
-    research_duration,
-    start_date,
-    end_date,
-    consultancy_id,
-  ];
+  const document = req.file ? req.file.path : null; // Get new uploaded file path
 
-  pool.query(query, queryParams, (err, result) => {
+  if (!faculty_id || !project_title || !start_date || !funding_agency || !amount_sponsored || !status) {
+    return res.status(400).json({
+      message: "All fields except end_date are required",
+    });
+  }
+
+  // 1️⃣ Get the old document path before updating
+  const getOldDocumentQuery = `SELECT document FROM faculty_consultancy WHERE consultancy_id = ?`;
+  
+  pool.query(getOldDocumentQuery, [consultancy_id], (err, results) => {
     if (err) {
-      return res
-        .status(500)
-        .json({ message: "Error updating consultancy record", error: err });
+      return res.status(500).json({ message: "Error fetching old document", error: err });
     }
-    if (result.affectedRows === 0) {
+    
+    if (results.length === 0) {
       return res.status(404).json({ message: "Consultancy record not found" });
     }
-    res
-      .status(200)
-      .json({ message: "Consultancy record updated successfully" });
+
+    const oldDocumentPath = results[0].document; // Store old file path
+
+    // 2️⃣ Build the update query
+    let updateQuery = `
+      UPDATE faculty_consultancy
+      SET faculty_id = ?, project_title = ?, funding_agency = ?, amount_sponsored = ?, start_date = ?, end_date = ?, status = ?
+    `;
+    let queryParams = [
+      faculty_id,
+      project_title,
+      funding_agency,
+      amount_sponsored,
+      start_date,
+      end_date || null, // Allow null end_date for ongoing projects
+      status,
+    ];
+
+    if (document) {
+      updateQuery += ", document = ?";
+      queryParams.push(document);
+    }
+
+    updateQuery += " WHERE consultancy_id = ?";
+    queryParams.push(consultancy_id);
+
+    // 3️⃣ Update the record in the database
+    pool.query(updateQuery, queryParams, (updateErr, result) => {
+      if (updateErr) {
+        return res.status(500).json({ message: "Error updating consultancy record", error: updateErr });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: "Consultancy record not found" });
+      }
+
+      // 4️⃣ Delete old document if a new file was uploaded
+      if (document && oldDocumentPath) {
+        fs.unlink(oldDocumentPath, (unlinkErr) => {
+          if (unlinkErr) {
+            console.error("Error deleting old document:", unlinkErr);
+          }
+        });
+      }
+
+      res.status(200).json({ message: "Consultancy record updated successfully" });
+    });
   });
 };
 
-// Delete a consultancy record
+
 export const deleteConsultancy = (req, res) => {
   const { consultancy_id } = req.params;
 
-  const query = `DELETE FROM faculty_consultancy WHERE consultancy_id = ?`;
-  const queryParams = [consultancy_id];
+  // 1️⃣ Fetch the document path before deleting the record
+  const getDocumentQuery = `SELECT document FROM faculty_consultancy WHERE consultancy_id = ?`;
 
-  pool.query(query, queryParams, (err, result) => {
+  pool.query(getDocumentQuery, [consultancy_id], (err, results) => {
     if (err) {
-      return res
-        .status(500)
-        .json({ message: "Error deleting consultancy record", error: err });
+      return res.status(500).json({ message: "Error fetching document path", error: err });
     }
-    if (result.affectedRows === 0) {
+
+    if (results.length === 0) {
       return res.status(404).json({ message: "Consultancy record not found" });
     }
-    res
-      .status(200)
-      .json({ message: "Consultancy record deleted successfully" });
+
+    const documentPath = results[0].document; // Store document file path
+
+    // 2️⃣ Delete the record from the database
+    const deleteQuery = `DELETE FROM faculty_consultancy WHERE consultancy_id = ?`;
+    pool.query(deleteQuery, [consultancy_id], (deleteErr, result) => {
+      if (deleteErr) {
+        return res.status(500).json({ message: "Error deleting consultancy record", error: deleteErr });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: "Consultancy record not found" });
+      }
+
+      // 3️⃣ Delete the associated file from storage
+      if (documentPath) {
+        fs.unlink(documentPath, (unlinkErr) => {
+          if (unlinkErr) {
+            console.error("⚠️ Error deleting file:", unlinkErr);
+          }
+        });
+      }
+
+      res.status(200).json({ message: "Consultancy record deleted successfully" });
+    });
   });
 };
+
 
 export const getFacultyDetails = (req, res) => {
   const { faculty_id } = req.params; // Get faculty_id from route parameters (if provided)
