@@ -200,7 +200,7 @@ const Faculty = () => {
     },
     {
       id: "fdp",
-      label: "Participation in Faculty development/Training activities/STTP",
+      label: "FDP/Short Term Training Program",
     },
     { id: "phds", label: "PhD Guidance Details" },
     { id: "sponsored-research", label: "Sponsored Research" },
