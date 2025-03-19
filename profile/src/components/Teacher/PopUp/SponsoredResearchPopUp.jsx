@@ -31,7 +31,7 @@ export default function SponsoredResearchPopUp({
 
   const handlePopupSubmit = async (e) => {
     e.preventDefault();
-    const { title, agency, amount, duration, startDate, endDate } = formData;
+    const { title, agency, amount, duration, startDate } = formData;
 
     if (!title || !agency || !amount || !duration || !startDate) {
       toast.error("Please fill in all required fields.");
@@ -45,11 +45,11 @@ export default function SponsoredResearchPopUp({
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-80">
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-80 overflow-y-auto p-4">
       <Card
         color="transparent"
         shadow={false}
-        className="w-[90%] max-w-[700px] h-auto p-8 bg-gray-900 rounded-[20px]"
+        className="w-[90%] max-w-[700px] h-auto max-h-[90vh] p-8 bg-gray-900 rounded-[20px] overflow-y-auto"
       >
         <form
           className="text-white flex flex-col space-y-6"
@@ -58,7 +58,7 @@ export default function SponsoredResearchPopUp({
           {/* Project Title */}
           <div className="relative z-0 w-full group">
             <label htmlFor="title" className="block text-sm">
-              Project Title
+              Project Title <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -74,7 +74,7 @@ export default function SponsoredResearchPopUp({
           {/* Funding Agency */}
           <div className="relative z-0 w-full group">
             <label htmlFor="agency" className="block text-sm">
-              Funding Agency
+              Funding Agency <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -90,7 +90,7 @@ export default function SponsoredResearchPopUp({
           {/* Amount Sponsored */}
           <div className="relative z-0 w-full group">
             <label htmlFor="amount" className="block text-sm">
-              Amount Sponsored
+              Amount Sponsored <span className="text-red-500">*</span>
             </label>
             <input
               type="number"
@@ -107,7 +107,7 @@ export default function SponsoredResearchPopUp({
           {/* Research Duration */}
           <div className="relative z-0 w-full group">
             <label htmlFor="duration" className="block text-sm">
-              Research Duration (Years)
+              Research Duration (Years) <span className="text-red-500">*</span>
             </label>
             <input
               type="number"
@@ -126,7 +126,7 @@ export default function SponsoredResearchPopUp({
             {/* Start Date */}
             <div className="relative z-0 w-1/2 group">
               <label htmlFor="startDate" className="block text-sm">
-                Start Date
+                Start Date <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
@@ -154,6 +154,11 @@ export default function SponsoredResearchPopUp({
               />
             </div>
           </div>
+
+          {/* Red Star Explanation */}
+          <p className="text-sm text-gray-400">
+            <span className="text-red-500">*</span> compulsory fields
+          </p>
 
           {/* Buttons */}
           <div className="flex items-center justify-between mt-5 space-x-4">

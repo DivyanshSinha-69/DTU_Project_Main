@@ -19,6 +19,7 @@ export default function PhDsAwardedPopUp({
     degree: degree || "PhD", // Default to PhD
     PHD_id: PHD_id || "",
     passingMonth: passingMonth || "",
+    document: null, // Add document field
   });
 
   const handleChange = (e) => {
@@ -29,9 +30,28 @@ export default function PhDsAwardedPopUp({
     }));
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        // 5MB limit
+        toast.error("File size must be less than 5MB");
+        return;
+      }
+      if (!file.type.includes("pdf") && !file.type.includes("docx")) {
+        toast.error("Only PDF and DOCX files are allowed");
+        return;
+      }
+      setFormData((prevData) => ({
+        ...prevData,
+        document: file,
+      }));
+    }
+  };
+
   const handlePopupSubmit = (e) => {
     e.preventDefault();
-    const { menteeName, degree, rollNo, passingMonth, passingYear, PHD_id } =
+    const { menteeName, degree, rollNo, passingMonth, passingYear, document } =
       formData;
 
     if (!menteeName || !rollNo || !passingYear || !passingMonth || !degree) {
@@ -57,6 +77,7 @@ export default function PhDsAwardedPopUp({
       </option>
     ));
   };
+
   const generateMonthOptions = () => {
     const months = [
       "January",
@@ -93,7 +114,7 @@ export default function PhDsAwardedPopUp({
           {/* Mentee Name */}
           <div className="relative z-0 w-full group">
             <label htmlFor="menteeName" className="block text-sm">
-              Mentee Name
+              Mentee Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -109,7 +130,7 @@ export default function PhDsAwardedPopUp({
           {/* Roll No */}
           <div className="relative z-0 w-full group">
             <label htmlFor="rollNo" className="block text-sm">
-              Roll No
+              Roll No <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -121,10 +142,11 @@ export default function PhDsAwardedPopUp({
               required
             />
           </div>
+
           {/* Degree Dropdown */}
           <div className="relative z-0 w-full group">
             <label htmlFor="degree" className="block text-sm">
-              Degree
+              Degree <span className="text-red-500">*</span>
             </label>
             <select
               name="degree"
@@ -134,14 +156,16 @@ export default function PhDsAwardedPopUp({
               value={formData.degree}
               required
             >
+              <option value="Undergraduate">Undergraduate</option>
+              <option value="Postgraduate">Postgraduate</option>
               <option value="PhD">PhD</option>
-              <option value="M.Tech">M.Tech</option>
             </select>
           </div>
+
           {/* Passing Month Dropdown */}
           <div className="relative z-0 w-full group">
             <label htmlFor="passingMonth" className="block text-sm">
-              Passing Month
+              Passing Month <span className="text-red-500">*</span>
             </label>
             <select
               name="passingMonth"
@@ -159,7 +183,7 @@ export default function PhDsAwardedPopUp({
           {/* Passing Year Dropdown */}
           <div className="relative z-0 w-full group">
             <label htmlFor="passingYear" className="block text-sm">
-              Passing Year
+              Passing Year <span className="text-red-500">*</span>
             </label>
             <select
               name="passingYear"
@@ -173,6 +197,26 @@ export default function PhDsAwardedPopUp({
               {generateYearOptions()}
             </select>
           </div>
+
+          {/* Document Upload */}
+          <div className="relative z-0 w-full group">
+            <label htmlFor="document" className="block text-sm">
+              Upload Document (PDF/DOCX)
+            </label>
+            <input
+              type="file"
+              name="document"
+              id="document"
+              accept=".pdf,.docx"
+              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={handleFileChange}
+            />
+          </div>
+
+          {/* Red Star Explanation */}
+          <p className="text-sm text-gray-400">
+            <span className="text-red-500">*</span> compulsory fields
+          </p>
 
           {/* Buttons */}
           <div className="flex items-center justify-between mt-5 space-x-4">

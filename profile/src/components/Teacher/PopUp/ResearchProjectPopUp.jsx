@@ -18,7 +18,9 @@ export default function ResearchProjectPopup({
     pdf: null,
   });
 
-  const [showOtherInput, setShowOtherInput] = useState(false); // State to toggle "Other" input field
+  const [showOtherInput, setShowOtherInput] = useState(false); // State to toggle "Other" input field for Area of Research
+  const [showOtherTypeOfPaperInput, setShowOtherTypeOfPaperInput] =
+    useState(false); // State to toggle "Other" input field for Type of Paper
 
   const specializationOptions = [
     "Image processing",
@@ -75,6 +77,13 @@ export default function ResearchProjectPopup({
       if (!specializationOptions.includes(project.AreaOfResearch)) {
         setShowOtherInput(true);
       }
+
+      // Check if the type of paper is "Other"
+      if (
+        !["Conference", "Journal", "Book Chapter"].includes(project.TypeOfPaper)
+      ) {
+        setShowOtherTypeOfPaperInput(true);
+      }
     }
   }, [project]);
 
@@ -90,6 +99,13 @@ export default function ResearchProjectPopup({
       setShowOtherInput(true);
     } else if (name === "areaOfResearch") {
       setShowOtherInput(false);
+    }
+
+    // Handle "Other" selection in Type of Paper
+    if (name === "typeOfPaper" && value === "Other") {
+      setShowOtherTypeOfPaperInput(true);
+    } else if (name === "typeOfPaper") {
+      setShowOtherTypeOfPaperInput(false);
     }
   };
 
@@ -143,22 +159,16 @@ export default function ResearchProjectPopup({
         shadow={false}
         className="w-[90%] max-w-[700px] max-h-[90vh] bg-gray-900 rounded-[20px] overflow-hidden flex flex-col"
       >
-        {/* Header */}
-        <div className="p-6 border-b border-gray-700">
-          <h2 className="text-xl font-semibold text-white">
-            {project ? "Edit Research Project" : "Add Research Project"}
-          </h2>
-        </div>
-
         {/* Scrollable Content */}
         <div className="overflow-y-auto flex-1 p-6">
           <form
             onSubmit={handleSubmit}
             className="text-white flex flex-col space-y-6"
           >
+            {/* Title Field */}
             <div className="relative z-0 w-full group">
               <label htmlFor="title" className="block text-sm">
-                Title
+                Title <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -171,9 +181,10 @@ export default function ResearchProjectPopup({
               />
             </div>
 
+            {/* Type of Paper Field */}
             <div className="relative z-0 w-full group">
               <label htmlFor="typeOfPaper" className="block text-sm">
-                Type of Paper
+                Type of Paper <span className="text-red-500">*</span>
               </label>
               <select
                 name="typeOfPaper"
@@ -189,9 +200,35 @@ export default function ResearchProjectPopup({
               </select>
             </div>
 
+            {/* Show input field if "Other" is selected for Type of Paper */}
+            {showOtherTypeOfPaperInput && (
+              <div className="relative z-0 w-full group">
+                <label htmlFor="otherTypeOfPaper" className="block text-sm">
+                  Specify Other Type of Paper{" "}
+                  <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="otherTypeOfPaper"
+                  className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter other type of paper"
+                  onChange={(e) =>
+                    setFormData((prevData) => ({
+                      ...prevData,
+                      typeOfPaper: e.target.value,
+                    }))
+                  }
+                  value={
+                    formData.typeOfPaper === "Other" ? "" : formData.typeOfPaper
+                  }
+                />
+              </div>
+            )}
+
+            {/* Area of Research Field */}
             <div className="relative z-0 w-full group">
               <label htmlFor="areaOfResearch" className="block text-sm">
-                Area of Research
+                Area of Research <span className="text-red-500">*</span>
               </label>
               <select
                 name="areaOfResearch"
@@ -209,11 +246,12 @@ export default function ResearchProjectPopup({
               </select>
             </div>
 
-            {/* Show input field if "Other" is selected */}
+            {/* Show input field if "Other" is selected for Area of Research */}
             {showOtherInput && (
               <div className="relative z-0 w-full group">
                 <label htmlFor="otherAreaOfResearch" className="block text-sm">
-                  Specify Other Area of Research
+                  Specify Other Area of Research{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -235,9 +273,10 @@ export default function ResearchProjectPopup({
               </div>
             )}
 
+            {/* Published Year Field */}
             <div className="relative z-0 w-full group">
               <label htmlFor="publishedYear" className="block text-sm">
-                Published Year
+                Published Year <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
@@ -249,6 +288,7 @@ export default function ResearchProjectPopup({
               />
             </div>
 
+            {/* Citation Field */}
             <div className="relative z-0 w-full group">
               <label htmlFor="citation" className="block text-sm">
                 Citation
@@ -263,6 +303,7 @@ export default function ResearchProjectPopup({
               />
             </div>
 
+            {/* Authors/Co-Authors Field */}
             <div className="relative z-0 w-full group">
               <label htmlFor="authors" className="block text-sm">
                 Authors/Co-Authors
@@ -277,6 +318,7 @@ export default function ResearchProjectPopup({
               />
             </div>
 
+            {/* Upload Document Field */}
             <div className="relative z-0 w-full group">
               <label htmlFor="document" className="block text-sm">
                 Upload Document
@@ -289,25 +331,28 @@ export default function ResearchProjectPopup({
                 onChange={handleFileChange}
               />
             </div>
-          </form>
-        </div>
 
-        {/* Footer */}
-        <div className="p-6 border-t border-gray-700 flex justify-end space-x-4">
-          <button
-            type="button"
-            onClick={closeModal}
-            className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            onClick={handleSubmit}
-            className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-          >
-            Save Project
-          </button>
+            {/* Red Star Explanation */}
+            <p className="text-sm text-gray-400">
+              <span className="text-red-500">*</span> compulsory fields
+            </p>
+            <div className="flex items-center justify-between mt-5 space-x-4">
+              <button
+                type="submit"
+                onClick={handleSubmit}
+                className="w-full px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={closeModal}
+                className="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
         </div>
       </Card>
     </div>

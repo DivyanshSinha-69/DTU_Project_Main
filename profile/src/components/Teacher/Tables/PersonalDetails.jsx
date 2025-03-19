@@ -22,17 +22,19 @@ const PersonalDetails = ({ setBlurActive }) => {
   });
   const [specializations, setSpecializations] = useState([]);
   const [newSpecialization, setNewSpecialization] = useState("");
+  const [isOtherSelected, setIsOtherSelected] = useState(false);
+  const [customSpecialization, setCustomSpecialization] = useState("");
 
   const [isPopupOpen, setPopupOpen] = useState(false);
 
   const openPopup = () => {
     setPopupOpen(true);
-    setBlurActive(true); // Activate blur when opening the popup
+    setBlurActive(true);
   };
 
   const closePopup = () => {
     setPopupOpen(false);
-    setBlurActive(false); // Deactivate blur when closing the popup
+    setBlurActive(false);
   };
 
   const fetchFacultyDetails = async () => {
@@ -45,8 +47,7 @@ const PersonalDetails = ({ setBlurActive }) => {
         setPersonalDetails({
           name: faculty.faculty_name || "",
           highestDegree: faculty.degree || "",
-          degreeYear: faculty.year_of_attaining_highest_degree || "", // Assuming same as qualification year
-
+          degreeYear: faculty.year_of_attaining_highest_degree || "",
           email: faculty.email_id || "",
           contactNo: faculty.mobile_number || "",
         });
@@ -63,7 +64,7 @@ const PersonalDetails = ({ setBlurActive }) => {
         {
           faculty_name: updatedData.name,
           degree: updatedData.highestDegree,
-          university: "", // Add if needed
+          university: "",
           year_of_attaining_highest_degree: updatedData.degreeYear,
           email_id: updatedData.email,
           mobile_number: updatedData.contactNo,
@@ -81,10 +82,14 @@ const PersonalDetails = ({ setBlurActive }) => {
   const fetchSpecializations = async () => {
     try {
       const response = await API.get(
-        `/ece/faculty/specializations/${facultyId}`
+        `/ece/faculty/specializations?faculty_id=${facultyId}`
       );
-      if (Array.isArray(response.data.data)) {
-        setSpecializations(response.data.data);
+      if (Array.isArray(response.data)) {
+        // Filter out entries where specialization_name is null
+        const validSpecializations = response.data.filter(
+          (spec) => spec.specialization_name !== null
+        );
+        setSpecializations(validSpecializations);
       } else {
         setSpecializations([]);
       }
@@ -99,31 +104,38 @@ const PersonalDetails = ({ setBlurActive }) => {
     fetchSpecializations();
   }, [facultyId]);
 
-  // Add a new specialization using API.post
   const addSpecialization = async () => {
-    if (!newSpecialization.trim()) return;
+    let specializationToAdd = newSpecialization;
+
+    if (newSpecialization === "Other") {
+      if (!customSpecialization.trim()) return;
+      specializationToAdd = customSpecialization;
+    } else if (!newSpecialization.trim()) {
+      return;
+    }
 
     try {
       const response = await API.post("/ece/faculty/specializations", {
         faculty_id: facultyId,
-        specialization: newSpecialization,
+        specialization_name: specializationToAdd,
       });
       if (response.data) {
         setSpecializations([
           ...specializations,
           {
-            specialization_id: response.data.id, // Assuming the API returns the generated ID as `id`
-            specialization: newSpecialization,
+            specialization_id: response.data.id,
+            specialization_name: specializationToAdd,
           },
         ]);
-        setNewSpecialization(""); // Clear input
+        setNewSpecialization("");
+        setCustomSpecialization("");
+        setIsOtherSelected(false);
       }
     } catch (error) {
       console.error("Error adding specialization:", error);
     }
   };
 
-  // Delete a specialization using API.delete
   const deleteSpecialization = async (specialization_id) => {
     try {
       await API.delete(`/ece/faculty/specializations/${specialization_id}`);
@@ -179,6 +191,7 @@ const PersonalDetails = ({ setBlurActive }) => {
     "Nanotechnology",
     "Biomedical Image & Signal processing",
     "Automation/Control Systems",
+    "Other", // Add "Other" option
   ];
   const title = "Personal Details";
   const subtitle = "(As per official records)";
@@ -186,7 +199,6 @@ const PersonalDetails = ({ setBlurActive }) => {
   return (
     <div>
       <div className="h-auto">
-        {/* Popup for Editing Personal Details */}
         <Popup
           trigger={null}
           open={isPopupOpen}
@@ -207,23 +219,20 @@ const PersonalDetails = ({ setBlurActive }) => {
           </div>
         </Popup>
 
-        {/* Main Card */}
         <Card
           className=" rounded-2xl p-6 w-full mx-auto"
           style={{
             backgroundColor: darkMode ? "#0D1117" : "#FFFFFF",
-            color: darkMode ? "#C9CCD1" : "#2D3A4A", // Softer text color
-            border: darkMode ? "1px solid #22232B" : "1px solid #D1D5DB", // Subtle border
+            color: darkMode ? "#C9CCD1" : "#2D3A4A",
+            border: darkMode ? "1px solid #22232B" : "1px solid #D1D5DB",
           }}
         >
-          {/* Table Header Section */}
           <div className="flex flex-row justify-between items-center mb-5">
-            {/* Title & Subtitle */}
             <div>
               <Typography
                 variant="h5"
                 className="font-poppins font-semibold text-xl"
-                style={{ color: darkMode ? "#C9CCD1" : "#2D3A4A" }} // Softer text color
+                style={{ color: darkMode ? "#C9CCD1" : "#2D3A4A" }}
               >
                 {title}
               </Typography>
@@ -237,7 +246,6 @@ const PersonalDetails = ({ setBlurActive }) => {
               )}
             </div>
 
-            {/* Edit Button */}
             <button
               onClick={openPopup}
               className="p-2 rounded-full transition-transform hover:scale-105"
@@ -250,21 +258,19 @@ const PersonalDetails = ({ setBlurActive }) => {
             </button>
           </div>
 
-          {/* Personal Details Table */}
           <div className="w-full overflow-x-auto">
             <table
               className="w-full table-auto text-left"
               style={{
                 backgroundColor: "transparent",
-                color: darkMode ? "#C9CCD1" : "#2D3A4A", // Softer text color
+                color: darkMode ? "#C9CCD1" : "#2D3A4A",
               }}
             >
-              {/* Table Head */}
               <thead>
                 <tr
                   style={{
                     backgroundColor: darkMode ? "#161B22" : "#F0F2F5",
-                    color: darkMode ? "#A0A4A8" : "#6B7280", // Softer text color
+                    color: darkMode ? "#A0A4A8" : "#6B7280",
                   }}
                 >
                   {TABLE_HEAD.map((head) => (
@@ -289,7 +295,6 @@ const PersonalDetails = ({ setBlurActive }) => {
                 </tr>
               </thead>
 
-              {/* Table Body */}
               <tbody>
                 <tr>
                   {Object.values(personalDetails).map((value, idx) => (
@@ -298,7 +303,7 @@ const PersonalDetails = ({ setBlurActive }) => {
                         variant="small"
                         className="font-poppins font-normal"
                         style={{
-                          color: darkMode ? "#C9CCD1" : "#2D3A4A", // Softer text color
+                          color: darkMode ? "#C9CCD1" : "#2D3A4A",
                           letterSpacing: "0.3px",
                         }}
                       >
@@ -311,20 +316,18 @@ const PersonalDetails = ({ setBlurActive }) => {
             </table>
           </div>
 
-          {/* Specializations Sub-Table */}
           <div className="mt-5">
             <Typography
               variant="small"
               className="font-poppins font-medium"
-              style={{ color: darkMode ? "#C9CCD1" : "#2D3A4A" }} // Softer text color
+              style={{ color: darkMode ? "#C9CCD1" : "#2D3A4A" }}
             >
               Specializations
             </Typography>
             <hr
               className="my-2"
               style={{ borderColor: darkMode ? "#21262D" : "#DADDE1" }}
-            />{" "}
-            {/* Line below the heading */}
+            />
             <table className="w-full table-auto border-collapse">
               <tbody>
                 <tr style={{ backgroundColor: "transparent" }}>
@@ -336,14 +339,14 @@ const PersonalDetails = ({ setBlurActive }) => {
                           className="flex items-center px-4 py-2 rounded-lg transition-all"
                           style={{
                             backgroundColor: darkMode ? "#2B2C3A" : "#F0F2F5",
-                            color: darkMode ? "#C9CCD1" : "#2D3A4A", // Softer text color
+                            color: darkMode ? "#C9CCD1" : "#2D3A4A",
                           }}
                         >
                           <Typography
                             variant="small"
                             className="font-poppins font-normal"
                           >
-                            {spec.specialization}
+                            {spec.specialization_name}
                           </Typography>
                           <button
                             onClick={() =>
@@ -359,17 +362,19 @@ const PersonalDetails = ({ setBlurActive }) => {
                   </td>
                 </tr>
 
-                {/* Add New Specialization */}
                 <tr>
                   <td className="p-4">
                     <div className="flex flex-col md:flex-row items-center gap-2">
                       <select
                         value={newSpecialization}
-                        onChange={(e) => setNewSpecialization(e.target.value)}
+                        onChange={(e) => {
+                          setNewSpecialization(e.target.value);
+                          setIsOtherSelected(e.target.value === "Other");
+                        }}
                         className="border rounded px-2 py-1 transition-all w-full md:w-auto"
                         style={{
                           backgroundColor: darkMode ? "#161B22" : "#FFFFFF",
-                          color: darkMode ? "#C9CCD1" : "#2D3A4A", // Softer text color
+                          color: darkMode ? "#C9CCD1" : "#2D3A4A",
                           borderColor: darkMode ? "#21262D" : "#DADDE1",
                         }}
                       >
@@ -380,6 +385,24 @@ const PersonalDetails = ({ setBlurActive }) => {
                           </option>
                         ))}
                       </select>
+
+                      {isOtherSelected && (
+                        <input
+                          type="text"
+                          value={customSpecialization}
+                          onChange={(e) =>
+                            setCustomSpecialization(e.target.value)
+                          }
+                          placeholder="Specify your specialization"
+                          className="border rounded px-2 py-1 transition-all w-full md:w-auto"
+                          style={{
+                            backgroundColor: darkMode ? "#161B22" : "#FFFFFF",
+                            color: darkMode ? "#C9CCD1" : "#2D3A4A",
+                            borderColor: darkMode ? "#21262D" : "#DADDE1",
+                          }}
+                        />
+                      )}
+
                       <button
                         onClick={addSpecialization}
                         className="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 transition-transform hover:scale-105 w-full md:w-auto"

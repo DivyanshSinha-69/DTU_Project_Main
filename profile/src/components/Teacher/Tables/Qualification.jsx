@@ -26,9 +26,9 @@ const Qualification = ({ setBlurActive }) => {
     const fetchQualificationDetails = async () => {
       try {
         const response = await API.get(
-          `ece/faculty/qualification/${facultyId}`
+          `ece/faculty/qualification?faculty_id=${facultyId}`
         );
-
+        console.log(response);
         if (Array.isArray(response.data)) {
           setQualificationDetails(
             response.data.map((qualification) => ({

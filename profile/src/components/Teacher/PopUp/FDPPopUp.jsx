@@ -71,11 +71,11 @@ export default function FacultyDevelopmentPopUp({
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-80">
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-80 overflow-y-auto p-4">
       <Card
         color="transparent"
         shadow={false}
-        className="w-[90%] max-w-[700px] h-auto p-8 bg-gray-900 rounded-[20px]"
+        className="w-[90%] max-w-[700px] h-auto max-h-[90vh] p-8 bg-gray-900 rounded-[20px] overflow-y-auto"
       >
         <form
           className="text-white flex flex-col space-y-6"
@@ -84,7 +84,8 @@ export default function FacultyDevelopmentPopUp({
           {/* Program Name */}
           <div className="relative z-0 w-full group">
             <label htmlFor="programName" className="block text-sm">
-              Title of Faculty development/training activities
+              Title of Faculty Development/Training Activities{" "}
+              <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -96,10 +97,11 @@ export default function FacultyDevelopmentPopUp({
               required
             />
           </div>
+
           {/* Type Dropdown */}
           <div className="relative z-0 w-full group">
             <label htmlFor="type" className="block text-sm">
-              Type
+              Type <span className="text-red-500">*</span>
             </label>
             <select
               name="type"
@@ -113,10 +115,11 @@ export default function FacultyDevelopmentPopUp({
               <option value="Participated">Participated</option>
             </select>
           </div>
+
           {/* Year Conducted Dropdown */}
           <div className="relative z-0 w-full group">
             <label htmlFor="year" className="block text-sm">
-              Year
+              Year <span className="text-red-500">*</span>
             </label>
             <select
               name="year"
@@ -134,7 +137,7 @@ export default function FacultyDevelopmentPopUp({
           {/* Month Conducted Dropdown */}
           <div className="relative z-0 w-full group">
             <label htmlFor="month" className="block text-sm">
-              Month
+              Month <span className="text-red-500">*</span>
             </label>
             <select
               name="month"
@@ -156,7 +159,7 @@ export default function FacultyDevelopmentPopUp({
           {/* Days Contributed */}
           <div className="relative z-0 w-full group">
             <label htmlFor="days" className="block text-sm">
-              Duration (in days)
+              Duration (in days) <span className="text-red-500">*</span>
             </label>
             <input
               type="number"
@@ -169,6 +172,11 @@ export default function FacultyDevelopmentPopUp({
               min="1"
             />
           </div>
+
+          {/* Red Star Explanation */}
+          <p className="text-sm text-gray-400">
+            <span className="text-red-500">*</span> compulsory fields
+          </p>
 
           {/* Buttons */}
           <div className="flex items-center justify-between mt-5 space-x-4">

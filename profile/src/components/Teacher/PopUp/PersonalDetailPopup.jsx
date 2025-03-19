@@ -45,19 +45,20 @@ export default function PersonalDetailPopup({
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-80">
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-80 overflow-y-auto p-4">
       <Card
         color="transparent"
         shadow={false}
-        className="w-[90%] max-w-[700px] h-auto p-8 bg-gray-900 rounded-[20px]"
+        className="w-[90%] max-w-[700px] h-auto max-h-[90vh] p-8 bg-gray-900 rounded-[20px] overflow-y-auto"
       >
         <form
           className="text-white flex flex-col space-y-6"
           onSubmit={handleSubmit}
         >
+          {/* Name Field */}
           <div className="relative z-0 w-full group">
             <label htmlFor="name" className="block text-sm">
-              Name
+              Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -70,9 +71,10 @@ export default function PersonalDetailPopup({
             />
           </div>
 
+          {/* Highest Degree Field */}
           <div className="relative z-0 w-full group">
             <label htmlFor="highestDegree" className="block text-sm">
-              Highest Degree
+              Highest Degree <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -85,9 +87,10 @@ export default function PersonalDetailPopup({
             />
           </div>
 
+          {/* Year of Degree Field */}
           <div className="relative z-0 w-full group">
             <label htmlFor="degreeYear" className="block text-sm">
-              Year of Degree
+              Year of Degree <span className="text-red-500">*</span>
             </label>
             <input
               type="number"
@@ -100,9 +103,10 @@ export default function PersonalDetailPopup({
             />
           </div>
 
+          {/* Email Field */}
           <div className="relative z-0 w-full group">
             <label htmlFor="email" className="block text-sm">
-              Official Email ID
+              Official Email ID <span className="text-red-500">*</span>
             </label>
             <input
               type="email"
@@ -115,9 +119,10 @@ export default function PersonalDetailPopup({
             />
           </div>
 
+          {/* Contact No. Field */}
           <div className="relative z-0 w-full group">
             <label htmlFor="contactNo" className="block text-sm">
-              Contact No.
+              Contact No. <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -129,21 +134,28 @@ export default function PersonalDetailPopup({
               required
             />
           </div>
+          {/* Red Star Explanation */}
+          <p className="text-sm text-gray-400 mt-4">
+            <span className="text-red-500">*</span> compulsory fields
+          </p>
+          {/* Update Button */}
+          <div className="flex items-center justify-between mt-5 space-x-4">
+            <button
+              type="submit"
+              className="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            >
+              Update
+            </button>
 
-          <button
-            type="submit"
-            className="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-          >
-            Update
-          </button>
-
-          <button
-            type="button"
-            onClick={closeModal}
-            className="w-full px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 mt-4"
-          >
-            Cancel
-          </button>
+            {/* Cancel Button */}
+            <button
+              type="button"
+              onClick={closeModal}
+              className="w-full px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+            >
+              Cancel
+            </button>
+          </div>
         </form>
       </Card>
     </div>

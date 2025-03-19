@@ -29,7 +29,7 @@ export default function BookPopUp({
 
   const handlePopupSubmit = (e) => {
     e.preventDefault();
-    const { isbn, title, publication, publishedDate, Book_id } = formData;
+    const { isbn, title, publication, publishedDate } = formData;
 
     if (!isbn || !title || !publication || !publishedDate) {
       toast.error("Please fill in all required fields.");
@@ -43,11 +43,11 @@ export default function BookPopUp({
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-80">
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-80 overflow-y-auto p-4">
       <Card
         color="transparent"
         shadow={false}
-        className="w-[90%] max-w-[700px] h-auto p-8 bg-gray-900 rounded-[20px]"
+        className="w-[90%] max-w-[700px] h-auto max-h-[90vh] p-8 bg-gray-900 rounded-[20px] overflow-y-auto"
       >
         <form
           className="text-white flex flex-col space-y-6"
@@ -56,7 +56,7 @@ export default function BookPopUp({
           {/* ISBN No */}
           <div className="relative z-0 w-full group">
             <label htmlFor="isbn" className="block text-sm">
-              ISBN No.
+              ISBN No. <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -72,7 +72,7 @@ export default function BookPopUp({
           {/* Book Title */}
           <div className="relative z-0 w-full group">
             <label htmlFor="title" className="block text-sm">
-              Book Title
+              Book Title <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -88,7 +88,7 @@ export default function BookPopUp({
           {/* Publication Name */}
           <div className="relative z-0 w-full group">
             <label htmlFor="publication" className="block text-sm">
-              Publication Name
+              Publication Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -104,7 +104,7 @@ export default function BookPopUp({
           {/* Published Date */}
           <div className="relative z-0 w-full group">
             <label htmlFor="publishedDate" className="block text-sm">
-              Published Date
+              Published Date <span className="text-red-500">*</span>
             </label>
             <input
               type="date"
@@ -116,6 +116,11 @@ export default function BookPopUp({
               required
             />
           </div>
+
+          {/* Red Star Explanation */}
+          <p className="text-sm text-gray-400">
+            <span className="text-red-500">*</span> compulsory fields
+          </p>
 
           {/* Buttons */}
           <div className="flex items-center justify-between mt-5 space-x-4">
