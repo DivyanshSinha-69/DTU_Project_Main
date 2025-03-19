@@ -254,6 +254,11 @@ export const addResearchPaper = (req, res) => {
   } = req.body;
   const filePath = req.file ? req.file.path : null;
 
+
+  if (!faculty_id || !paper_type || !title_of_paper || !area_of_research || !published_year || !authors) 
+    {
+      return res.status(400).json({ message: "All fields are required" });
+    }
   // Step 1: Check if the faculty exists
   pool.query(
     "SELECT * FROM faculty_details WHERE faculty_id = ?",
@@ -1787,6 +1792,10 @@ export const deleteFaculty = (req, res) => {
 export const addSpecialization = (req, res) => {
   const { faculty_id, specialization } = req.body; // specialization comes as a string
 
+  if (!faculty_id || !specialization) 
+    {
+      return res.status(400).json({ message: "All fields are required" });
+    }
   // Step 1: Check if faculty_id exists
   pool.query("SELECT * FROM faculty_details WHERE faculty_id = ?", [faculty_id], (err, facultyResults) => {
     if (err) return res.status(500).json({ message: "Error checking faculty", error: err });
@@ -2188,27 +2197,32 @@ export const deleteFacultyPatent = (req, res) => {
 
 // ✅ GET all faculty qualifications or specific faculty qualification
 export const getFacultyQualifications = (req, res) => {
-  const { faculty_id } = req.params;
+  const { faculty_id } = req.query;
 
-  const query = faculty_id
-    ? "SELECT * FROM faculty_Qualification WHERE faculty_id = ?"
-    : "SELECT * FROM faculty_Qualification";
+  const query = `
+    SELECT fq.*, d.degree_name 
+    FROM faculty_Qualification fq
+    JOIN degree_options d ON fq.degree_level = d.id
+    ${faculty_id ? "WHERE fq.faculty_id = ?" : ""}
+  `;
 
   pool.query(query, faculty_id ? [faculty_id] : [], (err, results) => {
     if (err) {
-      return res
-        .status(500)
-        .json({ message: "Error fetching faculty qualifications", error: err });
+      return res.status(500).json({
+        message: "Error fetching faculty qualifications",
+        error: err,
+      });
     }
     res.status(200).json(results);
   });
 };
 
+
 // ✅ ADD a new faculty qualification
 export const addFacultyQualification = (req, res) => {
   const {
     faculty_id,
-    degree_level,
+    degree_level, // This will come as a text value from the frontend
     institute,
     degree_name,
     year_of_passing,
@@ -2226,40 +2240,63 @@ export const addFacultyQualification = (req, res) => {
     return res.status(400).json({ message: "All fields are required" });
   }
 
-  const query = `INSERT INTO faculty_Qualification 
-      (faculty_id, degree_level, institute, degree_name, year_of_passing, specialization) 
-      VALUES (?, ?, ?, ?, ?, ?)`;
-
+  // Step 1: Check if degree exists
   pool.query(
-    query,
-    [
-      faculty_id,
-      degree_level,
-      institute,
-      degree_name,
-      year_of_passing,
-      specialization,
-    ],
-    (err, result) => {
+    "SELECT id FROM degree_options WHERE degree_name = ?",
+    [degree_level],
+    (err, results) => {
       if (err) {
-        return res
-          .status(500)
-          .json({ message: "Error adding qualification", error: err });
+        return res.status(500).json({ message: "Error checking degree", error: err });
       }
-      res.status(201).json({
-        message: "Qualification added successfully",
-        education_id: result.insertId,
-      });
+
+      if (results.length > 0) {
+        // Degree exists, use its ID
+        insertQualification(results[0].id);
+      } else {
+        // Degree doesn't exist, insert it first
+        pool.query(
+          "INSERT INTO degree_options (degree_name) VALUES (?)",
+          [degree_level],
+          (insertErr, insertResult) => {
+            if (insertErr) {
+              return res.status(500).json({ message: "Error inserting degree", error: insertErr });
+            }
+            insertQualification(insertResult.insertId);
+          }
+        );
+      }
     }
   );
+
+  // Step 2: Insert into faculty_Qualification
+  function insertQualification(degreeId) {
+    const query = `INSERT INTO faculty_Qualification 
+        (faculty_id, degree_level, institute, degree_name, year_of_passing, specialization) 
+        VALUES (?, ?, ?, ?, ?, ?)`;
+
+    pool.query(
+      query,
+      [faculty_id, degreeId, institute, degree_name, year_of_passing, specialization],
+      (err, result) => {
+        if (err) {
+          return res.status(500).json({ message: "Error adding qualification", error: err });
+        }
+        res.status(201).json({
+          message: "Qualification added successfully",
+          education_id: result.insertId,
+        });
+      }
+    );
+  }
 };
+
 
 // ✅ UPDATE a faculty qualification
 export const updateFacultyQualification = (req, res) => {
   const { education_id } = req.params;
   const {
     faculty_id,
-    degree_level,
+    degree_level, // This comes as a text value
     institute,
     degree_name,
     year_of_passing,
@@ -2277,34 +2314,56 @@ export const updateFacultyQualification = (req, res) => {
     return res.status(400).json({ message: "All fields are required" });
   }
 
-  const query = `UPDATE faculty_Qualification 
-      SET faculty_id = ?, degree_level = ?, institute = ?, degree_name = ?, year_of_passing = ?, specialization = ? 
-      WHERE education_id = ?`;
-
+  // Step 1: Check if degree exists
   pool.query(
-    query,
-    [
-      faculty_id,
-      degree_level,
-      institute,
-      degree_name,
-      year_of_passing,
-      specialization,
-      education_id,
-    ],
-    (err, result) => {
+    "SELECT id FROM degree_options WHERE degree_name = ?",
+    [degree_level],
+    (err, results) => {
       if (err) {
-        return res
-          .status(500)
-          .json({ message: "Error updating qualification", error: err });
+        return res.status(500).json({ message: "Error checking degree", error: err });
       }
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ message: "Qualification not found" });
+
+      if (results.length > 0) {
+        // Degree exists, use its ID
+        updateQualification(results[0].id);
+      } else {
+        // Insert new degree name
+        pool.query(
+          "INSERT INTO degree_options (degree_name) VALUES (?)",
+          [degree_level],
+          (insertErr, insertResult) => {
+            if (insertErr) {
+              return res.status(500).json({ message: "Error inserting degree", error: insertErr });
+            }
+            updateQualification(insertResult.insertId);
+          }
+        );
       }
-      res.status(200).json({ message: "Qualification updated successfully" });
     }
   );
+
+  // Step 2: Update faculty_Qualification
+  function updateQualification(degreeId) {
+    const query = `UPDATE faculty_Qualification 
+        SET faculty_id = ?, degree_level = ?, institute = ?, degree_name = ?, year_of_passing = ?, specialization = ? 
+        WHERE education_id = ?`;
+
+    pool.query(
+      query,
+      [faculty_id, degreeId, institute, degree_name, year_of_passing, specialization, education_id],
+      (err, result) => {
+        if (err) {
+          return res.status(500).json({ message: "Error updating qualification", error: err });
+        }
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ message: "Qualification not found" });
+        }
+        res.status(200).json({ message: "Qualification updated successfully" });
+      }
+    );
+  }
 };
+
 
 // ✅ DELETE a faculty qualification
 export const deleteFacultyQualification = (req, res) => {
@@ -2314,9 +2373,7 @@ export const deleteFacultyQualification = (req, res) => {
 
   pool.query(query, [education_id], (err, result) => {
     if (err) {
-      return res
-        .status(500)
-        .json({ message: "Error deleting qualification", error: err });
+      return res.status(500).json({ message: "Error deleting qualification", error: err });
     }
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Qualification not found" });
@@ -2324,6 +2381,7 @@ export const deleteFacultyQualification = (req, res) => {
     res.status(200).json({ message: "Qualification deleted successfully" });
   });
 };
+
 
 export const updateLastSeen = (req, res) => {
   const { user_id, position_name, notification_type } = req.body;

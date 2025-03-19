@@ -310,26 +310,10 @@ router.delete(
 ); // Delete a patent
 
 // Faculty Qualification Routes
-router.get(
-  "/qualification/:faculty_id?",
-  authorizeRoles("faculty"),
-  getFacultyQualifications
-);
-router.post(
-  "/qualification",
-  authorizeRoles("faculty"),
-  addFacultyQualification
-);
-router.put(
-  "/qualification/:education_id",
-  authorizeRoles("faculty"),
-  updateFacultyQualification
-);
-router.delete(
-  "/qualification/:education_id",
-  authorizeRoles("faculty"),
-  deleteFacultyQualification
-);
+router.get("/qualification", authorizeRoles("faculty"), getFacultyQualifications);
+router.post("/qualification", authorizeRoles("faculty"), addFacultyQualification);
+router.put("/qualification/:education_id", authorizeRoles("faculty"), updateFacultyQualification);
+router.delete("/qualification/:education_id", authorizeRoles("faculty"), deleteFacultyQualification);
 
 // Duty Orders Route
 router.get("/duty-orders", authorizeRoles("faculty"), getUserDutyOrders);
