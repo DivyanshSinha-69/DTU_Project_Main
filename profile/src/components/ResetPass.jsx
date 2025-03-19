@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const ResetPassword = () => {
-  const { token } = useParams(); // Get the reset token from the URL
+  const { token } = useParams();
   const navigate = useNavigate();
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -14,31 +14,25 @@ const ResetPassword = () => {
   const handleReset = async (e) => {
     e.preventDefault();
 
-    // Check if passwords match
     if (newPassword !== confirmPassword) {
       setError("Passwords do not match");
+      setMessage("");
       return;
     }
 
     try {
-      // Make a POST request to the reset password endpoint
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/ece/facultyauth/resetpassword/${token}`,
-        {
-          newPassword,
-        },
+        { newPassword }
       );
 
-      // Display success message
       setMessage(response.data.message);
       setError("");
 
-      // Redirect to the login page after a delay
       setTimeout(() => {
         navigate("/login");
       }, 3000);
     } catch (error) {
-      // Handle error
       setError(error.response?.data?.error || "An error occurred");
       setMessage("");
     }
@@ -62,11 +56,10 @@ const ResetPassword = () => {
 
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
           <form className="space-y-6" onSubmit={handleReset}>
-            {/* New Password Input */}
             <div>
               <label
                 htmlFor="newPassword"
-                className="block font-bold text-lg font-large leading-6 text-white"
+                className="block font-bold text-lg leading-6 text-white"
               >
                 New Password
               </label>
@@ -84,11 +77,10 @@ const ResetPassword = () => {
               </div>
             </div>
 
-            {/* Confirm Password Input */}
             <div>
               <label
                 htmlFor="confirmPassword"
-                className="block font-bold text-lg font-large leading-6 text-white"
+                className="block font-bold text-lg leading-6 text-white"
               >
                 Confirm Password
               </label>
@@ -106,7 +98,6 @@ const ResetPassword = () => {
               </div>
             </div>
 
-            {/* Submit Button */}
             <div>
               <button
                 type="submit"
@@ -117,11 +108,49 @@ const ResetPassword = () => {
             </div>
           </form>
 
-          {/* Display success or error messages */}
+          {/* Success & Error Messages */}
           {message && (
-            <p className="mt-4 text-center text-green-600">{message}</p>
+            <div className="mt-6 text-center">
+              <div className="inline-flex items-center bg-green-50 border border-green-500 text-green-700 px-4 py-2 rounded-lg text-sm font-medium">
+                <svg
+                  className="w-4 h-4 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+                {message}
+              </div>
+            </div>
           )}
-          {error && <p className="mt-4 text-center text-red-600">{error}</p>}
+          {error && (
+            <div className="mt-6 text-center">
+              <div className="inline-flex items-center bg-red-50 border border-red-500 text-red-700 px-4 py-2 rounded-lg text-sm font-medium">
+                <svg
+                  className="w-4 h-4 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                {error}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>
