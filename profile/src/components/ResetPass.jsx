@@ -10,13 +10,50 @@ const ResetPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+
+  // Password validation rules
+  const validatePassword = (password) => {
+    const minLength = 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    if (password.length < minLength) {
+      return "Password must be at least 8 characters long.";
+    }
+    if (!hasUpperCase) {
+      return "Password must contain at least one uppercase letter.";
+    }
+    if (!hasLowerCase) {
+      return "Password must contain at least one lowercase letter.";
+    }
+    if (!hasNumber) {
+      return "Password must contain at least one number.";
+    }
+    if (!hasSpecialChar) {
+      return "Password must contain at least one special character.";
+    }
+    return "";
+  };
 
   const handleReset = async (e) => {
     e.preventDefault();
 
+    // Validate password
+    const passwordValidationError = validatePassword(newPassword);
+    if (passwordValidationError) {
+      setPasswordError(passwordValidationError);
+      setError("");
+      setMessage("");
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
       setError("Passwords do not match");
       setMessage("");
+      setPasswordError("");
       return;
     }
 
@@ -28,6 +65,7 @@ const ResetPassword = () => {
 
       setMessage(response.data.message);
       setError("");
+      setPasswordError("");
 
       setTimeout(() => {
         navigate("/login");
@@ -35,6 +73,7 @@ const ResetPassword = () => {
     } catch (error) {
       setError(error.response?.data?.error || "An error occurred");
       setMessage("");
+      setPasswordError("");
     }
   };
 
@@ -72,9 +111,34 @@ const ResetPassword = () => {
                   required
                   className="block w-full p-2 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                   value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
+                  onChange={(e) => {
+                    setNewPassword(e.target.value);
+                    setPasswordError(validatePassword(e.target.value)); // Validate on change
+                  }}
                 />
               </div>
+              {/* Password Validation Error Message */}
+              {passwordError && (
+                <div className="mt-2">
+                  <div className="inline-flex items-center bg-red-50 border border-red-500 text-red-700 px-3 py-1.5 rounded-lg text-xs font-medium">
+                    <svg
+                      className="w-3 h-3 mr-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    {passwordError}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div>
