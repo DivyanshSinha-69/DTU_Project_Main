@@ -246,7 +246,7 @@ const Faculty = () => {
 
             {/* Main Content */}
             <div
-              className="flex-1 overflow-y-auto px-4"
+              className="flex-1 overflow-y-auto px-4 mb-10 pb-10"
               style={{ backgroundColor: darkMode ? "#1E1E2E" : "#F4F5F7" }} // Adjusted dark mode background
             >
               <div
