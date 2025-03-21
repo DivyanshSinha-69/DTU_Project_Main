@@ -321,7 +321,7 @@ export default function ResearchProjectPopup({
             {/* Upload Document Field */}
             <div className="relative z-0 w-full group">
               <label htmlFor="document" className="block text-sm">
-                Upload Document
+                Upload Document (front page only)
               </label>
               <input
                 type="file"

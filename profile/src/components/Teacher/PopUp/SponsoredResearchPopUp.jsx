@@ -57,10 +57,10 @@ export default function SponsoredResearchPopUp({
           className="text-white flex flex-col space-y-6"
           onSubmit={handlePopupSubmit}
         >
-          {/* Project Title */}
+          {/* Title */}
           <div className="relative z-0 w-full group">
             <label htmlFor="title" className="block text-sm">
-              Project Title <span className="text-red-500">*</span>
+              Research Title <span className="text-red-500">*</span>
             </label>
             <input
               type="text"

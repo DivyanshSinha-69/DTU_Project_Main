@@ -162,10 +162,10 @@ const Guidance = ({ setBlurActive }) => {
     <>
       {/* Reusable Custom Table Component */}
       <CustomTable
-        title="PhD/M.Tech Guidance Details"
+        title="B.Tech/M.tech/PhD Student Guidance Details"
         subtitle="(Mention your students whom you have mentored)"
         columns={[
-          { key: "menteeName", label: "Mentee Name" },
+          { key: "menteeName", label: "Student Name" },
           { key: "degree", label: "Degree" }, // 👈 Add this
           { key: "rollNo", label: "Roll Number" },
           { key: "passingMonth", label: "Passing Month" },
