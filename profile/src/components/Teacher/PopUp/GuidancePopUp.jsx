@@ -156,8 +156,8 @@ export default function PhDsAwardedPopUp({
               value={formData.degree}
               required
             >
-              <option value="Undergraduate">Undergraduate</option>
-              <option value="Postgraduate">Postgraduate</option>
+              <option value="B.Tech">B.Tech</option>
+              <option value="M.Tech">M.Tech</option>
               <option value="PhD">PhD</option>
             </select>
           </div>

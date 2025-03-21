@@ -72,7 +72,6 @@ const FacultyOfficeOrders = () => {
           .map((order) => ({
             order_id: order.order_id,
             order_number: order.order_number,
-            order_name: order.order_name,
             order_date: formatDate(order.order_date),
             start_date: formatDate(order.start_date),
             end_date: formatDate(order.end_date),
@@ -114,7 +113,6 @@ const FacultyOfficeOrders = () => {
   };
   const columns = [
     { key: "order_number", label: "Order Number" },
-    { key: "order_name", label: "Order Name" },
     { key: "subject", label: "Subject" },
     { key: "faculties", label: "Faculties" },
 
@@ -181,8 +179,7 @@ const FacultyOfficeOrders = () => {
       filtered = filtered.filter(
         (order) =>
           order.order_number.includes(searchQuery) ||
-          order.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          order.order_name.toLowerCase().includes(searchQuery.toLowerCase())
+          order.subject.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
