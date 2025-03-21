@@ -65,7 +65,8 @@ export default function InteractionPopUp({
       !institutionName ||
       !description ||
       !year_of_visit ||
-      !month_of_visit
+      !month_of_visit ||
+      !document
     ) {
       toast.error("Please fill in all required fields.");
       return;
@@ -261,7 +262,7 @@ export default function InteractionPopUp({
           {/* Document Upload */}
           <div className="relative z-0 w-full group">
             <label htmlFor="document" className="block text-sm">
-              Upload Document
+              Upload Document <span className="text-red-500">*</span>
             </label>
             <input
               type="file"
@@ -269,7 +270,8 @@ export default function InteractionPopUp({
               id="document"
               className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               onChange={handleFileChange}
-              accept=".pdf,.docx,.jpg,.jpeg"
+              accept=".pdf,.jpeg"
+              required
             />
           </div>
 

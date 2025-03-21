@@ -152,7 +152,7 @@ const SponsoredResearch = ({ setBlurActive }) => {
         title="Sponsored Research"
         subtitle="(Details of sponsored research)"
         columns={[
-          { key: "project_title", label: "Project Title" },
+          { key: "project_title", label: "Research Title" },
           { key: "funding_agency", label: "Funding Agency" },
           {
             key: "amount_sponsored",

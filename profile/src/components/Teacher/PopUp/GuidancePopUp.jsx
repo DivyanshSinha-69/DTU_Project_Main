@@ -114,7 +114,7 @@ export default function PhDsAwardedPopUp({
           {/* Mentee Name */}
           <div className="relative z-0 w-full group">
             <label htmlFor="menteeName" className="block text-sm">
-              Mentee Name <span className="text-red-500">*</span>
+              Student Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -201,13 +201,14 @@ export default function PhDsAwardedPopUp({
           {/* Document Upload */}
           <div className="relative z-0 w-full group">
             <label htmlFor="document" className="block text-sm">
-              Upload Document (PDF/DOCX)
+              Upload Document (PDF or image of relevant office order/ front page
+              of thesis/ etc.)
             </label>
             <input
               type="file"
               name="document"
               id="document"
-              accept=".pdf,.docx"
+              accept=".pdf,.jpeg"
               className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               onChange={handleFileChange}
             />

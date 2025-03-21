@@ -128,7 +128,7 @@ const ConsultancyDetails = ({ setBlurActive }) => {
         title="Consultancy Details"
         subtitle="(Details of consultancy projects)"
         columns={[
-          { key: "project_title", label: "Project Title" },
+          { key: "project_title", label: "Consultancy Title" },
           { key: "funding_agency", label: "Funding Agency" },
           {
             key: "amount_sponsored",
