@@ -40,10 +40,13 @@ import FacultyCircular from "./components/Teacher/CircularNotices";
 import DepartmentCirculars from "./components/Department/Pages/CircularsNotices";
 const CURRENT_VERSION = "2.4"; // Change this on every deployment
 if (localStorage.getItem("appVersion") !== CURRENT_VERSION) {
-  store.dispatch(logout());
-
+  localStorage.clear(); // Clears old cache
+  sessionStorage.clear();
+  caches.keys().then((names) => {
+    names.forEach((name) => caches.delete(name)); // Clear service worker cache
+  });
   localStorage.setItem("appVersion", CURRENT_VERSION);
-  window.location.reload(); // Reload the page to apply new changes
+  window.location.reload(true); // Force reload to fetch fresh files
 }
 
 function App() {
