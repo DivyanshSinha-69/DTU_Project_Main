@@ -38,7 +38,7 @@ import FacultyOfficeOrders from "./components/Teacher/OfficeOrders";
 import FacultyCircularPage from "./components/Teacher/CircularNotices";
 import FacultyCircular from "./components/Teacher/CircularNotices";
 import DepartmentCirculars from "./components/Department/Pages/CircularsNotices";
-const CURRENT_VERSION = "2.2"; // Change this on every deployment
+const CURRENT_VERSION = "2.4"; // Change this on every deployment
 if (localStorage.getItem("appVersion") !== CURRENT_VERSION) {
   store.dispatch(logout());
 
