@@ -71,20 +71,8 @@ router.delete(
 
 // Order Routes
 router.get("/orders/:department_id?", authorizeRoles("department"), getOrders);
-router.post(
-  "/orders",
-  authorizeRoles("department"),
-  uploadDepartmentOrder,
-  compressUploadedFile,
-  addOrder
-);
-router.put(
-  "/orders/:order_id",
-  authorizeRoles("department"),
-  uploadDepartmentOrder,
-  compressUploadedFile,
-  updateOrder
-);
+router.post("/orders", authorizeRoles("department"), uploadDepartmentOrder, compressUploadedFile, addOrder);
+router.put("/orders/:order_id", authorizeRoles("department"), uploadDepartmentOrder, compressUploadedFile, updateOrder);
 router.delete("/orders/:order_id", authorizeRoles("department"), deleteOrder);
 
 // Faculty Orders Routes
