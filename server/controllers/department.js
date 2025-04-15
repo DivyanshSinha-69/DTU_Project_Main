@@ -9,12 +9,22 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-
+// Gmail transporter setup (commented out for Brevo SMTP)
+// const transporter = nodemailer.createTransport({
+//   service: "Gmail",
+//   auth: {
+//     user: process.env.EMAIL_USER,
+//     pass: process.env.EMAIL_PASS,
+//   },
+// });
+// Brevo SMTP transporter setup
 const transporter = nodemailer.createTransport({
-  service: "Gmail",
+  host: process.env.SMTP_HOST, // Brevo SMTP server
+  port: parseInt(process.env.SMTP_PORT), // Use 587 for TLS
+  secure: false, // Set to false for TLS
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: process.env.BREVO_SMTP_EMAIL_USER, // Your Brevo SMTP username (SMTP key)
+    pass: process.env.BREVO_SMTP_EMAIL_PASS, // Your Brevo SMTP password (SMTP key)
   },
 });
 // 🔹 Generate Access Token (Short-lived)
@@ -452,7 +462,7 @@ pool.query(finalQuery, queryParams, (emailErr, emailResults) => {
 
 const sendEmailNotifications = (emails, order_number, order_name, order_date, subject) => {
   const mailOptions = {
-    from: process.env.EMAIL_USER,
+    from: process.env.EMAIL_FROM,
     to: emails,
     subject: "New Duty Order Notification",
     html: `
@@ -693,7 +703,7 @@ export const updateOrder = (req, res) => {
 // Function to send update notification emails
 const sendUpdateEmailNotifications = (emails, order_number, order_name, order_date, subject) => {
   const mailOptions = {
-    from: process.env.EMAIL_USER,
+    from: process.env.EMAIL_FROM,
     to: emails,
     subject: "Updated Office Order - Please Review Changes",
     html: `
@@ -846,7 +856,7 @@ const sendDeleteEmailNotifications = (emails, order_name, order_number, order_da
   }
 
   const mailOptions = {
-    from: process.env.EMAIL_USER,
+    from: process.env.EMAIL_FROM,
     to: emails,
     subject: "Updated Office Order - Please Review Changes",
     html: `
