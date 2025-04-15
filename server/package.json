@@ -1,6 +1,7 @@
 {
   "dependencies": {
-    "axios": "^1.8.3",
+    "@getbrevo/brevo": "^2.2.0",
+    "axios": "^1.8.4",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",

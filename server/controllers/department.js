@@ -5,6 +5,7 @@ import fs from "fs";
 import path from "path";
 import nodemailer from "nodemailer";
 import { fileURLToPath } from "url";
+import axios from "axios";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,15 +19,15 @@ const __dirname = path.dirname(__filename);
 //   },
 // });
 // Brevo SMTP transporter setup
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST, // Brevo SMTP server
-  port: parseInt(process.env.SMTP_PORT), // Use 587 for TLS
-  secure: false, // Set to false for TLS
-  auth: {
-    user: process.env.BREVO_SMTP_EMAIL_USER, // Your Brevo SMTP username (SMTP key)
-    pass: process.env.BREVO_SMTP_EMAIL_PASS, // Your Brevo SMTP password (SMTP key)
-  },
-});
+// const transporter = nodemailer.createTransport({
+//   host: process.env.SMTP_HOST, // Brevo SMTP server
+//   port: parseInt(process.env.SMTP_PORT), // Use 587 for TLS
+//   secure: false, // Set to false for TLS
+//   auth: {
+//     user: process.env.BREVO_SMTP_EMAIL_USER, // Your Brevo SMTP username (SMTP key)
+//     pass: process.env.BREVO_SMTP_EMAIL_PASS, // Your Brevo SMTP password (SMTP key)
+//   },
+// });
 // 🔹 Generate Access Token (Short-lived)
 
 const generateAccessToken = (department_id, position) => {
@@ -449,7 +450,7 @@ pool.query(finalQuery, queryParams, (emailErr, emailResults) => {
   console.log("📨 Valid Recipient Emails:", emails);
 
   if (emails.length > 0) {
-    sendEmailNotifications(emails, order_number, order_name, order_date, subject);
+    sendEmailNotifications(emails, order_number, order_name, order_date, subject, order_path);
   } else {
     console.warn("⚠️ No valid recipient emails found.");
   }
@@ -460,73 +461,96 @@ pool.query(finalQuery, queryParams, (emailErr, emailResults) => {
   });
 };
 
-const sendEmailNotifications = (emails, order_number, order_name, order_date, subject) => {
-  const mailOptions = {
-    from: process.env.EMAIL_FROM,
-    to: emails,
-    subject: "New Duty Order Notification",
-    html: `
-    <p>Dear Faculty Member(s),</p>
-    
-    <p>We hope this email finds you well.</p>
-    
-    <p>This is to notify you that you have been assigned a new departmental duty as per the office order issued by the Department of Electronics and Communication Engineering, Delhi Technological University. Below are the details of your assigned duty:</p>
+const sendEmailNotifications = async (emails, order_number, order_name, order_date, subject, order_path) => {
+  try {
+    const logoPath = path.join(__dirname, "..", "public", "assets", "emailSignature.png");
+    const logoBase64 = fs.readFileSync(logoPath, { encoding: 'base64' });
 
-    <p><strong>Order Number:</strong> ${order_number}</p>
-    <p><strong>Order Name:</strong> ${order_name}</p>
-    <p><strong>Order Date:</strong> ${order_date}</p>
-    <p><strong>Subject:</strong> ${subject}</p>
-
-    <p>To ensure smooth coordination, we kindly request you to log in to the ERP portal at 
-    <a href="https://www.dtu-eceportal.com" target="_blank">https://www.dtu-eceportal.com</a> and review the details at your earliest convenience. Any updates or modifications regarding this duty will be communicated to you via email and reflected on the portal.</p>
-
-    <p>For any queries or clarifications, feel free to reach out to the department office.</p>
-
-    <br/>
-    <p>Best regards,</p>
-    <p><strong>HOD Office, Department of ECE</strong></p>
-    <p>Delhi Technological University</p>
-
-    <br/>
-
-    <!-- Footer with Logo and Details -->
-    <table width="100%" style="border-top: 1px solid #ccc; padding-top: 10px; margin-top: 20px;">
-        <tr>
-            <!-- College Logo (Left) -->
-            <td width="80" style="padding-right: 20px;">
-                <img src="cid:collegeLogo" alt="DTU Logo" style="width: 80px; height: auto;">
-            </td>
-            
-            <!-- HOD Office Details (Right) -->
-            <td style="vertical-align: middle; text-align: left;">
-                <p style="margin: 0; font-size: 16px; font-weight: bold;">
-                <strong>ERP Portal | HOD Office</strong>
-                </p>
-                <p style="margin: 0; font-size: 14px;">
-                    Department of ECE<br>
-                    Delhi Technological University (Formerly DCE)<br>
-                    Shahbad Daulatpur Village, Rohini, New Delhi, Delhi, 110042
-                </p>
-            </td>
-        </tr>
-    </table>
-    `,
-    attachments: [
-      {
-        filename: "collegeLogo.png",
-        path: path.join(__dirname, "..", "public", "assets", "emailSignature.png"),
-        cid: "collegeLogo",
-      },
-    ],
-  }; 
-  transporter.sendMail(mailOptions, (err, info) => {
-    if (err) {
-      console.error("❌ Error sending update email:", err);
+    let pdfAttachment = null;
+    if (order_path && fs.existsSync(order_path)) {
+      const pdfContent = fs.readFileSync(order_path).toString('base64');
+      pdfAttachment = {
+        name: `${order_number}.pdf`,
+        content: pdfContent,
+        type: "application/pdf",
+        disposition: "attachment"
+      };
     } else {
-      console.log("✅ Update email sent successfully:", info.response);
+      console.warn("⚠️ PDF file not found at:", order_path);
     }
-  }); 
+
+    const emailData = {
+      sender: {
+        email: process.env.EMAIL_FROM_EMAIL,
+        name: process.env.EMAIL_FROM_NAME,
+      },
+      to: emails.map(email => ({ email })),
+      subject: "New Duty Order Notification",
+      htmlContent: `
+        <p>Dear Faculty Member(s),</p>
+        <p>We hope this email finds you well.</p>
+        <p>This is to notify you that you have been assigned a new departmental duty as per the office order issued by the Department of Electronics and Communication Engineering, Delhi Technological University. Below are the details of your assigned duty:</p>
+
+        <p><strong>Order Number:</strong> ${order_number}</p>
+        <p><strong>Order Name:</strong> ${order_name}</p>
+        <p><strong>Order Date:</strong> ${order_date}</p>
+        <p><strong>Subject:</strong> ${subject}</p>
+
+        <p>To ensure smooth coordination, we kindly request you to log in to the ERP portal at 
+        <a href="https://www.dtu-eceportal.com" target="_blank">https://www.dtu-eceportal.com</a> and review the details at your earliest convenience.</p>
+
+        <p>For any queries or clarifications, feel free to reach out to the department office.</p>
+        <br/>
+        <p>Best regards,</p>
+        <p><strong>HOD Office, Department of ECE</strong></p>
+        <p>Delhi Technological University</p>
+        <br/>
+
+        <table width="100%" style="border-top: 1px solid #ccc; padding-top: 10px; margin-top: 20px;">
+            <tr>
+                <td width="80" style="padding-right: 20px;">
+                    <img src="cid:collegeLogo.png" alt="DTU Logo" style="width: 80px; height: auto;">
+                </td>
+                <td style="vertical-align: middle; text-align: left;">
+                    <p style="margin: 0; font-size: 16px; font-weight: bold;">
+                        <strong>ERP Portal | HOD Office</strong>
+                    </p>
+                    <p style="margin: 0; font-size: 14px;">
+                        Department of ECE<br>
+                        Delhi Technological University (Formerly DCE)<br>
+                        Shahbad Daulatpur Village, Rohini, New Delhi, Delhi, 110042
+                    </p>
+                </td>
+            </tr>
+        </table>
+      `,
+      attachment: [
+        ...(pdfAttachment ? [pdfAttachment] : []),
+        {
+          name: 'collegeLogo.png',
+          content: logoBase64,
+          type: 'image/png',
+          disposition: 'inline',
+          contentId: 'collegeLogo.png'
+        }
+      ]
+    };
+
+    const response = await axios.post('https://api.brevo.com/v3/smtp/email', emailData, {
+      headers: {
+        'api-key': process.env.BREVO_API_KEY,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    console.log("✅ Email sent successfully:", response.data);
+  } catch (error) {
+    console.error("❌ Error sending update email:", error.response?.data || error.message);
+  }
 };
+
+
+
 
 export const updateOrder = (req, res) => {
   const { order_id } = req.params;
