@@ -70,6 +70,7 @@ const Association = ({ setBlurActive }) => {
 
   // Function to open popup
   const openPopup = () => {
+    console.log("Opening popup with data:", associationDetails);
     setPopupOpen(true);
     setBlurActive(true);
   };
@@ -103,8 +104,8 @@ const Association = ({ setBlurActive }) => {
 
         date_end_asoprof:
           data.highestDesignation === "Associate Professor"
-            ? data.associateProfessorEndDate
-            : null,
+            ? null
+            : data.associateProfessorEndDate || null,
 
         date_asg_astprof:
           data.highestDesignation === "Assistant Professor"
@@ -185,8 +186,8 @@ const Association = ({ setBlurActive }) => {
   const formatDateForPopUP = (date) => {
     const [date1, time] = date?.split("T");
 
-    const [day, month, year] = date1.split("-");
-    return `${day}-${month}-${year}`; // yyyy-MM-dd
+    const [day, month, year] = date1.split("/");
+    return `${year}-${month}-${day}`; // yyyy-MM-dd
   };
   return (
     <>
@@ -208,7 +209,22 @@ const Association = ({ setBlurActive }) => {
 
       <Popup open={isPopupOpen} onClose={closePopup} closeOnDocumentClick>
         <AssociationPopUp
-          currentDetails={associationDetails}
+          highestDesignation={associationDetails.highestDesignation}
+          highestDesignationDate={formatDateForPopUP(
+            associationDetails?.highestDesignationDate
+          )}
+          associateProfessorStartDate={formatDateForPopUP(
+            associationDetails?.associateProfessorStartDate
+          )}
+          associateProfessorEndDate={formatDateForPopUP(
+            associationDetails?.associateProfessorEndDate
+          )}
+          assistantProfessorStartDate={formatDateForPopUP(
+            associationDetails?.assistantProfessorStartDate
+          )}
+          assistantProfessorEndDate={formatDateForPopUP(
+            associationDetails?.assistantProfessorEndDate
+          )}
           onUpdate={updateAssociationDetails}
           closeModal={closePopup}
         />
