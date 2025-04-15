@@ -2,12 +2,42 @@ import React, { useState, useEffect } from "react";
 import { Card } from "@material-tailwind/react";
 import toast from "react-hot-toast";
 
-const AssociationPopUp = ({ currentDetails, onUpdate, closeModal }) => {
-  const [formData, setFormData] = useState(currentDetails);
+const AssociationPopUp = ({
+  highestDesignation,
+  highestDesignationDate,
+  associateProfessorStartDate,
+  associateProfessorEndDate,
+  assistantProfessorStartDate,
+  assistantProfessorEndDate,
+  onUpdate,
+  closeModal,
+}) => {
+  const [formData, setFormData] = useState({
+    highestDesignation: highestDesignation || "",
+    highestDesignationDate: highestDesignationDate || "",
+    associateProfessorStartDate: associateProfessorStartDate || "",
+    associateProfessorEndDate: associateProfessorEndDate || "",
+    assistantProfessorStartDate: assistantProfessorStartDate || "",
+    assistantProfessorEndDate: assistantProfessorEndDate || "",
+  });
 
   useEffect(() => {
-    setFormData(currentDetails);
-  }, [currentDetails]);
+    setFormData({
+      highestDesignation: highestDesignation || "",
+      highestDesignationDate: highestDesignationDate || "",
+      associateProfessorStartDate: associateProfessorStartDate || "",
+      associateProfessorEndDate: associateProfessorEndDate || "",
+      assistantProfessorStartDate: assistantProfessorStartDate || "",
+      assistantProfessorEndDate: assistantProfessorEndDate || "",
+    });
+  }, [
+    highestDesignation,
+    highestDesignationDate,
+    associateProfessorStartDate,
+    associateProfessorEndDate,
+    assistantProfessorStartDate,
+    assistantProfessorEndDate,
+  ]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -18,20 +48,21 @@ const AssociationPopUp = ({ currentDetails, onUpdate, closeModal }) => {
   };
 
   const handleSubmit = (e) => {
+    console.log("formData", formData);
     e.preventDefault();
     let updatedData = { ...formData };
 
     if (updatedData.highestDesignation === "Assistant Professor") {
-      updatedData.associateProfessorStartDate = null;
-      updatedData.associateProfessorEndDate = null;
-      updatedData.assistantProfessorEndDate = null; // Ensure this is not sent
+      updatedData.associateProfessorStartDate = "";
+      updatedData.associateProfessorEndDate = "";
+      updatedData.assistantProfessorEndDate = "";
     }
 
     if (
       updatedData.highestDesignation !== "Professor" &&
       updatedData.highestDesignation !== "Associate Professor"
     ) {
-      updatedData.assistantProfessorEndDate = null;
+      updatedData.assistantProfessorEndDate = "";
     }
 
     if (
