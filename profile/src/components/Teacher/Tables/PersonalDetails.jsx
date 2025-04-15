@@ -72,7 +72,7 @@ const PersonalDetails = ({ setBlurActive }) => {
       );
 
       if (response.status === 200) {
-        setPersonalDetails(updatedData);
+        fetchFacultyDetails();
       }
     } catch (error) {
       console.error("Error updating faculty details:", error);
