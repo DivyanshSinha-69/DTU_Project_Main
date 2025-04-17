@@ -724,73 +724,79 @@ export const updateOrder = (req, res) => {
 };
 
 
-// Function to send update notification emails
-const sendUpdateEmailNotifications = (emails, order_number, order_name, order_date, subject) => {
-  const mailOptions = {
-    from: process.env.EMAIL_FROM,
-    to: emails,
-    subject: "Updated Office Order - Please Review Changes",
-    html: `
-      <p>Dear Faculty Member(s),</p>
-      
-      <p>We hope this email finds you well.</p>
-      
-      <p>We would like to inform you that an update has been made to an Office Order assigned to you by the Department of Electronics and Communication Engineering, Delhi Technological University. Below are the updated details of your assigned duty:</p>
+const sendUpdateEmailNotifications = async (emails, order_number, order_name, order_date, subject) => {
+  try {
+    const logoPath = path.join(__dirname, "..", "public", "assets", "emailSignature.png");
+    const logoBase64 = fs.readFileSync(logoPath, { encoding: 'base64' });
 
-      <p><strong>Order Number:</strong> ${order_number}</p>
-      <p><strong>Order Name:</strong> ${order_name}</p>
-      <p><strong>Order Date:</strong> ${order_date}</p>
-      <p><strong>Description:</strong> ${subject}</p>
+    const emailData = {
+      sender: {
+        email: process.env.EMAIL_FROM_EMAIL,
+        name: process.env.EMAIL_FROM_NAME,
+      },
+      to: emails.map(email => ({ email })),
+      subject: "Updated Office Order - Please Review Changes",
+      htmlContent: `
+        <p>Dear Faculty Member(s),</p>
+        <p>We hope this email finds you well.</p>
+        <p>We would like to inform you that an update has been made to an Office Order assigned to you by the Department of Electronics and Communication Engineering, Delhi Technological University. Below are the updated details:</p>
 
-      <p>To ensure smooth coordination, we kindly request you to log in to the ERP portal at 
-      <a href="https://www.dtu-eceportal.com" target="_blank">https://www.dtu-eceportal.com</a> and review the details at your earliest convenience. Any updates or modifications regarding this duty will be communicated to you via email and reflected on the portal.</p>
+        <p><strong>Order Number:</strong> ${order_number}</p>
+        <p><strong>Order Name:</strong> ${order_name}</p>
+        <p><strong>Order Date:</strong> ${order_date}</p>
+        <p><strong>Description:</strong> ${subject}</p>
 
-      <p>For any queries or clarifications, feel free to reach out to the department office.</p>
+        <p>To review the updated details, please log in to the ERP portal at 
+        <a href="https://www.dtu-eceportal.com" target="_blank">https://www.dtu-eceportal.com</a>.</p>
 
-      <br/>
-      <p>Best regards,</p>
-      <p><strong>HOD Office, Department of ECE</strong></p>
-      <p>Delhi Technological University</p>
+        <p>For any queries, feel free to contact the department office.</p>
 
-      <br/>
+        <br/>
+        <p>Best regards,</p>
+        <p><strong>HOD Office, Department of ECE</strong></p>
+        <p>Delhi Technological University</p>
 
-      <!-- Footer with Logo and Details -->
-      <table width="100%" style="border-top: 1px solid #ccc; padding-top: 10px; margin-top: 20px;">
-          <tr>
-              <!-- College Logo (Left) -->
-              <td width="80" style="padding-right: 20px;">
-                  <img src="cid:collegeLogo" alt="DTU Logo" style="width: 80px; height: auto;">
-              </td>
-              
-              <!-- HOD Office Details (Right) -->
-              <td style="vertical-align: middle; text-align: left;">
-                  <p style="margin: 0; font-size: 14px;">
-                      <strong>ERP Portal | HOD Office</strong><br>
-                      Department of ECE<br>
-                      Delhi Technological University (Formerly DCE)<br>
-                      Shahbad Daulatpur Village, Rohini, New Delhi, Delhi, 110042
-                  </p>
-              </td>
-          </tr>
-      </table>
-    `,
-    attachments: [
-      {
-        filename: "collegeLogo.png",
-        path: "public/assets/emailSignature.png",
-        cid: "collegeLogo"
-      }
-    ]
-  };
+        <br/>
+        <table width="100%" style="border-top: 1px solid #ccc; padding-top: 10px; margin-top: 20px;">
+            <tr>
+                <td width="80" style="padding-right: 20px;">
+                    <img src="cid:collegeLogo.png" alt="DTU Logo" style="width: 80px; height: auto;">
+                </td>
+                <td style="vertical-align: middle; text-align: left;">
+                    <p style="margin: 0; font-size: 14px;">
+                        <strong>ERP Portal | HOD Office</strong><br>
+                        Department of ECE<br>
+                        Delhi Technological University (Formerly DCE)<br>
+                        Shahbad Daulatpur Village, Rohini, New Delhi, Delhi, 110042
+                    </p>
+                </td>
+            </tr>
+        </table>
+      `,
+      attachment: [
+        {
+          name: 'collegeLogo.png',
+          content: logoBase64,
+          type: 'image/png',
+          disposition: 'inline',
+          contentId: 'collegeLogo.png'
+        }
+      ]
+    };
 
-  transporter.sendMail(mailOptions, (err, info) => {
-    if (err) {
-      console.error("❌ Error sending update email:", err);
-    } else {
-      console.log("✅ Update email sent successfully:", info.response);
-    }
-  });
+    const response = await axios.post('https://api.brevo.com/v3/smtp/email', emailData, {
+      headers: {
+        'api-key': process.env.BREVO_API_KEY,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    console.log("✅ Update email sent successfully:", response.data);
+  } catch (error) {
+    console.error("❌ Error sending update email:", error.response?.data || error.message);
+  }
 };
+
 
 export const deleteOrder = (req, res) => {
   const { order_id } = req.params;
@@ -872,65 +878,70 @@ export const deleteOrder = (req, res) => {
   );
 };
 
-
-const sendDeleteEmailNotifications = (emails, order_name, order_number, order_date, subject) => {
+const sendDeleteEmailNotifications = async (emails, order_name, order_number, order_date, subject) => {
   if (!emails || emails.length === 0) {
     console.log("No valid email recipients found. Skipping email notification.");
     return;
   }
 
-  const mailOptions = {
-    from: process.env.EMAIL_FROM,
-    to: emails,
-    subject: "Updated Office Order - Please Review Changes",
-    html: `
-      <p>Dear Faculty Member(s),</p>
-      <p>We hope this email finds you well.</p>
-      <p>We would like to inform you that an Office Order previously assigned to you Department of Electronics and Communication engineering has been cancelled. Please find the details below:</p>
-      <p><strong>Order Number:</strong> ${order_number}</p>
-      <p><strong>Order Name:</strong> ${order_name}</p>
-      <p><strong>Order Date:</strong> ${order_date}</p>
-      <p><strong>Description:</strong> ${subject}</p>
-      <p>To ensure smooth coordination, we kindly request you to log in to the ERP portal at https://www.dtu-eceportal.com and review the details at your earliest convenience.</p>
-      <p>For any queries or clarifications, feel free to reach out to the department office.</p>
-      <p>Best regards,</p>
-      <p><strong>HOD Office, Department of ECE</strong></p>
-      <p><strong>Delhi Technological University</strong></p>
-      <br/>
+  const htmlContent = `
+    <p>Dear Faculty Member(s),</p>
+    <p>We hope this email finds you well.</p>
+    <p>We would like to inform you that an Office Order previously assigned to you in the Department of Electronics and Communication Engineering has been cancelled. Please find the details below:</p>
+    <p><strong>Order Number:</strong> ${order_number}</p>
+    <p><strong>Order Name:</strong> ${order_name}</p>
+    <p><strong>Order Date:</strong> ${order_date}</p>
+    <p><strong>Description:</strong> ${subject}</p>
+    <p>To ensure smooth coordination, we kindly request you to log in to the ERP portal at https://www.dtu-eceportal.com and review the details at your earliest convenience.</p>
+    <p>For any queries or clarifications, feel free to reach out to the department office.</p>
+    <p>Best regards,</p>
+    <p><strong>HOD Office, Department of ECE</strong></p>
+    <p><strong>Delhi Technological University</strong></p>
+    <br/>
 
-      <!-- Footer with Logo and Details -->
-      <table width="100%" style="border-top: 1px solid #ccc; padding-top: 10px; margin-top: 20px;">
-          <tr>
-              <!-- College Logo (Left) -->
-              <td width="80" style="padding-right: 20px;">
-                  <img src="cid:collegeLogo" alt="DTU Logo" style="width: 80px; height: auto;">
-              </td>
-              
-              <!-- HOD Office Details (Right) -->
-              <td style="vertical-align: middle; text-align: left;">
-                  <p style="margin: 0; font-size: 14px;">
-                      <strong>ERP Portal | HOD Office</strong><br>
-                      Department of ECE<br>
-                      Delhi Technological University (Formerly DCE)<br>
-                      Shahbad Daulatpur Village, Rohini, New Delhi, Delhi, 110042
-                  </p>
-              </td>
-          </tr>
-      </table>
-    `,
-    attachments: [
+    <!-- Footer -->
+    <table width="100%" style="border-top: 1px solid #ccc; padding-top: 10px; margin-top: 20px;">
+        <tr>
+            <td width="80" style="padding-right: 20px;">
+                <img src="https://www.dtu-eceportal.com/static/emailSignature.png" alt="DTU Logo" style="width: 80px; height: auto;">
+            </td>
+            <td style="vertical-align: middle; text-align: left;">
+                <p style="margin: 0; font-size: 14px;">
+                    <strong>ERP Portal | HOD Office</strong><br>
+                    Department of ECE<br>
+                    Delhi Technological University (Formerly DCE)<br>
+                    Shahbad Daulatpur Village, Rohini, New Delhi, Delhi, 110042
+                </p>
+            </td>
+        </tr>
+    </table>
+  `;
+
+  const recipients = emails.map(email => ({ email }));
+
+  try {
+    const response = await axios.post(
+      "https://api.brevo.com/v3/smtp/email",
       {
-        filename: "collegeLogo.png",
-        path: "public/assets/emailSignature.png",
-        cid: "collegeLogo"
+        sender: {
+          name: "HOD Office - DTU ECE",
+          email: process.env.BREVO_SENDER_EMAIL,
+        },
+        to: recipients,
+        subject: "Office Order Cancelled - Please Review",
+        htmlContent,
+      },
+      {
+        headers: {
+          "api-key": process.env.BREVO_API_KEY,
+          "Content-Type": "application/json",
+        },
       }
-    ]
-  };
-
-  transporter.sendMail(mailOptions, (err, info) => {
-    if (err) console.error("❌ Error sending update email:", err);
-    else console.log("✅ Delete email sent successfully:", info.response);
-  });
+    );
+    console.log("✅ Delete email sent via Brevo:", response.data);
+  } catch (err) {
+    console.error("❌ Error sending delete email via Brevo:", err.response?.data || err.message);
+  }
 };
 
 
