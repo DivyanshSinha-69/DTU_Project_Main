@@ -294,7 +294,7 @@ export const facultyLogin = (req, res) => {
                 const userAgent = req.headers['user-agent'];
 
                 pool.query(
-                  "INSERT INTO login_activity (faculty_id, ip_address, user_agent) VALUES (?, ?, ?)",
+                  "INSERT INTO faculty_login_activity (faculty_id, ip_address, user_agent) VALUES (?, ?, ?)",
                   [faculty_id, ipAddress, userAgent],
                   (logErr) => {
                     if (logErr) console.error("Login activity log failed:", logErr);
