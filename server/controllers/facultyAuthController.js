@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
 import axios from 'axios'; // Import axios for HTTP requests
+import requestIp from "request-ip"; // Put this at the top if not imported already
 
 dotenv.config();
 
@@ -278,36 +279,50 @@ export const facultyLogin = (req, res) => {
                   .replace("T", " ");
 
                 // Fourth query to store refresh token
+                // Fourth query to store refresh token
                 pool.query(
-                  "UPDATE faculty_auth SET refresh_token = ?, refresh_token_expiry = ? WHERE faculty_id = ?",
-                  [refreshToken, refreshTokenExpiry, faculty_id],
-                  (err) => {
-                    if (err) {
-                      console.error("Database Error:", err);
-                      return res.status(500).json({ message: "Server error!" });
-                    }
+                "UPDATE faculty_auth SET refresh_token = ?, refresh_token_expiry = ? WHERE faculty_id = ?",
+                [refreshToken, refreshTokenExpiry, faculty_id],
+                (err) => {
+                if (err) {
+                  console.error("Database Error:", err);
+                  return res.status(500).json({ message: "Server error!" });
+                }
 
-                    res.json({
-                      message: "Login successful!",
-                      accessToken,
-                      refreshToken,
-                      user: {
-                        faculty_id: user.faculty_id,
-                        faculty_name: faculty_name,
-                        faculty_designation: designation,
-                        position: position, // Use fetched position
-                        researchCount: research_papers,
-                        sponsorCount: sponsorships,
-                        patentCount: patents,
-                        bookCount: book_records,
-                        consultancyCount: consultancy,
-                        unreadDuties: unread_duties,
-                        unreadCirculars: unread_circulars,
-                        department_id: deptid,
-                      },
-                    });
-                  },
+                // 👇 Log the login activity
+                const ipAddress = requestIp.getClientIp(req);
+                const userAgent = req.headers['user-agent'];
+
+                pool.query(
+                  "INSERT INTO login_activity (faculty_id, ip_address, user_agent) VALUES (?, ?, ?)",
+                  [faculty_id, ipAddress, userAgent],
+                  (logErr) => {
+                    if (logErr) console.error("Login activity log failed:", logErr);
+
+                    // 👇 Response back to client
+                  res.json({
+                  message: "Login successful!",
+                  accessToken,
+                  refreshToken,
+                  user: {
+                    faculty_id: user.faculty_id,
+                    faculty_name: faculty_name,
+                    faculty_designation: designation,
+                    position: position,
+                    researchCount: research_papers,
+                    sponsorCount: sponsorships,
+                    patentCount: patents,
+                    bookCount: book_records,
+                    consultancyCount: consultancy,
+                    unreadDuties: unread_duties,
+                    unreadCirculars: unread_circulars,
+                    department_id: deptid,
+                    },
+                  });
+                  }
                 );
+                }
+              ); 
               },
             );
           },
