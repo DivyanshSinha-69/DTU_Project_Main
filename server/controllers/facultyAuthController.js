@@ -3,17 +3,18 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
+import axios from 'axios'; // Import axios for HTTP requests
 
 dotenv.config();
 
 // ✅ Configure Nodemailer
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+// const transporter = nodemailer.createTransport({
+//   service: "gmail",
+//   auth: {
+//     user: process.env.EMAIL_USER,
+//     pass: process.env.EMAIL_PASS,
+//   },
+// });
 
 // ==================== Generate Access Tokens ====================
 const generateAccessToken = (faculty_id, position) => {
@@ -64,29 +65,48 @@ export const forgotPassword = (req, res) => {
       pool.query(
         "UPDATE faculty_auth SET reset_token = ?, token_expiry = ? WHERE email = ?",
         [resetToken, expiryTime, email],
-        (updateErr) => {
+        async (updateErr) => {
           if (updateErr) {
             console.error("Database Update Error:", updateErr);
             return res.status(500).json({ error: "Internal server error" });
           }
 
-          // Send Reset Email
+          // Prepare the reset link
           const resetLink = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
-          const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: email,
+
+          // Prepare email data for Brevo API
+          const emailData = {
+            sender: {
+              name: process.env.EMAIL_FROM_NAME,
+              email: process.env.EMAIL_FROM_EMAIL,
+            },
+            to: [{ email }],
             subject: "Password Reset Request",
-            text: `Click the link below to reset your password (valid for ${process.env.TOKEN_EXPIRY} minutes):\n\n${resetLink}`,
+            htmlContent: `
+              <p>Hello,</p>
+              <p>Click the link below to reset your password (valid for ${process.env.TOKEN_EXPIRY} minutes):</p>
+              <p><a href="${resetLink}">${resetLink}</a></p>
+            `,
           };
 
-          transporter.sendMail(mailOptions, (emailErr) => {
-            if (emailErr) {
-              console.error("Email Sending Error:", emailErr);
-              return res.status(500).json({ error: "Failed to send email" });
-            }
-
+          // Send Reset Email via Brevo API
+          try {
+            const response = await axios.post(
+              'https://api.brevo.com/v3/smtp/email',
+              emailData,
+              {
+                headers: {
+                  'api-key': process.env.BREVO_API_KEY,
+                  'Content-Type': 'application/json',
+                },
+              }
+            );
+            console.log("✅ Reset email sent successfully via Brevo:", response.data);
             res.json({ message: "Reset link sent to email" });
-          });
+          } catch (emailErr) {
+            console.error("❌ Error sending reset email via Brevo:", emailErr.response?.data || emailErr.message);
+            return res.status(500).json({ error: "Failed to send email" });
+          }
         },
       );
     },
