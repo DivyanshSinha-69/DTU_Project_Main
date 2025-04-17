@@ -833,7 +833,13 @@ export const deleteOrder = (req, res) => {
               } else {
                 const facultyEmails = emailResults.map((row) => row.email_id).filter(Boolean);
                 if (facultyEmails.length > 0) {
-                  sendDeleteEmailNotifications(facultyEmails, order_name, order_number, order_date, subject);
+                  sendDeleteEmailNotifications(facultyEmails, order_name, order_number, order_date, subject)
+                    .then(() => {
+                      console.log("✅ Delete email successfully sent.");
+                    })
+                    .catch((err) => {
+                      console.error("❌ Failed to send delete email:", err.response?.data || err.message);
+                    });
                 }
               }
             }
@@ -851,26 +857,46 @@ export const deleteOrder = (req, res) => {
             }
           }
 
-          // **Delete all related records only after processing emails**
-          pool.query("DELETE FROM mapping_duty_orders_faculty WHERE order_number = ?", [order_number]);
-          pool.query("DELETE FROM mapping_duty_orders_students WHERE order_number = ?", [order_number]);
-          pool.query("DELETE FROM department_duty_notifications WHERE order_number = ?", [order_number]);
-
-          // **Delete the file if it exists**
-          if (order_path) {
-            try {
-              fs.unlinkSync(order_path);
-            } catch (fsErr) {
-              console.error("Error deleting file:", fsErr);
+          pool.query("DELETE FROM department_duty_notifications WHERE order_number = ?", [order_number], (notifErr) => {
+            if (notifErr) {
+              console.error("Error deleting notifications:", notifErr);
+              return res.status(500).json({ message: "Error deleting notifications", error: notifErr });
             }
-          }
-
-          // **Finally, delete the order**
-          pool.query("DELETE FROM department_duty_orders WHERE order_id=?", [order_id], (orderErr, result) => {
-            if (orderErr) return res.status(500).json({ message: "Error deleting order", error: orderErr });
-            if (result.affectedRows === 0) return res.status(404).json({ message: "Order not found" });
-
-            res.status(200).json({ message: "Order and associated notifications deleted successfully" });
+          
+            pool.query("DELETE FROM mapping_duty_orders_faculty WHERE order_number = ?", [order_number], (facMapErr) => {
+              if (facMapErr) {
+                console.error("Error deleting faculty mappings:", facMapErr);
+                return res.status(500).json({ message: "Error deleting faculty mappings", error: facMapErr });
+              }
+          
+              pool.query("DELETE FROM mapping_duty_orders_students WHERE order_number = ?", [order_number], (stuMapErr) => {
+                if (stuMapErr) {
+                  console.error("Error deleting student mappings:", stuMapErr);
+                  return res.status(500).json({ message: "Error deleting student mappings", error: stuMapErr });
+                }
+          
+                // Delete the file if it exists
+                if (order_path) {
+                  try {
+                    fs.unlinkSync(order_path);
+                  } catch (fsErr) {
+                    console.error("Error deleting file:", fsErr);
+                  }
+                }
+          
+                // Finally, delete the main order
+                pool.query("DELETE FROM department_duty_orders WHERE order_id=?", [order_id], (orderErr, result) => {
+                  if (orderErr) {
+                    return res.status(500).json({ message: "Error deleting order", error: orderErr });
+                  }
+                  if (result.affectedRows === 0) {
+                    return res.status(404).json({ message: "Order not found" });
+                  }
+          
+                  res.status(200).json({ message: "Order and associated notifications deleted successfully" });
+                });
+              });
+            });
           });
         });
       });
@@ -884,6 +910,10 @@ const sendDeleteEmailNotifications = async (emails, order_name, order_number, or
     return;
   }
 
+  // Read the logo file and convert it to base64
+  const logoPath = path.join(__dirname, "..", "public", "assets", "emailSignature.png");
+  const logoBase64 = fs.readFileSync(logoPath, { encoding: "base64" });
+
   const htmlContent = `
     <p>Dear Faculty Member(s),</p>
     <p>We hope this email finds you well.</p>
@@ -892,7 +922,7 @@ const sendDeleteEmailNotifications = async (emails, order_name, order_number, or
     <p><strong>Order Name:</strong> ${order_name}</p>
     <p><strong>Order Date:</strong> ${order_date}</p>
     <p><strong>Description:</strong> ${subject}</p>
-    <p>To ensure smooth coordination, we kindly request you to log in to the ERP portal at https://www.dtu-eceportal.com and review the details at your earliest convenience.</p>
+    <p>To ensure smooth coordination, we kindly request you to log in to the ERP portal at <a href="https://www.dtu-eceportal.com" target="_blank">https://www.dtu-eceportal.com</a> and review the details at your earliest convenience.</p>
     <p>For any queries or clarifications, feel free to reach out to the department office.</p>
     <p>Best regards,</p>
     <p><strong>HOD Office, Department of ECE</strong></p>
@@ -903,7 +933,7 @@ const sendDeleteEmailNotifications = async (emails, order_name, order_number, or
     <table width="100%" style="border-top: 1px solid #ccc; padding-top: 10px; margin-top: 20px;">
         <tr>
             <td width="80" style="padding-right: 20px;">
-                <img src="https://www.dtu-eceportal.com/static/emailSignature.png" alt="DTU Logo" style="width: 80px; height: auto;">
+                <img src="cid:collegeLogo.png" alt="DTU Logo" style="width: 80px; height: auto;">
             </td>
             <td style="vertical-align: middle; text-align: left;">
                 <p style="margin: 0; font-size: 14px;">
@@ -917,19 +947,28 @@ const sendDeleteEmailNotifications = async (emails, order_name, order_number, or
     </table>
   `;
 
-  const recipients = emails.map(email => ({ email }));
+  const recipients = emails.map((email) => ({ email }));
 
   try {
     const response = await axios.post(
       "https://api.brevo.com/v3/smtp/email",
       {
         sender: {
-          name: "HOD Office - DTU ECE",
-          email: process.env.BREVO_SENDER_EMAIL,
+          name: process.env.EMAIL_FROM_NAME,
+          email: process.env.EMAIL_FROM_EMAIL,
         },
         to: recipients,
         subject: "Office Order Cancelled - Please Review",
         htmlContent,
+        attachment: [
+          {
+            name: "collegeLogo.png",
+            content: logoBase64,
+            type: "image/png",
+            disposition: "inline",
+            contentId: "collegeLogo.png",
+          },
+        ],
       },
       {
         headers: {
@@ -943,6 +982,7 @@ const sendDeleteEmailNotifications = async (emails, order_name, order_number, or
     console.error("❌ Error sending delete email via Brevo:", err.response?.data || err.message);
   }
 };
+
 
 
 // 1️⃣ Get all faculty mappings or by faculty_id
