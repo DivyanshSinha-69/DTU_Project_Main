@@ -298,6 +298,7 @@ export default function ResearchProjectPopup({
                 name="citation"
                 className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Example: J. Doe et al., 'Paper Title', Journal Name, vol. 1, no. 1, pp. 1-10, 2023."
+                required
                 onChange={handleChange}
                 value={formData.citation}
               />
@@ -318,6 +319,7 @@ export default function ResearchProjectPopup({
                 name="authors"
                 className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder=" "
+                required
                 onChange={handleChange}
                 value={formData.authors}
               />
@@ -334,6 +336,7 @@ export default function ResearchProjectPopup({
                 name="document"
                 accept=".pdf"
                 className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
                 onChange={handleFileChange}
               />
             </div>
