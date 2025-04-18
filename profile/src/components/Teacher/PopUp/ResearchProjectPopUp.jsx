@@ -291,7 +291,7 @@ export default function ResearchProjectPopup({
             {/* Citation Field */}
             <div className="relative z-0 w-full group">
               <label htmlFor="citation" className="block text-sm">
-                Citation (IEEE format)
+                Citation (IEEE format) <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -311,7 +311,7 @@ export default function ResearchProjectPopup({
             {/* Authors/Co-Authors Field */}
             <div className="relative z-0 w-full group">
               <label htmlFor="authors" className="block text-sm">
-                Authors/Co-Authors
+                Authors/Co-Authors <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -326,7 +326,8 @@ export default function ResearchProjectPopup({
             {/* Upload Document Field */}
             <div className="relative z-0 w-full group">
               <label htmlFor="document" className="block text-sm">
-                Upload Document (front page only)
+                Upload Document (front page only){" "}
+                <span className="text-red-500">*</span>
               </label>
               <input
                 type="file"
