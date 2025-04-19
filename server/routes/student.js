@@ -39,9 +39,9 @@ import {
   getBtechEducationDetails,
   updateBtechEducationDetails,
   getAcknowledgement,
-  forgotPasswordStudent,
-  resetPasswordStudent,
-  updateStudentLastSeen,
+  forgotStudentPassword,
+  resetStudentPassword,
+  updateLastSeen,
 } from "../controllers/student.js";
  import { authenticateToken, authorizeRoles } from "../middlewares/auth.js";
 
@@ -100,9 +100,9 @@ router.post("/uploadcertificate", uploadCertificate);
 router.post("/getacknowledgement", getAcknowledgement);
 // router.get("/me", isAuthenticated, getMyProfile);
 
-router.post("/forgotpassword", forgotPasswordStudent);
-router.post("/resetpassword/:token", resetPasswordStudent);
+router.post("/forgotpassword", forgotStudentPassword);
+router.post("/resetpassword/:token", resetStudentPassword);
 
-router.put("/notifications/last-seen/student/:roll_no", authenticateToken, authorizeRoles("student"), updateStudentLastSeen);
+router.put("/notifications/last-seen/student/:roll_no", authenticateToken, authorizeRoles("student"), updateLastSeen);
 
 export default router;
