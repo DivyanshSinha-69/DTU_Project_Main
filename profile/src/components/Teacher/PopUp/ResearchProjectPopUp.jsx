@@ -291,28 +291,35 @@ export default function ResearchProjectPopup({
             {/* Citation Field */}
             <div className="relative z-0 w-full group">
               <label htmlFor="citation" className="block text-sm">
-                Citation
+                Citation (IEEE format) <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 name="citation"
                 className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder=" "
+                placeholder="Example: J. Doe et al., 'Paper Title', Journal Name, vol. 1, no. 1, pp. 1-10, 2023."
+                required
                 onChange={handleChange}
                 value={formData.citation}
               />
+              <p className="text-xs text-gray-400 mt-1">
+                Example IEEE format: J. Doe, R. Smith, and A. Lee, "Advanced
+                signal processing techniques," IEEE Trans. Signal Process., vol.
+                68, no. 5, pp. 1234-1245, May 2020.
+              </p>
             </div>
 
             {/* Authors/Co-Authors Field */}
             <div className="relative z-0 w-full group">
               <label htmlFor="authors" className="block text-sm">
-                Authors/Co-Authors
+                Authors/Co-Authors <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 name="authors"
                 className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder=" "
+                required
                 onChange={handleChange}
                 value={formData.authors}
               />
@@ -321,13 +328,15 @@ export default function ResearchProjectPopup({
             {/* Upload Document Field */}
             <div className="relative z-0 w-full group">
               <label htmlFor="document" className="block text-sm">
-                Upload Document (front page only)
+                Upload Document (front page only){" "}
+                <span className="text-red-500">*</span>
               </label>
               <input
                 type="file"
                 name="document"
-                accept=".pdf,.docx"
+                accept=".pdf"
                 className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
                 onChange={handleFileChange}
               />
             </div>
