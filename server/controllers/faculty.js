@@ -255,7 +255,7 @@ export const addResearchPaper = (req, res) => {
   const filePath = req.file ? req.file.path : null;
 
 
-  if (!faculty_id || !paper_type || !title_of_paper || !area_of_research || !published_year || !authors) 
+  if (!faculty_id || !paper_type || !title_of_paper || !area_of_research || !published_year || !authors || !filePath) 
     {
       return res.status(400).json({ message: "All fields are required" });
     }

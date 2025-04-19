@@ -1,23 +1,39 @@
 import { pool } from "../data/database.js";
 import multer from "multer";
 import path, { resolve } from "path";
-import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
+import jwt from 'jsonwebtoken';
 
 dotenv.config();
 
 const storage = multer.memoryStorage(); // Store the file in memory as Buffer
 const upload = multer({ storage: storage });
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+// const transporter = nodemailer.createTransport({
+//   service: "gmail",
+//   auth: {
+//     user: process.env.EMAIL_USER,
+//     pass: process.env.EMAIL_PASS,
+//   },
+// });
+
+const generateStudentAccessToken = (roll_no) => {
+  return jwt.sign({ roll_no, role: "Student" }, process.env.JWT_SECRET, {
+    expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
+  });
+};
+
+const generateStudentRefreshToken = (roll_no) => {
+  const expiryDays = parseInt(process.env.REFRESH_TOKEN_EXPIRY) || 7;
+  const expirySeconds = expiryDays * 24 * 60 * 60;
+
+  return jwt.sign({ roll_no, role: "Student" }, process.env.JWT_REFRESH_SECRET, {
+    expiresIn: expirySeconds,
+  });
+};
+
 
 export const uploadImage = (req, res) => {
   upload.single("image")(req, res, async (err) => {
@@ -1700,7 +1716,7 @@ export const getAcknowledgement = async (req, res) => {
   tables.forEach((table) => checkRollNoInTable(table));
 };
 
-export const forgotPasswordStudent = (req, res) => {
+export const forgotStudentPassword = (req, res) => {
   const { email } = req.body;
 
   pool.query(
@@ -1716,50 +1732,65 @@ export const forgotPasswordStudent = (req, res) => {
         return res.status(404).json({ message: "Student not found" });
       }
 
-      // Generate Reset Token
       const resetToken = jwt.sign({ email }, process.env.JWT_SECRET, {
         expiresIn: `${process.env.TOKEN_EXPIRY}m`,
         algorithm: "HS256",
       });
 
       const expiryTime = new Date(
-        Date.now() + Number(process.env.TOKEN_EXPIRY) * 60000,
+        Date.now() + Number(process.env.TOKEN_EXPIRY) * 60000
       );
 
-      // Store token in DB
       pool.query(
         "UPDATE student_auth SET reset_token = ?, token_expiry = ? WHERE email = ?",
         [resetToken, expiryTime, email],
-        (updateErr) => {
+        async (updateErr) => {
           if (updateErr) {
             console.error("Database Update Error:", updateErr);
             return res.status(500).json({ error: "Internal server error" });
           }
 
-          // Send Reset Email
-          const resetLink = `${process.env.CLIENT_URL}/resetpassword/${resetToken}`;
-          const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: email,
-            subject: "Student Password Reset Request",
-            text: `Click the link below to reset your password (valid for ${process.env.TOKEN_EXPIRY} minutes):\n\n${resetLink}`,
+          const resetLink = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+
+          const emailData = {
+            sender: {
+              name: process.env.EMAIL_FROM_NAME,
+              email: process.env.EMAIL_FROM_EMAIL,
+            },
+            to: [{ email }],
+            subject: "Password Reset Request",
+            htmlContent: `
+              <p>Hello,</p>
+              <p>Click the link below to reset your password (valid for ${process.env.TOKEN_EXPIRY} minutes):</p>
+              <p><a href="${resetLink}">${resetLink}</a></p>
+            `,
           };
 
-          transporter.sendMail(mailOptions, (emailErr) => {
-            if (emailErr) {
-              console.error("Email Sending Error:", emailErr);
-              return res.status(500).json({ error: "Failed to send email" });
-            }
-
-            res.json({ message: "Reset link sent to email" });
-          });
-        },
+          try {
+            const response = await axios.post(
+              'https://api.brevo.com/v3/smtp/email',
+              emailData,
+              {
+                headers: {
+                  'api-key': process.env.BREVO_API_KEY,
+                  'Content-Type': 'application/json',
+                },
+              }
+            );
+            console.log("✅ Reset email sent to student via Brevo:", response.data);
+            res.json({ message: "Reset link sent to student email" });
+          } catch (emailErr) {
+            console.error("❌ Brevo error sending email:", emailErr.response?.data || emailErr.message);
+            return res.status(500).json({ error: "Failed to send reset email" });
+          }
+        }
       );
-    },
+    }
   );
 };
 
-export const resetPasswordStudent = (req, res) => {
+
+export const resetStudentPassword = (req, res) => {
   const { token } = req.params;
   const { newPassword } = req.body;
 
@@ -1780,82 +1811,35 @@ export const resetPasswordStudent = (req, res) => {
           return res.status(400).json({ error: "Invalid or expired token" });
         }
 
-        // Check token expiry
         if (new Date(result[0].token_expiry) < new Date()) {
           return res.status(400).json({ error: "Token expired" });
         }
 
-        // Hash the new password
         bcrypt.hash(newPassword, 10, (hashErr, hashedPassword) => {
           if (hashErr) {
             console.error("Password Hashing Error:", hashErr);
             return res.status(500).json({ error: "Failed to hash password" });
           }
 
-          // Update password and remove reset token
           pool.query(
             "UPDATE student_auth SET password = ?, reset_token = NULL, token_expiry = NULL WHERE email = ?",
             [hashedPassword, email],
             (updateErr) => {
               if (updateErr) {
                 console.error("Database Update Error:", updateErr);
-                return res
-                  .status(500)
-                  .json({ error: "Failed to reset password" });
+                return res.status(500).json({ error: "Failed to reset password" });
               }
 
-              res.json({ message: "Password reset successful" });
-            },
+              res.json({ message: "Student password reset successful" });
+            }
           );
         });
-      },
+      }
     );
   } catch (error) {
-    console.error("Reset Password Error:", error);
+    console.error("Reset Token Error:", error);
     res.status(400).json({ error: "Invalid or expired token" });
   }
-};
-
-export const updateStudentLastSeen = (req, res) => {
-  const { roll_no } = req.params;
-
-  if (!roll_no) {
-      return res.status(400).json({ error: "roll_no is required" });
-  }
-
-  // Query to update last_seen timestamp
-  const updateQuery = `UPDATE student_details SET last_notifications_seen = NOW() WHERE RollNo = ?`;
-
-  // Query to count seen and unseen notifications
-  const countQuery = `
-      SELECT 
-          COUNT(CASE WHEN created_at > (SELECT last_notifications_seen FROM student_details WHERE RollNo = ?) THEN 1 END) AS unseen_count,
-          COUNT(CASE WHEN created_at <= (SELECT last_notifications_seen FROM student_details WHERE RollNo = ?) THEN 1 END) AS seen_count
-      FROM department_duty_notifications 
-      WHERE user_id = ?
-  `;
-
-  pool.query(updateQuery, [roll_no], (err) => {
-      if (err) {
-          console.error("Error updating last_seen:", err);
-          return res.status(500).json({ error: "Internal server error" });
-      }
-
-      // Fetch notification counts after updating last seen
-      pool.query(countQuery, [roll_no, roll_no, roll_no], (err, result) => {
-          if (err) {
-              console.error("Error fetching notification counts:", err);
-              return res.status(500).json({ error: "Internal server error" });
-          }
-
-          res.json({
-              success: true,
-              message: "Last seen updated successfully",
-              unseen_count: result[0].unseen_count,
-              seen_count: result[0].seen_count
-          });
-      });
-  });
 };
 
 export const updateLastSeen = (req, res) => {
@@ -1938,3 +1922,68 @@ export const updateLastSeen = (req, res) => {
   });
 };
 
+
+
+export const studentRefreshToken = (req, res) => {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    return res.status(401).json({ message: "Refresh token is required!" });
+  }
+
+  pool.query(
+    `SELECT sa.roll_no, sa.refresh_token, sa.refresh_token_expiry 
+     FROM student_auth sa
+     WHERE sa.refresh_token = ?`,
+    [refreshToken],
+    (err, results) => {
+      if (err) {
+        console.error("Database Error:", err);
+        return res.status(500).json({ message: "Server error!" });
+      }
+
+      if (results.length === 0) {
+        return res.status(401).json({ message: "Invalid refresh token!" });
+      }
+
+      const user = results[0];
+      const tokenExpiry = new Date(user.refresh_token_expiry);
+
+      if (tokenExpiry < new Date()) {
+        return res.status(401).json({ message: "Refresh token expired!" });
+      }
+
+      jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err, decoded) => {
+        if (err) {
+          return res.status(401).json({ message: "Invalid or expired refresh token!" });
+        }
+
+        // Generate new access token using roll_no
+        const newAccessToken = generateStudentAccessToken(user.roll_no, 'Student'); // You can pass 'Student' as the role if needed
+
+        res.json({ accessToken: newAccessToken });
+      });
+    }
+  );
+};
+
+export const studentLogout = (req, res) => {
+  const { roll_no } = req.body;
+
+  if (!roll_no) {
+    return res.status(400).json({ message: "Roll No is required!" });
+  }
+
+  pool.query(
+    "UPDATE student_auth SET refresh_token = NULL, refresh_token_expiry = NULL WHERE roll_no = ?",
+    [roll_no],
+    (err) => {
+      if (err) {
+        console.error("Database Error:", err);
+        return res.status(500).json({ message: "Server error!" });
+      }
+
+      res.json({ message: "Logged out successfully!" });
+    }
+  );
+};

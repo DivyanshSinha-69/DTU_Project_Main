@@ -28,8 +28,8 @@ const __dirname = path.dirname(__filename);
 //     pass: process.env.BREVO_SMTP_EMAIL_PASS, // Your Brevo SMTP password (SMTP key)
 //   },
 // });
-// 🔹 Generate Access Token (Short-lived)
 
+// 🔹 Generate Access Token (Short-lived)
 const generateAccessToken = (department_id, position) => {
   return jwt.sign({ department_id, position }, process.env.JWT_SECRET, {
     expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
@@ -503,7 +503,7 @@ const sendEmailNotifications = async (emails, order_number, order_name, order_da
         <br/>
         <p>Best regards,</p>
         <p><strong>HOD Office, Department of ECE</strong></p>
-        <p>Delhi Technological University</p>
+        <p><strong>Delhi Technological University</strong></p>
         <br/>
 
         <table width="100%" style="border-top: 1px solid #ccc; padding-top: 10px; margin-top: 20px;">
