@@ -523,17 +523,8 @@ const sendEmailNotifications = async (emails, order_number, order_name, order_da
                 </td>
             </tr>
         </table>
-      `,
-      attachment: [
-        ...(pdfAttachment ? [pdfAttachment] : []),
-        {
-          name: 'collegeLogo.png',
-          content: logoBase64,
-          type: 'image/png',
-          disposition: 'inline',
-          contentId: 'collegeLogo.png'
-        }
-      ]
+      `
+      
     };
 
     const response = await axios.post('https://api.brevo.com/v3/smtp/email', emailData, {

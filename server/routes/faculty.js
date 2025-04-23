@@ -80,31 +80,11 @@ const router = express.Router();
 router.use(authenticateToken);
 
 // Association Routes
-router.get(
-  "/facultyassociation",
-  authorizeRoles("faculty"),
-  getFacultyAssociations
-);
-router.get(
-  "/facultyassociation/:faculty_id",
-  authorizeRoles("faculty"),
-  getFacultyAssociationById
-);
-router.post(
-  "/facultyassociation",
-  authorizeRoles("faculty"),
-  addFacultyAssociation
-);
-router.put(
-  "/facultyassociation/:faculty_id",
-  authorizeRoles("faculty"),
-  updateFacultyAssociation
-);
-router.delete(
-  "/facultyassociation/:faculty_id",
-  authorizeRoles("faculty"),
-  deleteFacultyAssociation
-);
+router.get("/facultyassociation", authorizeRoles("faculty"), getFacultyAssociations);
+router.get("/facultyassociation/:faculty_id", authorizeRoles("faculty"), getFacultyAssociationById);
+router.post("/facultyassociation", authorizeRoles("faculty"), addFacultyAssociation);
+router.put("/facultyassociation/:faculty_id", authorizeRoles("faculty"), updateFacultyAssociation);
+router.delete("/facultyassociation/:faculty_id", authorizeRoles("faculty"), deleteFacultyAssociation);
 
 // Research Paper Route
 router.get("/researchpaper/:faculty_id", authorizeRoles("faculty"), getResearchPapersByFaculty);
@@ -155,23 +135,11 @@ router.put("/consultancy/:consultancy_id", authorizeRoles("faculty"), uploadFacu
 router.delete("/consultancy/:consultancy_id", authorizeRoles("faculty"), deleteConsultancy);
 
 // Faculty Details Routes
-router.get(
-  "/faculty-details/:faculty_id",
-  authorizeRoles("faculty"),
-  getFacultyDetails
-);
+router.get("/faculty-details/:faculty_id", authorizeRoles("faculty"), getFacultyDetails);
 router.get("/faculty-details", authorizeRoles("faculty"), getFacultyDetails);
 router.post("/faculty-details", authorizeRoles("faculty"), addFaculty);
-router.put(
-  "/faculty-details/:faculty_id",
-  authorizeRoles("faculty"),
-  updateFacultyDetails
-);
-router.delete(
-  "/faculty-details/:faculty_id",
-  authorizeRoles("faculty"),
-  deleteFaculty
-);
+router.put("/faculty-details/:faculty_id", authorizeRoles("faculty"), updateFacultyDetails);
+router.delete("/faculty-details/:faculty_id", authorizeRoles("faculty"), deleteFaculty);
 
 // Specialization Routes
 router.get("/specializations", authorizeRoles("faculty"), getSpecializations);
@@ -180,23 +148,9 @@ router.put("/specializations/:specialization_id", authorizeRoles("faculty"), upd
 router.delete("/specializations/:specialization_id", authorizeRoles("faculty"), deleteSpecialization);
 
 // Faculty Image Routes
-router.get(
-  "/facultyimage/:faculty_id",
-  authorizeRoles("faculty"),
-  getFacultyImage
-); // Route to get faculty image
-router.put(
-  "/facultyimage/:faculty_id",
-  authorizeRoles("faculty"),
-  uploadFacultyImage,
-  compressUploadedFile,
-  updateFacultyImage
-); // Route to update faculty image
-router.delete(
-  "/facultyimage/:faculty_id",
-  authorizeRoles("faculty"),
-  deleteFacultyImage
-); // Route to delete faculty image
+router.get("/facultyimage/:faculty_id", authorizeRoles("faculty"), getFacultyImage); // Route to get faculty image
+router.put("/facultyimage/:faculty_id", authorizeRoles("faculty"), uploadFacultyImage, compressUploadedFile, updateFacultyImage); // Route to update faculty image
+router.delete("/facultyimage/:faculty_id", authorizeRoles("faculty"), deleteFacultyImage); // Route to delete faculty image
 
 // Faculty Patent Routes
 router.get("/patent", authorizeRoles("faculty"), getFacultyPatents); // Get all patents
