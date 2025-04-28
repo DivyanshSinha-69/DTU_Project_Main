@@ -5,6 +5,7 @@ import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import jwt from 'jsonwebtoken';
+import requestIp from 'request-ip'; // For getting the client IP address
 
 dotenv.config();
 
@@ -19,20 +20,23 @@ const upload = multer({ storage: storage });
 //   },
 // });
 
-const generateStudentAccessToken = (roll_no) => {
-  return jwt.sign({ roll_no, role: "Student" }, process.env.JWT_SECRET, {
+// ==================== Generate Access Token ====================
+const generateAccessToken = (roll_no, position, role_assigned) => {
+  return jwt.sign({ roll_no, position, role_assigned }, process.env.JWT_SECRET, {
     expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
   });
 };
 
-const generateStudentRefreshToken = (roll_no) => {
+// ==================== Generate Refresh Token ====================
+const generateRefreshToken = (roll_no, position, role_assigned) => {
   const expiryDays = parseInt(process.env.REFRESH_TOKEN_EXPIRY) || 7;
   const expirySeconds = expiryDays * 24 * 60 * 60;
 
-  return jwt.sign({ roll_no, role: "Student" }, process.env.JWT_REFRESH_SECRET, {
+  return jwt.sign({ roll_no, position, role_assigned }, process.env.JWT_REFRESH_SECRET, {
     expiresIn: expirySeconds,
   });
 };
+
 
 
 export const uploadImage = (req, res) => {
@@ -1931,8 +1935,9 @@ export const studentRefreshToken = (req, res) => {
     return res.status(401).json({ message: "Refresh token is required!" });
   }
 
+  // Query to check the refresh token and its expiry time
   pool.query(
-    `SELECT sa.roll_no, sa.refresh_token, sa.refresh_token_expiry 
+    `SELECT sa.roll_no, sa.refresh_token, sa.refresh_token_expiry, sa.position_id, sa.role_assigned 
      FROM student_auth sa
      WHERE sa.refresh_token = ?`,
     [refreshToken],
@@ -1949,23 +1954,115 @@ export const studentRefreshToken = (req, res) => {
       const user = results[0];
       const tokenExpiry = new Date(user.refresh_token_expiry);
 
+      // Check if the refresh token has expired
       if (tokenExpiry < new Date()) {
         return res.status(401).json({ message: "Refresh token expired!" });
       }
 
+      // Verify the refresh token
       jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err, decoded) => {
         if (err) {
           return res.status(401).json({ message: "Invalid or expired refresh token!" });
         }
 
-        // Generate new access token using roll_no
-        const newAccessToken = generateStudentAccessToken(user.roll_no, 'Student'); // You can pass 'Student' as the role if needed
+        // Generate new access token using roll_no, position, and role_assigned
+        const newAccessToken = generateStudentAccessToken(user.roll_no, 'Student', user.role_assigned);
 
+        // Send back the new access token
         res.json({ accessToken: newAccessToken });
       });
     }
   );
 };
+
+export const studentLogin = (req, res) => {
+  const { roll_no, password } = req.body;
+
+  if (!roll_no || !password) {
+    return res.status(400).json({ message: "Roll number and password are required!" });
+  }
+
+  // Query to get student details, role, role name, and department name
+  pool.query(
+    `SELECT sa.*, pt.position_name, sar.role_name AS role_assigned_name, dd.department_name
+     FROM student_auth sa
+     LEFT JOIN position_type pt ON sa.position_id = pt.position_id
+     LEFT JOIN student_available_roles sar ON sa.role_assigned = sar.role_id
+     LEFT JOIN department_details dd ON sa.department_id = dd.department_id
+     WHERE sa.roll_no = ?`,
+    [roll_no],
+    (err, results) => {
+      if (err) {
+        console.error("Database Error:", err);
+        return res.status(500).json({ message: "Server error!" });
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({ message: "Student not found!" });
+      }
+
+      const student = results[0];
+      const { position_name, role_assigned_name, department_name } = student;
+
+      // Compare passwords
+      bcrypt.compare(password, student.password, (err, isMatch) => {
+        if (err) return res.status(500).json({ message: "Server error!" });
+        if (!isMatch) return res.status(401).json({ message: "Invalid password!" });
+
+        // Generate tokens
+        const accessToken = generateAccessToken(roll_no, position_name, role_assigned_name);
+        const refreshToken = generateRefreshToken(roll_no, position_name, role_assigned_name);
+
+        const expiryDays = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7;
+        const refreshTokenExpiry = new Date(
+          Date.now() + expiryDays * 24 * 60 * 60 * 1000,
+        )
+          .toISOString()
+          .slice(0, 19)
+          .replace("T", " ");
+
+        // Update the refresh token in the student_auth table
+        pool.query(
+          "UPDATE student_auth SET refresh_token = ?, refresh_token_expiry = ? WHERE roll_no = ?",
+          [refreshToken, refreshTokenExpiry, roll_no],
+          (err) => {
+            if (err) {
+              console.error("Database Error:", err);
+              return res.status(500).json({ message: "Server error!" });
+            }
+
+            // Log the login activity
+            const ipAddress = requestIp.getClientIp(req);
+            const userAgent = req.headers['user-agent'];
+
+            pool.query(
+              "INSERT INTO student_login_activity (roll_no, ip_address, user_agent) VALUES (?, ?, ?)",
+              [roll_no, ipAddress, userAgent],
+              (logErr) => {
+                if (logErr) console.error("Login activity log failed:", logErr);
+
+                // Response back to client with role name and department name
+                res.json({
+                  message: "Login successful!",
+                  accessToken,
+                  refreshToken,
+                  user: {
+                    roll_no: student.roll_no,
+                    position: position_name,
+                    role_assigned: role_assigned_name, // Role name
+                    department_name: department_name, // Department name
+                  },
+                });
+              }
+            );
+          }
+        );
+      });
+    }
+  );
+};
+
+
 
 export const studentLogout = (req, res) => {
   const { roll_no } = req.body;

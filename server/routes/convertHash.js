@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 
-const password = "ERP1234";
+const password = "Password@123";
 const saltRounds = 10;
 
 bcrypt
