@@ -20,6 +20,12 @@ const FacultyHeader = () => {
   );
   const { role } = useSelector((state) => state.user);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const handleToggle = () => {
+    setIsAnimating(true);
+    setDarkMode(!darkMode);
+  };
 
   // Navigation links
   const navLinks = [
@@ -131,17 +137,20 @@ const FacultyHeader = () => {
             whileTap={{ scale: 0.95 }}
           >
             <div
-              className={`relative flex w-14 h-8 rounded-full p-1 cursor-pointer transition-colors duration-500 ${
+              className={`relative flex w-14 h-8 rounded-full p-1 cursor-pointer transition-colors duration-700 ${
                 darkMode ? "bg-gray-700" : "bg-gray-300"
               }`}
-              onClick={() => setDarkMode(!darkMode)}
+              onClick={handleToggle}
             >
               <motion.div
-                className={`absolute w-6 h-6 bg-white rounded-full shadow-md flex items-center justify-center transition-all duration-500 ${
-                  darkMode ? "translate-x-6" : "translate-x-0"
-                }`}
-                layout
-                transition={{ type: "spring", stiffness: 700, damping: 20 }}
+                className="absolute w-6 h-6 bg-white rounded-full shadow-md flex items-center justify-center"
+                animate={{ x: darkMode ? 24 : 0 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 200, // ↓ lower stiffness for smoother movement
+                  damping: 20, // ↓ lower damping for softer stop
+                  mass: 1.2, // ↑ slightly heavier to feel real
+                }}
               >
                 {darkMode ? (
                   <FaMoon className="text-gray-800" />

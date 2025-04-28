@@ -114,55 +114,48 @@ function App() {
 
   return (
     <>
-      <ThemeProviderWrapper>
-        <Toaster
-          toastOptions={{
-            className: "",
-            duration: 2500,
-            style: {
-              background: "#1f2937",
-              color: "#fff",
-            },
-          }}
-        />
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/login/admin" element={<AdminLogin />} />
-          <Route path="/department" element={<Department />} />
+      <Toaster
+        toastOptions={{
+          className: "",
+          duration: 2500,
+          style: {
+            background: "#1f2937",
+            color: "#fff",
+          },
+        }}
+      />
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/login/admin" element={<AdminLogin />} />
+        <Route path="/department" element={<Department />} />
 
-          {role === "student" && (
-            <Route path="/student" element={<Student />} />
-          )}
-          {role === "faculty" && (
-            <Route path="/faculty">
-              <Route index element={<Faculty />} />{" "}
-              <Route path="office-orders" element={<FacultyOfficeOrders />} />{" "}
-              <Route path="circular-notices" element={<FacultyCircular />} />{" "}
-            </Route>
-          )}
-          {role === "admin" && <Route path="/admin" element={<Dashboard />} />}
-          {role === "department" && (
-            <Route path="/department">
-              <Route index element={<Department />} />{" "}
-              {/* Default route for /department */}
-              <Route path="office-orders" element={<Department />} />{" "}
-              <Route
-                path="circular-notices"
-                element={<DepartmentCirculars />}
-              />{" "}
-            </Route>
-          )}
-          <Route path="/parents" element={<Parents />} />
-          <Route path="/loader" element={<Loader />} />
-          <Route path="/alumini" element={<Alumini />} />
-          <Route path="/forgot" element={<Forgot />} />
-          <Route path="/reset-password/:token" element={<ResetPassword />} />
+        {role === "student" && <Route path="/student" element={<Student />} />}
+        {role === "faculty" && (
+          <Route path="/faculty">
+            <Route index element={<Faculty />} />{" "}
+            <Route path="office-orders" element={<FacultyOfficeOrders />} />{" "}
+            <Route path="circular-notices" element={<FacultyCircular />} />{" "}
+          </Route>
+        )}
+        {role === "admin" && <Route path="/admin" element={<Dashboard />} />}
+        {role === "department" && (
+          <Route path="/department">
+            <Route index element={<Department />} />{" "}
+            {/* Default route for /department */}
+            <Route path="office-orders" element={<Department />} />{" "}
+            <Route path="circular-notices" element={<DepartmentCirculars />} />{" "}
+          </Route>
+        )}
+        <Route path="/parents" element={<Parents />} />
+        <Route path="/loader" element={<Loader />} />
+        <Route path="/alumini" element={<Alumini />} />
+        <Route path="/forgot" element={<Forgot />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-          <Route path="*" element={<Unauthorized />} />
-        </Routes>
-        <Footer />
-      </ThemeProviderWrapper>
+        <Route path="*" element={<Unauthorized />} />
+      </Routes>
+      <Footer />
     </>
   );
 }
