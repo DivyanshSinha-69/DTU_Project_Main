@@ -128,9 +128,8 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/login/admin" element={<AdminLogin />} />
-        <Route path="/department" element={<Department />} />
 
-        {role === "student" && <Route path="/student" element={<Student />} />}
+        <Route path="/student" element={<Student />} />
         {role === "faculty" && (
           <Route path="/faculty">
             <Route index element={<Faculty />} />{" "}

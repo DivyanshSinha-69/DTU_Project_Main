@@ -45,7 +45,7 @@ const Login = () => {
           break;
         case "student":
         default:
-          endpoint = `${process.env.REACT_APP_BACKEND_URL}/login`;
+          endpoint = `${process.env.REACT_APP_BACKEND_URL}/student/login`;
           payload = { email: rollNo, password };
           break;
       }
