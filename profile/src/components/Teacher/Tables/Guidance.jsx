@@ -90,15 +90,20 @@ const Guidance = ({ setBlurActive }) => {
   // Update an existing PhD record
   const updatePhD = async (updatedPhD) => {
     try {
-      const payload = {
-        mentee_name: updatedPhD.menteeName,
-        mentee_rn: updatedPhD.rollNo,
-        passing_year: updatedPhD.passingYear,
-        passing_month: updatedPhD.passingMonth, // Added this field
-        degree: updatedPhD.degree, // Added this field
-        document: updatePhD.document,
-      };
-      await API.put(`ece/faculty/guidance/${updatedPhD.Guidance_id}`, payload);
+      const formData = new FormData();
+      formData.append("faculty_id", facultyId);
+      formData.append("mentee_name", updatedPhD.menteeName);
+      formData.append("mentee_rn", updatedPhD.rollNo);
+      formData.append("passing_year", updatedPhD.passingYear);
+      formData.append("passing_month", updatedPhD.passingMonth);
+      formData.append("degree", updatedPhD.degree);
+
+      if (updatedPhD.document) {
+        formData.append("document", updatedPhD.document);
+      }
+      await API.put(`ece/faculty/guidance/${updatedPhD.PHD_id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       fetchPhDs();
     } catch (error) {
       console.error("Error updating PhD record:", error);
@@ -106,8 +111,7 @@ const Guidance = ({ setBlurActive }) => {
   };
 
   // Delete a PhD record
-  const deletePhD = async (Guidance_id) => {
-    console.log("Deleting PhD record with ID:", Guidance_id);
+  const handleDeletePhD = async (Guidance_id) => {
     try {
       await API.delete(`ece/faculty/guidance/${Guidance_id}`);
       fetchPhDs();
@@ -117,8 +121,16 @@ const Guidance = ({ setBlurActive }) => {
   };
 
   const openPopup = (phd) => {
-    setSelectedPhD(phd);
-    console.log("Selected PhD:", phd);
+    setSelectedPhD({
+      menteeName: phd.menteeName,
+      rollNo: phd.rollNo,
+      passingYear: phd.passingYear,
+      passingMonth: phd.passingMonth,
+      degree: phd.degree,
+      PHD_id: phd.Guidance_id,
+      document: phd.document,
+    });
+    console.log("Opening popup for PhD record:", selectedPhD);
     setPopupOpen(true);
     setBlurActive(true);
   };
@@ -140,14 +152,6 @@ const Guidance = ({ setBlurActive }) => {
     closePopup();
   };
 
-  const handleDeletePhD = async (indexToDelete) => {
-    const { Guidance_id } = phdDetails[indexToDelete];
-    try {
-      await deletePhD(Guidance_id);
-    } catch (error) {
-      console.error("Error deleting PhD record:", error);
-    }
-  };
   const TABLE_HEAD = [
     "Name of the Student",
     "Degree",
@@ -219,7 +223,7 @@ const Guidance = ({ setBlurActive }) => {
                 rollNo={selectedPhD?.rollNo || ""}
                 passingYear={selectedPhD?.passingYear || ""}
                 passingMonth={selectedPhD?.passingMonth || ""}
-                Guidance_id={selectedPhD?.Guidance_id || ""}
+                PHD_id={selectedPhD?.PHD_id || ""} // Changed from Guidance_id to PHD_id
                 closeModal={closePopup}
                 handleAddPhD={handleAddPhD}
               />
