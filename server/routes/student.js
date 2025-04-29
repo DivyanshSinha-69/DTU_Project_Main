@@ -42,10 +42,23 @@ import {
   forgotStudentPassword,
   resetStudentPassword,
   updateLastSeen,
+
+  studentLogin, 
+  studentRefreshToken,
+  studentLogout,
 } from "../controllers/student.js";
+
 import { authenticateToken, authorizeRoles } from "../middlewares/auth.js";
 
 const router = express.Router();
+
+// Route for student login
+router.post('/login', studentLogin);
+
+// Route for refreshing the student access token using the refresh token
+router.post('/refresh-token', studentRefreshToken);
+router.post('/logout', studentLogout);
+
 
 router.get("/getall", getall);
 router.post("/profskills", getProfessionalSkills);
