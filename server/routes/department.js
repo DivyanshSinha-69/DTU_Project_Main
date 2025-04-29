@@ -49,25 +49,9 @@ router.use(authenticateToken); // Middleware to authenticate token and verify us
 
 // Circular Routes
 router.get("/circulars", authorizeRoles("department"), getCirculars);
-router.post(
-  "/circulars",
-  authorizeRoles("department"),
-  uploadDepartmentCircular,
-  compressUploadedFile,
-  addCircular
-);
-router.put(
-  "/circulars/:circular_id",
-  authorizeRoles("department"),
-  uploadDepartmentCircular,
-  compressUploadedFile,
-  updateCircular
-);
-router.delete(
-  "/circulars/:circular_id",
-  authorizeRoles("department"),
-  deleteCircular
-);
+router.post("/circulars", authorizeRoles("department"), uploadDepartmentCircular, compressUploadedFile, addCircular);
+router.put("/circulars/:circular_id", authorizeRoles("department"), uploadDepartmentCircular, compressUploadedFile, updateCircular);
+router.delete("/circulars/:circular_id", authorizeRoles("department"), deleteCircular);
 
 // Order Routes
 router.get("/orders/:department_id?", authorizeRoles("department"), getOrders);
@@ -76,81 +60,29 @@ router.put("/orders/:order_id", authorizeRoles("department"), uploadDepartmentOr
 router.delete("/orders/:order_id", authorizeRoles("department"), deleteOrder);
 
 // Faculty Orders Routes
-router.get(
-  "/faculty-orders/:faculty_id?",
-  authorizeRoles("department"),
-  getFacultyMappings
-);
+router.get("/faculty-orders/:faculty_id?", authorizeRoles("department"), getFacultyMappings);
 router.post("/faculty-orders", authorizeRoles("department"), addFacultyMapping);
-router.put(
-  "/faculty-orders/:id",
-  authorizeRoles("department"),
-  updateFacultyMapping
-);
-router.delete(
-  "/faculty-orders/:id",
-  authorizeRoles("department"),
-  deleteFacultyMapping
-);
+router.put("/faculty-orders/:id", authorizeRoles("department"), updateFacultyMapping);
+router.delete("/faculty-orders/:id", authorizeRoles("department"), deleteFacultyMapping);
 
 // Student Orders Routes
-router.get(
-  "/student-orders/:faculty_id?",
-  authorizeRoles("department"),
-  getStudentMappings
-);
+router.get("/student-orders/:faculty_id?", authorizeRoles("department"), getStudentMappings);
 router.post("/student-orders", authorizeRoles("department"), addStudentMapping);
-router.put(
-  "/student-orders/:id",
-  authorizeRoles("department"),
-  updateStudentMapping
-);
-router.delete(
-  "/student-orders/:id",
-  authorizeRoles("department"),
-  deleteStudentMapping
-);
+router.put("/student-orders/:id", authorizeRoles("department"), updateStudentMapping);
+router.delete("/student-orders/:id", authorizeRoles("department"), deleteStudentMapping);
 
 // Faculty-Student Mix Route
-router.get(
-  "/orders_map",
-  authorizeRoles("department"),
-  getMappingsByOrderNumber
-);
+router.get("/orders_map", authorizeRoles("department"), getMappingsByOrderNumber);
 
 // Department Details Routes
-router.get(
-  "/departments/:department_id?",
-  authorizeRoles("department"),
-  getDepartments
-);
+router.get("/departments/:department_id?", authorizeRoles("department"), getDepartments);
 router.post("/departments", authorizeRoles("department"), addDepartment);
-router.put(
-  "/departments/:department_id",
-  authorizeRoles("department"),
-  updateDepartment
-);
-router.delete(
-  "/departments/:department_id",
-  authorizeRoles("department"),
-  deleteDepartment
-);
+router.put("/departments/:department_id", authorizeRoles("department"), updateDepartment);
+router.delete("/departments/:department_id", authorizeRoles("department"), deleteDepartment);
 
-router.get(
-  "/notifications/:user_id?",
-  authorizeRoles("department", "faculty"),
-  getNotifications
-);
+router.get("/notifications/:user_id?", authorizeRoles("department", "faculty"), getNotifications);
 router.post("/notifications", authorizeRoles("department"), addNotification);
-router.put(
-  "/notifications/:notification_id",
-  authorizeRoles("department"),
-  updateNotification
-);
-router.delete(
-  "/notifications/:notification_id",
-  authorizeRoles("department"),
-  deleteNotification
-);
+router.put("/notifications/:notification_id", authorizeRoles("department"), updateNotification);
+router.delete("/notifications/:notification_id", authorizeRoles("department"), deleteNotification);
 
 export default router;
