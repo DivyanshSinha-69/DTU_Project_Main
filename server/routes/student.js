@@ -43,7 +43,7 @@ import {
   resetStudentPassword,
   updateLastSeen,
 } from "../controllers/student.js";
- import { authenticateToken, authorizeRoles } from "../middlewares/auth.js";
+import { authenticateToken, authorizeRoles } from "../middlewares/auth.js";
 
 const router = express.Router();
 
@@ -103,6 +103,11 @@ router.post("/getacknowledgement", getAcknowledgement);
 router.post("/forgotpassword", forgotStudentPassword);
 router.post("/resetpassword/:token", resetStudentPassword);
 
-router.put("/notifications/last-seen/student/:roll_no", authenticateToken, authorizeRoles("student"), updateLastSeen);
+router.put(
+  "/notifications/last-seen/student/:roll_no",
+  authenticateToken,
+  authorizeRoles("student"),
+  updateLastSeen
+);
 
 export default router;
