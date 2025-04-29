@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Card } from "@material-tailwind/react";
 import toast from "react-hot-toast";
+import { useEffect } from "react";
 
 export default function PhDsAwardedPopUp({
   menteeName,
@@ -12,16 +13,29 @@ export default function PhDsAwardedPopUp({
   closeModal,
   handleAddPhD,
 }) {
+  // In the formData initialization
   const [formData, setFormData] = useState({
     menteeName: menteeName || "",
     rollNo: rollNo || "",
     passingYear: passingYear || "",
-    degree: degree || "PhD", // Default to PhD
+    degree: degree || "PhD",
     PHD_id: PHD_id || "",
     passingMonth: passingMonth || "",
-    document: null, // Add document field
+    document: null, // This will be set when a new file is selected
   });
-
+  console.log("Form Data:", formData);
+  // Add this useEffect to update formData when props change
+  useEffect(() => {
+    setFormData({
+      menteeName: menteeName || "",
+      rollNo: rollNo || "",
+      passingYear: passingYear || "",
+      degree: degree || "PhD",
+      PHD_id: PHD_id || "",
+      passingMonth: passingMonth || "",
+      document: null, // Keep document as null unless a new file is selected
+    });
+  }, [menteeName, rollNo, passingYear, degree, PHD_id, passingMonth]);
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({

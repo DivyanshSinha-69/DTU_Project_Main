@@ -182,6 +182,7 @@ const SponsoredResearch = ({ setBlurActive }) => {
               start_date: research.start_date,
               end_date: research.end_date,
               stat: research.stat,
+              sponsorship_id: research.sponsorship_id,
             });
           },
           delete: (research) => handleDeleteResearch(research.sponsorship_id),

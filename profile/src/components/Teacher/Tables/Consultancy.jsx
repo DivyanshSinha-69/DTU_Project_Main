@@ -81,7 +81,7 @@ const ConsultancyDetails = ({ setBlurActive }) => {
     formData.append("amount_sponsored", newConsultancy.amount);
     formData.append("status", newConsultancy.status); // Added status
     formData.append("start_date", newConsultancy.startDate);
-    formData.append("end_date", newConsultancy.endDate || null);
+    formData.append("end_date", newConsultancy.endDate);
 
     if (newConsultancy.document) {
       formData.append("document", newConsultancy.document);
