@@ -73,7 +73,6 @@ API.interceptors.request.use(
         config.headers["Authorization"] = `Bearer ${token}`;
       }
     } else {
-      console.log("76");
       console.warn("⚠️ No token found in Redux store!");
     }
 
