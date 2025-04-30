@@ -14,3 +14,5 @@ export const pool = mysql.createPool({
   connectionLimit: 10, // Adjust based on traffic
   queueLimit: 0,
 });
+
+export const promisePool = pool.promise();

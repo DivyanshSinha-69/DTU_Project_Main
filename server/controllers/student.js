@@ -6,6 +6,8 @@ import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import jwt from 'jsonwebtoken';
 import requestIp from 'request-ip'; // For getting the client IP address
+import { promisePool } from "../data/database.js";
+import { userActionLogger, errorLogger } from "../utils/logger.js";
 
 dotenv.config();
 
@@ -1975,112 +1977,101 @@ export const studentRefreshToken = (req, res) => {
   );
 };
 
-export const studentLogin = (req, res) => {
+export const studentLogin = async (req, res) => {
   const { roll_no, password } = req.body;
 
   if (!roll_no || !password) {
+    errorLogger.error(`Login failed: Roll number or password missing. Roll No: ${roll_no}`);
     return res.status(400).json({ message: "Roll number and password are required!" });
   }
 
-  // Query to get student details, role, role name, and department name
-  pool.query(
-    `SELECT sa.*, pt.position_name, sar.role_name AS role_assigned_name, dd.department_name
-     FROM student_auth sa
-     LEFT JOIN position_type pt ON sa.position_id = pt.position_id
-     LEFT JOIN student_available_roles sar ON sa.role_assigned = sar.role_id
-     LEFT JOIN department_details dd ON sa.department_id = dd.department_id
-     WHERE sa.roll_no = ?`,
-    [roll_no],
-    (err, results) => {
-      if (err) {
-        console.error("Database Error:", err);
-        return res.status(500).json({ message: "Server error!" });
-      }
+  try {
+    const [results] = await promisePool.query(
+      `SELECT sa.*, pt.position_name, sar.role_name AS role_assigned_name, dd.department_name
+       FROM student_auth sa
+       LEFT JOIN position_type pt ON sa.position_id = pt.position_id
+       LEFT JOIN student_available_roles sar ON sa.role_assigned = sar.role_id
+       LEFT JOIN department_details dd ON sa.department_id = dd.department_id
+       WHERE sa.roll_no = ?`,
+      [roll_no]
+    );
 
-      if (results.length === 0) {
-        return res.status(404).json({ message: "Student not found!" });
-      }
-
-      const student = results[0];
-      const { position_name, role_assigned_name, department_name } = student;
-
-      // Compare passwords
-      bcrypt.compare(password, student.password, (err, isMatch) => {
-        if (err) return res.status(500).json({ message: "Server error!" });
-        if (!isMatch) return res.status(401).json({ message: "Invalid password!" });
-
-        // Generate tokens
-        const accessToken = generateAccessToken(roll_no, position_name, role_assigned_name);
-        const refreshToken = generateRefreshToken(roll_no, position_name, role_assigned_name);
-
-        const expiryDays = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7;
-        const refreshTokenExpiry = new Date(
-          Date.now() + expiryDays * 24 * 60 * 60 * 1000,
-        )
-          .toISOString()
-          .slice(0, 19)
-          .replace("T", " ");
-
-        // Update the refresh token in the student_auth table
-        pool.query(
-          "UPDATE student_auth SET refresh_token = ?, refresh_token_expiry = ? WHERE roll_no = ?",
-          [refreshToken, refreshTokenExpiry, roll_no],
-          (err) => {
-            if (err) {
-              console.error("Database Error:", err);
-              return res.status(500).json({ message: "Server error!" });
-            }
-
-            // Log the login activity
-            const ipAddress = requestIp.getClientIp(req);
-            const userAgent = req.headers['user-agent'];
-
-            pool.query(
-              "INSERT INTO student_login_activity (roll_no, ip_address, user_agent) VALUES (?, ?, ?)",
-              [roll_no, ipAddress, userAgent],
-              (logErr) => {
-                if (logErr) console.error("Login activity log failed:", logErr);
-
-                // Response back to client with role name and department name
-                res.json({
-                  message: "Login successful!",
-                  accessToken,
-                  refreshToken,
-                  user: {
-                    roll_no: student.roll_no,
-                    position: position_name,
-                    role_assigned: role_assigned_name, // Role name
-                    department_name: department_name, // Department name
-                  },
-                });
-              }
-            );
-          }
-        );
-      });
+    if (results.length === 0) {
+      errorLogger.error(`Student not found. Roll No: ${roll_no}`);
+      return res.status(404).json({ message: "Student not found!" });
     }
-  );
+
+    const student = results[0];
+    const { position_name, role_assigned_name, department_name } = student;
+
+    const isMatch = await bcrypt.compare(password, student.password);
+    if (!isMatch) {
+      errorLogger.error(`Invalid password attempt. Roll No: ${roll_no}`);
+      return res.status(401).json({ message: "Invalid password!" });
+    }
+
+    const accessToken = generateAccessToken(roll_no, position_name, role_assigned_name);
+    const refreshToken = generateRefreshToken(roll_no, position_name, role_assigned_name);
+
+    const expiryDays = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7;
+    const refreshTokenExpiry = new Date(
+      Date.now() + expiryDays * 24 * 60 * 60 * 1000
+    ).toISOString().slice(0, 19).replace("T", " ");
+
+    await promisePool.query(
+      "UPDATE student_auth SET refresh_token = ?, refresh_token_expiry = ? WHERE roll_no = ?",
+      [refreshToken, refreshTokenExpiry, roll_no]
+    );
+
+    const ipAddress = requestIp.getClientIp(req);
+    const userAgent = req.headers['user-agent'];
+
+    await promisePool.query(
+      "INSERT INTO student_login_activity (roll_no, ip_address, user_agent) VALUES (?, ?, ?)",
+      [roll_no, ipAddress, userAgent]
+    );
+
+    userActionLogger.info(`Student login successful. Roll No: ${roll_no}, IP: ${ipAddress}`);
+
+    res.cookie("accessToken", accessToken, { httpOnly: true, secure: true, sameSite: "Strict" });
+    res.cookie("refreshToken", refreshToken, { httpOnly: true, secure: true, sameSite: "Strict" });
+
+    res.json({
+      message: "Login successful!",
+      user: {
+        roll_no: student.roll_no,
+        position: position_name,
+        role_assigned: role_assigned_name,
+        department_name: department_name,
+      },
+    });
+  } catch (err) {
+    errorLogger.error(`Login error: ${err.message}`);
+    res.status(500).json({ message: "Server error!" });
+  }
 };
 
-
-
-export const studentLogout = (req, res) => {
+export const studentLogout = async (req, res) => {
   const { roll_no } = req.body;
 
   if (!roll_no) {
+    errorLogger.error(`Logout failed: Roll No missing. Roll No: ${roll_no}`);
     return res.status(400).json({ message: "Roll No is required!" });
   }
 
-  pool.query(
-    "UPDATE student_auth SET refresh_token = NULL, refresh_token_expiry = NULL WHERE roll_no = ?",
-    [roll_no],
-    (err) => {
-      if (err) {
-        console.error("Database Error:", err);
-        return res.status(500).json({ message: "Server error!" });
-      }
+  try {
+    await promisePool.query(
+      "UPDATE student_auth SET refresh_token = NULL, refresh_token_expiry = NULL WHERE roll_no = ?",
+      [roll_no]
+    );
 
-      res.json({ message: "Logged out successfully!" });
-    }
-  );
+    userActionLogger.info(`Student logged out successfully. Roll No: ${roll_no}`);
+
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+    res.json({ message: "Logged out successfully!" });
+  } catch (err) {
+    errorLogger.error(`Logout error: ${err.message}`);
+    res.status(500).json({ message: "Server error!" });
+  }
 };
