@@ -65,6 +65,12 @@ export const authorizeRoles = (...allowedRoles) => {
  */
 export const authorizeOwnData = (req, res, next) => {
   const { user } = req;
+  
+  // If user is admin, allow them to update any data
+  if (user.position === 'admin') {
+    return next(); // Admin bypasses ownership check
+  }
+
   const roll_no = req.params.roll_no || req.query.roll_no;
 
   if (!roll_no) {
