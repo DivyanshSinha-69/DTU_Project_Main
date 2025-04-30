@@ -2075,3 +2075,107 @@ export const studentLogout = async (req, res) => {
     res.status(500).json({ message: "Server error!" });
   }
 };
+
+// Controller to Get Student Details using query parameter
+export const getStudentDetails = async (req, res) => {
+  const { roll_no } = req.query; // Get the roll_no from query parameters
+
+  if (!roll_no) {
+    return res.status(400).json({ message: "Roll number is required in the query." });
+  }
+
+  try {
+    // Fetch student details by roll_no
+    const [rows] = await promisePool.query("SELECT * FROM student_details WHERE roll_no = ?", [roll_no]);
+
+    if (rows.length === 0) {
+      userActionLogger.info(`Student with roll_no ${roll_no} not found.`);
+      return res.status(404).json({ message: "Student not found." });
+    }
+
+    userActionLogger.info(`Student details for ${roll_no} fetched successfully.`);
+    return res.json({ student: rows[0] }); // Return the student details
+  } catch (err) {
+    errorLogger.error(`Error fetching student details for ${roll_no}: ${err.message}`);
+    return res.status(500).json({ message: "Server error. Please try again later." });
+  }
+};
+
+
+// Controller to Add New Student
+export const addStudentDetails = async (req, res) => {
+  const { roll_no, student_name, father_name, mother_name, personal_contact, parent_contact, personal_email, dtu_email, original_city, original_country } = req.body;
+
+  // Validate input fields
+  if (!roll_no || !student_name || !father_name || !mother_name || !personal_contact || !parent_contact || !personal_email || !dtu_email || !original_city || !original_country) {
+    return res.status(400).json({ message: "All fields are required." });
+  }
+
+  try {
+    // Insert new student details into the table
+    const result = await promisePool.query(
+      `INSERT INTO student_details (roll_no, student_name, father_name, mother_name, personal_contact, parent_contact, personal_email, dtu_email, original_city, original_country)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [roll_no, student_name, father_name, mother_name, personal_contact, parent_contact, personal_email, dtu_email, original_city, original_country]
+    );
+
+    userActionLogger.info(`New student added with roll_no ${roll_no}.`);
+    return res.status(201).json({ message: "Student added successfully!" });
+  } catch (err) {
+    errorLogger.error(`Error adding student with roll_no ${roll_no}: ${err.message}`);
+    return res.status(500).json({ message: "Server error. Please try again later." });
+  }
+};
+
+// Controller to Update Student Details
+export const updateStudentDetails = async (req, res) => {
+  const { roll_no } = req.params; // Get the roll_no from request params
+  const { student_name, father_name, mother_name, personal_contact, parent_contact, personal_email, dtu_email, original_city, original_country } = req.body;
+
+  try {
+    // Check if student exists
+    const [existingStudent] = await promisePool.query("SELECT * FROM student_details WHERE roll_no = ?", [roll_no]);
+    
+    if (existingStudent.length === 0) {
+      userActionLogger.info(`Student with roll_no ${roll_no} not found for update.`);
+      return res.status(404).json({ message: "Student not found." });
+    }
+
+    // Update student details
+    const result = await promisePool.query(
+      `UPDATE student_details SET student_name = ?, father_name = ?, mother_name = ?, personal_contact = ?, parent_contact = ?, personal_email = ?, dtu_email = ?, original_city = ?, original_country = ?
+      WHERE roll_no = ?`,
+      [student_name, father_name, mother_name, personal_contact, parent_contact, personal_email, dtu_email, original_city, original_country, roll_no]
+    );
+
+    userActionLogger.info(`Student details for ${roll_no} updated successfully.`);
+    return res.json({ message: "Student details updated successfully!" });
+  } catch (err) {
+    errorLogger.error(`Error updating student details for ${roll_no}: ${err.message}`);
+    return res.status(500).json({ message: "Server error. Please try again later." });
+  }
+};
+
+// Controller to Delete Student
+export const deleteStudentDetails = async (req, res) => {
+  const { roll_no } = req.params; // Get the roll_no from request params
+
+  try {
+    // Check if student exists
+    const [existingStudent] = await promisePool.query("SELECT * FROM student_details WHERE roll_no = ?", [roll_no]);
+    
+    if (existingStudent.length === 0) {
+      userActionLogger.info(`Student with roll_no ${roll_no} not found for deletion.`);
+      return res.status(404).json({ message: "Student not found." });
+    }
+
+    // Delete student details
+    const result = await promisePool.query("DELETE FROM student_details WHERE roll_no = ?", [roll_no]);
+
+    userActionLogger.info(`Student with roll_no ${roll_no} deleted successfully.`);
+    return res.json({ message: "Student deleted successfully!" });
+  } catch (err) {
+    errorLogger.error(`Error deleting student with roll_no ${roll_no}: ${err.message}`);
+    return res.status(500).json({ message: "Server error. Please try again later." });
+  }
+};
