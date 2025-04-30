@@ -1,5 +1,8 @@
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import { userActionLogger } from "../utils/logger.js";
+import { errorLogger } from "../utils/logger.js";
+
 
 dotenv.config();
 
