@@ -4,14 +4,14 @@ import {
   resetPassword,
   facultyLogin,
   refreshToken,
-  logout,
+  facultyLogout,
 } from "../controllers/facultyAuthController.js";
 
 const router = express.Router();
 
 router.post("/login", facultyLogin);
 router.post("/refresh", refreshToken);
-router.post("/logout", logout);
+router.post("/logout", facultyLogout);
 router.post("/forgotpassword", forgotPassword);
 router.post("/resetpassword/:token", resetPassword);
 

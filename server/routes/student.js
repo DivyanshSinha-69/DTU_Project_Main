@@ -39,13 +39,14 @@ import {
   getBtechEducationDetails,
   updateBtechEducationDetails,
   getAcknowledgement,
-  forgotStudentPassword,
-  resetStudentPassword,
+  
   updateLastSeen,
 
   studentLogin, 
   studentRefreshToken,
   studentLogout,
+  forgotStudentPassword,
+  resetStudentPassword,
   getStudentDetails, 
   addStudentDetails, 
   updateStudentDetails, 
@@ -53,41 +54,24 @@ import {
 } from "../controllers/student.js";
 
 import { authenticateToken, authorizeRoles, authorizeOwnData, authorizeByRoleCombo } from "../middlewares/auth.js";
+import { studentAccessMiddleware } from "../middlewares/sharedRoleCombos.js";
 
 const router = express.Router();
 
 // Route for student login
 router.post('/login', studentLogin);
-
-// Route for refreshing the student access token using the refresh token
 router.post('/refresh-token', studentRefreshToken);
 router.post('/logout', studentLogout);
 
+// Route for student password reset
+router.post("/forgotpassword", forgotStudentPassword);
+router.post("/resetpassword/:token", resetStudentPassword);
+
 // Route for student details
-router.get("/details", authenticateToken, authorizeOwnData, authorizeByRoleCombo([
-  { position: "student", role_assigned: "btech" },
-  { position: "faculty", role_assigned: "general" },
-  { position: "department", role_assigned: "general" },
-]), getStudentDetails); // Auth middleware added for security
-
-router.post("/details/", authenticateToken, authorizeOwnData, authorizeByRoleCombo([
-  { position: "student", role_assigned: "btech" },
-  { position: "faculty", role_assigned: "general" },
-  { position: "department", role_assigned: "general" },
-]), addStudentDetails); // Auth middleware added for security
-
-router.put("/details/:roll_no", authenticateToken, authorizeOwnData, authorizeByRoleCombo([
-  { position: "student", role_assigned: "btech" },
-  { position: "faculty", role_assigned: "general" },
-  { position: "department", role_assigned: "general" },
-]), updateStudentDetails); // Auth middleware added for security
-
-router.delete("/details/:roll_no", authenticateToken, authorizeOwnData, authorizeByRoleCombo([
-  { position: "student", role_assigned: "BTech" },
-  { position: "faculty", role_assigned: "general" },
-  { position: "department", role_assigned: "general" },
-]), deleteStudentDetails); // Auth middleware added for security
-
+router.get("/details", authenticateToken, authorizeOwnData, studentAccessMiddleware, getStudentDetails);
+router.post("/details/", authenticateToken, authorizeOwnData, studentAccessMiddleware, addStudentDetails);
+router.put("/details/:roll_no", authenticateToken, authorizeOwnData, studentAccessMiddleware, updateStudentDetails);
+router.delete("/details/:roll_no", authenticateToken, authorizeOwnData, studentAccessMiddleware, deleteStudentDetails);
 
 
 router.get("/getall", getall);
@@ -143,8 +127,6 @@ router.post("/uploadcertificate", uploadCertificate);
 router.post("/getacknowledgement", getAcknowledgement);
 // router.get("/me", isAuthenticated, getMyProfile);
 
-router.post("/forgotpassword", forgotStudentPassword);
-router.post("/resetpassword/:token", resetStudentPassword);
 
 router.put(
   "/notifications/last-seen/student/:roll_no",

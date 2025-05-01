@@ -5,6 +5,8 @@ import dotenv from "dotenv";
 import nodemailer from "nodemailer";
 import axios from 'axios'; // Import axios for HTTP requests
 import requestIp from "request-ip"; // Put this at the top if not imported already
+import { promisePool } from "../data/database.js";
+import { userActionLogger, errorLogger } from "../utils/logger.js";
 
 dotenv.config();
 
@@ -17,19 +19,19 @@ dotenv.config();
 //   },
 // });
 
-// ==================== Generate Access Tokens ====================
-const generateAccessToken = (faculty_id, position) => {
-  return jwt.sign({ faculty_id, position }, process.env.JWT_SECRET, {
+// ==================== Generate Access Token ====================
+const generateAccessToken = (roll_no, position, role_assigned) => {
+  return jwt.sign({ roll_no, position, role_assigned }, process.env.JWT_SECRET, {
     expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
   });
 };
 
 // ==================== Generate Refresh Token ====================
-const generateRefreshToken = (faculty_id, position) => {
+const generateRefreshToken = (roll_no, position, role_assigned) => {
   const expiryDays = parseInt(process.env.REFRESH_TOKEN_EXPIRY) || 7;
   const expirySeconds = expiryDays * 24 * 60 * 60;
 
-  return jwt.sign({ faculty_id, position }, process.env.JWT_REFRESH_SECRET, {
+  return jwt.sign({ roll_no, position, role_assigned }, process.env.JWT_REFRESH_SECRET, {
     expiresIn: expirySeconds,
   });
 };
@@ -171,235 +173,225 @@ export const resetPassword = (req, res) => {
   }
 };
 
-export const facultyLogin = (req, res) => {
+export const facultyLogin = async (req, res) => {
   const { faculty_id, password } = req.body;
 
   if (!faculty_id || !password) {
     return res.status(400).json({ message: "Faculty ID and password are required!" });
   }
 
-  // First query to get faculty details
-  pool.query(
-    `SELECT fa.*, pt.position_name
-     FROM faculty_auth fa
-     LEFT JOIN position_type pt ON fa.position_id = pt.position_id
-     WHERE fa.faculty_id = ?`,
-    [faculty_id],
-    (err, results) => {
-      if (err) {
-        console.error("Database Error:", err);
-        return res.status(500).json({ message: "Server error!" });
-      }
+  try {
+    // Step 1: Get faculty authentication details
+    const [facultyAuth] = await promisePool.query(
+      `SELECT fa.*, pt.position_name
+       FROM faculty_auth fa
+       LEFT JOIN position_type pt ON fa.position_id = pt.position_id
+       WHERE fa.faculty_id = ?`,
+      [faculty_id]
+    );
 
-      if (results.length === 0) {
-        return res.status(404).json({ message: "Faculty ID not found!" });
-      }
+    if (facultyAuth.length === 0) {
+      return res.status(404).json({ message: "Faculty ID not found!" });
+    }
 
-      const user = results[0];
-      const deptid = user.department_id;
-      // Compare passwords
-      bcrypt.compare(password, user.password, (err, isMatch) => {
-        if (err) return res.status(500).json({ message: "Server error!" });
-        if (!isMatch) return res.status(401).json({ message: "Invalid password!" });
+    const user = facultyAuth[0];
+    const deptid = user.department_id;
+    const position = user.position_name;
 
-        // Second query to get faculty name and designation
-        pool.query(
-          `SELECT fd.faculty_name, fa.designation
-           FROM faculty_details fd 
-           LEFT JOIN faculty_association fa ON fd.faculty_id = fa.faculty_id 
-           WHERE fd.faculty_id = ?`,
-          [faculty_id],
-          (err, facultyResults) => {
-            if (err) {
-              console.error("Database Error:", err);
-              return res.status(500).json({ message: "Server error!" });
-            }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(401).json({ message: "Invalid password!" });
 
-            if (facultyResults.length === 0) {
-              return res.status(404).json({ message: "Faculty details not found!" });
-            }
+    // Step 2: Get name and designation
+    const [facultyDetails] = await promisePool.query(
+      `SELECT fd.faculty_name, fa.designation
+       FROM faculty_details fd 
+       LEFT JOIN faculty_association fa ON fd.faculty_id = fa.faculty_id 
+       WHERE fd.faculty_id = ?`,
+      [faculty_id]
+    );
 
-            const { faculty_name, designation } = facultyResults[0];
+    if (facultyDetails.length === 0) {
+      return res.status(404).json({ message: "Faculty details not found!" });
+    }
 
-            // Third query to get faculty counts
-            pool.query(
-              `SELECT 
-                  (SELECT COUNT(*) FROM faculty_research_paper WHERE faculty_id = ?) AS research_papers,
-                  (SELECT COUNT(*) FROM faculty_sponsored_research WHERE faculty_id = ?) AS sponsorships,
-                  (SELECT COUNT(*) FROM faculty_patents WHERE faculty_id = ?) AS patents,
-                  (SELECT COUNT(*) FROM faculty_Book_records WHERE faculty_id = ?) AS book_records,
-                  (SELECT COUNT(*) FROM faculty_consultancy WHERE faculty_id = ?) AS consultancy`,
-              [faculty_id, faculty_id, faculty_id, faculty_id, faculty_id],
-              (err, countResults) => {
-                if (err) {
-                  console.error("Database Error:", err);
-                  return res.status(500).json({ message: "Server error!" });
-                }
+    const { faculty_name, designation } = facultyDetails[0];
 
-                const {
-                  research_papers,
-                  sponsorships,
-                  patents,
-                  book_records,
-                  consultancy,
-                } = countResults[0];
+    // Step 3: Get counts
+    const [counts] = await promisePool.query(
+      `SELECT 
+        (SELECT COUNT(*) FROM faculty_research_paper WHERE faculty_id = ?) AS research_papers,
+        (SELECT COUNT(*) FROM faculty_sponsored_research WHERE faculty_id = ?) AS sponsorships,
+        (SELECT COUNT(*) FROM faculty_patents WHERE faculty_id = ?) AS patents,
+        (SELECT COUNT(*) FROM faculty_Book_records WHERE faculty_id = ?) AS book_records,
+        (SELECT COUNT(*) FROM faculty_consultancy WHERE faculty_id = ?) AS consultancy`,
+      [faculty_id, faculty_id, faculty_id, faculty_id, faculty_id]
+    );
 
-                const position = user.position_name;
+    // Step 4: Get unread notifications
+    const [notifications] = await promisePool.query(
+      `SELECT 
+        (SELECT COUNT(*) FROM department_duty_notifications 
+         WHERE user_id = ? AND is_seen = 0) AS unread_duties,
+         
+        (SELECT COUNT(*) FROM department_circular 
+         WHERE department_id = (SELECT department_id FROM faculty_auth WHERE faculty_id = ?)
+         AND created_at > COALESCE(
+           (SELECT last_seen FROM user_last_seen_notifications 
+            WHERE user_id = ? AND notification_type = 'circular'), '2000-01-01')
+        ) AS unread_circulars`,
+      [faculty_id, faculty_id, faculty_id]
+    );
 
-                 // Fourth query: Fetch unread duty and circular notifications
-                 pool.query(
-                  `SELECT 
-                      (SELECT COUNT(*) FROM department_duty_notifications 
-                      WHERE user_id = ? AND is_seen = 0) AS unread_duties,
-                      
-                      (SELECT COUNT(*) FROM department_circular 
-                       WHERE department_id = (SELECT department_id FROM faculty_auth WHERE faculty_id = ?)
-                       AND created_at > COALESCE((SELECT last_seen FROM user_last_seen_notifications 
-                                                  WHERE user_id = ? AND notification_type = 'circular'), '2000-01-01')) 
-                       AS unread_circulars`,
-                  [faculty_id, faculty_id, faculty_id, faculty_id],
-                  (err, unreadResults) => {
-                      if (err) {
-                          console.error("Database Error:", err);
-                          return res.status(500).json({ message: "Server error!" });
-                      }
+    // Step 5: Generate tokens
+    const role_assigned = "general"; // <-- Added
+    const accessToken = generateAccessToken(faculty_id, position, role_assigned);
+    const refreshToken = generateRefreshToken(faculty_id, position, role_assigned);
 
-                      const { unread_duties, unread_circulars } = unreadResults[0];
+    const expiryDays = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7;
+    const refreshTokenExpiry = new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000);
 
-                // Generate tokens
-                const accessToken = generateAccessToken(user.faculty_id, position);
-                const refreshToken = generateRefreshToken(user.faculty_id, position);
+    // Step 6: Save refresh token in DB
+    await promisePool.query(
+      "UPDATE faculty_auth SET refresh_token = ?, refresh_token_expiry = ? WHERE faculty_id = ?",
+      [refreshToken, refreshTokenExpiry, faculty_id]
+    );
 
-                const expiryDays = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7;
-                const refreshTokenExpiry = new Date(
-                  Date.now() + expiryDays * 24 * 60 * 60 * 1000,
-                )
-                  .toISOString()
-                  .slice(0, 19)
-                  .replace("T", " ");
+    // Step 7: Log activity
+    const ipAddress = requestIp.getClientIp(req);
+    const userAgent = req.headers["user-agent"];
+    await promisePool.query(
+      "INSERT INTO faculty_login_activity (faculty_id, ip_address, user_agent) VALUES (?, ?, ?)",
+      [faculty_id, ipAddress, userAgent]
+    );
 
-                // Fourth query to store refresh token
-                // Fourth query to store refresh token
-                pool.query(
-                "UPDATE faculty_auth SET refresh_token = ?, refresh_token_expiry = ? WHERE faculty_id = ?",
-                [refreshToken, refreshTokenExpiry, faculty_id],
-                (err) => {
-                if (err) {
-                  console.error("Database Error:", err);
-                  return res.status(500).json({ message: "Server error!" });
-                }
+    userActionLogger.info(`✅ Faculty ${faculty_id} logged in`);
 
-                // 👇 Log the login activity
-                const ipAddress = requestIp.getClientIp(req);
-                const userAgent = req.headers['user-agent'];
-
-                pool.query(
-                  "INSERT INTO faculty_login_activity (faculty_id, ip_address, user_agent) VALUES (?, ?, ?)",
-                  [faculty_id, ipAddress, userAgent],
-                  (logErr) => {
-                    if (logErr) console.error("Login activity log failed:", logErr);
-
-                    // 👇 Response back to client
-                  res.json({
-                  message: "Login successful!",
-                  accessToken,
-                  refreshToken,
-                  user: {
-                    faculty_id: user.faculty_id,
-                    faculty_name: faculty_name,
-                    faculty_designation: designation,
-                    position: position,
-                    researchCount: research_papers,
-                    sponsorCount: sponsorships,
-                    patentCount: patents,
-                    bookCount: book_records,
-                    consultancyCount: consultancy,
-                    unreadDuties: unread_duties,
-                    unreadCirculars: unread_circulars,
-                    department_id: deptid,
-                    },
-                  });
-                  }
-                );
-                }
-              ); 
-              },
-            );
-          },
-        );
-      });
-    });
+    // Step 8: Send response and set httpOnly cookie
+    res
+  .cookie("accessToken", accessToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "Strict",
+    maxAge: 15 * 60 * 1000, // 15 minutes or whatever ACCESS_TOKEN_EXPIRY is
+  })
+  .cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "Strict",
+    maxAge: expiryDays * 24 * 60 * 60 * 1000,
+  })
+  .json({
+    message: "Login successful!",
+    user: {
+      faculty_id: user.faculty_id,
+      faculty_name,
+      faculty_designation: designation,
+      position,
+      researchCount: counts[0].research_papers,
+      sponsorCount: counts[0].sponsorships,
+      patentCount: counts[0].patents,
+      bookCount: counts[0].book_records,
+      consultancyCount: counts[0].consultancy,
+      unreadDuties: notifications[0].unread_duties,
+      unreadCirculars: notifications[0].unread_circulars,
+      department_id: deptid,
     },
-  );
-};
+  });
 
 
-export const refreshToken = (req, res) => {
-  const { refreshToken } = req.body;
-  if (!refreshToken) {
-    return res.status(401).json({ message: "Refresh token is required!" });
+  } catch (err) {
+    errorLogger.error(`❌ Faculty login error for ${faculty_id}: ${err.message}`);
+    res.status(500).json({ message: "Server error!" });
   }
-
-  // First query: Fetch faculty details based on refresh token
-  pool.query(
-    `SELECT fa.faculty_id, fa.refresh_token, fa.refresh_token_expiry, pt.position_name 
-     FROM faculty_auth fa
-     LEFT JOIN position_type pt ON fa.position_id = pt.position_id
-     WHERE fa.refresh_token = ?`,
-    [refreshToken],
-    (err, results) => {
-      if (err) {
-        console.error("Database Error:", err);
-        return res.status(500).json({ message: "Server error!" });
-      }
-
-      if (results.length === 0) {
-        return res.status(401).json({ message: "Invalid refresh token!" });
-      }
-
-      const user = results[0];
-      const tokenExpiry = new Date(user.refresh_token_expiry);
-
-      if (tokenExpiry < new Date()) {
-        return res.status(401).json({ message: "Refresh token expired!" });
-      }
-
-      // Verify the refresh token
-      jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err, decoded) => {
-        if (err) {
-          return res.status(401).json({ message: "Invalid or expired refresh token!" });
-        }
-
-        // Generate new access token using the stored faculty_id and position
-        const newAccessToken = generateAccessToken(user.faculty_id, user.position_name);
-
-        res.json({
-          accessToken: newAccessToken,
-        });
-      });
-    },
-  );
 };
 
-// ==================== Logout Controller ====================
-export const logout = (req, res) => {
+export const refreshToken = async (req, res) => {
+  try {
+    const refreshToken = req.cookies?.refreshToken;
+
+    if (!refreshToken) {
+      errorLogger.warn("❌ Refresh token missing in cookies.");
+      return res.status(401).json({ message: "Refresh token is required!" });
+    }
+
+    const [results] = await promisePool.query(
+      `SELECT fa.faculty_id, fa.refresh_token_expiry, pt.position_name 
+       FROM faculty_auth fa
+       LEFT JOIN position_type pt ON fa.position_id = pt.position_id
+       WHERE fa.refresh_token = ?`,
+      [refreshToken]
+    );
+
+    if (results.length === 0) {
+      errorLogger.warn("❌ Invalid refresh token.");
+      return res.status(401).json({ message: "Invalid refresh token!" });
+    }
+
+    const user = results[0];
+    const tokenExpiry = new Date(user.refresh_token_expiry);
+
+    if (tokenExpiry < new Date()) {
+      errorLogger.warn(`⏳ Refresh token expired for faculty ${user.faculty_id}`);
+      return res.status(401).json({ message: "Refresh token expired!" });
+    }
+
+    jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err) => {
+      if (err) {
+        errorLogger.warn(`❌ Refresh token verification failed: ${err.message}`);
+        return res.status(401).json({ message: "Invalid or expired refresh token!" });
+      }
+
+      const role_assigned = "general"; // Set manually for faculty
+      const newAccessToken = generateAccessToken(user.faculty_id, user.position_name, role_assigned);
+
+      res
+        .cookie("accessToken", newAccessToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "Strict",
+          maxAge: 15 * 60 * 1000, // 15 minutes or use ACCESS_TOKEN_EXPIRY from env
+        })
+        .json({ message: "New access token issued." });
+
+      userActionLogger.info(`🔄 Access token refreshed for faculty ${user.faculty_id}`);
+    });
+  } catch (err) {
+    errorLogger.error(`❌ Refresh token controller error: ${err.message}`);
+    res.status(500).json({ message: "Server error!" });
+  }
+};
+
+export const facultyLogout = async (req, res) => {
   const { faculty_id } = req.body;
 
   if (!faculty_id) {
     return res.status(400).json({ message: "Faculty ID is required!" });
   }
 
-  // Query to remove refresh token
-  pool.query(
-    "UPDATE faculty_auth SET refresh_token = NULL, refresh_token_expiry = NULL WHERE faculty_id = ?",
-    [faculty_id],
-    (err) => {
-      if (err) {
-        console.error("Database Error:", err);
-        return res.status(500).json({ message: "Server error!" });
-      }
+  try {
+    // Remove refresh token and expiry from DB
+    await promisePool.query(
+      "UPDATE faculty_auth SET refresh_token = NULL, refresh_token_expiry = NULL WHERE faculty_id = ?",
+      [faculty_id]
+    );
 
-      res.json({ message: "Logged out successfully!" });
-    },
-  );
+    // Clear httpOnly cookies
+    res
+      .clearCookie("accessToken", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "Strict",
+      })
+      .clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "Strict",
+      })
+      .json({ message: "Logged out successfully!" });
+
+    userActionLogger.info(`👋 Faculty ${faculty_id} logged out`);
+  } catch (err) {
+    errorLogger.error(`❌ Logout failed for faculty ${faculty_id}: ${err.message}`);
+    res.status(500).json({ message: "Server error!" });
+  }
 };

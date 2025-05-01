@@ -89,7 +89,7 @@ export const authorizeOwnData = (req, res, next) => {
 
 /**
  * Middleware to authorize based on position + role_assigned combo.
- * @param {Array<{position: string, role_assigned: string}>} allowedCombos
+ * @param {Array<{position: string, role_assigned: string | string[]}>} allowedCombos
  */
 export const authorizeByRoleCombo = (allowedCombos) => {
   return (req, res, next) => {
@@ -100,11 +100,15 @@ export const authorizeByRoleCombo = (allowedCombos) => {
       return res.status(403).json({ error: "Unauthorized: Missing role information." });
     }
 
-    const match = allowedCombos.some(
-      (combo) =>
-        combo.position.toLowerCase() === position.toLowerCase() &&
-        combo.role_assigned.toLowerCase() === role_assigned.toLowerCase()
-    );
+    const match = allowedCombos.some((combo) => {
+      const positionMatches = combo.position.toLowerCase() === position.toLowerCase();
+
+      const roles = Array.isArray(combo.role_assigned)
+        ? combo.role_assigned.map((r) => r.toLowerCase())
+        : [combo.role_assigned.toLowerCase()];
+
+      return positionMatches && roles.includes(role_assigned.toLowerCase());
+    });
 
     if (!match) {
       errorLogger.warn(`🚫 Access denied for combination: ${position} - ${role_assigned}`);
@@ -115,3 +119,4 @@ export const authorizeByRoleCombo = (allowedCombos) => {
     next();
   };
 };
+
