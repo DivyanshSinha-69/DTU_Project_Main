@@ -8,10 +8,10 @@ dotenv.config();
  * Middleware to authenticate token and verify user roles.
  */
 export const authenticateToken = (req, res, next) => {
-  const token = req.header("Authorization")?.split(" ")[1];
+  const token = req.cookies?.accessToken || req.header("Authorization")?.split(" ")[1];
 
   if (!token) {
-    errorLogger.warn("❌ No token provided in request headers!");
+    errorLogger.warn("❌ No token provided!");
     return res.status(401).json({ error: "Access denied. No token provided." });
   }
 
@@ -25,7 +25,7 @@ export const authenticateToken = (req, res, next) => {
       return res.status(401).json({ error: "Invalid token" });
     }
 
-    userActionLogger.info(`✅ Token validated successfully for ${decoded.roll_no}`);
+    userActionLogger.info(`✅ Token validated successfully for ${decoded.id}`);
 
     if (!decoded.position) {
       errorLogger.warn("⚠️ Position field missing in token!");
