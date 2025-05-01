@@ -86,13 +86,7 @@ const FacultyHeader = () => {
         logoutData.faculty_id = faculty_id;
       }
       let response;
-      if (role === "student") {
-        response = await axios.get(logoutUrl, { withCredentials: true });
-      } else {
-        response = await axios.post(logoutUrl, logoutData, {
-          withCredentials: true,
-        });
-      }
+
       if (response.status === 200) {
         dispatch(logout());
         dispatch(setRole(null));

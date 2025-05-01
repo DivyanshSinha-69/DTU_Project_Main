@@ -58,58 +58,32 @@ function App() {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
 
   useEffect(() => {
-    const checkExistingToken = async () => {
+    const checkExistingSession = async () => {
       try {
-        // let userDetails;
-        // if (user1.Position === "student") {
-        //   const response = await axios.get(
-        //     `${process.env.REACT_APP_BACKEND_URL}/cookiescheck`,
-        //     {
-        //       withCredentials: true,
-        //     }
-        //   );
-        //   userDetails = response.data;
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/auth/verify`,
+          { withCredentials: true }
+        );
 
-        //   if (userDetails) {
-        //     dispatch(
-        //       login({
-        //         user: userDetails?.user,
-        //         facultyId: null,
-        //         accessToken: null,
-        //         refreshToken: null,
-        //       })
-        //     );
-        //   }
-
-        //   dispatch(setRole(userDetails?.user.Position));
-        //   navigate("/student/portal");
-        // } else dispatch(setRole(user1.position));
-        const accessToken = localStorage.getItem("accessToken");
-        const refreshToken = localStorage.getItem("refreshToken");
-        const user = JSON.parse(localStorage.getItem("user"));
-
-        if (accessToken && refreshToken && user) {
-          dispatch(
-            login({
-              user: user,
-              accessToken: accessToken,
-              refreshToken: refreshToken,
-            })
-          );
-          dispatch(setRole(user.position));
+        if (response.data.user) {
+          dispatch(login({ user: response.data.user }));
+          dispatch(setRole(response.data.user.position));
         }
       } catch (error) {
-        console.log(error);
-        console.error("Error checking existing token:", error.message);
+        console.error("Session verification failed:", error);
+        if (error.response?.status === 401) {
+          dispatch(logout());
+        }
       }
     };
 
-    checkExistingToken();
+    checkExistingSession();
   }, [navigate, dispatch]);
+
   const { darkMode } = useThemeContext();
   useEffect(() => {
     document.body.style.backgroundColor = darkMode ? "#0D1117" : "#FFFFFF";
-    document.body.style.color = darkMode ? "#EAEAEA" : "#000000"; // Optional: Set text color
+    document.body.style.color = darkMode ? "#EAEAEA" : "#000000";
   }, [darkMode]);
 
   return (
@@ -143,7 +117,10 @@ function App() {
             <Route index element={<Department />} />{" "}
             {/* Default route for /department */}
             <Route path="office-orders" element={<Department />} />{" "}
-            <Route path="circular-notices" element={<DepartmentCirculars />} />{" "}
+            <Route
+              path="circular-notices"
+              element={<DepartmentCirculars />}
+            />{" "}
           </Route>
         )}
         <Route path="/parents" element={<Parents />} />
