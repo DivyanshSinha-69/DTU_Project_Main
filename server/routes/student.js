@@ -62,7 +62,7 @@ const router = express.Router();
 // Route for student login
 router.post('/login', studentLogin);
 router.post('/refresh', studentRefreshToken);
-router.post('/logout', studentLogout);
+router.post('/logout', authenticateToken, studentLogout);
 router.get('/verify', verifyAuth);
 
 // Route for student password reset

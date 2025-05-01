@@ -2097,7 +2097,7 @@ export const studentLogout = async (req, res) => {
 export const verifyAuth = async (req, res) => {
   try {
     // Extract token from httpOnly cookie
-    const token = req.cookies?.access_token;
+    const token = req.cookies?.accessToken;
 
     if (!token) {
       errorLogger.warn('❌ No access token found in cookies');
@@ -2107,10 +2107,13 @@ export const verifyAuth = async (req, res) => {
     // Verify token
     let decoded;
     try {
-      decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET); // Use your JWT secret
+      decoded = jwt.verify(token, process.env.JWT_SECRET); // Use your JWT secret
     } catch (err) {
       errorLogger.warn(`❌ Invalid or expired token in cookie: ${err.message}`);
-      return res.status(401).json({ message: "Unauthorized - Invalid or expired token" });
+      return res.status(401).json({ 
+        message: "Unauthorized - Invalid token",
+        details: process.env.NODE_ENV === 'development' ? err.message : undefined
+      });
     }
 
     const { id } = decoded;

@@ -6,7 +6,14 @@ import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import puppeteer from "puppeteer";
-
+import { userActionLogger, errorLogger } from "../utils/logger.js";
+import requestIp from "request-ip";
+import { promisePool } from "../data/database.js";
+import axios from 'axios'; // Import axios for HTTP requests
+import nodemailer from "nodemailer";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import multer from "multer";
 
 const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
@@ -3186,7 +3193,7 @@ export const facultyLogout = async (req, res) => {
 export const facultyVerifyAuth = async (req, res) => {
   try {
     // Extract token from httpOnly cookie
-    const token = req.cookies?.access_token;
+    const token = req.cookies?.accessToken;
 
     if (!token) {
       errorLogger.warn('❌ No access token found in cookies');
@@ -3196,7 +3203,7 @@ export const facultyVerifyAuth = async (req, res) => {
     // Verify token
     let decoded;
     try {
-      decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET); // Use your access token secret
+      decoded = jwt.verify(token, process.env.JWT_SECRET); // Use your access token secret
     } catch (err) {
       errorLogger.warn(`❌ Invalid or expired token in cookie: ${err.message}`);
       return res.status(401).json({ message: "Unauthorized - Invalid or expired token" });
