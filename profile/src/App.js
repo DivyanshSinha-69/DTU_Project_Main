@@ -61,7 +61,7 @@ function App() {
     const checkExistingSession = async () => {
       try {
         const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/auth/verify`,
+          `${process.env.REACT_APP_BACKEND_URL}/ece/student/verify`,
           { withCredentials: true }
         );
 

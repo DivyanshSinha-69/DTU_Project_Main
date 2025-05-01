@@ -39,42 +39,69 @@ import {
   getBtechEducationDetails,
   updateBtechEducationDetails,
   getAcknowledgement,
-  
   updateLastSeen,
-
-  studentLogin, 
+  studentLogin,
   studentRefreshToken,
   verifyAuth,
   studentLogout,
   forgotStudentPassword,
   resetStudentPassword,
-  getStudentDetails, 
-  addStudentDetails, 
-  updateStudentDetails, 
-  deleteStudentDetails
+  getStudentDetails,
+  addStudentDetails,
+  updateStudentDetails,
+  deleteStudentDetails,
 } from "../controllers/student.js";
 
-import { authenticateToken, authorizeRoles, authorizeByRoleCombo, authorizeByUserId, authorizeSameDepartment } from "../middlewares/auth.js";
+import {
+  authenticateToken,
+  authorizeRoles,
+  authorizeByRoleCombo,
+  authorizeByUserId,
+  authorizeSameDepartment,
+} from "../middlewares/auth.js";
 import { studentAccessMiddleware } from "../middlewares/sharedRoleCombos.js";
 
 const router = express.Router();
 
 // Route for student login
-router.post('/login', studentLogin);
-router.post('/refresh', studentRefreshToken);
-router.post('/logout', studentLogout);
-router.post('/verify', authenticateToken, verifyAuth);
+router.post("/login", studentLogin);
+router.post("/refresh", studentRefreshToken);
+router.post("/logout", studentLogout);
+router.get("/verify", authenticateToken, verifyAuth);
 
 // Route for student password reset
 router.post("/forgotpassword", forgotStudentPassword);
 router.post("/resetpassword/:token", resetStudentPassword);
 
 // Route for student details
-router.get("/details", authenticateToken, authorizeByUserId, studentAccessMiddleware, getStudentDetails);
-router.post("/details/", authenticateToken, authorizeByUserId, studentAccessMiddleware, addStudentDetails);
-router.put("/details/:roll_no", authenticateToken, authorizeByUserId, studentAccessMiddleware, updateStudentDetails);
-router.delete("/details/:roll_no", authenticateToken, authorizeByUserId, studentAccessMiddleware, deleteStudentDetails);
-
+router.get(
+  "/details",
+  authenticateToken,
+  authorizeByUserId,
+  studentAccessMiddleware,
+  getStudentDetails
+);
+router.post(
+  "/details/",
+  authenticateToken,
+  authorizeByUserId,
+  studentAccessMiddleware,
+  addStudentDetails
+);
+router.put(
+  "/details/:roll_no",
+  authenticateToken,
+  authorizeByUserId,
+  studentAccessMiddleware,
+  updateStudentDetails
+);
+router.delete(
+  "/details/:roll_no",
+  authenticateToken,
+  authorizeByUserId,
+  studentAccessMiddleware,
+  deleteStudentDetails
+);
 
 router.get("/getall", getall);
 router.post("/profskills", getProfessionalSkills);
@@ -128,7 +155,6 @@ router.post("/getcertificate", getCertificate);
 router.post("/uploadcertificate", uploadCertificate);
 router.post("/getacknowledgement", getAcknowledgement);
 // router.get("/me", isAuthenticated, getMyProfile);
-
 
 router.put(
   "/notifications/last-seen/student/:roll_no",
