@@ -23,18 +23,18 @@ const upload = multer({ storage: storage });
 // });
 
 // ==================== Generate Access Token ====================
-const generateAccessToken = (roll_no, position, role_assigned) => {
-  return jwt.sign({ roll_no, position, role_assigned }, process.env.JWT_SECRET, {
+const generateAccessToken = (id, position, role_assigned, department_id) => {
+  return jwt.sign({ id, position, role_assigned, department_id }, process.env.JWT_SECRET, {
     expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
   });
 };
 
 // ==================== Generate Refresh Token ====================
-const generateRefreshToken = (roll_no, position, role_assigned) => {
+const generateRefreshToken = (id, position, role_assigned, department_id) => {
   const expiryDays = parseInt(process.env.REFRESH_TOKEN_EXPIRY) || 7;
   const expirySeconds = expiryDays * 24 * 60 * 60;
 
-  return jwt.sign({ roll_no, position, role_assigned }, process.env.JWT_REFRESH_SECRET, {
+  return jwt.sign({ id, position, role_assigned, department_id }, process.env.JWT_REFRESH_SECRET, {
     expiresIn: expirySeconds,
   });
 };
@@ -1722,81 +1722,66 @@ export const getAcknowledgement = async (req, res) => {
   tables.forEach((table) => checkRollNoInTable(table));
 };
 
-export const forgotStudentPassword = (req, res) => {
+export const forgotStudentPassword = async (req, res) => {
   const { email } = req.body;
 
-  pool.query(
-    "SELECT * FROM student_auth WHERE email = ?",
-    [email],
-    (err, result) => {
-      if (err) {
-        console.error("Database Error:", err);
-        return res.status(500).json({ error: "Internal server error" });
-      }
+  try {
+    const [result] = await promisePool.query("SELECT * FROM student_auth WHERE email = ?", [email]);
 
-      if (result.length === 0) {
-        return res.status(404).json({ message: "Student not found" });
-      }
-
-      const resetToken = jwt.sign({ email }, process.env.JWT_SECRET, {
-        expiresIn: `${process.env.TOKEN_EXPIRY}m`,
-        algorithm: "HS256",
-      });
-
-      const expiryTime = new Date(
-        Date.now() + Number(process.env.TOKEN_EXPIRY) * 60000
-      );
-
-      pool.query(
-        "UPDATE student_auth SET reset_token = ?, token_expiry = ? WHERE email = ?",
-        [resetToken, expiryTime, email],
-        async (updateErr) => {
-          if (updateErr) {
-            console.error("Database Update Error:", updateErr);
-            return res.status(500).json({ error: "Internal server error" });
-          }
-
-          const resetLink = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
-
-          const emailData = {
-            sender: {
-              name: process.env.EMAIL_FROM_NAME,
-              email: process.env.EMAIL_FROM_EMAIL,
-            },
-            to: [{ email }],
-            subject: "Password Reset Request",
-            htmlContent: `
-              <p>Hello,</p>
-              <p>Click the link below to reset your password (valid for ${process.env.TOKEN_EXPIRY} minutes):</p>
-              <p><a href="${resetLink}">${resetLink}</a></p>
-            `,
-          };
-
-          try {
-            const response = await axios.post(
-              'https://api.brevo.com/v3/smtp/email',
-              emailData,
-              {
-                headers: {
-                  'api-key': process.env.BREVO_API_KEY,
-                  'Content-Type': 'application/json',
-                },
-              }
-            );
-            console.log("✅ Reset email sent to student via Brevo:", response.data);
-            res.json({ message: "Reset link sent to student email" });
-          } catch (emailErr) {
-            console.error("❌ Brevo error sending email:", emailErr.response?.data || emailErr.message);
-            return res.status(500).json({ error: "Failed to send reset email" });
-          }
-        }
-      );
+    if (result.length === 0) {
+      errorLogger.warn(`⚠️ Forgot password attempted for non-existent email: ${email}`);
+      return res.status(404).json({ message: "Student not found" });
     }
-  );
+
+    const resetToken = jwt.sign({ email }, process.env.JWT_SECRET, {
+      expiresIn: `${process.env.TOKEN_EXPIRY}m`,
+      algorithm: "HS256",
+    });
+
+    const expiryTime = new Date(Date.now() + Number(process.env.TOKEN_EXPIRY) * 60000);
+
+    await promisePool.query(
+      "UPDATE student_auth SET reset_token = ?, token_expiry = ? WHERE email = ?",
+      [resetToken, expiryTime, email]
+    );
+
+    const resetLink = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+
+    const emailData = {
+      sender: {
+        name: process.env.EMAIL_FROM_NAME,
+        email: process.env.EMAIL_FROM_EMAIL,
+      },
+      to: [{ email }],
+      subject: "Password Reset Request",
+      htmlContent: `
+        <p>Hello,</p>
+        <p>Click the link below to reset your password (valid for ${process.env.TOKEN_EXPIRY} minutes):</p>
+        <p><a href="${resetLink}">${resetLink}</a></p>
+      `,
+    };
+
+    await axios.post(
+      "https://api.brevo.com/v3/smtp/email",
+      emailData,
+      {
+        headers: {
+          "api-key": process.env.BREVO_API_KEY,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    userActionLogger.info(`🔐 Reset password link sent to ${email}`);
+    res.json({ message: "Reset link sent to student email" });
+
+  } catch (err) {
+    errorLogger.error(`❌ Forgot password error for ${email}: ${err.message}`);
+    res.status(500).json({ error: "Internal server error" });
+  }
 };
 
-
-export const resetStudentPassword = (req, res) => {
+export const resetStudentPassword = async (req, res) => {
   const { token } = req.params;
   const { newPassword } = req.body;
 
@@ -1804,49 +1789,38 @@ export const resetStudentPassword = (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const email = decoded.email;
 
-    pool.query(
+    const [result] = await promisePool.query(
       "SELECT * FROM student_auth WHERE email = ? AND reset_token = ?",
-      [email, token],
-      (err, result) => {
-        if (err) {
-          console.error("Database Error:", err);
-          return res.status(500).json({ error: "Internal server error" });
-        }
-
-        if (result.length === 0) {
-          return res.status(400).json({ error: "Invalid or expired token" });
-        }
-
-        if (new Date(result[0].token_expiry) < new Date()) {
-          return res.status(400).json({ error: "Token expired" });
-        }
-
-        bcrypt.hash(newPassword, 10, (hashErr, hashedPassword) => {
-          if (hashErr) {
-            console.error("Password Hashing Error:", hashErr);
-            return res.status(500).json({ error: "Failed to hash password" });
-          }
-
-          pool.query(
-            "UPDATE student_auth SET password = ?, reset_token = NULL, token_expiry = NULL WHERE email = ?",
-            [hashedPassword, email],
-            (updateErr) => {
-              if (updateErr) {
-                console.error("Database Update Error:", updateErr);
-                return res.status(500).json({ error: "Failed to reset password" });
-              }
-
-              res.json({ message: "Student password reset successful" });
-            }
-          );
-        });
-      }
+      [email, token]
     );
-  } catch (error) {
-    console.error("Reset Token Error:", error);
+
+    if (result.length === 0) {
+      errorLogger.warn(`❌ Invalid reset token attempt for email: ${email}`);
+      return res.status(400).json({ error: "Invalid or expired token" });
+    }
+
+    const student = result[0];
+    if (new Date(student.token_expiry) < new Date()) {
+      errorLogger.warn(`⏳ Expired reset token used by ${email}`);
+      return res.status(400).json({ error: "Token expired" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await promisePool.query(
+      "UPDATE student_auth SET password = ?, reset_token = NULL, token_expiry = NULL WHERE email = ?",
+      [hashedPassword, email]
+    );
+
+    userActionLogger.info(`✅ Password successfully reset for ${email}`);
+    res.json({ message: "Student password reset successful" });
+
+  } catch (err) {
+    errorLogger.error(`❌ Reset password error: ${err.message}`);
     res.status(400).json({ error: "Invalid or expired token" });
   }
 };
+
 
 export const updateLastSeen = (req, res) => {
   const { user_id, position_name, notification_type } = req.body;
@@ -1928,54 +1902,97 @@ export const updateLastSeen = (req, res) => {
   });
 };
 
+export const studentRefreshToken = async (req, res) => {
+  try {
+    const refreshToken = req.cookies?.refreshToken;
 
-
-export const studentRefreshToken = (req, res) => {
-  const { refreshToken } = req.body;
-
-  if (!refreshToken) {
-    return res.status(401).json({ message: "Refresh token is required!" });
-  }
-
-  // Query to check the refresh token and its expiry time
-  pool.query(
-    `SELECT sa.roll_no, sa.refresh_token, sa.refresh_token_expiry, sa.position_id, sa.role_assigned 
-     FROM student_auth sa
-     WHERE sa.refresh_token = ?`,
-    [refreshToken],
-    (err, results) => {
-      if (err) {
-        console.error("Database Error:", err);
-        return res.status(500).json({ message: "Server error!" });
-      }
-
-      if (results.length === 0) {
-        return res.status(401).json({ message: "Invalid refresh token!" });
-      }
-
-      const user = results[0];
-      const tokenExpiry = new Date(user.refresh_token_expiry);
-
-      // Check if the refresh token has expired
-      if (tokenExpiry < new Date()) {
-        return res.status(401).json({ message: "Refresh token expired!" });
-      }
-
-      // Verify the refresh token
-      jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err, decoded) => {
-        if (err) {
-          return res.status(401).json({ message: "Invalid or expired refresh token!" });
-        }
-
-        // Generate new access token using roll_no, position, and role_assigned
-        const newAccessToken = generateStudentAccessToken(user.roll_no, 'Student', user.role_assigned);
-
-        // Send back the new access token
-        res.json({ accessToken: newAccessToken });
-      });
+    if (!refreshToken) {
+      errorLogger.warn("❌ Refresh token missing in cookies.");
+      return res.status(401).json({ message: "Refresh token is required!" });
     }
-  );
+
+    // Check if the refresh token exists in the database
+    const [results] = await promisePool.query(
+      `SELECT sa.roll_no, sa.refresh_token_expiry, sa.role_assigned, sa.department_id, pt.position_name
+       FROM student_auth sa
+       JOIN position_type pt ON sa.position_id = pt.position_id
+       WHERE sa.refresh_token = ?`,
+      [refreshToken]
+    );
+
+    if (results.length === 0) {
+      errorLogger.warn("❌ Invalid refresh token.");
+      return res.status(401).json({ message: "Invalid refresh token!" });
+    }
+
+    const user = results[0];
+    const tokenExpiry = new Date(user.refresh_token_expiry);
+
+    if (tokenExpiry < new Date()) {
+      errorLogger.warn(`⏳ Refresh token expired for ${user.roll_no}`);
+      return res.status(401).json({ message: "Refresh token expired!" });
+    }
+
+    // Verify the refresh token asynchronously using jwt.verify and a promise
+    try {
+      await jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET); // await here directly
+
+      // Generate new access and refresh tokens
+      const newAccessToken = generateAccessToken(
+        user.roll_no,
+        user.position_name,
+        user.role_assigned,
+        user.department_id
+      );
+
+      const newRefreshToken = generateRefreshToken(
+        user.roll_no,
+        user.position_name,
+        user.role_assigned,
+        user.department_id
+      );
+
+      // Update the refresh token in the database and its expiry time
+      const expiryDays = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7;
+      const newRefreshTokenExpiry = new Date(
+        Date.now() + expiryDays * 24 * 60 * 60 * 1000
+      ).toISOString().slice(0, 19).replace("T", " ");
+
+      await promisePool.query(
+        "UPDATE student_auth SET refresh_token = ?, refresh_token_expiry = ? WHERE roll_no = ?",
+        [newRefreshToken, newRefreshTokenExpiry, user.roll_no]
+      );
+
+      // Set new access and refresh tokens as cookies
+      res
+        .cookie("accessToken", newAccessToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "Strict",
+          maxAge: 15 * 60 * 1000, // 15 minutes
+        })
+        .cookie("refreshToken", newRefreshToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "Strict",
+          maxAge: expiryDays * 24 * 60 * 60 * 1000, // Refresh token expiry time
+        })
+        .json({
+          message: "New access token and refresh token issued.",
+        });
+
+      userActionLogger.info(`🔄 Tokens refreshed for ${user.roll_no}`);
+    } catch (err) {
+      errorLogger.warn(`❌ Refresh token verification failed for ${user.roll_no}: ${err.message}`);
+      return res.status(401).json({ message: "Invalid or expired refresh token!" });
+    }
+  } catch (err) {
+    errorLogger.error(`🚨 Server error during student token refresh: ${err.message}`);
+    res.status(500).json({ message: "Server error!" });
+  }
 };
+
+
 
 export const studentLogin = async (req, res) => {
   const { roll_no, password } = req.body;
@@ -2010,8 +2027,8 @@ export const studentLogin = async (req, res) => {
       return res.status(401).json({ message: "Invalid password!" });
     }
 
-    const accessToken = generateAccessToken(roll_no, position_name, role_assigned_name);
-    const refreshToken = generateRefreshToken(roll_no, position_name, role_assigned_name);
+    const accessToken = generateAccessToken(roll_no, position_name, role_assigned_name, student.department_id);
+    const refreshToken = generateRefreshToken(roll_no, position_name, role_assigned_name, student.department_id);
 
     const expiryDays = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7;
     const refreshTokenExpiry = new Date(
@@ -2052,27 +2069,91 @@ export const studentLogin = async (req, res) => {
 };
 
 export const studentLogout = async (req, res) => {
-  const { roll_no } = req.body;
+  const { user } = req;
 
-  if (!roll_no) {
-    errorLogger.error(`Logout failed: Roll No missing. Roll No: ${roll_no}`);
-    return res.status(400).json({ message: "Roll No is required!" });
+  if (!user || !user.id) {
+    errorLogger.error("Logout failed: No authenticated user found.");
+    return res.status(401).json({ message: "Unauthorized!" });
   }
 
   try {
     await promisePool.query(
       "UPDATE student_auth SET refresh_token = NULL, refresh_token_expiry = NULL WHERE roll_no = ?",
-      [roll_no]
+      [user.id]
     );
 
-    userActionLogger.info(`Student logged out successfully. Roll No: ${roll_no}`);
+    userActionLogger.info(`Student logged out successfully. Roll No: ${user.id}`);
 
     res.clearCookie("accessToken");
     res.clearCookie("refreshToken");
+
     res.json({ message: "Logged out successfully!" });
   } catch (err) {
     errorLogger.error(`Logout error: ${err.message}`);
     res.status(500).json({ message: "Server error!" });
+  }
+};
+
+export const verifyAuth = async (req, res) => {
+  try {
+    // Check if req.user exists
+    if (!req.user) {
+      errorLogger.warn('❌ No user data found in request');
+      return res.status(401).json({ message: "Unauthorized - No authentication data" });
+    }
+
+    const { id } = req.user; // Extracting id from JWT token
+
+    // Validate required fields
+    if (!id) {
+      errorLogger.warn(`❌ Missing required fields in user data: ${JSON.stringify(req.user)}`);
+      return res.status(400).json({ message: "Bad request - Missing user data" });
+    }
+
+    // Treat id as roll_no for consistency
+    const roll_no = id;
+
+    // Fetch user details
+    const [results] = await promisePool.query(
+      `SELECT sa.roll_no, sa.position_id, sa.role_assigned, sa.department_id, 
+              pt.position_name, sar.role_name AS role_assigned_name, dd.department_name
+       FROM student_auth sa
+       JOIN position_type pt ON sa.position_id = pt.position_id
+       LEFT JOIN student_available_roles sar ON sa.role_assigned = sar.role_id
+       LEFT JOIN department_details dd ON sa.department_id = dd.department_id
+       WHERE sa.roll_no = ?`,
+      [roll_no]
+    );
+
+    if (results.length === 0) {
+      errorLogger.warn(`❌ User not found. Roll No: ${roll_no}`);
+      return res.status(404).json({ message: "User not found!" });
+    }
+
+    const user = results[0];
+
+    // Log successful verification
+    userActionLogger.info(`✔️ Token verified successfully for ${roll_no}`);
+
+    // Respond with user details
+    res.json({
+      message: "Token is valid!",
+      user: {
+        roll_no: user.roll_no,
+        position_name: user.position_name,
+        role_assigned: user.role_assigned_name,
+        department_name: user.department_name,
+        department_id: user.department_id,
+      },
+    });
+
+  } catch (err) {
+    errorLogger.error(`❌ Server error during token verification: ${err.message}`);
+    console.error(err); // Log full error to console for debugging
+    res.status(500).json({ 
+      message: "Server error!",
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 };
 
