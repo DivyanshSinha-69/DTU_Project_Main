@@ -4,8 +4,8 @@ import path, { resolve } from "path";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
-import jwt from 'jsonwebtoken';
-import requestIp from 'request-ip'; // For getting the client IP address
+import jwt from "jsonwebtoken";
+import requestIp from "request-ip"; // For getting the client IP address
 import { promisePool } from "../data/database.js";
 import { userActionLogger, errorLogger } from "../utils/logger.js";
 
@@ -24,9 +24,13 @@ const upload = multer({ storage: storage });
 
 // ==================== Generate Access Token ====================
 const generateAccessToken = (id, position, role_assigned, department_id) => {
-  return jwt.sign({ id, position, role_assigned, department_id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
-  });
+  return jwt.sign(
+    { id, position, role_assigned, department_id },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
+    }
+  );
 };
 
 // ==================== Generate Refresh Token ====================
@@ -34,12 +38,14 @@ const generateRefreshToken = (id, position, role_assigned, department_id) => {
   const expiryDays = parseInt(process.env.REFRESH_TOKEN_EXPIRY) || 7;
   const expirySeconds = expiryDays * 24 * 60 * 60;
 
-  return jwt.sign({ id, position, role_assigned, department_id }, process.env.JWT_REFRESH_SECRET, {
-    expiresIn: expirySeconds,
-  });
+  return jwt.sign(
+    { id, position, role_assigned, department_id },
+    process.env.JWT_REFRESH_SECRET,
+    {
+      expiresIn: expirySeconds,
+    }
+  );
 };
-
-
 
 export const uploadImage = (req, res) => {
   upload.single("image")(req, res, async (err) => {
@@ -76,7 +82,7 @@ export const uploadImage = (req, res) => {
               } else {
                 res.status(200).send("Image updated in the database");
               }
-            },
+            }
           );
         } else {
           // RollNo doesn't exist, perform an insert
@@ -89,13 +95,13 @@ export const uploadImage = (req, res) => {
             (insertErr, insertResult) => {
               if (insertErr) {
                 console.error(
-                  "Error inserting into database: " + insertErr.stack,
+                  "Error inserting into database: " + insertErr.stack
                 );
                 res.status(500).send("Internal Server Error");
               } else {
                 res.status(200).send("Image uploaded and saved to database");
               }
-            },
+            }
           );
         }
       }
@@ -125,7 +131,7 @@ export const getImage = (req, res) => {
         res.setHeader("Content-Type", "image/*");
         res.setHeader(
           "Content-Disposition",
-          `inline; filename=${originalname}`,
+          `inline; filename=${originalname}`
         );
         // Send the image data as the response
         res.end(imageBuffer);
@@ -191,7 +197,7 @@ export const updateProfessionalSkills = (req, res) => {
       } else {
         res.status(404).json({ error: "Record not found" });
       }
-    },
+    }
   );
 };
 
@@ -242,7 +248,7 @@ export const addProfessionalSkills = (req, res) => {
       } else {
         res.status(400).json({ error: "Failed to add record" });
       }
-    },
+    }
   );
 };
 
@@ -312,7 +318,7 @@ export const updatePersonalDetails = (req, res) => {
               message: "Record updated successfully",
             });
           }
-        },
+        }
       );
     } else {
       // Record doesn't exist, perform an insert
@@ -340,7 +346,7 @@ export const updatePersonalDetails = (req, res) => {
               message: "Record added successfully",
             });
           }
-        },
+        }
       );
     }
   });
@@ -379,7 +385,7 @@ export const deletePlacement = (req, res) => {
   pool.query(pdfQuery, [ID], (pdfErr, pdfResult) => {
     if (pdfErr) {
       console.error(
-        "Error querying PDF link from the database: " + pdfErr.stack,
+        "Error querying PDF link from the database: " + pdfErr.stack
       );
       res.status(500).json({ error: "Internal Server Error" });
       return;
@@ -393,7 +399,7 @@ export const deletePlacement = (req, res) => {
         // Extract the relative file path from the link
         const relativeFilePath = appointmentLetter.replace(
           `${process.env.REACT_APP_BACKEND_URL}/public`,
-          "",
+          ""
         );
 
         const currentModulePath = fileURLToPath(import.meta.url);
@@ -403,7 +409,7 @@ export const deletePlacement = (req, res) => {
           currentModuleDir,
           "..",
           "public",
-          relativeFilePath,
+          relativeFilePath
         );
 
         // Delete the corresponding PDF file
@@ -486,7 +492,7 @@ export const addPlacement = (req, res) => {
       } else {
         res.status(400).json({ error: "Failed to add record" });
       }
-    },
+    }
   );
 };
 
@@ -533,7 +539,7 @@ export const uploadPdf = (req, res) => {
     const rollNoDir = path.join(
       parentDir,
       "public/appointmentLetters",
-      modifiedRollNo,
+      modifiedRollNo
     );
     if (!fs.existsSync(rollNoDir)) {
       fs.mkdirSync(rollNoDir);
@@ -564,7 +570,7 @@ export const uploadPdf = (req, res) => {
           } else {
             res.status(200).send("PDF uploaded and saved to database");
           }
-        },
+        }
       );
     });
   });
@@ -661,7 +667,7 @@ export const updateMtechEducationDetails = (req, res) => {
           } else {
             res.status(404).json({ error: "Record not found" });
           }
-        },
+        }
       );
     } else {
       // If the user does not exist, insert a new record
@@ -683,7 +689,7 @@ export const updateMtechEducationDetails = (req, res) => {
                 message: "Record inserted successfully",
               });
             }
-          },
+          }
         );
       }
     }
@@ -754,7 +760,7 @@ export const updateBtechEducationDetails = (req, res) => {
           } else {
             res.status(404).json({ error: "Record not found" });
           }
-        },
+        }
       );
     } else {
       // If the user does not exist, insert a new record
@@ -780,7 +786,7 @@ export const updateBtechEducationDetails = (req, res) => {
               message: "Record inserted successfully",
             });
           }
-        },
+        }
       );
     }
   });
@@ -835,13 +841,13 @@ export const uploadScoreCard = (req, res) => {
               (insertErr, insertResult) => {
                 if (insertErr) {
                   console.error(
-                    "Error inserting into database: " + insertErr.stack,
+                    "Error inserting into database: " + insertErr.stack
                   );
                   res.status(500).send("Internal Server Error");
                 } else {
                   res.status(200).send("PDF uploaded and saved to database");
                 }
-              },
+              }
             );
           } else {
             // RollNo exists, update
@@ -857,7 +863,7 @@ export const uploadScoreCard = (req, res) => {
                 } else {
                   res.status(200).send("PDF uploaded and saved to database");
                 }
-              },
+              }
             );
           }
         }
@@ -937,7 +943,7 @@ export const updateEntrepreneurDetails = (req, res) => {
       } else {
         res.status(404).json({ error: "Record not found" });
       }
-    },
+    }
   );
 };
 
@@ -1001,7 +1007,7 @@ export const uploadCompanyRegCert = (req, res) => {
     const filePath = path.join(
       parentDir,
       "public/companyCertificates",
-      fileName,
+      fileName
     );
     fs.writeFile(filePath, buffer, (writeErr) => {
       if (writeErr) {
@@ -1031,13 +1037,13 @@ export const uploadCompanyRegCert = (req, res) => {
               (insertErr, insertResult) => {
                 if (insertErr) {
                   console.error(
-                    "Error inserting into database: " + insertErr.stack,
+                    "Error inserting into database: " + insertErr.stack
                   );
                   res.status(500).send("Internal Server Error");
                 } else {
                   res.status(200).send("PDF uploaded and saved to database");
                 }
-              },
+              }
             );
           } else {
             // RollNo exists, update
@@ -1053,7 +1059,7 @@ export const uploadCompanyRegCert = (req, res) => {
                 } else {
                   res.status(200).send("PDF uploaded and saved to database");
                 }
-              },
+              }
             );
           }
         }
@@ -1183,13 +1189,13 @@ export const uploadofferletter = (req, res) => {
               (insertErr, insertResult) => {
                 if (insertErr) {
                   console.error(
-                    "Error inserting into database: " + insertErr.stack,
+                    "Error inserting into database: " + insertErr.stack
                   );
                   res.status(500).send("Internal Server Error");
                 } else {
                   res.status(200).send("PDF uploaded and saved to database");
                 }
-              },
+              }
             );
           } else {
             // RollNo exists, update
@@ -1205,7 +1211,7 @@ export const uploadofferletter = (req, res) => {
                 } else {
                   res.status(200).send("PDF uploaded and saved to database");
                 }
-              },
+              }
             );
           }
         }
@@ -1222,7 +1228,7 @@ export const deletePublication = (req, res) => {
   pool.query(pdfQuery, [ID], (pdfErr, pdfResult) => {
     if (pdfErr) {
       console.error(
-        "Error querying PDF link from the database: " + pdfErr.stack,
+        "Error querying PDF link from the database: " + pdfErr.stack
       );
       res.status(500).json({ error: "Internal Server Error" });
       return;
@@ -1236,7 +1242,7 @@ export const deletePublication = (req, res) => {
         // Extract the relative file path from the link
         const relativeFilePath = manuscript.replace(
           `${process.env.REACT_APP_BACKEND_URL}/public`,
-          "",
+          ""
         );
 
         const currentModulePath = fileURLToPath(import.meta.url);
@@ -1246,7 +1252,7 @@ export const deletePublication = (req, res) => {
           currentModuleDir,
           "..",
           "public",
-          relativeFilePath,
+          relativeFilePath
         );
 
         // Delete the corresponding PDF file
@@ -1336,7 +1342,7 @@ export const addPublication = (req, res) => {
       } else {
         res.status(400).json({ error: "Failed to add record" });
       }
-    },
+    }
   );
 };
 
@@ -1383,7 +1389,7 @@ export const uploadManuscript = (req, res) => {
     const rollNoDir = path.join(
       parentDir,
       "public/manuscripts",
-      modifiedRollNo,
+      modifiedRollNo
     );
     if (!fs.existsSync(rollNoDir)) {
       fs.mkdirSync(rollNoDir);
@@ -1414,7 +1420,7 @@ export const uploadManuscript = (req, res) => {
           } else {
             res.status(200).send("PDF uploaded and saved to database");
           }
-        },
+        }
       );
     });
   });
@@ -1475,7 +1481,7 @@ export const addInterInstituteActivity = (req, res) => {
       } else {
         res.status(400).json({ error: "Failed to add record" });
       }
-    },
+    }
   );
 };
 
@@ -1522,7 +1528,7 @@ export const uploadCertificate = (req, res) => {
     const rollNoDir = path.join(
       parentDir,
       "public/certificates",
-      modifiedRollNo,
+      modifiedRollNo
     );
     if (!fs.existsSync(rollNoDir)) {
       fs.mkdirSync(rollNoDir);
@@ -1553,7 +1559,7 @@ export const uploadCertificate = (req, res) => {
           } else {
             res.status(200).send("PDF uploaded and saved to database");
           }
-        },
+        }
       );
     });
   });
@@ -1597,7 +1603,7 @@ export const deleteInterInstituteActivity = (req, res) => {
   pool.query(pdfQuery, [ID], (pdfErr, pdfResult) => {
     if (pdfErr) {
       console.error(
-        "Error querying PDF link from the database: " + pdfErr.stack,
+        "Error querying PDF link from the database: " + pdfErr.stack
       );
       res.status(500).json({ error: "Internal Server Error" });
       return;
@@ -1611,7 +1617,7 @@ export const deleteInterInstituteActivity = (req, res) => {
         // Extract the relative file path from the link
         const relativeFilePath = certificate.replace(
           `${process.env.REACT_APP_BACKEND_URL}/public`,
-          "",
+          ""
         );
 
         const currentModulePath = fileURLToPath(import.meta.url);
@@ -1621,7 +1627,7 @@ export const deleteInterInstituteActivity = (req, res) => {
           currentModuleDir,
           "..",
           "public",
-          relativeFilePath,
+          relativeFilePath
         );
 
         // Delete the corresponding PDF file
@@ -1726,10 +1732,15 @@ export const forgotStudentPassword = async (req, res) => {
   const { email } = req.body;
 
   try {
-    const [result] = await promisePool.query("SELECT * FROM student_auth WHERE email = ?", [email]);
+    const [result] = await promisePool.query(
+      "SELECT * FROM student_auth WHERE email = ?",
+      [email]
+    );
 
     if (result.length === 0) {
-      errorLogger.warn(`⚠️ Forgot password attempted for non-existent email: ${email}`);
+      errorLogger.warn(
+        `⚠️ Forgot password attempted for non-existent email: ${email}`
+      );
       return res.status(404).json({ message: "Student not found" });
     }
 
@@ -1738,7 +1749,9 @@ export const forgotStudentPassword = async (req, res) => {
       algorithm: "HS256",
     });
 
-    const expiryTime = new Date(Date.now() + Number(process.env.TOKEN_EXPIRY) * 60000);
+    const expiryTime = new Date(
+      Date.now() + Number(process.env.TOKEN_EXPIRY) * 60000
+    );
 
     await promisePool.query(
       "UPDATE student_auth SET reset_token = ?, token_expiry = ? WHERE email = ?",
@@ -1761,20 +1774,15 @@ export const forgotStudentPassword = async (req, res) => {
       `,
     };
 
-    await axios.post(
-      "https://api.brevo.com/v3/smtp/email",
-      emailData,
-      {
-        headers: {
-          "api-key": process.env.BREVO_API_KEY,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    await axios.post("https://api.brevo.com/v3/smtp/email", emailData, {
+      headers: {
+        "api-key": process.env.BREVO_API_KEY,
+        "Content-Type": "application/json",
+      },
+    });
 
     userActionLogger.info(`🔐 Reset password link sent to ${email}`);
     res.json({ message: "Reset link sent to student email" });
-
   } catch (err) {
     errorLogger.error(`❌ Forgot password error for ${email}: ${err.message}`);
     res.status(500).json({ error: "Internal server error" });
@@ -1814,24 +1822,26 @@ export const resetStudentPassword = async (req, res) => {
 
     userActionLogger.info(`✅ Password successfully reset for ${email}`);
     res.json({ message: "Student password reset successful" });
-
   } catch (err) {
     errorLogger.error(`❌ Reset password error: ${err.message}`);
     res.status(400).json({ error: "Invalid or expired token" });
   }
 };
 
-
 export const updateLastSeen = (req, res) => {
   const { user_id, position_name, notification_type } = req.body;
   console.log(user_id, position_name, notification_type);
 
   if (!user_id || !position_name || !notification_type) {
-      return res.status(400).json({ error: "user_id, position_name, and notification_type are required" });
+    return res.status(400).json({
+      error: "user_id, position_name, and notification_type are required",
+    });
   }
 
   if (!["duty", "circular"].includes(notification_type)) {
-      return res.status(400).json({ error: "Invalid notification_type. Must be 'duty' or 'circular'." });
+    return res.status(400).json({
+      error: "Invalid notification_type. Must be 'duty' or 'circular'.",
+    });
   }
 
   // Update last_seen timestamp for the user
@@ -1841,10 +1851,13 @@ export const updateLastSeen = (req, res) => {
       ON DUPLICATE KEY UPDATE last_seen = NOW();
   `;
 
-  pool.query(updateQuery, [user_id, position_name, notification_type], (err) => {
+  pool.query(
+    updateQuery,
+    [user_id, position_name, notification_type],
+    (err) => {
       if (err) {
-          console.error("Error updating last_seen:", err);
-          return res.status(500).json({ error: "Internal server error" });
+        console.error("Error updating last_seen:", err);
+        return res.status(500).json({ error: "Internal server error" });
       }
 
       // First, fetch last_seen timestamp separately
@@ -1853,53 +1866,61 @@ export const updateLastSeen = (req, res) => {
           WHERE user_id = ? AND notification_type = ?;
       `;
 
-      pool.query(lastSeenQuery, [user_id, notification_type], (err, lastSeenResult) => {
+      pool.query(
+        lastSeenQuery,
+        [user_id, notification_type],
+        (err, lastSeenResult) => {
           if (err) {
-              console.error("Error fetching last_seen:", err);
-              return res.status(500).json({ error: "Internal server error" });
+            console.error("Error fetching last_seen:", err);
+            return res.status(500).json({ error: "Internal server error" });
           }
 
           // Default last_seen value if no record exists
-          const lastSeen = lastSeenResult.length > 0 ? lastSeenResult[0].last_seen : '2000-01-01';
+          const lastSeen =
+            lastSeenResult.length > 0
+              ? lastSeenResult[0].last_seen
+              : "2000-01-01";
 
           let countQuery;
           let values = [lastSeen, lastSeen];
 
           if (notification_type === "duty") {
-              countQuery = `
+            countQuery = `
                   SELECT 
                       COUNT(CASE WHEN created_at > ? THEN 1 END) AS unseen_count,
                       COUNT(CASE WHEN created_at <= ? THEN 1 END) AS seen_count
                   FROM department_duty_notifications
                   WHERE user_id = ?;
               `;
-              values.push(user_id);
+            values.push(user_id);
           } else {
-              countQuery = `
+            countQuery = `
                   SELECT 
                       COUNT(CASE WHEN created_at > ? THEN 1 END) AS unseen_count,
                       COUNT(CASE WHEN created_at <= ? THEN 1 END) AS seen_count
                   FROM department_circular
                   WHERE department_id IN (SELECT department_id FROM student_auth WHERE RollNo = ?);
               `;
-              values.push(user_id);
+            values.push(user_id);
           }
 
           pool.query(countQuery, values, (err, result) => {
-              if (err) {
-                  console.error("Error fetching notification counts:", err);
-                  return res.status(500).json({ error: "Internal server error" });
-              }
+            if (err) {
+              console.error("Error fetching notification counts:", err);
+              return res.status(500).json({ error: "Internal server error" });
+            }
 
-              res.json({
-                  success: true,
-                  message: `${notification_type} last seen updated successfully`,
-                  unseen_count: result[0].unseen_count,
-                  seen_count: result[0].seen_count
-              });
+            res.json({
+              success: true,
+              message: `${notification_type} last seen updated successfully`,
+              unseen_count: result[0].unseen_count,
+              seen_count: result[0].seen_count,
+            });
           });
-      });
-  });
+        }
+      );
+    }
+  );
 };
 
 export const studentRefreshToken = async (req, res) => {
@@ -1956,7 +1977,10 @@ export const studentRefreshToken = async (req, res) => {
       const expiryDays = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7;
       const newRefreshTokenExpiry = new Date(
         Date.now() + expiryDays * 24 * 60 * 60 * 1000
-      ).toISOString().slice(0, 19).replace("T", " ");
+      )
+        .toISOString()
+        .slice(0, 19)
+        .replace("T", " ");
 
       await promisePool.query(
         "UPDATE student_auth SET refresh_token = ?, refresh_token_expiry = ? WHERE roll_no = ?",
@@ -1983,23 +2007,31 @@ export const studentRefreshToken = async (req, res) => {
 
       userActionLogger.info(`🔄 Tokens refreshed for ${user.roll_no}`);
     } catch (err) {
-      errorLogger.warn(`❌ Refresh token verification failed for ${user.roll_no}: ${err.message}`);
-      return res.status(401).json({ message: "Invalid or expired refresh token!" });
+      errorLogger.warn(
+        `❌ Refresh token verification failed for ${user.roll_no}: ${err.message}`
+      );
+      return res
+        .status(401)
+        .json({ message: "Invalid or expired refresh token!" });
     }
   } catch (err) {
-    errorLogger.error(`🚨 Server error during student token refresh: ${err.message}`);
+    errorLogger.error(
+      `🚨 Server error during student token refresh: ${err.message}`
+    );
     res.status(500).json({ message: "Server error!" });
   }
 };
-
-
 
 export const studentLogin = async (req, res) => {
   const { roll_no, password } = req.body;
 
   if (!roll_no || !password) {
-    errorLogger.error(`Login failed: Roll number or password missing. Roll No: ${roll_no}`);
-    return res.status(400).json({ message: "Roll number and password are required!" });
+    errorLogger.error(
+      `Login failed: Roll number or password missing. Roll No: ${roll_no}`
+    );
+    return res
+      .status(400)
+      .json({ message: "Roll number and password are required!" });
   }
 
   try {
@@ -2027,13 +2059,26 @@ export const studentLogin = async (req, res) => {
       return res.status(401).json({ message: "Invalid password!" });
     }
 
-    const accessToken = generateAccessToken(roll_no, position_name, role_assigned_name, student.department_id);
-    const refreshToken = generateRefreshToken(roll_no, position_name, role_assigned_name, student.department_id);
+    const accessToken = generateAccessToken(
+      roll_no,
+      position_name,
+      role_assigned_name,
+      student.department_id
+    );
+    const refreshToken = generateRefreshToken(
+      roll_no,
+      position_name,
+      role_assigned_name,
+      student.department_id
+    );
 
     const expiryDays = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7;
     const refreshTokenExpiry = new Date(
       Date.now() + expiryDays * 24 * 60 * 60 * 1000
-    ).toISOString().slice(0, 19).replace("T", " ");
+    )
+      .toISOString()
+      .slice(0, 19)
+      .replace("T", " ");
 
     await promisePool.query(
       "UPDATE student_auth SET refresh_token = ?, refresh_token_expiry = ? WHERE roll_no = ?",
@@ -2041,17 +2086,27 @@ export const studentLogin = async (req, res) => {
     );
 
     const ipAddress = requestIp.getClientIp(req);
-    const userAgent = req.headers['user-agent'];
+    const userAgent = req.headers["user-agent"];
 
     await promisePool.query(
       "INSERT INTO student_login_activity (roll_no, ip_address, user_agent) VALUES (?, ?, ?)",
       [roll_no, ipAddress, userAgent]
     );
 
-    userActionLogger.info(`Student login successful. Roll No: ${roll_no}, IP: ${ipAddress}`);
+    userActionLogger.info(
+      `Student login successful. Roll No: ${roll_no}, IP: ${ipAddress}`
+    );
 
-    res.cookie("accessToken", accessToken, { httpOnly: true, secure: true, sameSite: "Strict" });
-    res.cookie("refreshToken", refreshToken, { httpOnly: true, secure: true, sameSite: "Strict" });
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict",
+    });
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict",
+    });
 
     res.json({
       message: "Login successful!",
@@ -2082,7 +2137,9 @@ export const studentLogout = async (req, res) => {
       [user.id]
     );
 
-    userActionLogger.info(`Student logged out successfully. Roll No: ${user.id}`);
+    userActionLogger.info(
+      `Student logged out successfully. Roll No: ${user.id}`
+    );
 
     res.clearCookie("accessToken");
     res.clearCookie("refreshToken");
@@ -2100,7 +2157,7 @@ export const verifyAuth = async (req, res) => {
     const token = req.cookies?.accessToken;
 
     if (!token) {
-      errorLogger.warn('❌ No access token found in cookies');
+      errorLogger.warn("❌ No access token found in cookies");
       return res.status(401).json({ message: "Unauthorized - No token found" });
     }
 
@@ -2110,9 +2167,10 @@ export const verifyAuth = async (req, res) => {
       decoded = jwt.verify(token, process.env.JWT_SECRET); // Use your JWT secret
     } catch (err) {
       errorLogger.warn(`❌ Invalid or expired token in cookie: ${err.message}`);
-      return res.status(401).json({ 
+      return res.status(401).json({
         message: "Unauthorized - Invalid token",
-        details: process.env.NODE_ENV === 'development' ? err.message : undefined
+        details:
+          process.env.NODE_ENV === "development" ? err.message : undefined,
       });
     }
 
@@ -2120,8 +2178,12 @@ export const verifyAuth = async (req, res) => {
 
     // Validate required fields
     if (!id) {
-      errorLogger.warn(`❌ Missing required fields in token payload: ${JSON.stringify(decoded)}`);
-      return res.status(400).json({ message: "Bad request - Missing token data" });
+      errorLogger.warn(
+        `❌ Missing required fields in token payload: ${JSON.stringify(decoded)}`
+      );
+      return res
+        .status(400)
+        .json({ message: "Bad request - Missing token data" });
     }
 
     const roll_no = id; // JWT 'id' is treated as roll_no
@@ -2146,7 +2208,9 @@ export const verifyAuth = async (req, res) => {
     const user = results[0];
 
     // Log success
-    userActionLogger.info(`✔️ Student token verified successfully for ${roll_no}`);
+    userActionLogger.info(
+      `✔️ Student token verified successfully for ${roll_no}`
+    );
 
     // Respond with user info
     res.json({
@@ -2158,50 +2222,82 @@ export const verifyAuth = async (req, res) => {
         department_name: user.department_name,
       },
     });
-
   } catch (err) {
-    errorLogger.error(`❌ Server error during token verification: ${err.message}`);
+    errorLogger.error(
+      `❌ Server error during token verification: ${err.message}`
+    );
     console.error(err);
     res.status(500).json({
       message: "Server error!",
-      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+      error: process.env.NODE_ENV === "development" ? err.message : undefined,
     });
   }
 };
-
 
 // Controller to Get Student Details using query parameter
 export const getStudentDetails = async (req, res) => {
   const { roll_no } = req.query; // Get the roll_no from query parameters
 
   if (!roll_no) {
-    return res.status(400).json({ message: "Roll number is required in the query." });
+    return res
+      .status(400)
+      .json({ message: "Roll number is required in the query." });
   }
 
   try {
     // Fetch student details by roll_no
-    const [rows] = await promisePool.query("SELECT * FROM student_details WHERE roll_no = ?", [roll_no]);
+    const [rows] = await promisePool.query(
+      "SELECT * FROM student_details WHERE roll_no = ?",
+      [roll_no]
+    );
 
     if (rows.length === 0) {
       userActionLogger.info(`Student with roll_no ${roll_no} not found.`);
       return res.status(404).json({ message: "Student not found." });
     }
 
-    userActionLogger.info(`Student details for ${roll_no} fetched successfully.`);
+    userActionLogger.info(
+      `Student details for ${roll_no} fetched successfully.`
+    );
     return res.json({ data: rows }); // Return the student details
   } catch (err) {
-    errorLogger.error(`Error fetching student details for ${roll_no}: ${err.message}`);
-    return res.status(500).json({ message: "Server error. Please try again later." });
+    errorLogger.error(
+      `Error fetching student details for ${roll_no}: ${err.message}`
+    );
+    return res
+      .status(500)
+      .json({ message: "Server error. Please try again later." });
   }
 };
 
-
 // Controller to Add New Student
 export const addStudentDetails = async (req, res) => {
-  const { roll_no, student_name, father_name, mother_name, personal_contact, parent_contact, personal_email, dtu_email, original_city, original_country } = req.body;
+  const {
+    roll_no,
+    student_name,
+    father_name,
+    mother_name,
+    personal_contact,
+    parent_contact,
+    personal_email,
+    dtu_email,
+    original_city,
+    original_country,
+  } = req.body;
 
   // Validate input fields
-  if (!roll_no || !student_name || !father_name || !mother_name || !personal_contact || !parent_contact || !personal_email || !dtu_email || !original_city || !original_country) {
+  if (
+    !roll_no ||
+    !student_name ||
+    !father_name ||
+    !mother_name ||
+    !personal_contact ||
+    !parent_contact ||
+    !personal_email ||
+    !dtu_email ||
+    !original_city ||
+    !original_country
+  ) {
     return res.status(400).json({ message: "All fields are required." });
   }
 
@@ -2210,28 +2306,58 @@ export const addStudentDetails = async (req, res) => {
     const result = await promisePool.query(
       `INSERT INTO student_details (roll_no, student_name, father_name, mother_name, personal_contact, parent_contact, personal_email, dtu_email, original_city, original_country)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [roll_no, student_name, father_name, mother_name, personal_contact, parent_contact, personal_email, dtu_email, original_city, original_country]
+      [
+        roll_no,
+        student_name,
+        father_name,
+        mother_name,
+        personal_contact,
+        parent_contact,
+        personal_email,
+        dtu_email,
+        original_city,
+        original_country,
+      ]
     );
 
     userActionLogger.info(`New student added with roll_no ${roll_no}.`);
     return res.status(201).json({ message: "Student added successfully!" });
   } catch (err) {
-    errorLogger.error(`Error adding student with roll_no ${roll_no}: ${err.message}`);
-    return res.status(500).json({ message: "Server error. Please try again later." });
+    errorLogger.error(
+      `Error adding student with roll_no ${roll_no}: ${err.message}`
+    );
+    return res
+      .status(500)
+      .json({ message: "Server error. Please try again later." });
   }
 };
 
 // Controller to Update Student Details
 export const updateStudentDetails = async (req, res) => {
   const { roll_no } = req.params; // Get the roll_no from request params
-  const { student_name, father_name, mother_name, personal_contact, parent_contact, personal_email, dtu_email, original_city, original_country } = req.body;
+  const {
+    student_name,
+    father_name,
+    mother_name,
+    personal_contact,
+    parent_contact,
+    personal_email,
+    dtu_email,
+    original_city,
+    original_country,
+  } = req.body;
 
   try {
     // Check if student exists
-    const [existingStudent] = await promisePool.query("SELECT * FROM student_details WHERE roll_no = ?", [roll_no]);
-    
+    const [existingStudent] = await promisePool.query(
+      "SELECT * FROM student_details WHERE roll_no = ?",
+      [roll_no]
+    );
+
     if (existingStudent.length === 0) {
-      userActionLogger.info(`Student with roll_no ${roll_no} not found for update.`);
+      userActionLogger.info(
+        `Student with roll_no ${roll_no} not found for update.`
+      );
       return res.status(404).json({ message: "Student not found." });
     }
 
@@ -2239,14 +2365,31 @@ export const updateStudentDetails = async (req, res) => {
     const result = await promisePool.query(
       `UPDATE student_details SET student_name = ?, father_name = ?, mother_name = ?, personal_contact = ?, parent_contact = ?, personal_email = ?, dtu_email = ?, original_city = ?, original_country = ?
       WHERE roll_no = ?`,
-      [student_name, father_name, mother_name, personal_contact, parent_contact, personal_email, dtu_email, original_city, original_country, roll_no]
+      [
+        student_name,
+        father_name,
+        mother_name,
+        personal_contact,
+        parent_contact,
+        personal_email,
+        dtu_email,
+        original_city,
+        original_country,
+        roll_no,
+      ]
     );
 
-    userActionLogger.info(`Student details for ${roll_no} updated successfully.`);
+    userActionLogger.info(
+      `Student details for ${roll_no} updated successfully.`
+    );
     return res.json({ message: "Student details updated successfully!" });
   } catch (err) {
-    errorLogger.error(`Error updating student details for ${roll_no}: ${err.message}`);
-    return res.status(500).json({ message: "Server error. Please try again later." });
+    errorLogger.error(
+      `Error updating student details for ${roll_no}: ${err.message}`
+    );
+    return res
+      .status(500)
+      .json({ message: "Server error. Please try again later." });
   }
 };
 
@@ -2256,20 +2399,34 @@ export const deleteStudentDetails = async (req, res) => {
 
   try {
     // Check if student exists
-    const [existingStudent] = await promisePool.query("SELECT * FROM student_details WHERE roll_no = ?", [roll_no]);
-    
+    const [existingStudent] = await promisePool.query(
+      "SELECT * FROM student_details WHERE roll_no = ?",
+      [roll_no]
+    );
+
     if (existingStudent.length === 0) {
-      userActionLogger.info(`Student with roll_no ${roll_no} not found for deletion.`);
+      userActionLogger.info(
+        `Student with roll_no ${roll_no} not found for deletion.`
+      );
       return res.status(404).json({ message: "Student not found." });
     }
 
     // Delete student details
-    const result = await promisePool.query("DELETE FROM student_details WHERE roll_no = ?", [roll_no]);
+    const result = await promisePool.query(
+      "DELETE FROM student_details WHERE roll_no = ?",
+      [roll_no]
+    );
 
-    userActionLogger.info(`Student with roll_no ${roll_no} deleted successfully.`);
+    userActionLogger.info(
+      `Student with roll_no ${roll_no} deleted successfully.`
+    );
     return res.json({ message: "Student deleted successfully!" });
   } catch (err) {
-    errorLogger.error(`Error deleting student with roll_no ${roll_no}: ${err.message}`);
-    return res.status(500).json({ message: "Server error. Please try again later." });
+    errorLogger.error(
+      `Error deleting student with roll_no ${roll_no}: ${err.message}`
+    );
+    return res
+      .status(500)
+      .json({ message: "Server error. Please try again later." });
   }
 };

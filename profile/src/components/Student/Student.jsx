@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import studentImg from "../../assets/teacherImg.png";
 import "../../styles/popup.css";
 import { Toaster } from "react-hot-toast";
@@ -11,6 +11,7 @@ import Sidebar from "../DynamicComponents/SideBar.jsx";
 import { useThemeContext } from "../../context/ThemeContext.jsx";
 import dtuImg from "../../assets/dtufullimage.jpg";
 import StudentHeader from "./StudentHeader.jsx";
+import StudentPersonalDetails from "./Tables/PersonalDetails.jsx";
 
 const Student = () => {
   const [isBlurActive, setBlurActive] = useState(false);
@@ -18,6 +19,10 @@ const Student = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [isOperationInProgress, setOperationInProgress] = useState(false);
   const { darkMode } = useThemeContext();
+  const sectionRefs = {
+    "personal-details": useRef(null),
+    // Add other section refs as needed
+  };
 
   // Dummy student data
   const studentData = {
@@ -76,10 +81,14 @@ const Student = () => {
             {/* Sidebar - Simplified for student */}
             <div className="flex-shrink-0 sticky top-0 h-screen">
               <Sidebar
-                menuItems={[{ id: "details", label: "Student Details" }]}
+                menuItems={[
+                  { id: "details", label: "Student Details" },
+                  { id: "personal-details", label: "Personal Details" },
+                ]}
                 selectedItem="details"
                 role="student"
                 student_id={studentData.enrollment_number}
+                sectionRefs={sectionRefs}
               />
             </div>
 
@@ -264,9 +273,18 @@ const Student = () => {
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Sections can be added here later */}
+                  {/* Personal Details Section */}
+                  <div
+                    style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
+                    ref={sectionRefs["personal-details"]}
+                    className={`pt-6 pb-3 px-4 md:px-6 ${
+                      isBlurActive ? "blur-effect" : ""
+                    }`}
+                  >
+                    <StudentPersonalDetails setBlurActive={setBlurActive} />
+                  </div>
+                </div>
 
                 <Toaster
                   toastOptions={{

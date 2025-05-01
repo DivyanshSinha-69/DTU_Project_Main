@@ -50,7 +50,7 @@ const CustomTable = ({
   // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = data?.slice(indexOfFirstItem, indexOfLastItem);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -146,7 +146,7 @@ const CustomTable = ({
 
           {/* Table Body */}
           <tbody>
-            {currentItems.map((row, index) => {
+            {currentItems?.map((row, index) => {
               const isLast = index === currentItems.length - 1;
               const isExpanded = expandedRow === (row.id || index);
 
@@ -436,8 +436,8 @@ const CustomTable = ({
           </button>
 
           {/* Page Numbers */}
-          {Array.from(
-            { length: Math.ceil(data.length / itemsPerPage) },
+          {Array?.from(
+            { length: Math.ceil(data?.length / itemsPerPage) },
             (_, i) => (
               <button
                 key={i + 1}
@@ -461,10 +461,10 @@ const CustomTable = ({
           {/* Next Button */}
           <button
             onClick={() => paginate(currentPage + 1)}
-            disabled={currentPage === Math.ceil(data.length / itemsPerPage)}
+            disabled={currentPage === Math.ceil(data?.length / itemsPerPage)}
             className={`px-3 py-1 rounded-md text-sm font-medium transition-all duration-300 ease-in-out
         ${
-          currentPage === Math.ceil(data.length / itemsPerPage)
+          currentPage === Math.ceil(data?.length / itemsPerPage)
             ? "text-gray-400 cursor-not-allowed"
             : darkMode
               ? "text-white hover:bg-gray-600"
