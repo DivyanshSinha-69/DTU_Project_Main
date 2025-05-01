@@ -10,7 +10,6 @@ import adminRouter from "./routes/admin.js";
 import professorRouter from "./routes/faculty.js";
 import studentRouter from "./routes/student.js";
 import commonRouter from "./routes/common.js";
-import authRouter from "./routes/facultyAuthRoutes.js";
 import departmentRouter from "./routes/department.js";
 
 import { errorMiddleware } from "./middlewares/error.js";
@@ -76,7 +75,6 @@ app.use("/ece/admin", adminRouter);
 app.use("/ece/faculty", professorRouter);
 app.use("/ece/student", studentRouter);
 app.use("/", commonRouter);
-app.use("/ece/facultyauth", authRouter); // <-- Added this for forgot password functionality
 app.use("/ece/department", departmentRouter);
 
 // Serve React Frontend

@@ -2096,24 +2096,34 @@ export const studentLogout = async (req, res) => {
 
 export const verifyAuth = async (req, res) => {
   try {
-    // Check if req.user exists
-    if (!req.user) {
-      errorLogger.warn('❌ No user data found in request');
-      return res.status(401).json({ message: "Unauthorized - No authentication data" });
+    // Extract token from httpOnly cookie
+    const token = req.cookies?.access_token;
+
+    if (!token) {
+      errorLogger.warn('❌ No access token found in cookies');
+      return res.status(401).json({ message: "Unauthorized - No token found" });
     }
 
-    const { id } = req.user; // Extracting id from JWT token
+    // Verify token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET); // Use your JWT secret
+    } catch (err) {
+      errorLogger.warn(`❌ Invalid or expired token in cookie: ${err.message}`);
+      return res.status(401).json({ message: "Unauthorized - Invalid or expired token" });
+    }
+
+    const { id } = decoded;
 
     // Validate required fields
     if (!id) {
-      errorLogger.warn(`❌ Missing required fields in user data: ${JSON.stringify(req.user)}`);
-      return res.status(400).json({ message: "Bad request - Missing user data" });
+      errorLogger.warn(`❌ Missing required fields in token payload: ${JSON.stringify(decoded)}`);
+      return res.status(400).json({ message: "Bad request - Missing token data" });
     }
 
-    // Treat id as roll_no for consistency
-    const roll_no = id;
+    const roll_no = id; // JWT 'id' is treated as roll_no
 
-    // Fetch user details
+    // Fetch student details
     const [results] = await promisePool.query(
       `SELECT sa.roll_no, sa.position_id, sa.role_assigned, sa.department_id, 
               pt.position_name, sar.role_name AS role_assigned_name, dd.department_name
@@ -2126,16 +2136,16 @@ export const verifyAuth = async (req, res) => {
     );
 
     if (results.length === 0) {
-      errorLogger.warn(`❌ User not found. Roll No: ${roll_no}`);
+      errorLogger.warn(`❌ Student not found. Roll No: ${roll_no}`);
       return res.status(404).json({ message: "User not found!" });
     }
 
     const user = results[0];
 
-    // Log successful verification
-    userActionLogger.info(`✔️ Token verified successfully for ${roll_no}`);
+    // Log success
+    userActionLogger.info(`✔️ Student token verified successfully for ${roll_no}`);
 
-    // Respond with user details
+    // Respond with user info
     res.json({
       message: "Token is valid!",
       user: {
@@ -2149,13 +2159,14 @@ export const verifyAuth = async (req, res) => {
 
   } catch (err) {
     errorLogger.error(`❌ Server error during token verification: ${err.message}`);
-    console.error(err); // Log full error to console for debugging
-    res.status(500).json({ 
+    console.error(err);
+    res.status(500).json({
       message: "Server error!",
       error: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
 };
+
 
 // Controller to Get Student Details using query parameter
 export const getStudentDetails = async (req, res) => {

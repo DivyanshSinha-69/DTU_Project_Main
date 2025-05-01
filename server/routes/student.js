@@ -63,7 +63,7 @@ const router = express.Router();
 router.post('/login', studentLogin);
 router.post('/refresh', studentRefreshToken);
 router.post('/logout', studentLogout);
-router.post('/verify', authenticateToken, verifyAuth);
+router.get('/verify', verifyAuth);
 
 // Route for student password reset
 router.post("/forgotpassword", forgotStudentPassword);
@@ -130,11 +130,6 @@ router.post("/getacknowledgement", getAcknowledgement);
 // router.get("/me", isAuthenticated, getMyProfile);
 
 
-router.put(
-  "/notifications/last-seen/student/:roll_no",
-  authenticateToken,
-  authorizeRoles("student"),
-  updateLastSeen
-);
+router.put("/notifications/last-seen/student/:roll_no", authenticateToken, authorizeRoles("student"), updateLastSeen);
 
 export default router;

@@ -73,9 +73,24 @@ import {
   getCirculars,
   markDutyOrderAsSeen,
   getFacultyMappingByDepartment,
+  forgotPassword,
+  resetPassword,
+  facultyLogin,
+  facultyRefresh,
+  facultyLogout,
+  facultyVerifyAuth
 } from "../controllers/faculty.js";
 
 const router = express.Router();
+
+router.post("/login", facultyLogin);
+router.post("/refresh", facultyRefresh);
+router.post("/logout", facultyLogout);
+router.get("/verify", facultyVerifyAuth);
+
+router.post("/forgotpassword", forgotPassword);
+router.post("/resetpassword/:token", resetPassword);
+
 
 router.use(authenticateToken);
 
