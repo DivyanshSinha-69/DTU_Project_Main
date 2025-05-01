@@ -39,6 +39,7 @@ import FacultyCircularPage from "./components/Teacher/CircularNotices";
 import FacultyCircular from "./components/Teacher/CircularNotices";
 import DepartmentCirculars from "./components/Department/Pages/CircularsNotices";
 import { useLocation } from "react-router-dom";
+
 const CURRENT_VERSION = "2.4"; // Change this on every deployment
 if (localStorage.getItem("appVersion") !== CURRENT_VERSION) {
   localStorage.clear(); // Clears old cache
@@ -50,17 +51,40 @@ if (localStorage.getItem("appVersion") !== CURRENT_VERSION) {
   window.location.reload(true); // Force reload to fetch fresh files
 }
 
+// List of routes that don't require authentication
+const PUBLIC_ROUTES = [
+  "/",
+  "/login",
+  "/login/admin",
+  "/forgot",
+  "/reset-password/:token",
+  "/unauthorized",
+];
+
 function App() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { role } = useSelector((state) => state.user);
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
-  const location = useLocation(); // Add this to check current path
+  const location = useLocation();
 
   useEffect(() => {
     const checkExistingSession = async () => {
-      // Skip verification if we're on landing page or login page
-      if (location.pathname === "/" || location.pathname === "/login") {
+      // Skip verification if we're on a public route
+      if (
+        PUBLIC_ROUTES.some((route) => {
+          // Handle dynamic routes like reset-password/:token
+          if (route.includes(":token")) {
+            return location.pathname.startsWith(route.split(":")[0]);
+          }
+          return route === location.pathname;
+        })
+      ) {
+        return;
+      }
+
+      // Skip verification if we're not authenticated
+      if (!isAuthenticated) {
         return;
       }
 
@@ -84,7 +108,7 @@ function App() {
         if (error.response?.status === 401) {
           dispatch(logout());
           // Only redirect if not already on login page
-          if (location.pathname !== "/login") {
+          if (!PUBLIC_ROUTES.includes(location.pathname)) {
             navigate("/login");
           }
         }
@@ -92,7 +116,7 @@ function App() {
     };
 
     checkExistingSession();
-  }, [navigate, dispatch, role, location.pathname]); // Add location.pathname to dependencies
+  }, [navigate, dispatch, role, location.pathname, isAuthenticated]);
 
   const { darkMode } = useThemeContext();
   useEffect(() => {
@@ -116,34 +140,46 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/login/admin" element={<AdminLogin />} />
-
-        <Route path="/student" element={<Student />} />
-        {role === "faculty" && (
-          <Route path="/faculty">
-            <Route index element={<Faculty />} />{" "}
-            <Route path="office-orders" element={<FacultyOfficeOrders />} />{" "}
-            <Route path="circular-notices" element={<FacultyCircular />} />{" "}
-          </Route>
-        )}
-        {role === "admin" && <Route path="/admin" element={<Dashboard />} />}
-        {role === "department" && (
-          <Route path="/department">
-            <Route index element={<Department />} />{" "}
-            {/* Default route for /department */}
-            <Route path="office-orders" element={<Department />} />{" "}
-            <Route
-              path="circular-notices"
-              element={<DepartmentCirculars />}
-            />{" "}
-          </Route>
-        )}
-        <Route path="/parents" element={<Parents />} />
-        <Route path="/loader" element={<Loader />} />
-        <Route path="/alumini" element={<Alumini />} />
         <Route path="/forgot" element={<Forgot />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
 
-        <Route path="*" element={<Unauthorized />} />
+        {/* Protected routes */}
+        {isAuthenticated && (
+          <>
+            <Route path="/student" element={<Student />} />
+            {role === "faculty" && (
+              <Route path="/faculty">
+                <Route index element={<Faculty />} />
+                <Route path="office-orders" element={<FacultyOfficeOrders />} />
+                <Route path="circular-notices" element={<FacultyCircular />} />
+              </Route>
+            )}
+            {role === "admin" && (
+              <Route path="/admin" element={<Dashboard />} />
+            )}
+            {role === "department" && (
+              <Route path="/department">
+                <Route index element={<Department />} />
+                <Route path="office-orders" element={<Department />} />
+                <Route
+                  path="circular-notices"
+                  element={<DepartmentCirculars />}
+                />
+              </Route>
+            )}
+            <Route path="/parents" element={<Parents />} />
+            <Route path="/alumini" element={<Alumini />} />
+          </>
+        )}
+
+        {/* Fallback route */}
+        <Route
+          path="*"
+          element={
+            isAuthenticated ? <Unauthorized /> : <Navigate to="/login" />
+          }
+        />
       </Routes>
       <Footer />
     </>

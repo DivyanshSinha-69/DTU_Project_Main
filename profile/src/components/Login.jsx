@@ -23,10 +23,6 @@ const Login = () => {
     showPassword: false,
   });
 
-  useEffect(() => {
-    console.log("Role from URL:", role);
-  }, [role]);
-
   const handleLogin = async (e) => {
     e.preventDefault();
 
