@@ -2156,7 +2156,6 @@ export const verifyAuth = async (req, res) => {
         position_name: user.position_name,
         role_assigned: user.role_assigned_name,
         department_name: user.department_name,
-        department_id: user.department_id,
       },
     });
 

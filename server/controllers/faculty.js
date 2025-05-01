@@ -3203,15 +3203,13 @@ export const facultyVerifyAuth = async (req, res) => {
     // Verify token
     let decoded;
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET); // Use your access token secret
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (err) {
       errorLogger.warn(`❌ Invalid or expired token in cookie: ${err.message}`);
       return res.status(401).json({ message: "Unauthorized - Invalid or expired token" });
     }
 
     const { id } = decoded;
-
-    // Validate required fields
     if (!id) {
       errorLogger.warn(`❌ Missing required fields in token payload: ${JSON.stringify(decoded)}`);
       return res.status(400).json({ message: "Bad request - Missing token data" });
@@ -3219,40 +3217,91 @@ export const facultyVerifyAuth = async (req, res) => {
 
     const faculty_id = id;
 
-    // Fetch faculty details
-    const [results] = await promisePool.query(
-      `SELECT fa.faculty_id, fa.position_id, pt.position_name, dd.department_id, dd.department_name
+    // Step 1: Get faculty authentication details (same as login)
+    const [facultyAuth] = await promisePool.query(
+      `SELECT fa.*, pt.position_name
        FROM faculty_auth fa
        LEFT JOIN position_type pt ON fa.position_id = pt.position_id
-       LEFT JOIN department_details dd ON fa.department_id = dd.department_id
        WHERE fa.faculty_id = ?`,
       [faculty_id]
     );
 
-    if (results.length === 0) {
+    if (facultyAuth.length === 0) {
       errorLogger.warn(`❌ Faculty not found. Faculty ID: ${faculty_id}`);
       return res.status(404).json({ message: "Faculty not found!" });
     }
 
-    const user = results[0];
+    const user = facultyAuth[0];
+    const deptid = user.department_id;
+    const position = user.position_name;
+
+    // Step 2: Get name and designation (same as login)
+    const [facultyDetails] = await promisePool.query(
+      `SELECT fd.faculty_name, fa.designation
+       FROM faculty_details fd 
+       LEFT JOIN faculty_association fa ON fd.faculty_id = fa.faculty_id 
+       WHERE fd.faculty_id = ?`,
+      [faculty_id]
+    );
+
+    if (facultyDetails.length === 0) {
+      return res.status(404).json({ message: "Faculty details not found!" });
+    }
+
+    const { faculty_name, designation } = facultyDetails[0];
+
+    // Step 3: Get counts (same as login)
+    const [counts] = await promisePool.query(
+      `SELECT 
+        (SELECT COUNT(*) FROM faculty_research_paper WHERE faculty_id = ?) AS research_papers,
+        (SELECT COUNT(*) FROM faculty_sponsored_research WHERE faculty_id = ?) AS sponsorships,
+        (SELECT COUNT(*) FROM faculty_patents WHERE faculty_id = ?) AS patents,
+        (SELECT COUNT(*) FROM faculty_Book_records WHERE faculty_id = ?) AS book_records,
+        (SELECT COUNT(*) FROM faculty_consultancy WHERE faculty_id = ?) AS consultancy`,
+      [faculty_id, faculty_id, faculty_id, faculty_id, faculty_id]
+    );
+
+    // Step 4: Get unread notifications (same as login)
+    const [notifications] = await promisePool.query(
+      `SELECT 
+        (SELECT COUNT(*) FROM department_duty_notifications 
+         WHERE user_id = ? AND is_seen = 0) AS unread_duties,
+         
+        (SELECT COUNT(*) FROM department_circular 
+         WHERE department_id = (SELECT department_id FROM faculty_auth WHERE faculty_id = ?)
+         AND created_at > COALESCE(
+           (SELECT last_seen FROM user_last_seen_notifications 
+            WHERE user_id = ? AND notification_type = 'circular'), '2000-01-01')
+        ) AS unread_circulars`,
+      [faculty_id, faculty_id, faculty_id]
+    );
 
     // Log successful verification
     userActionLogger.info(`✔️ Faculty token verified successfully for ${faculty_id}`);
 
-    // Respond with faculty details
+    // Respond with same structure as login
     res.json({
       message: "Token is valid!",
       user: {
         faculty_id: user.faculty_id,
-        position_name: user.position_name,
-        department_id: user.department_id,
-        department_name: user.department_name,
+        faculty_name,
+        faculty_designation: designation,
+        position,
+        researchCount: counts[0].research_papers || 0,
+        sponsorCount: counts[0].sponsorships || 0,
+        patentCount: counts[0].patents || 0,
+        bookCount: counts[0].book_records || 0,
+        consultancyCount: counts[0].consultancy || 0,
+        unreadDuties: notifications[0].unread_duties || 0,
+        unreadCirculars: notifications[0].unread_circulars || 0,
+        department_id: deptid,
+        department_name: user.department_name // Added from your original verify
       },
     });
 
   } catch (err) {
     errorLogger.error(`❌ Server error during faculty token verification: ${err.message}`);
-    console.error(err); // Log full error to console for debugging
+    console.error(err);
     res.status(500).json({ 
       message: "Server error!",
       error: process.env.NODE_ENV === 'development' ? err.message : undefined
