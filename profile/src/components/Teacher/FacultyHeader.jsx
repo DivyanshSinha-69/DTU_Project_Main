@@ -79,20 +79,13 @@ const FacultyHeader = () => {
   const handleLogout = async (e) => {
     e.preventDefault();
     try {
-      let logoutUrl = `${process.env.REACT_APP_BACKEND_URL}/logout`;
       const logoutData = {};
-      if (role === "faculty" && faculty_id) {
-        logoutUrl = `${process.env.REACT_APP_BACKEND_URL}/ece/facultyauth/logout`;
-        logoutData.faculty_id = faculty_id;
-      }
+      let logoutUrl = `${process.env.REACT_APP_BACKEND_URL}/ece/faculty/logout`;
+      logoutData.faculty_id = faculty_id;
       let response;
-      if (role === "student") {
-        response = await axios.get(logoutUrl, { withCredentials: true });
-      } else {
-        response = await axios.post(logoutUrl, logoutData, {
-          withCredentials: true,
-        });
-      }
+      response = await axios.post(logoutUrl, logoutData, {
+        withCredentials: true,
+      });
       if (response.status === 200) {
         dispatch(logout());
         dispatch(setRole(null));

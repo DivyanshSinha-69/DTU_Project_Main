@@ -17,7 +17,7 @@ const Forgot = () => {
     // Determine the API endpoint based on user type
     const endpoint =
       userType === "faculty"
-        ? `${process.env.REACT_APP_BACKEND_URL}/ece/facultyauth/forgotpassword`
+        ? `${process.env.REACT_APP_BACKEND_URL}/ece/faculty/forgotpassword`
         : `${process.env.REACT_APP_BACKEND_URL}/ece/student/forgotpassword`;
 
     setLoading(true); // Start loading

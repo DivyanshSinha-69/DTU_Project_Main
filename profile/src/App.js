@@ -38,6 +38,7 @@ import FacultyOfficeOrders from "./components/Teacher/OfficeOrders";
 import FacultyCircularPage from "./components/Teacher/CircularNotices";
 import FacultyCircular from "./components/Teacher/CircularNotices";
 import DepartmentCirculars from "./components/Department/Pages/CircularsNotices";
+import { useLocation } from "react-router-dom";
 const CURRENT_VERSION = "2.4"; // Change this on every deployment
 if (localStorage.getItem("appVersion") !== CURRENT_VERSION) {
   localStorage.clear(); // Clears old cache
@@ -53,63 +54,50 @@ function App() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { role } = useSelector((state) => state.user);
-
-  const user1 = useSelector((state) => state.auth.user) || {};
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  const location = useLocation(); // Add this to check current path
 
   useEffect(() => {
-    const checkExistingToken = async () => {
+    const checkExistingSession = async () => {
+      // Skip verification if we're on landing page or login page
+      if (location.pathname === "/" || location.pathname === "/login") {
+        return;
+      }
+
       try {
-        // let userDetails;
-        // if (user1.Position === "student") {
-        //   const response = await axios.get(
-        //     `${process.env.REACT_APP_BACKEND_URL}/cookiescheck`,
-        //     {
-        //       withCredentials: true,
-        //     }
-        //   );
-        //   userDetails = response.data;
+        // Use role from Redux store or default to 'student'
+        const currentRole = role || "student";
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/ece/${currentRole}/verify`,
+          { withCredentials: true }
+        );
 
-        //   if (userDetails) {
-        //     dispatch(
-        //       login({
-        //         user: userDetails?.user,
-        //         facultyId: null,
-        //         accessToken: null,
-        //         refreshToken: null,
-        //       })
-        //     );
-        //   }
-
-        //   dispatch(setRole(userDetails?.user.Position));
-        //   navigate("/student/portal");
-        // } else dispatch(setRole(user1.position));
-        const accessToken = localStorage.getItem("accessToken");
-        const refreshToken = localStorage.getItem("refreshToken");
-        const user = JSON.parse(localStorage.getItem("user"));
-
-        if (accessToken && refreshToken && user) {
-          dispatch(
-            login({
-              user: user,
-              accessToken: accessToken,
-              refreshToken: refreshToken,
-            })
-          );
-          dispatch(setRole(user.position));
+        if (response.data.user) {
+          dispatch(login({ user: response.data.user }));
+          // Only update role if not already set
+          if (!role) {
+            dispatch(setRole(response.data.user.position));
+          }
         }
       } catch (error) {
-        console.log(error);
-        console.error("Error checking existing token:", error.message);
+        console.error("Session verification failed:", error);
+        if (error.response?.status === 401) {
+          dispatch(logout());
+          // Only redirect if not already on login page
+          if (location.pathname !== "/login") {
+            navigate("/login");
+          }
+        }
       }
     };
 
-    checkExistingToken();
-  }, [navigate, dispatch]);
+    checkExistingSession();
+  }, [navigate, dispatch, role, location.pathname]); // Add location.pathname to dependencies
+
   const { darkMode } = useThemeContext();
   useEffect(() => {
     document.body.style.backgroundColor = darkMode ? "#0D1117" : "#FFFFFF";
-    document.body.style.color = darkMode ? "#EAEAEA" : "#000000"; // Optional: Set text color
+    document.body.style.color = darkMode ? "#EAEAEA" : "#000000";
   }, [darkMode]);
 
   return (
@@ -143,7 +131,10 @@ function App() {
             <Route index element={<Department />} />{" "}
             {/* Default route for /department */}
             <Route path="office-orders" element={<Department />} />{" "}
-            <Route path="circular-notices" element={<DepartmentCirculars />} />{" "}
+            <Route
+              path="circular-notices"
+              element={<DepartmentCirculars />}
+            />{" "}
           </Route>
         )}
         <Route path="/parents" element={<Parents />} />
