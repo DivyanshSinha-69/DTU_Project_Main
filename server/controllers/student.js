@@ -371,125 +371,6 @@ export const updatePersonalDetails = (req, res) => {
 //   });
 // };
 
-export const deletePlacement = (req, res) => {
-  const { ID } = req.body;
-
-  // Retrieve PDF link from the database based on the provided 'ID'
-  const pdfQuery = "SELECT appointmentLetter FROM placementData WHERE ID = ?";
-  pool.query(pdfQuery, [ID], (pdfErr, pdfResult) => {
-    if (pdfErr) {
-      console.error(
-        "Error querying PDF link from the database: " + pdfErr.stack,
-      );
-      res.status(500).json({ error: "Internal Server Error" });
-      return;
-    }
-
-    if (pdfResult.length > 0) {
-      const { appointmentLetter } = pdfResult[0];
-
-      // Check if the appointmentLetter link exists
-      if (appointmentLetter) {
-        // Extract the relative file path from the link
-        const relativeFilePath = appointmentLetter.replace(
-          `${process.env.REACT_APP_BACKEND_URL}/public`,
-          "",
-        );
-
-        const currentModulePath = fileURLToPath(import.meta.url);
-        const currentModuleDir = dirname(currentModulePath);
-        // Construct the absolute file path
-        const absoluteFilePath = path.join(
-          currentModuleDir,
-          "..",
-          "public",
-          relativeFilePath,
-        );
-
-        // Delete the corresponding PDF file
-        fs.unlink(absoluteFilePath, (unlinkErr) => {
-          if (unlinkErr) {
-            console.error("Error deleting PDF file: " + unlinkErr.stack);
-            res.status(500).json({ error: "Internal Server Error" });
-            return;
-          }
-
-          // Proceed with deleting the database entry after the file deletion
-          const deleteQuery = "DELETE FROM placementData WHERE ID = ?";
-          pool.query(deleteQuery, [ID], (deleteErr, result) => {
-            if (deleteErr) {
-              console.error("Error executing delete query:", deleteErr);
-              res.status(500).json({ error: "Internal Server Error" });
-            } else {
-              // Check if any row is affected (indicating a successful delete)
-              if (result.affectedRows > 0) {
-                res.status(200).json({
-                  success: true,
-                  message: "Record deleted successfully",
-                });
-              } else {
-                res.status(404).json({ error: "Record not found" });
-              }
-            }
-          });
-        });
-      } else {
-        // Proceed with deleting the database entry if no PDF link is associated
-        const deleteQuery = "DELETE FROM placementData WHERE ID = ?";
-        pool.query(deleteQuery, [ID], (deleteErr, result) => {
-          if (deleteErr) {
-            console.error("Error executing delete query:", deleteErr);
-            res.status(500).json({ error: "Internal Server Error" });
-          } else {
-            // Check if any row is affected (indicating a successful delete)
-            if (result.affectedRows > 0) {
-              res.status(200).json({
-                success: true,
-                message: "Record deleted successfully",
-              });
-            } else {
-              res.status(404).json({ error: "Record not found" });
-            }
-          }
-        });
-      }
-    } else {
-      res.status(404).json({ error: "Record not found" });
-    }
-  });
-};
-
-export const addPlacement = (req, res) => {
-  // console.log(req);
-  const { companyName, placementType, joiningDate, roll, ID } = req.body;
-
-  const sql =
-    "UPDATE placementData SET companyName = ?, placementType = ?, joiningDate = ?, RollNo = ? WHERE ID = ?";
-  // console.log(ID);
-
-  pool.query(
-    sql,
-    [companyName, placementType, joiningDate, roll, ID],
-    (err, result) => {
-      if (err) {
-        // console.error("Error executing insert query:", err);
-        res.status(500).json({ error: "Internal Server Error" });
-        return;
-      }
-      // console.log(result);
-      // Check if a new row is inserted (indicating a successful add)
-      if (result.affectedRows > 0) {
-        res.status(201).json({
-          success: true,
-          message: "Record added successfully",
-        });
-      } else {
-        res.status(400).json({ error: "Failed to add record" });
-      }
-    },
-  );
-};
-
 export const getPlacement = (req, res) => {
   const { rollno } = req.body;
   const sql = "SELECT * FROM placementData where RollNo = ?";
@@ -2271,5 +2152,329 @@ export const deleteStudentDetails = async (req, res) => {
   } catch (err) {
     errorLogger.error(`Error deleting student with roll_no ${roll_no}: ${err.message}`);
     return res.status(500).json({ message: "Server error. Please try again later." });
+  }
+};
+
+// Utility function to log errors consistently
+const logError = (operation, error, additionalInfo = {}) => {
+  const errorInfo = {
+    operation,
+    error: error.message,
+    stack: error.stack,
+    ...additionalInfo
+  };
+  errorLogger.error(JSON.stringify(errorInfo));
+};
+
+// 1. GET all placements
+export const getPlacements = async (req, res) => {
+  try {
+    const [rows] = await promisePool.query(
+      `SELECT * FROM student_placement_data`
+    );
+    
+    userActionLogger.info(`Fetched ${rows.length} placement records`, {
+      action: "READ",
+      table: "student_placement_data",
+      count: rows.length
+    });
+    
+    res.status(200).json(rows);
+  } catch (error) {
+    logError("Fetch placements", error);
+    res.status(500).json({ error: "Failed to fetch placement data" });
+  }
+};
+
+export const getPlacementByRollNo = async (req, res) => {
+  const { roll_no } = req.query;
+  // Validate roll number exists in query
+  if (!roll_no) {
+    userActionLogger.warn("Missing roll number in query", {
+      action: "READ",
+      table: "student_placement_data",
+      status: "Bad Request",
+      query: req.query
+    });
+    return res.status(400).json({ error: "Roll number is required" });
+  }
+
+  try {
+    const [rows] = await promisePool.query(
+      `SELECT * FROM student_placement_data WHERE roll_no = ?`,
+      [roll_no]
+    );
+    
+    if (rows.length === 0) {
+      userActionLogger.warn("No placements found for roll number", {
+        action: "READ",
+        table: "student_placement_data",
+        roll_no,
+        status: "Not Found"
+      });
+      return res.status(404).json({ 
+        error: "No placement records found for this student",
+        roll_no 
+      });
+    }
+    
+    userActionLogger.info("Fetched placement records by roll number", {
+      action: "READ",
+      table: "student_placement_data",
+      roll_no,
+      count: rows.length
+    });
+    
+    res.status(200).json(rows); // Returns all placements for the student
+  } catch (error) {
+    logError("Fetch placements by roll_no", error, { roll_no });
+    res.status(500).json({ 
+      error: "Failed to fetch placement records",
+      roll_no 
+    });
+  }
+};
+
+export const addPlacement = async (req, res) => {
+  const { roll_no, company_name, placement_type } = req.body;
+  
+  // Modified path construction to include /public/ in stored path
+  const documentPath = req.file 
+    ? `/public/${req.file.path.replace(/\\/g, '/').replace('public/', '')}` 
+    : null;
+
+  if (!documentPath) {
+    userActionLogger.error("Placement document missing", {
+      action: "CREATE",
+      table: "student_placement_data",
+      roll_no,
+      status: "Failed"
+    });
+    return res.status(400).json({ error: "Placement document is required" });
+  }
+
+  try {
+    const [result] = await promisePool.query(
+      `INSERT INTO student_placement_data 
+       (roll_no, company_name, placement_type, document) 
+       VALUES (?, ?, ?, ?)`,
+      [roll_no, company_name, placement_type, documentPath]
+    );
+    
+    userActionLogger.info("Added new placement record", {
+      action: "CREATE",
+      table: "student_placement_data",
+      placement_id: result.insertId,
+      roll_no,
+      company_name,
+      document_path: documentPath
+    });
+    
+    res.status(201).json({
+      placement_id: result.insertId,
+      message: "Placement record added successfully",
+      document_path: documentPath // Optional: return path in response
+    });
+  } catch (error) {
+    logError("Add placement", error, { roll_no, company_name });
+    
+    // Clean up uploaded file if DB operation failed
+    if (req.file?.path) {
+      fs.unlink(req.file.path, (err) => {
+        if (err) errorLogger.error(`Failed to cleanup placement document: ${err.message}`);
+      });
+    }
+    
+    res.status(500).json({ error: "Failed to add placement record" });
+  }
+};
+
+// 4. UPDATE placement
+export const updatePlacement = async (req, res) => {
+  const { id } = req.params;
+  const { company_name, placement_type } = req.body;
+  let documentPath = null;
+
+  try {
+    // Handle document update if file was uploaded
+    if (req.file) {
+      // Modified path construction to include /public/ prefix
+      documentPath = `/public/${req.file.path.replace(/\\/g, '/').replace('public/', '')}`;
+      
+      // Get old document path to delete it
+      const [oldRecord] = await promisePool.query(
+        `SELECT document FROM student_placement_data WHERE placement_id = ?`,
+        [id]
+      );
+      
+      if (oldRecord.length > 0 && oldRecord[0].document) {
+        // Remove the /public/ prefix when constructing filesystem path
+        const oldFsPath = path.join("public", oldRecord[0].document.replace('/public/', ''));
+        fs.unlink(oldFsPath, (err) => {
+          if (err) errorLogger.error(`Failed to delete old document: ${err.message}`, {
+            placement_id: id,
+            file_path: oldFsPath
+          });
+        });
+      }
+    }
+
+    const query = documentPath
+      ? `UPDATE student_placement_data 
+         SET company_name = ?, placement_type = ?, document = ? 
+         WHERE placement_id = ?`
+      : `UPDATE student_placement_data 
+         SET company_name = ?, placement_type = ? 
+         WHERE placement_id = ?`;
+    
+    const params = documentPath
+      ? [company_name, placement_type, documentPath, id]
+      : [company_name, placement_type, id];
+
+    const [result] = await promisePool.query(query, params);
+    
+    if (result.affectedRows === 0) {
+      userActionLogger.warn("Placement update failed - record not found", {
+        action: "UPDATE",
+        table: "student_placement_data",
+        placement_id: id,
+        status: "Not Found"
+      });
+      return res.status(404).json({ error: "Placement record not found" });
+    }
+    
+    userActionLogger.info("Updated placement record", {
+      action: "UPDATE",
+      table: "student_placement_data",
+      placement_id: id,
+      changes: { 
+        company_name, 
+        placement_type, 
+        document_updated: !!documentPath,
+        new_document_path: documentPath || 'unchanged'
+      }
+    });
+    
+    res.status(200).json({ 
+      message: "Placement updated successfully",
+      document_path: documentPath // Optional: return new path if updated
+    });
+  } catch (error) {
+    logError("Update placement", error, { placement_id: id });
+    
+    // Clean up new file if update failed
+    if (req.file?.path) {
+      fs.unlink(req.file.path, (err) => {
+        if (err) errorLogger.error(`Failed to cleanup new document: ${err.message}`, {
+          placement_id: id,
+          temp_file_path: req.file.path
+        });
+      });
+    }
+    
+    res.status(500).json({ 
+      error: "Failed to update placement record",
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+export const deletePlacement = async (req, res) => {
+  const { id } = req.params;
+  try {
+    // First get the document path to delete the file
+    const [record] = await promisePool.query(
+      `SELECT document, roll_no FROM student_placement_data WHERE placement_id = ?`,
+      [id]
+    );
+    
+    if (record.length === 0) {
+      userActionLogger.warn("Placement deletion failed - record not found", {
+        action: "DELETE",
+        placement_id: id,
+        status: "Not Found"
+      });
+      return res.status(404).json({ error: "Placement record not found" });
+    }
+
+    // Delete the associated file first (synchronously)
+    let fileDeletionSuccess = true;
+    let fileDeletionError = null;
+    
+    if (record[0].document) {
+      try {
+        const sanitizedPath = record[0].document.startsWith('/public/') 
+          ? record[0].document.substring('/public/'.length)
+          : record[0].document;
+        
+        const filePath = path.join("public", sanitizedPath);
+        
+        // Use synchronous unlink for better error handling
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+          userActionLogger.info("Deleted placement document file", {
+            placement_id: id,
+            file_path: filePath
+          });
+        } else {
+          fileDeletionSuccess = false;
+          errorLogger.warn("Placement document not found on filesystem", {
+            placement_id: id,
+            expected_path: filePath
+          });
+        }
+      } catch (err) {
+        fileDeletionSuccess = false;
+        fileDeletionError = err;
+        errorLogger.error("Failed to delete placement document", {
+          placement_id: id,
+          file_path: record[0].document,
+          error: err.message,
+          stack: err.stack
+        });
+      }
+    }
+
+    // Then delete the database record
+    const [result] = await promisePool.query(
+      `DELETE FROM student_placement_data WHERE placement_id = ?`,
+      [id]
+    );
+
+    if (result.affectedRows === 0) {
+      userActionLogger.error("Database deletion failed after file deletion", {
+        placement_id: id
+      });
+      return res.status(500).json({ error: "Failed to delete database record" });
+    }
+
+    userActionLogger.info("Deleted placement record", {
+      action: "DELETE",
+      placement_id: id,
+      roll_no: record[0].roll_no,
+      document_deleted: !!record[0].document,
+      file_deletion_success: fileDeletionSuccess,
+      file_deletion_error: fileDeletionError ? fileDeletionError.message : null
+    });
+    
+    res.status(200).json({ 
+      message: "Placement record deleted successfully",
+      placement_id: id,
+      file_deleted: fileDeletionSuccess
+    });
+  } catch (error) {
+    logError("Delete placement", error, { 
+      placement_id: id,
+      error_details: {
+        message: error.message,
+        stack: error.stack
+      }
+    });
+    
+    res.status(500).json({ 
+      error: "Failed to delete placement record",
+      placement_id: id,
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
