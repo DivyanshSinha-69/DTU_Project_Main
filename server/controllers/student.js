@@ -23,18 +23,18 @@ const upload = multer({ storage: storage });
 // });
 
 // ==================== Generate Access Token ====================
-const generateAccessToken = (roll_no, position, role_assigned) => {
-  return jwt.sign({ roll_no, position, role_assigned }, process.env.JWT_SECRET, {
+const generateAccessToken = (id, position, role_assigned, department_id) => {
+  return jwt.sign({ id, position, role_assigned, department_id }, process.env.JWT_SECRET, {
     expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
   });
 };
 
 // ==================== Generate Refresh Token ====================
-const generateRefreshToken = (roll_no, position, role_assigned) => {
+const generateRefreshToken = (id, position, role_assigned, department_id) => {
   const expiryDays = parseInt(process.env.REFRESH_TOKEN_EXPIRY) || 7;
   const expirySeconds = expiryDays * 24 * 60 * 60;
 
-  return jwt.sign({ roll_no, position, role_assigned }, process.env.JWT_REFRESH_SECRET, {
+  return jwt.sign({ id, position, role_assigned, department_id }, process.env.JWT_REFRESH_SECRET, {
     expiresIn: expirySeconds,
   });
 };
@@ -1911,8 +1911,9 @@ export const studentRefreshToken = async (req, res) => {
       return res.status(401).json({ message: "Refresh token is required!" });
     }
 
+    // Check if the refresh token exists in the database
     const [results] = await promisePool.query(
-      `SELECT sa.roll_no, sa.refresh_token_expiry, sa.role_assigned, pt.position_name
+      `SELECT sa.roll_no, sa.refresh_token_expiry, sa.role_assigned, sa.department_id, pt.position_name
        FROM student_auth sa
        JOIN position_type pt ON sa.position_id = pt.position_id
        WHERE sa.refresh_token = ?`,
@@ -1932,18 +1933,37 @@ export const studentRefreshToken = async (req, res) => {
       return res.status(401).json({ message: "Refresh token expired!" });
     }
 
-    jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err) => {
-      if (err) {
-        errorLogger.warn(`❌ Refresh token verification failed for ${user.roll_no}: ${err.message}`);
-        return res.status(401).json({ message: "Invalid or expired refresh token!" });
-      }
+    // Verify the refresh token asynchronously using jwt.verify and a promise
+    try {
+      await jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET); // await here directly
 
-      const newAccessToken = generateStudentAccessToken(
+      // Generate new access and refresh tokens
+      const newAccessToken = generateAccessToken(
         user.roll_no,
         user.position_name,
-        user.role_assigned
+        user.role_assigned,
+        user.department_id
       );
 
+      const newRefreshToken = generateRefreshToken(
+        user.roll_no,
+        user.position_name,
+        user.role_assigned,
+        user.department_id
+      );
+
+      // Update the refresh token in the database and its expiry time
+      const expiryDays = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7;
+      const newRefreshTokenExpiry = new Date(
+        Date.now() + expiryDays * 24 * 60 * 60 * 1000
+      ).toISOString().slice(0, 19).replace("T", " ");
+
+      await promisePool.query(
+        "UPDATE student_auth SET refresh_token = ?, refresh_token_expiry = ? WHERE roll_no = ?",
+        [newRefreshToken, newRefreshTokenExpiry, user.roll_no]
+      );
+
+      // Set new access and refresh tokens as cookies
       res
         .cookie("accessToken", newAccessToken, {
           httpOnly: true,
@@ -1951,15 +1971,27 @@ export const studentRefreshToken = async (req, res) => {
           sameSite: "Strict",
           maxAge: 15 * 60 * 1000, // 15 minutes
         })
-        .json({ message: "New access token issued." });
+        .cookie("refreshToken", newRefreshToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "Strict",
+          maxAge: expiryDays * 24 * 60 * 60 * 1000, // Refresh token expiry time
+        })
+        .json({
+          message: "New access token and refresh token issued.",
+        });
 
-      userActionLogger.info(`🔄 Access token refreshed for ${user.roll_no}`);
-    });
+      userActionLogger.info(`🔄 Tokens refreshed for ${user.roll_no}`);
+    } catch (err) {
+      errorLogger.warn(`❌ Refresh token verification failed for ${user.roll_no}: ${err.message}`);
+      return res.status(401).json({ message: "Invalid or expired refresh token!" });
+    }
   } catch (err) {
     errorLogger.error(`🚨 Server error during student token refresh: ${err.message}`);
     res.status(500).json({ message: "Server error!" });
   }
 };
+
 
 
 export const studentLogin = async (req, res) => {
@@ -1995,8 +2027,8 @@ export const studentLogin = async (req, res) => {
       return res.status(401).json({ message: "Invalid password!" });
     }
 
-    const accessToken = generateAccessToken(roll_no, position_name, role_assigned_name);
-    const refreshToken = generateRefreshToken(roll_no, position_name, role_assigned_name);
+    const accessToken = generateAccessToken(roll_no, position_name, role_assigned_name, student.department_id);
+    const refreshToken = generateRefreshToken(roll_no, position_name, role_assigned_name, student.department_id);
 
     const expiryDays = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7;
     const refreshTokenExpiry = new Date(
@@ -2037,27 +2069,91 @@ export const studentLogin = async (req, res) => {
 };
 
 export const studentLogout = async (req, res) => {
-  const { roll_no } = req.body;
+  const { user } = req;
 
-  if (!roll_no) {
-    errorLogger.error(`Logout failed: Roll No missing. Roll No: ${roll_no}`);
-    return res.status(400).json({ message: "Roll No is required!" });
+  if (!user || !user.id) {
+    errorLogger.error("Logout failed: No authenticated user found.");
+    return res.status(401).json({ message: "Unauthorized!" });
   }
 
   try {
     await promisePool.query(
       "UPDATE student_auth SET refresh_token = NULL, refresh_token_expiry = NULL WHERE roll_no = ?",
-      [roll_no]
+      [user.id]
     );
 
-    userActionLogger.info(`Student logged out successfully. Roll No: ${roll_no}`);
+    userActionLogger.info(`Student logged out successfully. Roll No: ${user.id}`);
 
     res.clearCookie("accessToken");
     res.clearCookie("refreshToken");
+
     res.json({ message: "Logged out successfully!" });
   } catch (err) {
     errorLogger.error(`Logout error: ${err.message}`);
     res.status(500).json({ message: "Server error!" });
+  }
+};
+
+export const verifyAuth = async (req, res) => {
+  try {
+    // Check if req.user exists
+    if (!req.user) {
+      errorLogger.warn('❌ No user data found in request');
+      return res.status(401).json({ message: "Unauthorized - No authentication data" });
+    }
+
+    const { id } = req.user; // Extracting id from JWT token
+
+    // Validate required fields
+    if (!id) {
+      errorLogger.warn(`❌ Missing required fields in user data: ${JSON.stringify(req.user)}`);
+      return res.status(400).json({ message: "Bad request - Missing user data" });
+    }
+
+    // Treat id as roll_no for consistency
+    const roll_no = id;
+
+    // Fetch user details
+    const [results] = await promisePool.query(
+      `SELECT sa.roll_no, sa.position_id, sa.role_assigned, sa.department_id, 
+              pt.position_name, sar.role_name AS role_assigned_name, dd.department_name
+       FROM student_auth sa
+       JOIN position_type pt ON sa.position_id = pt.position_id
+       LEFT JOIN student_available_roles sar ON sa.role_assigned = sar.role_id
+       LEFT JOIN department_details dd ON sa.department_id = dd.department_id
+       WHERE sa.roll_no = ?`,
+      [roll_no]
+    );
+
+    if (results.length === 0) {
+      errorLogger.warn(`❌ User not found. Roll No: ${roll_no}`);
+      return res.status(404).json({ message: "User not found!" });
+    }
+
+    const user = results[0];
+
+    // Log successful verification
+    userActionLogger.info(`✔️ Token verified successfully for ${roll_no}`);
+
+    // Respond with user details
+    res.json({
+      message: "Token is valid!",
+      user: {
+        roll_no: user.roll_no,
+        position_name: user.position_name,
+        role_assigned: user.role_assigned_name,
+        department_name: user.department_name,
+        department_id: user.department_id,
+      },
+    });
+
+  } catch (err) {
+    errorLogger.error(`❌ Server error during token verification: ${err.message}`);
+    console.error(err); // Log full error to console for debugging
+    res.status(500).json({ 
+      message: "Server error!",
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 };
 

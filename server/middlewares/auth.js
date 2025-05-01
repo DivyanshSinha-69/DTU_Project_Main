@@ -60,32 +60,31 @@ export const authorizeRoles = (...allowedRoles) => {
   };
 };
 
-/**
- * Middleware to ensure the user is updating or fetching their own data.
- */
-export const authorizeOwnData = (req, res, next) => {
+export const authorizeByUserId = (req, res, next) => {
   const { user } = req;
-  
-  // If user is admin, allow them to update any data
-  if (user.position === 'admin') {
-    return next(); // Admin bypasses ownership check
+
+  // Collect all possible identifiers from query, params, or body
+  const requestId =
+    req.query.faculty_id || req.params.faculty_id || req.body.faculty_id ||
+    req.query.roll_no || req.params.roll_no || req.body.roll_no ||
+    req.query.department_id || req.params.department_id || req.body.department_id ||
+    req.query.user_id || req.params.user_id || req.body.user_id;
+
+  if (!requestId) {
+    errorLogger.warn("❌ Identifier (faculty_id, roll_no, or department_id) is missing in the request.");
+    return res.status(400).json({ message: "An identity (faculty_id, roll_no, or department_id) is required." });
   }
 
-  const roll_no = req.params.roll_no || req.query.roll_no;
-
-  if (!roll_no) {
-    errorLogger.warn("❌ Roll number is missing in the request.");
-    return res.status(400).json({ message: "Roll number is required." });
+  // Admins are always allowed
+  if (user.position === 'admin' || requestId === user.id) {
+    userActionLogger.info(`✅ Authorized access by ${user.position} ${user.id}`);
+    return next();
   }
 
-  if (user.roll_no !== roll_no) {
-    errorLogger.error(`🚫 Unauthorized access attempt by user with roll_no: ${user.roll_no}.`);
-    return res.status(403).json({ message: "Unauthorized access. You can only modify/see your own data." });
-  }
-
-  userActionLogger.info(`✅ User ${user.roll_no} is accessing their own data.`);
-  next();
+  errorLogger.error(`🚫 Unauthorized access attempt by ${user.position} ${user.id} for id: ${requestId}`);
+  return res.status(403).json({ message: "Unauthorized access to the requested identity." });
 };
+
 
 /**
  * Middleware to authorize based on position + role_assigned combo.
@@ -111,7 +110,7 @@ export const authorizeByRoleCombo = (allowedCombos) => {
     });
 
     if (!match) {
-      errorLogger.warn(`🚫 Access denied for combination: ${position} - ${role_assigned}`);
+      errorLogger.error(`🚫 Access denied for combination: ${position} - ${role_assigned}`);
       return res.status(403).json({ error: "Unauthorized: Insufficient privileges." });
     }
 
@@ -120,3 +119,22 @@ export const authorizeByRoleCombo = (allowedCombos) => {
   };
 };
 
+export const authorizeSameDepartment = (req, res, next) => {
+  const { user } = req;
+  const requestedDept = req.params.department_id || req.query.department_id || req.body.department_id;
+
+  // Admins can access any department
+  if (user.position === 'admin') return next();
+
+  if (!requestedDept) {
+    return res.status(400).json({ message: "department_id is required in request." });
+  }
+
+  if (user.department_id !== requestedDept) {
+    errorLogger.error(`🚫 Unauthorized department access by ${user.position} ${user.faculty_id || user.roll_no}`);
+    return res.status(403).json({ message: "Unauthorized. You can only access your own department's data." });
+  }
+
+  userActionLogger.info(`✅ ${user.position} ${user.faculty_id || user.roll_no} accessing department: ${requestedDept}`);
+  next();
+};

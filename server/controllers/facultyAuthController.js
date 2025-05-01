@@ -20,18 +20,18 @@ dotenv.config();
 // });
 
 // ==================== Generate Access Token ====================
-const generateAccessToken = (roll_no, position, role_assigned) => {
-  return jwt.sign({ roll_no, position, role_assigned }, process.env.JWT_SECRET, {
+const generateAccessToken = (id, position, role_assigned, department_id) => {
+  return jwt.sign({ id, position, role_assigned, department_id }, process.env.JWT_SECRET, {
     expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
   });
 };
 
 // ==================== Generate Refresh Token ====================
-const generateRefreshToken = (roll_no, position, role_assigned) => {
+const generateRefreshToken = (id, position, role_assigned, department_id) => {
   const expiryDays = parseInt(process.env.REFRESH_TOKEN_EXPIRY) || 7;
   const expirySeconds = expiryDays * 24 * 60 * 60;
 
-  return jwt.sign({ roll_no, position, role_assigned }, process.env.JWT_REFRESH_SECRET, {
+  return jwt.sign({ id, position, role_assigned, department_id }, process.env.JWT_REFRESH_SECRET, {
     expiresIn: expirySeconds,
   });
 };
@@ -244,8 +244,8 @@ export const facultyLogin = async (req, res) => {
 
     // Step 5: Generate tokens
     const role_assigned = "general"; // <-- Added
-    const accessToken = generateAccessToken(faculty_id, position, role_assigned);
-    const refreshToken = generateRefreshToken(faculty_id, position, role_assigned);
+    const accessToken = generateAccessToken(faculty_id, position, role_assigned, deptid);
+    const refreshToken = generateRefreshToken(faculty_id, position, role_assigned, deptid);
 
     const expiryDays = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7;
     const refreshTokenExpiry = new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000);

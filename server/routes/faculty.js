@@ -9,7 +9,7 @@ import {
   uploadFacultyConsultancy,
   checkFileReceived,
 } from "../config/facultyMulterConfig.js";
-import { authenticateToken, authorizeRoles } from "../middlewares/auth.js";
+import { authenticateToken, authorizeRoles, authorizeByRoleCombo, authorizeByUserId, authorizeSameDepartment } from "../middlewares/auth.js";
 
 import {
   getFacultyAssociations,
@@ -289,9 +289,9 @@ router.put("/qualification/:education_id", authorizeRoles("faculty"), updateFacu
 router.delete("/qualification/:education_id", authorizeRoles("faculty"), deleteFacultyQualification);
 
 // Duty Orders Route
-router.get("/duty-orders", authorizeRoles("faculty"), getUserDutyOrders);
+router.get("/duty-orders", authorizeRoles("faculty"), authorizeByUserId, getUserDutyOrders);
 
-router.get("/circulars", authorizeRoles("faculty"), getCirculars);
+router.get("/circulars", authorizeRoles("faculty"), authorizeSameDepartment, getCirculars);
 
 router.put("/last-seen", authorizeRoles("faculty"), updateLastSeen);
 

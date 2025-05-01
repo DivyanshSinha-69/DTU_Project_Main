@@ -44,6 +44,7 @@ import {
 
   studentLogin, 
   studentRefreshToken,
+  verifyAuth,
   studentLogout,
   forgotStudentPassword,
   resetStudentPassword,
@@ -53,25 +54,26 @@ import {
   deleteStudentDetails
 } from "../controllers/student.js";
 
-import { authenticateToken, authorizeRoles, authorizeOwnData, authorizeByRoleCombo } from "../middlewares/auth.js";
+import { authenticateToken, authorizeRoles, authorizeByRoleCombo, authorizeByUserId, authorizeSameDepartment } from "../middlewares/auth.js";
 import { studentAccessMiddleware } from "../middlewares/sharedRoleCombos.js";
 
 const router = express.Router();
 
 // Route for student login
 router.post('/login', studentLogin);
-router.post('/refresh-token', studentRefreshToken);
+router.post('/refresh', studentRefreshToken);
 router.post('/logout', studentLogout);
+router.post('/verify', authenticateToken, verifyAuth);
 
 // Route for student password reset
 router.post("/forgotpassword", forgotStudentPassword);
 router.post("/resetpassword/:token", resetStudentPassword);
 
 // Route for student details
-router.get("/details", authenticateToken, authorizeOwnData, studentAccessMiddleware, getStudentDetails);
-router.post("/details/", authenticateToken, authorizeOwnData, studentAccessMiddleware, addStudentDetails);
-router.put("/details/:roll_no", authenticateToken, authorizeOwnData, studentAccessMiddleware, updateStudentDetails);
-router.delete("/details/:roll_no", authenticateToken, authorizeOwnData, studentAccessMiddleware, deleteStudentDetails);
+router.get("/details", authenticateToken, authorizeByUserId, studentAccessMiddleware, getStudentDetails);
+router.post("/details/", authenticateToken, authorizeByUserId, studentAccessMiddleware, addStudentDetails);
+router.put("/details/:roll_no", authenticateToken, authorizeByUserId, studentAccessMiddleware, updateStudentDetails);
+router.delete("/details/:roll_no", authenticateToken, authorizeByUserId, studentAccessMiddleware, deleteStudentDetails);
 
 
 router.get("/getall", getall);
