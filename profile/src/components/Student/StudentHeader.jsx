@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../redux/reducers/AuthSlice";
 import { setRole } from "../../redux/reducers/UserSlice";
 import { LogOut } from "lucide-react";
+import axios from "axios";
 
 const StudentHeader = () => {
   const { darkMode, setDarkMode } = useThemeContext();
@@ -28,19 +29,28 @@ const StudentHeader = () => {
 
   const handleLogout = async (e) => {
     e.preventDefault();
+
     try {
-      // Dummy logout API call
       console.log("Logging out student:", student_id);
 
-      // Clear authentication state
+      // Make actual logout request to backend
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/ece/student/logout`,
+        {}, // empty body
+        { withCredentials: true }
+      );
+
+      // Clear frontend auth state
       dispatch(logout());
       dispatch(setRole(null));
-      navigate("/");
 
-      // In a real implementation, you would call your logout API here
-      // await axios.post('/api/student/logout', {}, { withCredentials: true });
+      // Redirect to login or landing page
+      navigate("/");
     } catch (error) {
-      console.error("Logout error:", error.message);
+      console.error(
+        "Logout error:",
+        error?.response?.data?.message || error.message
+      );
     }
   };
 

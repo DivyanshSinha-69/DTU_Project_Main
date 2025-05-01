@@ -38,6 +38,7 @@ import FacultyOfficeOrders from "./components/Teacher/OfficeOrders";
 import FacultyCircularPage from "./components/Teacher/CircularNotices";
 import FacultyCircular from "./components/Teacher/CircularNotices";
 import DepartmentCirculars from "./components/Department/Pages/CircularsNotices";
+import { useLocation } from "react-router-dom";
 const CURRENT_VERSION = "2.4"; // Change this on every deployment
 if (localStorage.getItem("appVersion") !== CURRENT_VERSION) {
   localStorage.clear(); // Clears old cache
@@ -53,32 +54,45 @@ function App() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { role } = useSelector((state) => state.user);
-
-  const user1 = useSelector((state) => state.auth.user) || {};
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  const location = useLocation(); // Add this to check current path
 
   useEffect(() => {
     const checkExistingSession = async () => {
+      // Skip verification if we're on landing page or login page
+      if (location.pathname === "/" || location.pathname === "/login") {
+        return;
+      }
+
       try {
+        // Use role from Redux store or default to 'student'
+        const currentRole = role || "student";
         const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/ece/student/verify`,
+          `${process.env.REACT_APP_BACKEND_URL}/ece/${currentRole}/verify`,
           { withCredentials: true }
         );
 
         if (response.data.user) {
           dispatch(login({ user: response.data.user }));
-          dispatch(setRole(response.data.user.position));
+          // Only update role if not already set
+          if (!role) {
+            dispatch(setRole(response.data.user.position));
+          }
         }
       } catch (error) {
         console.error("Session verification failed:", error);
         if (error.response?.status === 401) {
           dispatch(logout());
+          // Only redirect if not already on login page
+          if (location.pathname !== "/login") {
+            navigate("/login");
+          }
         }
       }
     };
 
     checkExistingSession();
-  }, [navigate, dispatch]);
+  }, [navigate, dispatch, role, location.pathname]); // Add location.pathname to dependencies
 
   const { darkMode } = useThemeContext();
   useEffect(() => {
