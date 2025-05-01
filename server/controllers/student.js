@@ -2188,7 +2188,7 @@ export const getStudentDetails = async (req, res) => {
     }
 
     userActionLogger.info(`Student details for ${roll_no} fetched successfully.`);
-    return res.json({ student: rows[0] }); // Return the student details
+    return res.json({ data: rows }); // Return the student details
   } catch (err) {
     errorLogger.error(`Error fetching student details for ${roll_no}: ${err.message}`);
     return res.status(500).json({ message: "Server error. Please try again later." });

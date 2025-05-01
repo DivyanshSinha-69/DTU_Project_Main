@@ -6,6 +6,9 @@ import path from "path";
 import nodemailer from "nodemailer";
 import { fileURLToPath } from "url";
 import axios from "axios";
+import { promisePool } from "../data/database.js";
+import { userActionLogger, errorLogger } from "../utils/logger.js";
+import requestIp from 'request-ip'; // For getting the client IP address
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,21 +33,22 @@ const __dirname = path.dirname(__filename);
 // });
 
 // 🔹 Generate Access Token (Short-lived)
-const generateAccessToken = (department_id, position) => {
-  return jwt.sign({ department_id, position }, process.env.JWT_SECRET, {
+const generateAccessToken = (id, position, role_assigned) => {
+  return jwt.sign({ id, position, role_assigned}, process.env.JWT_SECRET, {
     expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
   });
 };
 
-//Generate Refresh Token(Long - lived)
-const generateRefreshToken = (department_id) => {
+// ==================== Generate Refresh Token ====================
+const generateRefreshToken = (id, position, role_assigned) => {
   const expiryDays = parseInt(process.env.REFRESH_TOKEN_EXPIRY) || 7;
   const expirySeconds = expiryDays * 24 * 60 * 60;
 
-  return jwt.sign({ department_id }, process.env.JWT_REFRESH_SECRET, {
+  return jwt.sign({ id, position, role_assigned}, process.env.JWT_REFRESH_SECRET, {
     expiresIn: expirySeconds,
   });
 };
+
 
 export const getCirculars = (req, res) => {
   const { department_id } = req.query;
@@ -1322,165 +1326,341 @@ export const deleteDepartment = (req, res) => {
 };
 
 // ==================== Department Login Controller ====================
-export const departmentLogin = (req, res) => {
+export const departmentLogin = async (req, res) => {
   const { department_id, password } = req.body;
 
   if (!department_id || !password) {
-    return res
-      .status(400)
-      .json({ message: "Department ID and password are required!" });
+    errorLogger.error(`Login failed: Department ID or password missing. Department ID: ${department_id}`);
+    return res.status(400).json({ message: "Department ID and password are required!" });
   }
 
-  // Query to get department authentication details along with position name
-  pool.query(
-    `SELECT da.*, pt.position_name 
+  try {
+    // Get department authentication details with position name
+    const [authResults] = await promisePool.query(
+      `SELECT da.*, pt.position_name 
        FROM department_auth da 
        JOIN position_type pt ON da.position_id = pt.position_id
        WHERE da.department_id = ?`,
-    [department_id],
-    (err, results) => {
-      if (err) {
-        console.error("Database Error:", err);
-        return res.status(500).json({ message: "Server error!" });
-      }
+      [department_id]
+    );
 
-      if (results.length === 0) {
-        return res.status(404).json({ message: "Department ID not found!" });
-      }
-
-      const user = results[0];
-      bcrypt.compare(password, user.password, (err, isMatch) => {
-        if (err) return res.status(500).json({ message: "Server error!" });
-        if (!isMatch)
-          return res.status(401).json({ message: "Invalid password!" });
-
-        // Fetch department details
-        pool.query(
-          `SELECT department_name, university, curr_hod 
-             FROM department_details WHERE department_id = ?`,
-          [department_id],
-          (err, departmentResults) => {
-            if (err) {
-              console.error("Database Error:", err);
-              return res.status(500).json({ message: "Server error!" });
-            }
-
-            if (departmentResults.length === 0) {
-              return res
-                .status(404)
-                .json({ message: "Department details not found!" });
-            }
-
-            const { department_name, university, curr_hod } =
-              departmentResults[0];
-
-            // Generate access and refresh tokens including position
-            const accessToken = generateAccessToken(
-              user.department_id,
-              user.position_name
-            );
-            const refreshToken = generateRefreshToken(
-              user.department_id,
-              user.position_name
-            );
-
-            const expiryDays = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7;
-            const refreshTokenExpiry = new Date(
-              Date.now() + expiryDays * 24 * 60 * 60 * 1000
-            )
-              .toISOString()
-              .slice(0, 19)
-              .replace("T", " ");
-
-            // Store refresh token in database
-            pool.query(
-              "UPDATE department_auth SET refresh_token = ?, refresh_token_expiry = ? WHERE department_id = ?",
-              [refreshToken, refreshTokenExpiry, department_id],
-              (err) => {
-                if (err) {
-                  console.error("Database Error:", err);
-                  return res.status(500).json({ message: "Server error!" });
-                }
-
-                res.json({
-                  message: "Login successful!",
-                  accessToken,
-                  refreshToken,
-                  user: {
-                    department_id: user.department_id,
-                    department_name,
-                    university,
-                    current_hod: curr_hod,
-                    position: user.position_name,
-                  },
-                });
-              }
-            );
-          }
-        );
-      });
+    if (authResults.length === 0) {
+      errorLogger.error(`Department not found. Department ID: ${department_id}`);
+      return res.status(404).json({ message: "Department ID not found!" });
     }
-  );
+
+    const user = authResults[0];
+    const isMatch = await bcrypt.compare(password, user.password);
+    
+    if (!isMatch) {
+      errorLogger.error(`Invalid password attempt. Department ID: ${department_id}`);
+      return res.status(401).json({ message: "Invalid password!" });
+    }
+
+    // Get department details
+    const [departmentResults] = await promisePool.query(
+      `SELECT department_name, university, curr_hod 
+       FROM department_details 
+       WHERE department_id = ?`,
+      [department_id]
+    );
+
+    if (departmentResults.length === 0) {
+      errorLogger.error(`Department details not found. Department ID: ${department_id}`);
+      return res.status(404).json({ message: "Department details not found!" });
+    }
+
+    const { department_name, university, curr_hod } = departmentResults[0];
+    const role_assigned = "general"; // Default role for department login
+
+    // Generate tokens
+    const accessToken = generateAccessToken(
+      department_id,
+      user.position_name,
+      role_assigned
+    );
+    
+    const refreshToken = generateRefreshToken(
+      department_id,
+      user.position_name,
+      role_assigned
+    );
+
+    const expiryDays = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7;
+    const refreshTokenExpiry = new Date(
+      Date.now() + expiryDays * 24 * 60 * 60 * 1000
+    );
+
+    // Update refresh token in database
+    await promisePool.query(
+      "UPDATE department_auth SET refresh_token = ?, refresh_token_expiry = ? WHERE department_id = ?",
+      [refreshToken, refreshTokenExpiry, department_id]
+    );
+
+    // Log login activity
+    const ipAddress = requestIp.getClientIp(req);
+    const userAgent = req.headers['user-agent'];
+    
+    await promisePool.query(
+      "INSERT INTO department_login_activity (department_id, ip_address, user_agent) VALUES (?, ?, ?)",
+      [department_id, ipAddress, userAgent]
+    );
+
+    userActionLogger.info(`Department login successful. Department ID: ${department_id}, IP: ${ipAddress}`);
+
+    // Set HTTP-only cookies
+    res
+      .cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "Strict",
+        maxAge: 15 * 60 * 1000 // 15 minutes
+      })
+      .cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "Strict",
+        maxAge: expiryDays * 24 * 60 * 60 * 1000 // 7 days
+      })
+      .json({
+        message: "Login successful!",
+        user: {
+          department_id,
+          department_name,
+          university,
+          current_hod: curr_hod,
+          position: user.position_name,
+          role_assigned
+        }
+      });
+
+  } catch (err) {
+    errorLogger.error(`Department login error: ${err.message}`);
+    res.status(500).json({ message: "Server error!" });
+  }
 };
 
 // ==================== Refresh Token Controller ====================
-export const refreshToken = (req, res) => {
-  const { refreshToken } = req.body;
-  if (!refreshToken) {
-    return res.status(401).json({ message: "Refresh token is required!" });
-  }
+export const departmentRefreshToken = async (req, res) => {
+  try {
+    const refreshToken = req.cookies?.refreshToken;
 
-  pool.query(
-    `SELECT da.refresh_token, da.refresh_token_expiry, da.department_id, pt.position_name
+    if (!refreshToken) {
+      errorLogger.warn("❌ Refresh token missing in cookies.");
+      return res.status(401).json({ message: "Refresh token is required!" });
+    }
+
+    // Check if the refresh token exists in the database
+    const [results] = await promisePool.query(
+      `SELECT da.department_id, da.refresh_token_expiry, pt.position_name
        FROM department_auth da
        JOIN position_type pt ON da.position_id = pt.position_id
        WHERE da.refresh_token = ?`,
-    [refreshToken],
-    (err, results) => {
-      if (err) return res.status(500).json({ message: "Server error!" });
-      if (results.length === 0)
-        return res.status(401).json({ message: "Invalid refresh token!" });
+      [refreshToken]
+    );
 
-      const { department_id, position_name, refresh_token_expiry } = results[0];
-      const tokenExpiry = new Date(refresh_token_expiry);
-
-      if (tokenExpiry < new Date()) {
-        return res.status(401).json({ message: "Refresh token expired!" });
-      }
-
-      jwt.verify(
-        refreshToken,
-        process.env.JWT_REFRESH_SECRET,
-        (err, decoded) => {
-          if (err)
-            return res
-              .status(401)
-              .json({ message: "Invalid or expired refresh token!" });
-
-          res.json({
-            accessToken: generateAccessToken(department_id, position_name),
-          });
-        }
-      );
+    if (results.length === 0) {
+      errorLogger.warn("❌ Invalid refresh token.");
+      return res.status(401).json({ message: "Invalid refresh token!" });
     }
-  );
+
+    const user = results[0];
+    const tokenExpiry = new Date(user.refresh_token_expiry);
+
+    if (tokenExpiry < new Date()) {
+      errorLogger.warn(`⏳ Refresh token expired for department ${user.department_id}`);
+      return res.status(401).json({ message: "Refresh token expired!" });
+    }
+
+    // Verify the refresh token
+    try {
+      await jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+
+      // Generate new tokens
+      const role_assigned = "department_admin"; // Same as login
+      const newAccessToken = generateAccessToken(
+        user.department_id,
+        user.position_name,
+        role_assigned
+      );
+
+      const newRefreshToken = generateRefreshToken(
+        user.department_id,
+        user.position_name,
+        role_assigned
+      );
+
+      // Update refresh token in database
+      const expiryDays = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7;
+      const newRefreshTokenExpiry = new Date(
+        Date.now() + expiryDays * 24 * 60 * 60 * 1000
+      );
+
+      await promisePool.query(
+        "UPDATE department_auth SET refresh_token = ?, refresh_token_expiry = ? WHERE department_id = ?",
+        [newRefreshToken, newRefreshTokenExpiry, user.department_id]
+      );
+
+      // Set new tokens as HTTP-only cookies
+      res
+        .cookie("accessToken", newAccessToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "Strict",
+          maxAge: 15 * 60 * 1000 // 15 minutes
+        })
+        .cookie("refreshToken", newRefreshToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "Strict",
+          maxAge: expiryDays * 24 * 60 * 60 * 1000 // 7 days
+        })
+        .json({
+          message: "Tokens refreshed successfully"
+        });
+
+      userActionLogger.info(`🔄 Tokens refreshed for department ${user.department_id}`);
+
+    } catch (err) {
+      errorLogger.warn(`❌ Refresh token verification failed for department ${user.department_id}: ${err.message}`);
+      return res.status(401).json({ message: "Invalid or expired refresh token!" });
+    }
+
+  } catch (err) {
+    errorLogger.error(`🚨 Server error during department token refresh: ${err.message}`);
+    res.status(500).json({ message: "Server error!" });
+  }
+};
+
+export const departmentVerifyAuth = async (req, res) => {
+  try {
+    // Extract token from httpOnly cookie
+    const token = req.cookies?.accessToken;
+
+    if (!token) {
+      errorLogger.warn('❌ No access token found in cookies');
+      return res.status(401).json({ message: "Unauthorized - No token found" });
+    }
+
+    // Verify token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      errorLogger.warn(`❌ Invalid or expired token in cookie: ${err.message}`);
+      return res.status(401).json({ 
+        message: "Unauthorized - Invalid token",
+        details: process.env.NODE_ENV === 'development' ? err.message : undefined
+      });
+    }
+
+    const { id } = decoded;
+
+    // Validate required fields
+    if (!id) {
+      errorLogger.warn(`❌ Missing required fields in token payload: ${JSON.stringify(decoded)}`);
+      return res.status(400).json({ message: "Bad request - Missing token data" });
+    }
+
+    const department_id = id;
+
+    // Fetch department authentication details with position name
+    const [authResults] = await promisePool.query(
+      `SELECT da.*, pt.position_name 
+       FROM department_auth da 
+       JOIN position_type pt ON da.position_id = pt.position_id
+       WHERE da.department_id = ?`,
+      [department_id]
+    );
+
+    if (authResults.length === 0) {
+      errorLogger.warn(`❌ Department not found. Department ID: ${department_id}`);
+      return res.status(404).json({ message: "Department not found!" });
+    }
+
+    const user = authResults[0];
+
+    // Get department details
+    const [departmentResults] = await promisePool.query(
+      `SELECT department_name, university, curr_hod 
+       FROM department_details 
+       WHERE department_id = ?`,
+      [department_id]
+    );
+
+    if (departmentResults.length === 0) {
+      errorLogger.warn(`❌ Department details not found. Department ID: ${department_id}`);
+      return res.status(404).json({ message: "Department details not found!" });
+    }
+
+    const { department_name, university, curr_hod } = departmentResults[0];
+    const role_assigned = "department_admin"; // Consistent with login
+
+    // Log successful verification
+    userActionLogger.info(`✔️ Department token verified successfully for ${department_id}`);
+
+    // Respond with same structure as login
+    res.json({
+      message: "Token is valid!",
+      user: {
+        department_id,
+        department_name,
+        university,
+        current_hod: curr_hod,
+        position: user.position_name,
+        role_assigned
+      }
+    });
+
+  } catch (err) {
+    errorLogger.error(`❌ Server error during department token verification: ${err.message}`);
+    console.error(err);
+    res.status(500).json({
+      message: "Server error!",
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
 };
 
 // ==================== Logout Controller ====================
-export const logout = (req, res) => {
-  const { department_id } = req.body;
-  if (!department_id) {
-    return res.status(400).json({ message: "Department ID is required!" });
+export const departmentLogout = async (req, res) => {
+  const { user } = req;
+
+  if (!user || !user.id) {
+    errorLogger.error("Department logout failed: No authenticated user found.");
+    return res.status(401).json({ message: "Unauthorized!" });
   }
 
-  pool.query(
-    "UPDATE department_auth SET refresh_token = NULL, refresh_token_expiry = NULL WHERE department_id = ?",
-    [department_id],
-    (err) => {
-      if (err) return res.status(500).json({ message: "Server error!" });
-      res.json({ message: "Logged out successfully!" });
-    }
-  );
+  try {
+    // Invalidate refresh token in database
+    await promisePool.query(
+      "UPDATE department_auth SET refresh_token = NULL, refresh_token_expiry = NULL WHERE department_id = ?",
+      [user.id]
+    );
+
+    // Clear HTTP-only cookies
+    res
+      .clearCookie("accessToken", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "Strict"
+      })
+      .clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "Strict"
+      });
+
+    userActionLogger.info(`✅ Department logged out successfully. Department ID: ${user.id}`);
+
+    res.json({ message: "Logged out successfully!" });
+  } catch (err) {
+    errorLogger.error(`❌ Department logout failed for ${user.id}: ${err.message}`);
+    res.status(500).json({ 
+      message: "Server error!",
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
 };
 
 export const getNotifications = (req, res) => {

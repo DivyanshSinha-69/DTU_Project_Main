@@ -2805,138 +2805,136 @@ export const getFacultyMappingByDepartment = (req, res) => {
   });
 };
 
-export const forgotPassword = (req, res) => {
+export const forgotPassword = async (req, res) => {
   const { email } = req.body;
 
-  pool.query(
-    "SELECT * FROM faculty_auth WHERE email = ?",
-    [email],
-    (err, result) => {
-      if (err) {
-        console.error("Database Error:", err);
-        return res.status(500).json({ error: "Internal server error" });
-      }
+  try {
+    // Check if faculty exists
+    const [result] = await promisePool.query(
+      "SELECT * FROM faculty_auth WHERE email = ?", 
+      [email]
+    );
 
-      if (result.length === 0) {
-        return res.status(404).json({ message: "Faculty not found" });
-      }
+    if (result.length === 0) {
+      errorLogger.warn(`⚠️ Forgot password attempted for non-existent faculty email: ${email}`);
+      return res.status(404).json({ message: "Faculty not found" });
+    }
 
-      // Generate Reset Token
-      const resetToken = jwt.sign({ email }, process.env.JWT_SECRET, {
-        expiresIn: `${process.env.TOKEN_EXPIRY}m`,
-        algorithm: "HS256",
-      });
+    // Generate reset token
+    const resetToken = jwt.sign({ email }, process.env.JWT_SECRET, {
+      expiresIn: `${process.env.TOKEN_EXPIRY}m`,
+      algorithm: "HS256",
+    });
 
-      const expiryTime = new Date(
-        Date.now() + Number(process.env.TOKEN_EXPIRY) * 60000,
-      );
+    const expiryTime = new Date(Date.now() + Number(process.env.TOKEN_EXPIRY) * 60000);
 
-      // Store token in DB
-      pool.query(
-        "UPDATE faculty_auth SET reset_token = ?, token_expiry = ? WHERE email = ?",
-        [resetToken, expiryTime, email],
-        async (updateErr) => {
-          if (updateErr) {
-            console.error("Database Update Error:", updateErr);
-            return res.status(500).json({ error: "Internal server error" });
-          }
+    // Store token in database
+    await promisePool.query(
+      "UPDATE faculty_auth SET reset_token = ?, token_expiry = ? WHERE email = ?",
+      [resetToken, expiryTime, email]
+    );
 
-          // Prepare the reset link
-          const resetLink = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+    // Prepare reset link
+    const resetLink = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
 
-          // Prepare email data for Brevo API
-          const emailData = {
-            sender: {
-              name: process.env.EMAIL_FROM_NAME,
-              email: process.env.EMAIL_FROM_EMAIL,
-            },
-            to: [{ email }],
-            subject: "Password Reset Request",
-            htmlContent: `
-              <p>Hello,</p>
-              <p>Click the link below to reset your password (valid for ${process.env.TOKEN_EXPIRY} minutes):</p>
-              <p><a href="${resetLink}">${resetLink}</a></p>
-            `,
-          };
+    // Send email via Brevo
+    const emailData = {
+      sender: {
+        name: process.env.EMAIL_FROM_NAME,
+        email: process.env.EMAIL_FROM_EMAIL,
+      },
+      to: [{ email }],
+      subject: "Password Reset Request",
+      htmlContent: `
+        <p>Hello,</p>
+        <p>Click the link below to reset your password (valid for ${process.env.TOKEN_EXPIRY} minutes):</p>
+        <p><a href="${resetLink}">${resetLink}</a></p>
+      `,
+    };
 
-          // Send Reset Email via Brevo API
-          try {
-            const response = await axios.post(
-              'https://api.brevo.com/v3/smtp/email',
-              emailData,
-              {
-                headers: {
-                  'api-key': process.env.BREVO_API_KEY,
-                  'Content-Type': 'application/json',
-                },
-              }
-            );
-            console.log("✅ Reset email sent successfully via Brevo:", response.data);
-            res.json({ message: "Reset link sent to email" });
-          } catch (emailErr) {
-            console.error("❌ Error sending reset email via Brevo:", emailErr.response?.data || emailErr.message);
-            return res.status(500).json({ error: "Failed to send email" });
-          }
+    await axios.post(
+      'https://api.brevo.com/v3/smtp/email',
+      emailData,
+      {
+        headers: {
+          'api-key': process.env.BREVO_API_KEY,
+          'Content-Type': 'application/json',
         },
-      );
-    },
-  );
+      }
+    );
+
+    userActionLogger.info(`🔐 Password reset link sent to faculty: ${email}`);
+    res.json({ message: "Reset link sent to faculty email" });
+
+  } catch (err) {
+    errorLogger.error(`❌ Faculty password reset error for ${email}: ${err.message}`);
+    res.status(500).json({ 
+      error: "Internal server error",
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
 };
 
-export const resetPassword = (req, res) => {
+export const resetPassword = async (req, res) => {
   const { token } = req.params;
   const { newPassword } = req.body;
 
   try {
+    // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const email = decoded.email;
 
-    pool.query(
+    // Check if valid token exists in DB
+    const [result] = await promisePool.query(
       "SELECT * FROM faculty_auth WHERE email = ? AND reset_token = ?",
-      [email, token],
-      (err, result) => {
-        if (err) {
-          console.error("Database Error:", err);
-          return res.status(500).json({ error: "Internal server error" });
-        }
-
-        if (result.length === 0) {
-          return res.status(400).json({ error: "Invalid or expired token" });
-        }
-
-        // Check token expiry
-        if (new Date(result[0].token_expiry) < new Date()) {
-          return res.status(400).json({ error: "Token expired" });
-        }
-
-        // Hash the new password
-        bcrypt.hash(newPassword, 10, (hashErr, hashedPassword) => {
-          if (hashErr) {
-            console.error("Password Hashing Error:", hashErr);
-            return res.status(500).json({ error: "Failed to hash password" });
-          }
-
-          // Update password and remove reset token
-          pool.query(
-            "UPDATE faculty_auth SET password = ?, reset_token = NULL, token_expiry = NULL WHERE email = ?",
-            [hashedPassword, email],
-            (updateErr) => {
-              if (updateErr) {
-                console.error("Database Update Error:", updateErr);
-                return res
-                  .status(500)
-                  .json({ error: "Failed to reset password" });
-              }
-
-              res.json({ message: "Password reset successful" });
-            },
-          );
-        });
-      },
+      [email, token]
     );
-  } catch (error) {
-    console.error("Reset Password Error:", error);
-    res.status(400).json({ error: "Invalid or expired token" });
+
+    if (result.length === 0) {
+      errorLogger.warn(`❌ Invalid reset token attempt for faculty: ${email}`);
+      return res.status(400).json({ error: "Invalid or expired token" });
+    }
+
+    // Check token expiry
+    if (new Date(result[0].token_expiry) < new Date()) {
+      errorLogger.warn(`⏳ Expired reset token used by faculty: ${email}`);
+      return res.status(400).json({ error: "Token expired" });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password and clear reset token
+    await promisePool.query(
+      "UPDATE faculty_auth SET password = ?, reset_token = NULL, token_expiry = NULL WHERE email = ?",
+      [hashedPassword, email]
+    );
+
+    // Clear any existing auth cookies
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict"
+    }).clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict"
+    });
+
+    userActionLogger.info(`✅ Faculty password successfully reset for ${email}`);
+    res.json({ message: "Faculty password reset successful" });
+
+  } catch (err) {
+    errorLogger.error(`❌ Faculty password reset error: ${err.message}`);
+    
+    if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(400).json({ error: "Invalid or expired token" });
+    }
+    
+    res.status(500).json({ 
+      error: "Internal server error",
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 };
 
