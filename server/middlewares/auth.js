@@ -65,10 +65,10 @@ export const authorizeByUserId = (req, res, next) => {
 
   // Collect all possible identifiers from query, params, or body
   const requestId =
-    req.query.faculty_id || req.params.faculty_id || req.body.faculty_id ||
-    req.query.roll_no || req.params.roll_no || req.body.roll_no ||
-    req.query.department_id || req.params.department_id || req.body.department_id ||
-    req.query.user_id || req.params.user_id || req.body.user_id;
+    req.query.faculty_id || req.params.faculty_id || (req.body && req.body.faculty_id) ||
+    req.query.roll_no || req.params.roll_no || (req.body && req.body.roll_no) ||
+    req.query.department_id || req.params.department_id || (req.body && req.body.department_id) ||
+    req.query.user_id || req.params.user_id || (req.body && req.body.user_id);
 
   if (!requestId) {
     errorLogger.warn("❌ Identifier (faculty_id, roll_no, or department_id) is missing in the request.");

@@ -8,8 +8,12 @@ import {
   uploadFacultySponsoredResearch,
   uploadFacultyConsultancy,
   checkFileReceived,
+  uploadPatentDocument,
+  uploadFDPDocument
 } from "../config/facultyMulterConfig.js";
 import { authenticateToken, authorizeRoles, authorizeByRoleCombo, authorizeByUserId, authorizeSameDepartment } from "../middlewares/auth.js";
+
+import { facultyAccessMiddleware } from "../middlewares/sharedRoleCombos.js";
 
 import {
   getFacultyAssociations,
@@ -148,14 +152,11 @@ router.delete(
 );
 
 // FDP routes
-router.get("/fdp-records", authorizeRoles("faculty"), getFDPRecords);
-router.post("/fdp-records", authorizeRoles("faculty"), addFDPRecord);
-router.put("/fdp-records/:FDP_id", authorizeRoles("faculty"), updateFDPRecord);
-router.delete(
-  "/fdp-records/:FDP_id",
-  authorizeRoles("faculty"),
-  deleteFDPRecord
-);
+router.get("/fdp-records/all", authorizeByUserId, facultyAccessMiddleware, getFDPRecords);
+router.get("/fdp-records", authorizeByUserId, facultyAccessMiddleware, getFDPRecords);
+router.post("/fdp-records", authorizeByUserId, facultyAccessMiddleware, uploadFDPDocument, addFDPRecord);
+router.put("/fdp-records/:FDP_id", authorizeByUserId, facultyAccessMiddleware, uploadFDPDocument, updateFDPRecord);
+router.delete("/fdp-records/:FDP_id", authorizeByUserId, facultyAccessMiddleware, deleteFDPRecord);
 
 // Interaction routes
 router.get(
@@ -253,25 +254,9 @@ router.delete(
 
 // Consultancy Routes
 router.get("/consultancy", authorizeRoles("faculty"), getConsultancyByFaculty);
-router.post(
-  "/consultancy",
-  authorizeRoles("faculty"),
-  uploadFacultyConsultancy,
-  compressUploadedFile,
-  addConsultancy
-);
-router.put(
-  "/consultancy/:consultancy_id",
-  authorizeRoles("faculty"),
-  uploadFacultyConsultancy,
-  compressUploadedFile,
-  updateConsultancy
-);
-router.delete(
-  "/consultancy/:consultancy_id",
-  authorizeRoles("faculty"),
-  deleteConsultancy
-);
+router.post("/consultancy", authorizeRoles("faculty"), uploadFacultyConsultancy, compressUploadedFile, addConsultancy);
+router.put("/consultancy/:consultancy_id", authorizeRoles("faculty"), uploadFacultyConsultancy, compressUploadedFile, updateConsultancy);
+router.delete("/consultancy/:consultancy_id", authorizeRoles("faculty"), deleteConsultancy);
 
 // Faculty Details Routes
 router.get("/faculty-details/:faculty_id", authorizeRoles("faculty"), getFacultyDetails);
@@ -291,11 +276,11 @@ router.put("/facultyimage/:faculty_id", authorizeRoles("faculty"), uploadFaculty
 router.delete("/facultyimage/:faculty_id", authorizeRoles("faculty"), deleteFacultyImage); // Route to delete faculty image
 
 // Faculty Patent Routes
-router.get("/patent", authorizeRoles("faculty"), getFacultyPatents); // Get all patents
-router.get("/patent/:faculty_id", authorizeRoles("faculty"), getFacultyPatents); // Get patents by faculty_id
-router.post("/patent", authorizeRoles("faculty"), addFacultyPatent); // Add a new patent
-router.put("/patent/:patent_id", authorizeRoles("faculty"), updateFacultyPatent); // Update a patent
-router.delete("/patent/:patent_id", authorizeRoles("faculty"), deleteFacultyPatent); // Delete a patent
+router.get("/patent/all", facultyAccessMiddleware, getFacultyPatents); // Get all patents
+router.get("/patent", authorizeByUserId, facultyAccessMiddleware, getFacultyPatents); // Get patents by faculty_id
+router.post("/patent", uploadPatentDocument, authorizeByUserId, facultyAccessMiddleware, addFacultyPatent); // Add a new patent
+router.put("/patent/:patent_id", uploadPatentDocument, authorizeByUserId, facultyAccessMiddleware, updateFacultyPatent); // Update a patent
+router.delete("/patent", authorizeByUserId, facultyAccessMiddleware, deleteFacultyPatent); // Delete a patent
 
 // Faculty Qualification Routes
 router.get("/qualification", authorizeRoles("faculty"), getFacultyQualifications);

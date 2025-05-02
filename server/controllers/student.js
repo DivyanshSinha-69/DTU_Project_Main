@@ -1813,11 +1813,13 @@ export const studentRefreshToken = async (req, res) => {
       return res.status(401).json({ message: "Refresh token is required!" });
     }
 
-    // Check if the refresh token exists in the database
+    // Modified query to include role_assigned_name
     const [results] = await promisePool.query(
-      `SELECT sa.roll_no, sa.refresh_token_expiry, sa.role_assigned, sa.department_id, pt.position_name
+      `SELECT sa.roll_no, sa.refresh_token_expiry, sa.role_assigned, sa.department_id, 
+              pt.position_name, sar.role_name AS role_assigned_name
        FROM student_auth sa
        JOIN position_type pt ON sa.position_id = pt.position_id
+       LEFT JOIN student_available_roles sar ON sa.role_assigned = sar.role_id
        WHERE sa.refresh_token = ?`,
       [refreshToken]
     );
@@ -1835,26 +1837,24 @@ export const studentRefreshToken = async (req, res) => {
       return res.status(401).json({ message: "Refresh token expired!" });
     }
 
-    // Verify the refresh token asynchronously using jwt.verify and a promise
     try {
-      await jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET); // await here directly
+      await jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
 
-      // Generate new access and refresh tokens
+      // Use role_assigned_name instead of role_assigned
       const newAccessToken = generateAccessToken(
         user.roll_no,
         user.position_name,
-        user.role_assigned,
+        user.role_assigned_name, // Changed from user.role_assigned
         user.department_id
       );
 
       const newRefreshToken = generateRefreshToken(
         user.roll_no,
         user.position_name,
-        user.role_assigned,
+        user.role_assigned_name, // Changed from user.role_assigned
         user.department_id
       );
 
-      // Update the refresh token in the database and its expiry time
       const expiryDays = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7;
       const newRefreshTokenExpiry = new Date(
         Date.now() + expiryDays * 24 * 60 * 60 * 1000
@@ -1868,19 +1868,18 @@ export const studentRefreshToken = async (req, res) => {
         [newRefreshToken, newRefreshTokenExpiry, user.roll_no]
       );
 
-      // Set new access and refresh tokens as cookies
       res
         .cookie("accessToken", newAccessToken, {
           httpOnly: true,
           secure: true,
           sameSite: "Strict",
-          maxAge: 15 * 60 * 1000, // 15 minutes
+          maxAge: 15 * 60 * 1000,
         })
         .cookie("refreshToken", newRefreshToken, {
           httpOnly: true,
           secure: true,
           sameSite: "Strict",
-          maxAge: expiryDays * 24 * 60 * 60 * 1000, // Refresh token expiry time
+          maxAge: expiryDays * 24 * 60 * 60 * 1000,
         })
         .json({
           message: "New access token and refresh token issued.",
@@ -1917,11 +1916,12 @@ export const studentLogin = async (req, res) => {
 
   try {
     const [results] = await promisePool.query(
-      `SELECT sa.*, pt.position_name, sar.role_name AS role_assigned_name, dd.department_name
+      `SELECT sa.*, pt.position_name, sar.role_name AS role_assigned_name, dd.department_name, sd.student_name
        FROM student_auth sa
        LEFT JOIN position_type pt ON sa.position_id = pt.position_id
        LEFT JOIN student_available_roles sar ON sa.role_assigned = sar.role_id
        LEFT JOIN department_details dd ON sa.department_id = dd.department_id
+       LEFT JOIN student_details sd ON sa.roll_no = sd.roll_no
        WHERE sa.roll_no = ?`,
       [roll_no]
     );
@@ -1932,7 +1932,8 @@ export const studentLogin = async (req, res) => {
     }
 
     const student = results[0];
-    const { position_name, role_assigned_name, department_name } = student;
+    const { position_name, role_assigned_name, department_name, student_name } =
+      student;
 
     const isMatch = await bcrypt.compare(password, student.password);
     if (!isMatch) {
@@ -1975,7 +1976,7 @@ export const studentLogin = async (req, res) => {
     );
 
     userActionLogger.info(
-      `Student login successful. Roll No: ${roll_no}, IP: ${ipAddress}`
+      `Student login successful. Roll No: ${roll_no}, Name: ${student_name}, IP: ${ipAddress}`
     );
 
     res.cookie("accessToken", accessToken, {
@@ -1993,6 +1994,7 @@ export const studentLogin = async (req, res) => {
       message: "Login successful!",
       user: {
         roll_no: student.roll_no,
+        student_name: student_name,
         position: position_name,
         role_assigned: role_assigned_name,
         department_name: department_name,
@@ -2045,7 +2047,7 @@ export const verifyAuth = async (req, res) => {
     // Verify token
     let decoded;
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET); // Use your JWT secret
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (err) {
       errorLogger.warn(`❌ Invalid or expired token in cookie: ${err.message}`);
       return res.status(401).json({
@@ -2067,16 +2069,18 @@ export const verifyAuth = async (req, res) => {
         .json({ message: "Bad request - Missing token data" });
     }
 
-    const roll_no = id; // JWT 'id' is treated as roll_no
+    const roll_no = id;
 
-    // Fetch student details
+    // Fetch student details including student_name
     const [results] = await promisePool.query(
       `SELECT sa.roll_no, sa.position_id, sa.role_assigned, sa.department_id, 
-              pt.position_name, sar.role_name AS role_assigned_name, dd.department_name
+              pt.position_name, sar.role_name AS role_assigned_name, 
+              dd.department_name, sd.student_name
        FROM student_auth sa
        JOIN position_type pt ON sa.position_id = pt.position_id
        LEFT JOIN student_available_roles sar ON sa.role_assigned = sar.role_id
        LEFT JOIN department_details dd ON sa.department_id = dd.department_id
+       LEFT JOIN student_details sd ON sa.roll_no = sd.roll_no
        WHERE sa.roll_no = ?`,
       [roll_no]
     );
@@ -2088,16 +2092,17 @@ export const verifyAuth = async (req, res) => {
 
     const user = results[0];
 
-    // Log success
+    // Log success with student name
     userActionLogger.info(
-      `✔️ Student token verified successfully for ${roll_no}`
+      `✔️ Student token verified successfully for ${roll_no} (${user.student_name})`
     );
 
-    // Respond with user info
+    // Respond with user info including student_name
     res.json({
       message: "Token is valid!",
       user: {
         roll_no: user.roll_no,
+        student_name: user.student_name, // Added student_name
         position_name: user.position_name,
         role_assigned: user.role_assigned_name,
         department_name: user.department_name,
