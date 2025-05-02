@@ -737,7 +737,8 @@ export const updateFDPRecord = async (req, res) => {
 
 // Delete FDP Record
 export const deleteFDPRecord = async (req, res) => {
-  const { FDP_id, faculty_id } = req.body;
+  const { faculty_id } = req.query;
+  const { FDP_id } = req.params;
 
   try {
     // Get document path first
@@ -1186,109 +1187,170 @@ export const deleteInteractionType = (req, res) => {
 };
 
 // Get all Book records or filter by faculty_id
-export const getBookRecords = (req, res) => {
-  const { faculty_id } = req.params;
-
-  const query = faculty_id
-    ? "SELECT * FROM faculty_Book_records WHERE faculty_id = ?"
-    : "SELECT * FROM faculty_Book_records";
-
-  pool.query(query, faculty_id ? [faculty_id] : [], (err, results) => {
-    if (err) {
-      return res
-        .status(500)
-        .json({ message: "Error fetching book records", error: err });
-    }
+export const getBookRecords = async (req, res) => {
+  const { faculty_id } = req.query;
+  try {
+    const [results] = faculty_id
+      ? await promisePool.query("SELECT * FROM faculty_Book_records WHERE faculty_id = ?", [faculty_id])
+      : await promisePool.query("SELECT * FROM faculty_Book_records");
+    userActionLogger.info(`Fetched book records${faculty_id ? ` for faculty_id: ${faculty_id}` : ''}`);
     res.status(200).json(results);
-  });
+  } catch (err) {
+    errorLogger.error(`Error fetching book records: ${err.message}`);
+    res.status(500).json({ message: "Error fetching book records", error: err.message });
+  }
 };
 
-// Add a new Book record
-export const addBookRecord = (req, res) => {
-  const { ISBN, faculty_id, book_title, publication_name, published_date } =
-    req.body;
-
-  const query = `
-    INSERT INTO faculty_Book_records (ISBN, faculty_id, book_title, publication_name, published_date)
-    VALUES (?, ?, ?, ?, ?)
-  `;
-
-  const queryParams = [
+// Add a new Book record (all fields required)
+export const addBookRecord = async (req, res) => {
+  const faculty_id = req.query.faculty_id || req.body.faculty_id;
+  if (!faculty_id) {
+    userActionLogger.warn(`Attempt to add book record with missing faculty_id`);
+  }
+  const {
     ISBN,
-    faculty_id,
+    book_chapter,
+    chapter_title,
+    affiliated,
+    link_doi,
     book_title,
     publication_name,
     published_date,
-  ];
+  } = req.body;
 
-  pool.query(query, queryParams, (err, result) => {
-    if (err) {
-      return res
-        .status(500)
-        .json({ message: "Error adding book record", error: err });
-    }
+  // Check all fields are present
+  if (
+    !ISBN ||
+    !faculty_id ||
+    !book_chapter ||
+    !chapter_title ||
+    !affiliated ||
+    !link_doi ||
+    !book_title ||
+    !publication_name ||
+    !published_date
+  ) {
+    userActionLogger.warn(`Attempt to add book record with missing fields by faculty_id: ${faculty_id || 'unknown'}`);
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  try {
+    const [result] = await promisePool.query(
+      `INSERT INTO faculty_Book_records
+      (ISBN, faculty_id, book_chapter, chapter_title, affiliated, link_doi, book_title, publication_name, published_date)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        ISBN,
+        faculty_id,
+        book_chapter,
+        chapter_title,
+        affiliated,
+        link_doi,
+        book_title,
+        publication_name,
+        published_date,
+      ]
+    );
+    userActionLogger.info(`Added new book record ID: ${result.insertId} by faculty_id: ${faculty_id}`);
     res.status(201).json({
       message: "Book record added successfully",
       insertId: result.insertId,
     });
-  });
+  } catch (err) {
+    errorLogger.error(`Error adding book record: ${err.message}`);
+    res.status(500).json({ message: "Error adding book record", error: err.message });
+  }
 };
 
-// Update an existing Book record using Book_id
-export const updateBookRecord = (req, res) => {
+// Update an existing Book record (all fields required)
+export const updateBookRecord = async (req, res) => {
+  const faculty_id = req.query.faculty_id || req.body.faculty_id;
+  if (!faculty_id) {
+    userActionLogger.warn(`Attempt to add book record with missing faculty_id`);
+  }
   const { Book_id } = req.params;
-  const { ISBN, faculty_id, book_title, publication_name, published_date } =
-    req.body;
-
-  const query = `
-    UPDATE faculty_Book_records
-    SET ISBN = ?, faculty_id = ?, book_title = ?, publication_name = ?, published_date = ?
-    WHERE Book_id = ?
-  `;
-
-  const queryParams = [
+  const {
     ISBN,
-    faculty_id,
+    book_chapter,
+    chapter_title,
+    affiliated,
+    link_doi,
     book_title,
     publication_name,
     published_date,
-    Book_id,
-  ];
+  } = req.body;
 
-  pool.query(query, queryParams, (err, result) => {
-    if (err) {
-      return res
-        .status(500)
-        .json({ message: "Error updating book record", error: err });
-    }
+  // Check all fields are present
+  if (
+    !ISBN ||
+    !faculty_id ||
+    !book_chapter ||
+    !chapter_title ||
+    !affiliated ||
+    !link_doi ||
+    !book_title ||
+    !publication_name ||
+    !published_date
+  ) {
+    userActionLogger.warn(`Attempt to update book record ${Book_id} with missing fields`);
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  try {
+    const [result] = await promisePool.query(
+      `UPDATE faculty_Book_records
+      SET ISBN = ?, faculty_id = ?, book_chapter = ?, chapter_title = ?, affiliated = ?, link_doi = ?, book_title = ?, publication_name = ?, published_date = ?
+      WHERE Book_id = ?`,
+      [
+        ISBN,
+        faculty_id,
+        book_chapter,
+        chapter_title,
+        affiliated,
+        link_doi,
+        book_title,
+        publication_name,
+        published_date,
+        Book_id,
+      ]
+    );
     if (result.affectedRows === 0) {
-      return res
-        .status(404)
-        .json({ message: "No book record found with the given Book_id" });
+      userActionLogger.warn(`No book record found with Book_id: ${Book_id} for update`);
+      return res.status(404).json({ message: "No book record found with the given Book_id" });
     }
+    userActionLogger.info(`Updated book record ID: ${Book_id}`);
     res.status(200).json({ message: "Book record updated successfully" });
-  });
+  } catch (err) {
+    errorLogger.error(`Error updating book record ${Book_id}: ${err.message}`);
+    res.status(500).json({ message: "Error updating book record", error: err.message });
+  }
 };
 
-// Delete a Book record using Book_id
-export const deleteBookRecord = (req, res) => {
+// Delete a Book record using Book_id (route param) and faculty_id (query param)
+export const deleteBookRecord = async (req, res) => {
   const { Book_id } = req.params;
+  const { faculty_id } = req.query;
 
-  const query = "DELETE FROM faculty_Book_records WHERE Book_id = ?";
+  if (!Book_id || !faculty_id) {
+    userActionLogger.warn(`Attempt to delete book record with missing Book_id or faculty_id`);
+    return res.status(400).json({ message: "Both Book_id (route) and faculty_id (query) are required" });
+  }
 
-  pool.query(query, [Book_id], (err, result) => {
-    if (err) {
-      return res
-        .status(500)
-        .json({ message: "Error deleting book record", error: err });
-    }
+  try {
+    const [result] = await promisePool.query(
+      "DELETE FROM faculty_Book_records WHERE Book_id = ? AND faculty_id = ?",
+      [Book_id, faculty_id]
+    );
     if (result.affectedRows === 0) {
-      return res
-        .status(404)
-        .json({ message: "No book record found with the given Book_id" });
+      userActionLogger.warn(`No book record found with Book_id: ${Book_id} and faculty_id: ${faculty_id} for deletion`);
+      return res.status(404).json({ message: "No book record found with the given Book_id and faculty_id" });
     }
+    userActionLogger.info(`Deleted book record ID: ${Book_id} (faculty_id: ${faculty_id})`);
     res.status(200).json({ message: "Book record deleted successfully" });
-  });
+  } catch (err) {
+    errorLogger.error(`Error deleting book record ${Book_id}: ${err.message}`);
+    res.status(500).json({ message: "Error deleting book record", error: err.message });
+  }
 };
 
 // 1️⃣ Get faculty guidance records
