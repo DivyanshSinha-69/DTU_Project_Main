@@ -9,9 +9,6 @@ import {
   updatePersonalDetails,
   uploadImage,
   getImage,
-  getPlacement,
-  deletePlacement,
-  addPlacement,
   getPdf,
   uploadPdf,
   getMtechEducationDetails,
@@ -38,7 +35,9 @@ import {
   deleteInterInstituteActivity,
   getBtechEducationDetails,
   updateBtechEducationDetails,
+
   getAcknowledgement,
+
   updateLastSeen,
   studentLogin,
   studentRefreshToken,
@@ -50,6 +49,11 @@ import {
   addStudentDetails,
   updateStudentDetails,
   deleteStudentDetails,
+  getPlacements,
+  getPlacementByRollNo,
+  addPlacement,
+  updatePlacement,
+  deletePlacement,
 } from "../controllers/student.js";
 
 import {
@@ -60,6 +64,10 @@ import {
   authorizeSameDepartment,
 } from "../middlewares/auth.js";
 import { studentAccessMiddleware } from "../middlewares/sharedRoleCombos.js";
+import { 
+  compressUploadedFile,
+  checkFileReceived,
+  uploadPlacementDoc } from "../config/studentMulterConfig.js";
 
 const router = express.Router();
 
@@ -74,34 +82,18 @@ router.post("/forgotpassword", forgotStudentPassword);
 router.post("/resetpassword/:token", resetStudentPassword);
 
 // Route for student details
-router.get(
-  "/details",
-  authenticateToken,
-  authorizeByUserId,
-  studentAccessMiddleware,
-  getStudentDetails
-);
-router.post(
-  "/details/",
-  authenticateToken,
-  authorizeByUserId,
-  studentAccessMiddleware,
-  addStudentDetails
-);
-router.put(
-  "/details/:roll_no",
-  authenticateToken,
-  authorizeByUserId,
-  studentAccessMiddleware,
-  updateStudentDetails
-);
-router.delete(
-  "/details/:roll_no",
-  authenticateToken,
-  authorizeByUserId,
-  studentAccessMiddleware,
-  deleteStudentDetails
-);
+router.get("/details", authenticateToken, authorizeByUserId, studentAccessMiddleware, getStudentDetails);
+router.post("/details/", authenticateToken, authorizeByUserId, studentAccessMiddleware, addStudentDetails);
+router.put("/details/:roll_no", authenticateToken, authorizeByUserId, studentAccessMiddleware, updateStudentDetails);
+router.delete("/details/:roll_no", authenticateToken, authorizeByUserId, studentAccessMiddleware, deleteStudentDetails);
+
+
+router.get("/placement/all", authenticateToken, authorizeByUserId, getPlacements);
+router.get("/placement", authenticateToken, authorizeByUserId, getPlacementByRollNo);
+router.post("/placement", authenticateToken, uploadPlacementDoc, compressUploadedFile, addPlacement);
+router.put("/placement/:id", authenticateToken, uploadPlacementDoc, compressUploadedFile, updatePlacement);
+router.delete("/placement/:id", authenticateToken, deletePlacement);
+
 
 router.get("/getall", getall);
 router.post("/profskills", getProfessionalSkills);
@@ -112,10 +104,6 @@ router.post("/personaldetails", getPersonalDetails);
 router.put("/updatepersonaldetails", updatePersonalDetails);
 router.post("/upload", uploadImage);
 router.post("/getimage", getImage);
-
-router.post("/placement", getPlacement);
-router.delete("/deleteplacement", deletePlacement);
-router.post("/addplacement", addPlacement);
 
 router.post("/getpdf", getPdf);
 router.post("/uploadpdf", uploadPdf);

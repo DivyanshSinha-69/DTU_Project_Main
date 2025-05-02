@@ -1,0 +1,209 @@
+import fs from "fs";
+import path from "path";
+import multer from "multer";
+import { compressImage, compressPDF } from "../utils/fileCompressor.js"; // Import compression utility
+
+/**
+ * 📝 Multer Storage for Student Documents (Assignments, Projects, etc.)
+ */
+const studentDocumentStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const student_id = req.body.student_id || req.params.student_id;
+    if (!student_id) return cb(new Error("Student ID is required"), null);
+    
+    const uploadPath = path.join("public", "Students", "Documents", student_id);
+    fs.mkdirSync(uploadPath, { recursive: true });
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    if (!file || !file.originalname) return cb(new Error("Invalid file upload"), null);
+
+    const timestamp = Date.now();
+    const ext = path.extname(file.originalname);
+    const baseName = path.basename(file.originalname, ext);
+    const uniqueFilename = `${baseName}_${timestamp}${ext}`;
+    cb(null, uniqueFilename);
+  },
+});
+
+
+
+/**
+ * 📸 Multer Storage for Student Images (Profile, ID cards, etc.)
+ */
+const studentImageStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = path.join("public", "Students", "Images");
+    fs.mkdirSync(uploadPath, { recursive: true });
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const student_id = req.params.student_id || req.body.student_id;
+    if (!student_id) return cb(new Error("Student ID is required"), null);
+    
+    const fileExtension = path.extname(file.originalname);
+    const uniqueFilename = `${student_id}_${Date.now()}${fileExtension}`;
+    cb(null, uniqueFilename);
+  },
+});
+
+/**
+ * 🎓 Multer Storage for Student Certificates
+ */
+const studentCertificateStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const student_id = req.body.student_id;
+    if (!student_id) return cb(new Error("Student ID is required"), null);
+    
+    const uploadPath = path.join("public", "Students", "Certificates", student_id);
+    fs.mkdirSync(uploadPath, { recursive: true });
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const timestamp = Date.now();
+    const ext = path.extname(file.originalname);
+    const baseName = path.basename(file.originalname, ext);
+    const uniqueFilename = `${baseName}_${timestamp}${ext}`;
+    cb(null, uniqueFilename);
+  },
+});
+
+/**
+ * 📑 Multer Storage for Student Results/Transcripts
+ */
+const studentResultStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const student_id = req.body.student_id;
+    if (!student_id) return cb(new Error("Student ID is required"), null);
+    
+    const uploadPath = path.join("public", "Students", "Results", student_id);
+    fs.mkdirSync(uploadPath, { recursive: true });
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const timestamp = Date.now();
+    const ext = path.extname(file.originalname);
+    const baseName = path.basename(file.originalname, ext);
+    const uniqueFilename = `${baseName}_${timestamp}${ext}`;
+    cb(null, uniqueFilename);
+  },
+});
+
+const placementStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      const { roll_no } = req.body;
+      if (!roll_no) return cb(new Error("Roll number is required"), null);
+      
+      // Sanitize roll_no by replacing slashes with underscores
+      const sanitizedRollNo = roll_no.replace(/\//g, '_');
+      
+      const uploadPath = path.join("public", "Students", "Placements", sanitizedRollNo);
+      fs.mkdirSync(uploadPath, { recursive: true });
+      cb(null, uploadPath);
+    },
+    filename: (req, file, cb) => {
+      const timestamp = Date.now();
+      const ext = path.extname(file.originalname);
+      const baseName = path.basename(file.originalname, ext);
+      const uniqueFilename = `${baseName}_${timestamp}${ext}`;
+      cb(null, uniqueFilename);
+    },
+  });
+
+// File filter (accept only PDF, JPG, PNG)
+const fileFilter = (req, file, cb) => {
+  if (["application/pdf", "image/jpeg", "image/png"].includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only PDF, JPG, and PNG files are allowed"), false);
+  }
+};
+
+// File filter for student images (JPG/PNG only)
+const studentImageFilter = (req, file, cb) => {
+  if (["image/jpeg", "image/jpg", "image/png"].includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only JPG, JPEG or PNG files are allowed"), false);
+  }
+};
+
+export const uploadPlacementDoc = multer({
+    storage: placementStorage,
+    fileFilter: fileFilter,
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  }).single("document");
+
+// Upload Middleware for Student Documents
+const uploadStudentDocument = multer({
+  storage: studentDocumentStorage,
+  fileFilter,
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB limit
+}).single("document");
+
+// Upload Middleware for Student Images
+const uploadStudentImage = multer({
+  storage: studentImageStorage,
+  fileFilter: studentImageFilter,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
+}).single("student_image");
+
+// Upload Middleware for Student Certificates
+const uploadStudentCertificate = multer({
+  storage: studentCertificateStorage,
+  fileFilter,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+}).single("certificate");
+
+// Upload Middleware for Student Results
+const uploadStudentResult = multer({
+  storage: studentResultStorage,
+  fileFilter,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+}).single("result");
+
+/**
+ * 🛠️ Compression Middleware for Uploaded Files
+ */
+const compressUploadedFile = (req, res, next) => {
+  if (!req.file) return next();
+
+  const filePath = req.file.path;
+  const ext = path.extname(filePath).toLowerCase();
+
+  const handleNext = (err) => {
+    if (err) return res.status(500).json({ message: "Error compressing file", error: err.message });
+    next();
+  };
+
+  if ([".jpeg", ".jpg", ".png"].includes(ext)) {
+    compressImage(filePath, handleNext);
+  } else if (ext === ".pdf") {
+    compressPDF(filePath, handleNext);
+  } else {
+    next();
+  }
+};
+
+const checkFileReceived = (req, res, next) => {
+  console.log("📥 Received request for student file upload...");
+  console.log("➡️ req.body:", req.body);
+  console.log("➡️ req.params:", req.params);
+  console.log("➡️ req.file:", req.file);
+  
+  if (!req.file) {
+    return res.status(400).json({ message: "No file uploaded. Check if frontend is sending correctly." });
+  }
+  next();
+};
+
+// Export Middleware
+export {
+  uploadStudentDocument,
+  uploadStudentImage,
+  uploadStudentCertificate,
+  uploadStudentResult,
+  compressUploadedFile,
+  checkFileReceived,
+  
+};
