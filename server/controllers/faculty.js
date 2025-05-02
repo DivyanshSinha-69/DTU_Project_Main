@@ -609,10 +609,10 @@ export const getFDPRecords = async (req, res) => {
   }
 };
 
-// Add FDP Record
 export const addFDPRecord = async (req, res) => {
+  // Get faculty_id from query first, then body (for backward compatibility)
+  const faculty_id = req.query.faculty_id || req.body.faculty_id;
   const {
-    faculty_id,
     FDP_name,
     FDP_progress,
     start_date,
@@ -663,11 +663,12 @@ export const addFDPRecord = async (req, res) => {
   }
 };
 
-// Update FDP Record
+
 export const updateFDPRecord = async (req, res) => {
   const { FDP_id } = req.params;
+  // Get faculty_id from query first, then body (for backward compatibility)
+  const faculty_id = req.query.faculty_id || req.body.faculty_id;
   const {
-    faculty_id,
     FDP_name,
     FDP_progress,
     start_date,
@@ -733,9 +734,10 @@ export const updateFDPRecord = async (req, res) => {
   }
 };
 
+
 // Delete FDP Record
 export const deleteFDPRecord = async (req, res) => {
-  const { FDP_id } = req.params;
+  const { FDP_id, faculty_id } = req.body;
 
   try {
     // Get document path first
