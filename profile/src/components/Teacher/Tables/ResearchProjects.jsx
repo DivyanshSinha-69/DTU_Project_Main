@@ -127,9 +127,7 @@ const ResearchProjects = ({ setBlurActive }) => {
             Title: project.Title,
             AreaOfResearch: project.AreaOfResearch,
             PublishedYear: project.PublishedYear,
-            Document: project.pdf
-              ? { name: `Faculty\\ResearchPapers\\FAC001\\${project.pdf.name}` }
-              : null,
+            Document: project.pdf ? { name: project.pdf.name } : null,
             Citation: project.Citation,
             Authors: project.Authors,
           };
