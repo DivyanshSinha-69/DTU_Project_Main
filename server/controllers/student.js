@@ -1792,11 +1792,13 @@ export const studentRefreshToken = async (req, res) => {
       return res.status(401).json({ message: "Refresh token is required!" });
     }
 
-    // Check if the refresh token exists in the database
+    // Modified query to include role_assigned_name
     const [results] = await promisePool.query(
-      `SELECT sa.roll_no, sa.refresh_token_expiry, sa.role_assigned, sa.department_id, pt.position_name
+      `SELECT sa.roll_no, sa.refresh_token_expiry, sa.role_assigned, sa.department_id, 
+              pt.position_name, sar.role_name AS role_assigned_name
        FROM student_auth sa
        JOIN position_type pt ON sa.position_id = pt.position_id
+       LEFT JOIN student_available_roles sar ON sa.role_assigned = sar.role_id
        WHERE sa.refresh_token = ?`,
       [refreshToken]
     );
@@ -1814,26 +1816,24 @@ export const studentRefreshToken = async (req, res) => {
       return res.status(401).json({ message: "Refresh token expired!" });
     }
 
-    // Verify the refresh token asynchronously using jwt.verify and a promise
     try {
-      await jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET); // await here directly
+      await jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
 
-      // Generate new access and refresh tokens
+      // Use role_assigned_name instead of role_assigned
       const newAccessToken = generateAccessToken(
         user.roll_no,
         user.position_name,
-        user.role_assigned,
+        user.role_assigned_name, // Changed from user.role_assigned
         user.department_id
       );
 
       const newRefreshToken = generateRefreshToken(
         user.roll_no,
         user.position_name,
-        user.role_assigned,
+        user.role_assigned_name, // Changed from user.role_assigned
         user.department_id
       );
 
-      // Update the refresh token in the database and its expiry time
       const expiryDays = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7;
       const newRefreshTokenExpiry = new Date(
         Date.now() + expiryDays * 24 * 60 * 60 * 1000
@@ -1844,19 +1844,18 @@ export const studentRefreshToken = async (req, res) => {
         [newRefreshToken, newRefreshTokenExpiry, user.roll_no]
       );
 
-      // Set new access and refresh tokens as cookies
       res
         .cookie("accessToken", newAccessToken, {
           httpOnly: true,
           secure: true,
           sameSite: "Strict",
-          maxAge: 15 * 60 * 1000, // 15 minutes
+          maxAge: 15 * 60 * 1000,
         })
         .cookie("refreshToken", newRefreshToken, {
           httpOnly: true,
           secure: true,
           sameSite: "Strict",
-          maxAge: expiryDays * 24 * 60 * 60 * 1000, // Refresh token expiry time
+          maxAge: expiryDays * 24 * 60 * 60 * 1000,
         })
         .json({
           message: "New access token and refresh token issued.",

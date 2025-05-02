@@ -570,112 +570,207 @@ export const deleteResearchPaper = (req, res) => {
 };
 
 
-export const getFDPRecords = (req, res) => {
+// Get FDP Records
+export const getFDPRecords = async (req, res) => {
   const { faculty_id } = req.query;
 
-  let query = "SELECT *, DATEDIFF(end_date, start_date) + 1 AS days_contributed FROM faculty_FDP";
-  let params = [];
+  try {
+    let query = `
+      SELECT *, 
+      DATEDIFF(end_date, start_date) + 1 AS days_contributed,
+      organizing_institute,
+      document
+      FROM faculty_FDP
+    `;
+    let params = [];
 
-  if (faculty_id) {
-    query += " WHERE faculty_id = ?";
-    params.push(faculty_id);
-  }
-
-  pool.query(query, params, (err, results) => {
-    if (err) {
-      console.error("Error fetching FDP details:", err);
-      return res.status(500).json({ message: "Error fetching FDP details", error: err });
+    if (faculty_id) {
+      query += " WHERE faculty_id = ?";
+      params.push(faculty_id);
     }
+
+    const [results] = await promisePool.query(query, params);
 
     if (results.length === 0) {
       return res.status(404).json({ message: "No FDP details found" });
     }
 
+    userActionLogger.info(`Fetched ${results.length} FDP records`);
     res.status(200).json({
       message: "FDP details fetched successfully",
       data: results,
     });
-  });
+  } catch (err) {
+    errorLogger.error(`Error fetching FDP details: ${err.message}`);
+    res.status(500).json({ 
+      message: "Error fetching FDP details",
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
 };
 
-export const addFDPRecord = (req, res) => {
-  const { faculty_id, FDP_name, FDP_progress, start_date, end_date } = req.body;
+// Add FDP Record
+export const addFDPRecord = async (req, res) => {
+  const {
+    faculty_id,
+    FDP_name,
+    FDP_progress,
+    start_date,
+    end_date,
+    organizing_institute
+  } = req.body;
 
+  // Validate required fields
   if (!faculty_id || !FDP_name || !FDP_progress || !start_date || !end_date) {
-    return res.status(400).json({ message: "All fields are required" });
+    return res.status(400).json({ message: "All required fields are missing" });
   }
 
   if (new Date(start_date) > new Date(end_date)) {
     return res.status(400).json({ message: "Start date cannot be after end date" });
   }
 
-  const query = `
-      INSERT INTO faculty_FDP (faculty_id, FDP_name, FDP_progress, start_date, end_date)
-      VALUES (?, ?, ?, ?, ?)
-  `;
-  const params = [faculty_id, FDP_name, FDP_progress, start_date, end_date];
+  try {
+    const [result] = await promisePool.query(
+      `INSERT INTO faculty_FDP 
+       (faculty_id, FDP_name, FDP_progress, start_date, end_date, organizing_institute, document)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        faculty_id,
+        FDP_name,
+        FDP_progress,
+        start_date,
+        end_date,
+        organizing_institute || null,
+        req.file ? req.file.path : null
+      ]
+    );
 
-  pool.query(query, params, (err, result) => {
-    if (err) {
-      console.error("Error adding FDP record:", err);
-      return res.status(500).json({ message: "Error adding FDP record", error: err });
-    }
+    userActionLogger.info(`Added new FDP record ID: ${result.insertId}`);
     res.status(201).json({
       message: "FDP record added successfully",
       data: { id: result.insertId },
     });
-  });
+  } catch (err) {
+    // Clean up uploaded file if insertion failed
+    if (req.file) {
+      fs.unlink(req.file.path, (unlinkErr) => {
+        if (unlinkErr) errorLogger.error(`Error cleaning up file: ${unlinkErr.message}`);
+      });
+    }
+    
+    errorLogger.error(`Error adding FDP record: ${err.message}`);
+    res.status(500).json({ message: "Error adding FDP record" });
+  }
 };
 
-export const updateFDPRecord = (req, res) => {
+// Update FDP Record
+export const updateFDPRecord = async (req, res) => {
   const { FDP_id } = req.params;
-  const { faculty_id, FDP_name, FDP_progress, start_date, end_date } = req.body;
+  const {
+    faculty_id,
+    FDP_name,
+    FDP_progress,
+    start_date,
+    end_date,
+    organizing_institute
+  } = req.body;
 
-  if (!faculty_id || !FDP_name || !FDP_progress || !start_date || !end_date) {
-    return res.status(400).json({ message: "All fields are required" });
-  }
+  try {
+    // Get existing document path first
+    const [existingRecord] = await promisePool.query(
+      "SELECT document FROM faculty_FDP WHERE FDP_id = ?",
+      [FDP_id]
+    );
 
-  if (new Date(start_date) > new Date(end_date)) {
-    return res.status(400).json({ message: "Start date cannot be after end date" });
-  }
-
-  const query = `
-      UPDATE faculty_FDP 
-      SET faculty_id = ?, FDP_name = ?, FDP_progress = ?, start_date = ?, end_date = ?
-      WHERE FDP_id = ?
-  `;
-  const params = [faculty_id, FDP_name, FDP_progress, start_date, end_date, FDP_id];
-
-  pool.query(query, params, (err, result) => {
-    if (err) {
-      console.error("Error updating FDP record:", err);
-      return res.status(500).json({ message: "Error updating FDP record", error: err });
+    if (existingRecord.length === 0) {
+      return res.status(404).json({ message: "No FDP record found" });
     }
+
+    const oldDocumentPath = existingRecord[0].document;
+
+    // Update record
+    const [result] = await promisePool.query(
+      `UPDATE faculty_FDP 
+       SET faculty_id = ?, FDP_name = ?, FDP_progress = ?, 
+           start_date = ?, end_date = ?, organizing_institute = ?,
+           document = IFNULL(?, document)
+       WHERE FDP_id = ?`,
+      [
+        faculty_id,
+        FDP_name,
+        FDP_progress,
+        start_date,
+        end_date,
+        organizing_institute || null,
+        req.file ? req.file.path : null,
+        FDP_id
+      ]
+    );
+
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "No FDP record found with the given FDP_id" });
+      return res.status(404).json({ message: "No FDP record found" });
     }
+
+    // Delete old file if new file was uploaded
+    if (req.file && oldDocumentPath) {
+      fs.unlink(oldDocumentPath, (err) => {
+        if (err) errorLogger.error(`Error deleting old document: ${err.message}`);
+      });
+    }
+
+    userActionLogger.info(`Updated FDP record ID: ${FDP_id}`);
     res.status(200).json({ message: "FDP record updated successfully" });
-  });
+  } catch (err) {
+    // Clean up new file if update failed
+    if (req.file) {
+      fs.unlink(req.file.path, (unlinkErr) => {
+        if (unlinkErr) errorLogger.error(`Error cleaning up file: ${unlinkErr.message}`);
+      });
+    }
+    
+    errorLogger.error(`Error updating FDP record ${FDP_id}: ${err.message}`);
+    res.status(500).json({ message: "Error updating FDP record" });
+  }
 };
 
-export const deleteFDPRecord = (req, res) => {
+// Delete FDP Record
+export const deleteFDPRecord = async (req, res) => {
   const { FDP_id } = req.params;
 
-  const query = "DELETE FROM faculty_FDP WHERE FDP_id = ?";
-  const params = [FDP_id];
+  try {
+    // Get document path first
+    const [existingRecord] = await promisePool.query(
+      "SELECT document FROM faculty_FDP WHERE FDP_id = ?",
+      [FDP_id]
+    );
 
-  pool.query(query, params, (err, result) => {
-    if (err) {
-      console.error("Error deleting FDP record:", err);
-      return res.status(500).json({ message: "Error deleting FDP record", error: err });
+    if (existingRecord.length === 0) {
+      return res.status(404).json({ message: "No FDP record found" });
     }
+
+    const [result] = await promisePool.query(
+      "DELETE FROM faculty_FDP WHERE FDP_id = ?",
+      [FDP_id]
+    );
+
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "No FDP record found with the given FDP_id" });
+      return res.status(404).json({ message: "No FDP record found" });
     }
-    res.status(200).json({ message: "FDP record deleted successfully" });
-  });
-};
 
+    // Delete associated document file if exists
+    if (existingRecord[0].document) {
+      fs.unlink(existingRecord[0].document, (err) => {
+        if (err) errorLogger.error(`Error deleting document: ${err.message}`);
+      });
+    }
+
+    userActionLogger.info(`Deleted FDP record ID: ${FDP_id}`);
+    res.status(200).json({ message: "FDP record deleted successfully" });
+  } catch (err) {
+    errorLogger.error(`Error deleting FDP record ${FDP_id}: ${err.message}`);
+    res.status(500).json({ message: "Error deleting FDP record" });
+  }
+};
 // Get Faculty Interactions
 export const getFacultyInteractions = (req, res) => {
   const { faculty_id } = req.params;
@@ -2189,79 +2284,109 @@ export const deleteFacultyImage = (req, res) => {
   });
 };
 
-// Get all faculty patents
-export const getFacultyPatents = (req, res) => {
-  const { faculty_id } = req.params;
+// Get all faculty patents with optional faculty_id filter from query params
+export const getFacultyPatents = async (req, res) => {
+  const { faculty_id } = req.query; // Changed from req.params to req.query
 
-  let query = "SELECT * FROM faculty_patents";
-  let params = [];
+  try {
+    let query = "SELECT * FROM faculty_patents";
+    let params = [];
 
-  if (faculty_id) {
-    query += " WHERE faculty_id = ?";
-    params.push(faculty_id);
-  }
+    if (faculty_id) {
+      // Validate faculty_id format if needed (e.g., length, pattern)
+      if (typeof faculty_id !== 'string') {
+        return res.status(400).json({ 
+          message: "Invalid faculty_id format. Must be 10 characters long." 
+        });
+      }
 
-  pool.query(query, params, (err, results) => {
-    if (err) {
-      console.error("Error fetching patents:", err);
-      return res.status(500).json({ message: "Error fetching patents" });
+      query += " WHERE faculty_id = ?";
+      params.push(faculty_id);
     }
-    res
-      .status(200)
-      .json({ message: "Patents fetched successfully", data: results });
-  });
+
+    // Optional: Add sorting (newest first by publish date)
+    query += " ORDER BY patent_publish DESC";
+
+    const [results] = await promisePool.query(query, params);
+
+    userActionLogger.info(
+      `Fetched ${results.length} patents for ${faculty_id ? `faculty ${faculty_id}` : "all faculties"}`
+    );
+    
+    res.status(200).json({
+      message: "Patents fetched successfully",
+      data: results,
+    });
+  } catch (err) {
+    errorLogger.error(`Error fetching patents: ${err.message}\nStack: ${err.stack}`);
+    res.status(500).json({ 
+      message: "Error fetching patents",
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
 };
 
-export const addFacultyPatent = (req, res) => {
+// Add new patent
+export const addFacultyPatent = async (req, res) => {
   const {
     faculty_id,
     patent_name,
+    patent_number,
     inventors_name,
     patent_publish,
     patent_award_date,
+    patent_awarding_agency,
   } = req.body;
 
-  // Check if the faculty_id exists
-  const checkQuery =
-    "SELECT COUNT(*) AS count FROM faculty_details WHERE faculty_id = ?";
-  pool.query(checkQuery, [faculty_id], (err, results) => {
-    if (err) {
-      console.error("Error checking faculty_id:", err);
-      return res.status(500).json({ message: "Internal Server Error" });
-    }
+  // Validate required fields
+  if (
+    !faculty_id ||
+    !patent_name ||
+    !inventors_name ||
+    !patent_publish ||
+    !patent_number ||
+    !patent_awarding_agency
+  ) {
+    return res.status(400).json({
+      message:
+        "All fields (faculty_id, patent_name, inventors_name, patent_publish, patent_number, patent_awarding_agency) are required",
+    });
+  }
 
-    if (results[0].count === 0) {
-      return res.status(400).json({ message: "faculty_id does not exist" });
-    }
+  try {
 
     // Insert the patent
-    const insertQuery = `
-      INSERT INTO faculty_patents (faculty_id, patent_name, inventors_name, patent_publish, patent_award_date)
-      VALUES (?, ?, ?, ?, ?)
-    `;
-    pool.query(
-      insertQuery,
+    const [result] = await promisePool.query(
+      `INSERT INTO faculty_patents 
+       (faculty_id, patent_name, inventors_name, patent_publish, patent_award_date, patent_number, patent_awarding_agency, document) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         faculty_id,
         patent_name,
         inventors_name,
         patent_publish,
         patent_award_date || null,
-      ],
-      (err, result) => {
-        if (err) {
-          console.error("Error adding patent:", err);
-          return res.status(500).json({ message: "Internal Server Error" });
-        }
-        res
-          .status(201)
-          .json({ message: "Patent added successfully", id: result.insertId });
-      }
+        patent_number,
+        patent_awarding_agency,
+        req.file ? req.file.path : null, // Store file path if uploaded
+      ]
     );
-  });
+
+    userActionLogger.info(
+      `Added new patent ${patent_name} (ID: ${result.insertId}) for faculty ${faculty_id}`
+    );
+    res.status(201).json({
+      message: "Patent added successfully",
+      id: result.insertId,
+    });
+  } catch (err) {
+    errorLogger.error(`Error adding patent: ${err.message}`);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };
 
-export const updateFacultyPatent = (req, res) => {
+// Update patent
+export const updateFacultyPatent = async (req, res) => {
   const { patent_id } = req.params;
   const {
     faculty_id,
@@ -2269,54 +2394,130 @@ export const updateFacultyPatent = (req, res) => {
     inventors_name,
     patent_publish,
     patent_award_date,
+    patent_number,
+    patent_awarding_agency,
   } = req.body;
 
-  const query = `
-    UPDATE faculty_patents
-    SET faculty_id = ?, patent_name = ?, inventors_name = ?, patent_publish = ?, patent_award_date = ?
-    WHERE patent_id = ?
-  `;
-  pool.query(
-    query,
-    [
-      faculty_id,
-      patent_name,
-      inventors_name,
-      patent_publish,
-      patent_award_date || null,
-      patent_id,
-    ],
-    (err, result) => {
-      if (err) {
-        console.error("Error updating patent:", err);
-        return res.status(500).json({ message: "Internal Server Error" });
-      }
+  try {
+    // First get the existing patent data including document path
+    const [patentCheck] = await promisePool.query(
+      "SELECT document, faculty_id FROM faculty_patents WHERE patent_id = ?",
+      [patent_id]
+    );
 
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ message: "Patent not found" });
-      }
-
-      res.status(200).json({ message: "Patent updated successfully" });
+    if (patentCheck.length === 0) {
+      return res.status(404).json({ message: "Patent not found" });
     }
-  );
-};
 
-export const deleteFacultyPatent = (req, res) => {
-  const { patent_id } = req.params;
+    const oldDocumentPath = patentCheck[0].document;
+    const oldFacultyId = patentCheck[0].faculty_id;
 
-  const query = "DELETE FROM faculty_patents WHERE patent_id = ?";
-  pool.query(query, [patent_id], (err, result) => {
-    if (err) {
-      console.error("Error deleting patent:", err);
-      return res.status(500).json({ message: "Internal Server Error" });
+    // Delete old file if a new file is being uploaded
+    if (req.file && oldDocumentPath) {
+      try {
+        fs.unlinkSync(oldDocumentPath);
+        userActionLogger.info(`Deleted old document file: ${oldDocumentPath}`);
+      } catch (fileErr) {
+        errorLogger.error(
+          `Error deleting old patent document ${oldDocumentPath}: ${fileErr.message}`
+        );
+        // Continue with update even if file deletion fails
+      }
     }
+
+    // Handle faculty_id change - move file to new faculty directory if needed
+    let newDocumentPath = req.file ? req.file.path : oldDocumentPath;
+    if (req.file && faculty_id && faculty_id !== oldFacultyId) {
+      const newDirectory = path.join("public", "Faculty", "Patents", faculty_id);
+      fs.mkdirSync(newDirectory, { recursive: true });
+      
+      const newPath = path.join(newDirectory, path.basename(req.file.path));
+      fs.renameSync(req.file.path, newPath);
+      newDocumentPath = newPath;
+    }
+
+    // Update the patent
+    const [result] = await promisePool.query(
+      `UPDATE faculty_patents
+       SET faculty_id = ?, patent_name = ?, inventors_name = ?, patent_publish = ?, 
+           patent_award_date = ?, patent_number = ?, patent_awarding_agency = ?,
+           document = ?
+       WHERE patent_id = ?`,
+      [
+        faculty_id,
+        patent_name,
+        inventors_name,
+        patent_publish,
+        patent_award_date || null,
+        patent_number,
+        patent_awarding_agency,
+        newDocumentPath,
+        patent_id,
+      ]
+    );
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Patent not found" });
     }
 
+    userActionLogger.info(`Updated patent ID: ${patent_id}`);
+    res.status(200).json({ message: "Patent updated successfully" });
+  } catch (err) {
+    errorLogger.error(`Error updating patent ${patent_id}: ${err.message}`);
+    
+    // Clean up newly uploaded file if update failed
+    if (req.file) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (cleanupErr) {
+        errorLogger.error(
+          `Error cleaning up uploaded file after failed update: ${cleanupErr.message}`
+        );
+      }
+    }
+    
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Delete patent
+export const deleteFacultyPatent = async (req, res) => {
+  const { patent_id, faculty_id } = req.body;
+  
+  try {
+    // First get the document path if it exists
+    const [patent] = await promisePool.query(
+      "SELECT document FROM faculty_patents WHERE patent_id = ?",
+      [patent_id]
+    );
+
+    // Delete the patent record
+    const [result] = await promisePool.query(
+      "DELETE FROM faculty_patents WHERE patent_id = ?",
+      [patent_id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Patent not found" });
+    }
+
+    // Delete the associated file if it exists
+    if (patent[0]?.document) {
+      try {
+        fs.unlinkSync(patent[0].document);
+      } catch (fileErr) {
+        errorLogger.error(
+          `Error deleting patent document ${patent[0].document}: ${fileErr.message}`
+        );
+      }
+    }
+
+    userActionLogger.info(`Deleted patent ID: ${patent_id}`);
     res.status(200).json({ message: "Patent deleted successfully" });
-  });
+  } catch (err) {
+    errorLogger.error(`Error deleting patent ${patent_id}: ${err.message}`);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };
 
 // ✅ GET all faculty qualifications or specific faculty qualification

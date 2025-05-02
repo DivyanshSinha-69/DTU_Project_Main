@@ -37,8 +37,8 @@ import {
   updateBtechEducationDetails,
 
   getAcknowledgement,
-
   updateLastSeen,
+  
   studentLogin,
   studentRefreshToken,
   verifyAuth,
