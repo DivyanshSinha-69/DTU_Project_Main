@@ -20,7 +20,7 @@ const Student = () => {
   const [isOperationInProgress, setOperationInProgress] = useState(false);
   const [selectedSection, setSelectedSection] = useState("personal-details");
   const { darkMode } = useThemeContext();
-  const { department_name, role_assigned, roll_no } =
+  const { department_name, role_assigned, roll_no, student_name } =
     useSelector((state) => state.auth.user) || {};
   // Create refs for all sections
   const sectionRefs = {
@@ -74,18 +74,6 @@ const Student = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Dummy student data
-  const studentData = {
-    student_name: "Divyansh Bansal",
-    enrollment_number: "2K21/EC/81",
-    program: "B.Tech",
-    batch: "2021-2025",
-    department: "ECE",
-    semester: "6th",
-    cgpa: "8.5",
-    attendance: "85%",
-  };
-
   const statsData = [
     { value: 12, label: "Courses Completed" },
     { value: 3, label: "Projects" },
@@ -134,7 +122,7 @@ const Student = () => {
                 selectedItem={selectedSection}
                 onSelect={handleSidebarSelect}
                 role="student"
-                student_id={studentData.enrollment_number}
+                student_id={roll_no}
               />
             </div>
 
@@ -222,7 +210,7 @@ const Student = () => {
                         className="text-xl md:text-3xl font-semibold"
                         style={{ color: darkMode ? "#EAEAEA" : "#1F252E" }}
                       >
-                        {studentData.student_name}
+                        {student_name}
                       </h1>
 
                       {/* Divider */}

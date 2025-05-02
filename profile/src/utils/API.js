@@ -25,6 +25,11 @@ const API = axios.create({
   baseURL: BACKEND,
   withCredentials: true, // send HttpOnly cookies
 });
+// Helper function to get current role from Redux store
+const getCurrentRole = () => {
+  const state = store.getState();
+  return state.auth.role || "student"; // Default to 'student' if role not set
+};
 
 // Response interceptor: catch 401/403, refresh, then retry
 API.interceptors.response.use(
@@ -43,10 +48,14 @@ API.interceptors.response.use(
 
       if (!isRefreshing) {
         isRefreshing = true;
-
+        const currentRole = getCurrentRole();
         // Use raw axios to avoid recursion into this interceptor
         axios
-          .post(`${BACKEND}/ece/student/refresh`, {}, { withCredentials: true })
+          .post(
+            `${BACKEND}/ece/${currentRole}/refresh`,
+            {},
+            { withCredentials: true }
+          )
           .then(() => {
             isRefreshing = false;
             onRefreshed();
