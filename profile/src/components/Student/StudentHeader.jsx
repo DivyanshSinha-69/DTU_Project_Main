@@ -8,6 +8,7 @@ import { logout } from "../../redux/reducers/AuthSlice";
 import { setRole } from "../../redux/reducers/UserSlice";
 import { LogOut } from "lucide-react";
 import axios from "axios";
+import API from "../../utils/API";
 
 const StudentHeader = () => {
   const { darkMode, setDarkMode } = useThemeContext();
@@ -29,28 +30,26 @@ const StudentHeader = () => {
 
   const handleLogout = async (e) => {
     e.preventDefault();
-
     try {
-      console.log("Logging out student:", student_id);
-
-      // Make actual logout request to backend
-      await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/ece/student/logout`,
-        {}, // empty body
-        { withCredentials: true }
+      const logoutData = {};
+      let logoutUrl = `${process.env.REACT_APP_BACKEND_URL}/ece/student/logout`;
+      let response;
+      response = await API.post(
+        logoutUrl,
+        {},
+        {
+          withCredentials: true,
+        }
       );
-
-      // Clear frontend auth state
-      dispatch(logout());
-      dispatch(setRole(null));
-
-      // Redirect to login or landing page
-      navigate("/");
+      if (response.status === 200) {
+        dispatch(logout());
+        dispatch(setRole(null));
+        navigate("/");
+      } else {
+        console.error("⚠️ Logout failed:", response.data.message);
+      }
     } catch (error) {
-      console.error(
-        "Logout error:",
-        error?.response?.data?.message || error.message
-      );
+      console.error("❌ Logout error:", error.message);
     }
   };
 

@@ -29,7 +29,7 @@ const Login = () => {
     try {
       // Unified endpoint construction
       const endpoint = `${process.env.REACT_APP_BACKEND_URL}/ece/${role}/login`;
-
+      const uppercaseUserId = credentials.user_id.toUpperCase();
       // Unified payload based on role
       const payload = {
         [role === "student"
@@ -38,7 +38,7 @@ const Login = () => {
             ? "faculty_id"
             : role === "department"
               ? "department_id"
-              : "alumni_id"]: credentials.user_id,
+              : "alumni_id"]: uppercaseUserId,
         password: credentials.password,
       };
 

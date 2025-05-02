@@ -18,11 +18,61 @@ const Student = () => {
   const [loader, setLoader] = useState(true);
   const [selectedImage, setSelectedImage] = useState(null);
   const [isOperationInProgress, setOperationInProgress] = useState(false);
+  const [selectedSection, setSelectedSection] = useState("personal-details");
   const { darkMode } = useThemeContext();
+  const { department_name, role_assigned, roll_no } =
+    useSelector((state) => state.auth.user) || {};
+  // Create refs for all sections
   const sectionRefs = {
     "personal-details": useRef(null),
-    // Add other section refs as needed
+    "academic-details": useRef(null),
+    "attendance-records": useRef(null),
+    "course-registration": useRef(null),
+    "exam-results": useRef(null),
+    projects: useRef(null),
+    internships: useRef(null),
+    extracurricular: useRef(null),
   };
+
+  const sidebarItems = [
+    { id: "personal-details", label: "Personal Details" },
+    { id: "academic-details", label: "Academic Details" },
+    { id: "attendance-records", label: "Attendance Records" },
+    { id: "course-registration", label: "Course Registration" },
+    { id: "exam-results", label: "Exam Results" },
+    { id: "projects", label: "Projects" },
+    { id: "internships", label: "Internships" },
+    { id: "extracurricular", label: "Extracurricular" },
+  ];
+
+  const handleSidebarSelect = (sectionId) => {
+    setSelectedSection(sectionId);
+    sectionRefs[sectionId]?.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      let currentSection = "personal-details";
+
+      Object.keys(sectionRefs).forEach((key) => {
+        const section = sectionRefs[key]?.current;
+        if (section) {
+          const rect = section.getBoundingClientRect();
+          if (rect.top <= 150 && rect.bottom >= 150) {
+            currentSection = key;
+          }
+        }
+      });
+
+      setSelectedSection(currentSection);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Dummy student data
   const studentData = {
@@ -48,7 +98,6 @@ const Student = () => {
     setTimeout(() => setLoader(false), 1000);
   }, []);
 
-  // Dummy image upload handler
   const handleImageUploadOrUpdate = async (event) => {
     if (!event.target.files || event.target.files.length === 0) return;
 
@@ -78,17 +127,14 @@ const Student = () => {
         <>
           <StudentHeader />
           <div className="flex mt-4 min-h-screen">
-            {/* Sidebar - Simplified for student */}
+            {/* Sidebar with enhanced functionality */}
             <div className="flex-shrink-0 sticky top-0 h-screen">
               <Sidebar
-                menuItems={[
-                  { id: "details", label: "Student Details" },
-                  { id: "personal-details", label: "Personal Details" },
-                ]}
-                selectedItem="details"
+                menuItems={sidebarItems}
+                selectedItem={selectedSection}
+                onSelect={handleSidebarSelect}
                 role="student"
                 student_id={studentData.enrollment_number}
-                sectionRefs={sectionRefs}
               />
             </div>
 
@@ -194,7 +240,7 @@ const Student = () => {
                         className="text-sm md:text-base italic font-medium mt-1"
                         style={{ color: darkMode ? "#B0B3B8" : "#4A5568" }}
                       >
-                        {studentData.program}
+                        {role_assigned}
                       </h2>
 
                       {/* Additional Details */}
@@ -208,7 +254,7 @@ const Student = () => {
                           <span
                             style={{ color: darkMode ? "#EAEAEA" : "#1F252E" }}
                           >
-                            {studentData.enrollment_number}
+                            {roll_no}
                           </span>
                         </div>
                         <div className="flex justify-between md:justify-start gap-2">
@@ -220,20 +266,7 @@ const Student = () => {
                           <span
                             style={{ color: darkMode ? "#EAEAEA" : "#1F252E" }}
                           >
-                            {studentData.department}
-                          </span>
-                        </div>
-
-                        <div className="flex justify-between md:justify-start gap-2">
-                          <span
-                            style={{ color: darkMode ? "#B0B3B8" : "#6B7280" }}
-                          >
-                            CGPA:
-                          </span>
-                          <span
-                            style={{ color: darkMode ? "#EAEAEA" : "#1F252E" }}
-                          >
-                            {studentData.cgpa}
+                            {department_name}
                           </span>
                         </div>
                       </div>
@@ -273,17 +306,33 @@ const Student = () => {
                       </div>
                     </div>
                   </div>
+                </div>
+                {/* Sections with refs */}
+                <div
+                  style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
+                  ref={sectionRefs["personal-details"]}
+                  className={`pt-6 pb-3 ${isBlurActive ? "blur-effect" : ""}`}
+                >
+                  <StudentPersonalDetails setBlurActive={setBlurActive} />
+                </div>
 
-                  {/* Personal Details Section */}
-                  <div
-                    style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
-                    ref={sectionRefs["personal-details"]}
-                    className={`pt-6 pb-3 px-4 md:px-6 ${
-                      isBlurActive ? "blur-effect" : ""
-                    }`}
-                  >
-                    <StudentPersonalDetails setBlurActive={setBlurActive} />
-                  </div>
+                {/* Add other sections with their refs */}
+                <div
+                  ref={sectionRefs["academic-details"]}
+                  className="pt-6 pb-3 px-4 md:px-6"
+                >
+                  {/* Academic Details Component */}
+                  <h2 className="text-xl font-bold mb-4">Academic Details</h2>
+                  {/* Add content here */}
+                </div>
+
+                <div
+                  ref={sectionRefs["attendance-records"]}
+                  className="pt-6 pb-3 px-4 md:px-6"
+                >
+                  {/* Attendance Records Component */}
+                  <h2 className="text-xl font-bold mb-4">Attendance Records</h2>
+                  {/* Add content here */}
                 </div>
 
                 <Toaster

@@ -83,7 +83,7 @@ const FacultyHeader = () => {
       let logoutUrl = `${process.env.REACT_APP_BACKEND_URL}/ece/faculty/logout`;
       logoutData.faculty_id = faculty_id;
       let response;
-      response = await axios.post(logoutUrl, logoutData, {
+      response = await API.post(logoutUrl, logoutData, {
         withCredentials: true,
       });
       if (response.status === 200) {
