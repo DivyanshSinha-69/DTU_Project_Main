@@ -17,7 +17,8 @@ root.render(
         <Router>
           <App />
           <Analytics /> {/* Add Vercel Analytics */}
-          <SpeedInsights /> {/* Vercel Speed Insights for performance monitoring */}
+          <SpeedInsights debug={false} />{" "}
+          {/* Vercel Speed Insights for performance monitoring */}
         </Router>
       </Provider>
     </ThemeProviderWrapper>

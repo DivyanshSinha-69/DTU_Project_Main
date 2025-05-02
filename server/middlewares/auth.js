@@ -8,7 +8,8 @@ dotenv.config();
  * Middleware to authenticate token and verify user roles.
  */
 export const authenticateToken = (req, res, next) => {
-  const token = req.cookies?.accessToken || req.header("Authorization")?.split(" ")[1];
+  const token =
+    req.cookies?.accessToken || req.header("Authorization")?.split(" ")[1];
 
   if (!token) {
     errorLogger.warn("❌ No token provided!");
@@ -29,7 +30,9 @@ export const authenticateToken = (req, res, next) => {
 
     if (!decoded.position) {
       errorLogger.warn("⚠️ Position field missing in token!");
-      return res.status(403).json({ error: "Unauthorized access. No position found." });
+      return res
+        .status(403)
+        .json({ error: "Unauthorized access. No position found." });
     }
 
     req.user = decoded;
@@ -45,14 +48,20 @@ export const authorizeRoles = (...allowedRoles) => {
   return (req, res, next) => {
     if (!req.user || !req.user.position) {
       errorLogger.warn("❌ No position found in the user token!");
-      return res.status(403).json({ error: "Unauthorized access. No position found." });
+      return res
+        .status(403)
+        .json({ error: "Unauthorized access. No position found." });
     }
 
     const userRole = req.user.position.toLowerCase();
 
     if (!allowedRoles.includes(userRole)) {
-      errorLogger.error(`🚫 Access denied. Position '${userRole}' is not allowed.`);
-      return res.status(403).json({ error: "Unauthorized access. Insufficient privileges." });
+      errorLogger.error(
+        `🚫 Access denied. Position '${userRole}' is not allowed.`
+      );
+      return res
+        .status(403)
+        .json({ error: "Unauthorized access. Insufficient privileges." });
     }
 
     userActionLogger.info(`✅ Access granted to ${userRole}`);
@@ -65,26 +74,44 @@ export const authorizeByUserId = (req, res, next) => {
 
   // Collect all possible identifiers from query, params, or body
   const requestId =
-    req.query.faculty_id || req.params.faculty_id || (req.body && req.body.faculty_id) ||
-    req.query.roll_no || req.params.roll_no || (req.body && req.body.roll_no) ||
-    req.query.department_id || req.params.department_id || (req.body && req.body.department_id) ||
-    req.query.user_id || req.params.user_id || (req.body && req.body.user_id);
+    req.query.faculty_id ||
+    req.params.faculty_id ||
+    (req.body && req.body.faculty_id) ||
+    req.query.roll_no ||
+    req.params.roll_no ||
+    (req.body && req.body.roll_no) ||
+    req.query.department_id ||
+    req.params.department_id ||
+    (req.body && req.body.department_id) ||
+    req.query.user_id ||
+    req.params.user_id ||
+    (req.body && req.body.user_id);
 
   if (!requestId) {
-    errorLogger.warn("❌ Identifier (faculty_id, roll_no, or department_id) is missing in the request.");
-    return res.status(400).json({ message: "An identity (faculty_id, roll_no, or department_id) is required." });
+    errorLogger.warn(
+      "❌ Identifier (faculty_id, roll_no, or department_id) is missing in the request."
+    );
+    return res.status(400).json({
+      message:
+        "An identity (faculty_id, roll_no, or department_id) is required.",
+    });
   }
 
   // Admins are always allowed
-  if (user.position === 'admin' || requestId === user.id) {
-    userActionLogger.info(`✅ Authorized access by ${user.position} ${user.id}`);
+  if (user.position === "admin" || requestId === user.id) {
+    userActionLogger.info(
+      `✅ Authorized access by ${user.position} ${user.id}`
+    );
     return next();
   }
 
-  errorLogger.error(`🚫 Unauthorized access attempt by ${user.position} ${user.id} for id: ${requestId}`);
-  return res.status(403).json({ message: "Unauthorized access to the requested identity." });
+  errorLogger.error(
+    `🚫 Unauthorized access attempt by ${user.position} ${user.id} for id: ${requestId}`
+  );
+  return res
+    .status(403)
+    .json({ message: "Unauthorized access to the requested identity." });
 };
-
 
 /**
  * Middleware to authorize based on position + role_assigned combo.
@@ -93,14 +120,17 @@ export const authorizeByUserId = (req, res, next) => {
 export const authorizeByRoleCombo = (allowedCombos) => {
   return (req, res, next) => {
     const { position, role_assigned } = req.user || {};
-
+    console.log("User:", req.user);
     if (!position || !role_assigned) {
       errorLogger.warn("❌ Missing position or role_assigned in token.");
-      return res.status(403).json({ error: "Unauthorized: Missing role information." });
+      return res
+        .status(403)
+        .json({ error: "Unauthorized: Missing role information." });
     }
 
     const match = allowedCombos.some((combo) => {
-      const positionMatches = combo.position.toLowerCase() === position.toLowerCase();
+      const positionMatches =
+        combo.position.toLowerCase() === position.toLowerCase();
 
       const roles = Array.isArray(combo.role_assigned)
         ? combo.role_assigned.map((r) => r.toLowerCase())
@@ -110,31 +140,48 @@ export const authorizeByRoleCombo = (allowedCombos) => {
     });
 
     if (!match) {
-      errorLogger.error(`🚫 Access denied for combination: ${position} - ${role_assigned}`);
-      return res.status(403).json({ error: "Unauthorized: Insufficient privileges." });
+      errorLogger.error(
+        `🚫 Access denied for combination: ${position} - ${role_assigned}`
+      );
+      return res
+        .status(403)
+        .json({ error: "Unauthorized: Insufficient privileges." });
     }
 
-    userActionLogger.info(`✅ Access granted to ${position} - ${role_assigned}`);
+    userActionLogger.info(
+      `✅ Access granted to ${position} - ${role_assigned}`
+    );
     next();
   };
 };
 
 export const authorizeSameDepartment = (req, res, next) => {
   const { user } = req;
-  const requestedDept = req.params.department_id || req.query.department_id || req.body.department_id;
+  const requestedDept =
+    req.params.department_id ||
+    req.query.department_id ||
+    req.body.department_id;
 
   // Admins can access any department
-  if (user.position === 'admin') return next();
+  if (user.position === "admin") return next();
 
   if (!requestedDept) {
-    return res.status(400).json({ message: "department_id is required in request." });
+    return res
+      .status(400)
+      .json({ message: "department_id is required in request." });
   }
 
   if (user.department_id !== requestedDept) {
-    errorLogger.error(`🚫 Unauthorized department access by ${user.position} ${user.faculty_id || user.roll_no}`);
-    return res.status(403).json({ message: "Unauthorized. You can only access your own department's data." });
+    errorLogger.error(
+      `🚫 Unauthorized department access by ${user.position} ${user.faculty_id || user.roll_no}`
+    );
+    return res.status(403).json({
+      message: "Unauthorized. You can only access your own department's data.",
+    });
   }
 
-  userActionLogger.info(`✅ ${user.position} ${user.faculty_id || user.roll_no} accessing department: ${requestedDept}`);
+  userActionLogger.info(
+    `✅ ${user.position} ${user.faculty_id || user.roll_no} accessing department: ${requestedDept}`
+  );
   next();
 };

@@ -50,7 +50,7 @@ const CustomTable = ({
   // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = data?.slice(indexOfFirstItem, indexOfLastItem);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -146,12 +146,12 @@ const CustomTable = ({
 
           {/* Table Body */}
           <tbody>
-            {currentItems.map((row, index) => {
+            {currentItems?.map((row, index) => {
               const isLast = index === currentItems.length - 1;
               const isExpanded = expandedRow === (row.id || index);
 
               return (
-                <React.Fragment key={index || row.id}>
+                <React.Fragment key={row.id || `row-${index}`}>
                   {/* Main Row */}
                   <tr
                     className="hover:bg-opacity-10 transition-all" // Subtle hover effect
@@ -377,21 +377,25 @@ const CustomTable = ({
                                   ) : col.key === "faculties" ? (
                                     // Display faculty names in expanded view
                                     <div className="flex flex-col gap-1">
-                                      {row[col.key]?.map((facultyId) => (
-                                        <Typography
-                                          key={facultyId}
-                                          variant="small"
-                                          className="font-poppins font-normal"
-                                          style={{
-                                            color: darkMode
-                                              ? "#C9CCD1"
-                                              : "#2D3A4A",
-                                          }}
-                                        >
-                                          {facultyMapping[facultyId] ||
-                                            "Unknown Faculty"}
-                                        </Typography>
-                                      ))}
+                                      // Replace the faculty mapping section
+                                      with:
+                                      {row[col.key]?.map(
+                                        (facultyId, facultyIndex) => (
+                                          <Typography
+                                            key={`faculty-${facultyId}-${facultyIndex}`} // Combined key
+                                            variant="small"
+                                            className="font-poppins font-normal"
+                                            style={{
+                                              color: darkMode
+                                                ? "#C9CCD1"
+                                                : "#2D3A4A",
+                                            }}
+                                          >
+                                            {facultyMapping[facultyId] ||
+                                              "Unknown Faculty"}
+                                          </Typography>
+                                        )
+                                      )}
                                     </div>
                                   ) : (
                                     <Typography
@@ -434,37 +438,35 @@ const CustomTable = ({
           >
             {"<"}
           </button>
-
           {/* Page Numbers */}
-          {Array.from(
-            { length: Math.ceil(data.length / itemsPerPage) },
+          {Array?.from(
+            { length: Math.ceil(data?.length / itemsPerPage) },
             (_, i) => (
               <button
-                key={i + 1}
+                key={`page-${i + 1}`} // Add explicit key
                 onClick={() => paginate(i + 1)}
                 className={`px-4 py-1 rounded-md text-sm font-medium transition-all duration-300 ease-in-out
-          ${
-            currentPage === i + 1
-              ? darkMode
-                ? "bg-[#F0F0F0] text-black shadow-sm transform scale-100"
-                : "bg-[#333] text-white shadow-sm transform scale-100"
-              : darkMode
-                ? "bg-gray-700 text-white hover:bg-gray-600 hover:scale-100"
-                : "bg-white text-black hover:bg-gray-200 hover:scale-100"
-          }`}
+        ${
+          currentPage === i + 1
+            ? darkMode
+              ? "bg-[#F0F0F0] text-black shadow-sm transform scale-100"
+              : "bg-[#333] text-white shadow-sm transform scale-100"
+            : darkMode
+              ? "bg-gray-700 text-white hover:bg-gray-600 hover:scale-100"
+              : "bg-white text-black hover:bg-gray-200 hover:scale-100"
+        }`}
               >
                 {i + 1}
               </button>
             )
           )}
-
           {/* Next Button */}
           <button
             onClick={() => paginate(currentPage + 1)}
-            disabled={currentPage === Math.ceil(data.length / itemsPerPage)}
+            disabled={currentPage === Math.ceil(data?.length / itemsPerPage)}
             className={`px-3 py-1 rounded-md text-sm font-medium transition-all duration-300 ease-in-out
         ${
-          currentPage === Math.ceil(data.length / itemsPerPage)
+          currentPage === Math.ceil(data?.length / itemsPerPage)
             ? "text-gray-400 cursor-not-allowed"
             : darkMode
               ? "text-white hover:bg-gray-600"

@@ -39,6 +39,7 @@ import FacultyCircularPage from "./components/Teacher/CircularNotices";
 import FacultyCircular from "./components/Teacher/CircularNotices";
 import DepartmentCirculars from "./components/Department/Pages/CircularsNotices";
 import { useLocation } from "react-router-dom";
+import API from "./utils/API";
 
 const CURRENT_VERSION = "2.4"; // Change this on every deployment
 if (localStorage.getItem("appVersion") !== CURRENT_VERSION) {
@@ -67,57 +68,44 @@ function App() {
   const { role } = useSelector((state) => state.user);
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   const location = useLocation();
+  let isRefreshing = false;
 
   useEffect(() => {
-    const checkExistingSession = async () => {
-      // Skip verification if we're on a public route
+    const checkSession = async () => {
+      // 1) Skip public routes
       if (
-        PUBLIC_ROUTES.some((route) => {
-          // Handle dynamic routes like reset-password/:token
-          if (route.includes(":token")) {
-            return location.pathname.startsWith(route.split(":")[0]);
-          }
-          return route === location.pathname;
-        })
+        PUBLIC_ROUTES.some(
+          (route) =>
+            route === location.pathname ||
+            (route === "/reset-password" && location.pathname.startsWith(route))
+        )
       ) {
         return;
       }
 
-      // Skip verification if we're not authenticated
-      if (!isAuthenticated) {
-        return;
-      }
-
       try {
-        // Use role from Redux store or default to 'student'
+        // 2) This GET will hit /auth/verify - if access-token expired,
+        //    our interceptor auto‐refreshes it, then retries this verify.
         const currentRole = role || "student";
-        const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/ece/${currentRole}/verify`,
-          { withCredentials: true }
-        );
+        const { data } = await API.get(`ece/${currentRole}/verify`);
 
-        if (response.data.user) {
-          dispatch(login({ user: response.data.user }));
-          // Only update role if not already set
+        if (data.user) {
+          dispatch(login({ user: data.user }));
           if (!role) {
-            dispatch(setRole(response.data.user.position));
+            dispatch(setRole(data.user.position));
           }
         }
-      } catch (error) {
-        console.error("Session verification failed:", error);
-        if (error.response?.status === 401) {
-          dispatch(logout());
-          // Only redirect if not already on login page
-          if (!PUBLIC_ROUTES.includes(location.pathname)) {
-            navigate("/login");
-          }
+      } catch (err) {
+        // 3) On any failure (expired refresh‐token, network error…), log out
+        dispatch(logout());
+        if (!PUBLIC_ROUTES.includes(location.pathname)) {
+          navigate("/login");
         }
       }
     };
 
-    checkExistingSession();
-  }, [navigate, dispatch, role, location.pathname, isAuthenticated]);
-
+    checkSession();
+  }, [location.pathname, dispatch, navigate, role, isAuthenticated]);
   const { darkMode } = useThemeContext();
   useEffect(() => {
     document.body.style.backgroundColor = darkMode ? "#0D1117" : "#FFFFFF";
