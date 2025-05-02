@@ -49,7 +49,7 @@ const ResearchProjects = ({ setBlurActive }) => {
               Title: item.title_of_paper,
               AreaOfResearch: item.area_of_research,
               PublishedYear: item.published_year,
-              Document: item.pdf_path,
+              document: item.pdf_path,
               Citation: item.citation,
               Authors: item.authors,
             }))
@@ -127,9 +127,7 @@ const ResearchProjects = ({ setBlurActive }) => {
             Title: project.Title,
             AreaOfResearch: project.AreaOfResearch,
             PublishedYear: project.PublishedYear,
-            Document: project.pdf
-              ? { name: `Faculty\\ResearchPapers\\FAC001\\${project.pdf.name}` }
-              : null,
+            Document: project.pdf ? { name: project.pdf.name } : null,
             Citation: project.Citation,
             Authors: project.Authors,
           };
@@ -198,7 +196,7 @@ const ResearchProjects = ({ setBlurActive }) => {
           { key: "Title", label: "Title" },
           { key: "AreaOfResearch", label: "Area of Research" },
           { key: "PublishedYear", label: "Published Year" },
-          { key: "Document", label: "Document" }, // View Button for Documents
+          { key: "document", label: "Document" }, // View Button for Documents
           { key: "Citation", label: "Citation" },
           { key: "Authors", label: "Authors/Co-Authors" },
           { key: "actions", label: "Actions" },

@@ -28,7 +28,7 @@ const API = axios.create({
 // Helper function to get current role from Redux store
 const getCurrentRole = () => {
   const state = store.getState();
-  return state.auth.role || "student"; // Default to 'student' if role not set
+  return state.user.role || "student"; // Default to 'student' if role not set
 };
 
 // Response interceptor: catch 401/403, refresh, then retry
@@ -50,6 +50,7 @@ API.interceptors.response.use(
         isRefreshing = true;
         const currentRole = getCurrentRole();
         // Use raw axios to avoid recursion into this interceptor
+        console.log("Refreshing token for role:", currentRole);
         axios
           .post(
             `${BACKEND}/ece/${currentRole}/refresh`,

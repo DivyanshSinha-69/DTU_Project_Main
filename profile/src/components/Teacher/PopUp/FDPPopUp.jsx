@@ -7,15 +7,21 @@ export default function FacultyDevelopmentPopUp({
   type,
   startDate,
   endDate,
+  organizingInstitute,
+  document,
   closeModal,
   handleAddFDP,
 }) {
   const [formData, setFormData] = useState({
     programName: programName || "",
-    type: type || "Conducted", // Default to "Conducted"
+    type: type || "Conducted",
     startDate: startDate || "",
     endDate: endDate || "",
+    organizingInstitute: organizingInstitute || "",
+    documentFile: null,
   });
+
+  const [fileName, setFileName] = useState(document ? "Uploaded" : "");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,17 +31,51 @@ export default function FacultyDevelopmentPopUp({
     }));
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData((prev) => ({ ...prev, documentFile: file }));
+      setFileName(file.name);
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setFormData((prev) => ({ ...prev, documentFile: null }));
+    setFileName("");
+  };
+
   const handlePopupSubmit = async (e) => {
     e.preventDefault();
-    const { programName, type, startDate, endDate } = formData;
+    const {
+      programName,
+      type,
+      startDate,
+      endDate,
+      organizingInstitute,
+      documentFile,
+    } = formData;
 
-    if (!programName || !type || !startDate || !endDate) {
+    if (
+      !programName ||
+      !type ||
+      !startDate ||
+      !endDate ||
+      !organizingInstitute ||
+      !documentFile
+    ) {
       toast.error("Please fill in all required fields.");
       return;
     }
 
     if (handleAddFDP) {
-      handleAddFDP(formData);
+      handleAddFDP({
+        programName,
+        type,
+        startDate,
+        endDate,
+        organizingInstitute,
+        document: documentFile,
+      });
     }
     closeModal();
   };
@@ -86,6 +126,22 @@ export default function FacultyDevelopmentPopUp({
             </select>
           </div>
 
+          {/* Organizing Institute */}
+          <div className="relative z-0 w-full group">
+            <label htmlFor="organizingInstitute" className="block text-sm">
+              Organizing Institute <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              name="organizingInstitute"
+              id="organizingInstitute"
+              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={handleChange}
+              value={formData.organizingInstitute}
+              required
+            />
+          </div>
+
           {/* Start Date */}
           <div className="relative z-0 w-full group">
             <label htmlFor="startDate" className="block text-sm">
@@ -116,6 +172,34 @@ export default function FacultyDevelopmentPopUp({
               value={formData.endDate}
               required
             />
+          </div>
+
+          {/* Proof Document */}
+          <div className="relative z-0 w-full group">
+            <label htmlFor="document" className="block text-sm">
+              Proof Document <span className="text-red-500">*</span>
+            </label>
+            {fileName ? (
+              <div className="flex items-center justify-between bg-gray-800 border border-gray-300 rounded-lg p-3">
+                <span className="text-sm truncate">{fileName}</span>
+                <button
+                  type="button"
+                  onClick={handleRemoveFile}
+                  className="text-red-500 hover:text-red-400 ml-2 text-sm"
+                >
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <input
+                type="file"
+                name="document"
+                id="document"
+                className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={handleFileChange}
+                required
+              />
+            )}
           </div>
 
           {/* Red Star Explanation */}
