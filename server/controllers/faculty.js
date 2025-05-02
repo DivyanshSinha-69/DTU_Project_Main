@@ -273,300 +273,269 @@ export const deleteFacultyAssociation = (req, res) => {
   });
 };
 
-// ✅ Add Research Paper
-export const addResearchPaper = (req, res) => {
-  const {
-    faculty_id,
-    paper_type, // This comes as a text value, needs conversion to type_id
-    title_of_paper,
-    area_of_research, // This also needs conversion to id
-    published_year,
-    citation,
-    authors,
-  } = req.body;
-  const filePath = req.file ? req.file.path : null;
-
-
-  if (!faculty_id || !paper_type || !title_of_paper || !area_of_research || !published_year || !authors || !filePath) 
-    {
-      return res.status(400).json({ message: "All fields are required" });
+// Get all research papers or by faculty_id (from query or param)
+export const getResearchPapers = async (req, res) => {
+  const faculty_id = req.params.faculty_id || req.query.faculty_id;
+  try {
+    let query = `
+      SELECT frp.*, ra.area_of_research, rpt.type_name as paper_type
+      FROM faculty_research_paper frp
+      LEFT JOIN research_areas ra ON frp.area_of_research = ra.id
+      LEFT JOIN research_paper_type rpt ON frp.paper_type = rpt.type_id
+    `;
+    let params = [];
+    if (faculty_id) {
+      query += ' WHERE frp.faculty_id = ?';
+      params.push(faculty_id);
     }
-  // Step 1: Check if the faculty exists
-  pool.query(
-    "SELECT * FROM faculty_details WHERE faculty_id = ?",
-    [faculty_id],
-    (error, results) => {
-      if (error)
-        return res
-          .status(500)
-          .json({ message: "Error checking faculty details", error });
-      if (results.length === 0) {
-        return res.status(400).json({
-          message: "Faculty ID does not exist in faculty_details table",
-        });
-      }
-
-      // Step 2: Get or insert research paper type
-      pool.query(
-        "SELECT type_id FROM research_paper_type WHERE type_name = ?",
-        [paper_type],
-        (err, typeResults) => {
-          if (err) {
-            return res.status(500).json({
-              message: "Error checking research paper type",
-              error: err,
-            });
-          }
-
-          if (typeResults.length > 0) {
-            // If paper type exists, use its ID
-            handleResearchArea(typeResults[0].type_id);
-          } else {
-            // Insert new research paper type
-            pool.query(
-              "INSERT INTO research_paper_type (type_name) VALUES (?)",
-              [paper_type],
-              (insertErr, insertResult) => {
-                if (insertErr) {
-                  return res.status(500).json({
-                    message: "Error inserting new research paper type",
-                    error: insertErr,
-                  });
-                }
-                handleResearchArea(insertResult.insertId);
-              }
-            );
-          }
-        }
-      );
-
-      // Step 3: Get or insert research area
-      function handleResearchArea(paperTypeId) {
-        pool.query(
-          "SELECT id FROM research_areas WHERE area_of_research = ?",
-          [area_of_research],
-          (err, areaResults) => {
-            if (err) {
-              return res.status(500).json({
-                message: "Error checking research area",
-                error: err,
-              });
-            }
-
-            if (areaResults.length > 0) {
-              // If area exists, use its ID
-              insertResearchPaper(paperTypeId, areaResults[0].id);
-            } else {
-              // Insert new research area
-              pool.query(
-                "INSERT INTO research_areas (area_of_research) VALUES (?)",
-                [area_of_research],
-                (insertErr, insertResult) => {
-                  if (insertErr) {
-                    return res.status(500).json({
-                      message: "Error inserting new research area",
-                      error: insertErr,
-                    });
-                  }
-                  insertResearchPaper(paperTypeId, insertResult.insertId);
-                }
-              );
-            }
-          }
-        );
-      }
-
-      // Step 4: Insert research paper
-      function insertResearchPaper(paperTypeId, researchAreaId) {
-        const sql = `INSERT INTO faculty_research_paper 
-          (faculty_id, paper_type, title_of_paper, area_of_research, published_year, pdf_path, citation, authors) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-
-        pool.query(
-          sql,
-          [
-            faculty_id,
-            paperTypeId, // Using ID instead of text
-            title_of_paper,
-            researchAreaId,
-            published_year,
-            filePath,
-            citation,
-            authors,
-          ],
-          (insertError, insertResult) => {
-            if (insertError)
-              return res.status(500).json({
-                message: "Error adding research paper",
-                error: insertError,
-              });
-            res.status(201).json({
-              message: "Research paper added successfully",
-              data: insertResult,
-            });
-          }
-        );
-      }
-    }
-  );
-};
-
-// ✅ Get Research Papers by Faculty
-export const getResearchPapersByFaculty = (req, res) => {
-  const { faculty_id } = req.params;
-  const query = `
-    SELECT frp.*, ra.area_of_research, rpt.type_name as paper_type
-    FROM faculty_research_paper frp 
-    LEFT JOIN research_areas ra ON frp.area_of_research = ra.id 
-    LEFT JOIN research_paper_type rpt ON frp.paper_type = rpt.type_id
-    WHERE faculty_id = ?`;
-
-  pool.query(query, [faculty_id], (err, results) => {
-    if (err)
-      return res
-        .status(500)
-        .json({ message: "Error fetching research papers", error: err });
-    if (results.length === 0)
-      return res
-        .status(404)
-        .json({ message: "No research papers found for this faculty." });
+    const [results] = await promisePool.query(query, params);
+    userActionLogger.info(`Fetched research papers${faculty_id ? ` for faculty_id: ${faculty_id}` : ''}`);
     res.status(200).json(results);
-  });
+  } catch (err) {
+    errorLogger.error(`Error fetching research papers: ${err.message}`);
+    res.status(500).json({ message: "Error fetching research papers", error: err.message });
+  }
 };
 
-// ✅ Update Research Paper
-export const updateResearchPaper = (req, res) => {
-  const { research_id } = req.params;
+export const addResearchPaper = async (req, res) => {
+  const faculty_id = req.query.faculty_id;
+  if (!faculty_id) {
+    userActionLogger.warn("Attempt to add research paper without faculty_id");
+    return res.status(400).json({ message: "faculty_id is required" });
+  }
   const {
-    paper_type, // This is text; we need to convert it to ID
+    paper_type, // as text
     title_of_paper,
-    area_of_research, // This also needs conversion
+    area_of_research, // as text
     published_year,
     citation,
     authors,
+    name_of_publication,
+    ISSN_number,
+    Link,
+    UGC
   } = req.body;
-  const filePath = req.file ? req.file.path : null;
+  const pdf_path = req.file ? req.file.path : null;
 
-  pool.query(
-    "SELECT pdf_path FROM faculty_research_paper WHERE research_id = ?",
-    [research_id],
-    (err, result) => {
-      if (err)
-        return res.status(500).json({ message: "Error checking research paper", error: err });
-      if (result.length === 0)
-        return res.status(404).json({ message: "Research paper not found" });
+  // All fields required except citation, pdf_path is required if file upload is enforced
+  if (
+    !faculty_id ||
+    !paper_type ||
+    !title_of_paper ||
+    !area_of_research ||
+    !published_year ||
+    !authors ||
+    !name_of_publication ||
+    !ISSN_number ||
+    !Link ||
+    !UGC ||
+    !pdf_path
+  ) {
+    userActionLogger.warn(`Attempt to add research paper with missing fields by faculty_id: ${faculty_id || 'unknown'}`);
+    return res.status(400).json({ message: "All fields are required" });
+  }
 
-      const oldPdfPath = result[0].pdf_path;
-      if (filePath && oldPdfPath && fs.existsSync(oldPdfPath)) {
-        fs.unlinkSync(oldPdfPath);
-      }
-
-      // Step 1: Get or insert paper type
-      pool.query(
-        "SELECT type_id FROM research_paper_type WHERE type_name = ?",
-        [paper_type],
-        (err, typeResults) => {
-          if (err) return res.status(500).json({ message: "Error checking research paper type", error: err });
-
-          if (typeResults.length > 0) {
-            handleResearchArea(typeResults[0].type_id);
-          } else {
-            pool.query(
-              "INSERT INTO research_paper_type (type_name) VALUES (?)",
-              [paper_type],
-              (insertErr, insertResult) => {
-                if (insertErr) return res.status(500).json({ message: "Error inserting paper type", error: insertErr });
-                handleResearchArea(insertResult.insertId);
-              }
-            );
-          }
-        }
-      );
-
-      function handleResearchArea(paperTypeId) {
-        pool.query(
-          "SELECT id FROM research_areas WHERE area_of_research = ?",
-          [area_of_research],
-          (err, areaResults) => {
-            if (err) return res.status(500).json({ message: "Error checking research area", error: err });
-
-            const researchAreaId = areaResults.length > 0 ? areaResults[0].id : null;
-            const updateQuery = `
-              UPDATE faculty_research_paper 
-              SET paper_type = ?, title_of_paper = ?, area_of_research = ?, published_year = ?, citation = ?, authors = ?, pdf_path = COALESCE(?, pdf_path)
-              WHERE research_id = ?`;
-
-            pool.query(updateQuery, [paperTypeId, title_of_paper, researchAreaId, published_year, citation, authors, filePath, research_id],
-              (updateErr, updateResult) => {
-                if (updateErr) return res.status(500).json({ message: "Error updating research paper", error: updateErr });
-                res.status(200).json({ message: "Research paper updated successfully", data: updateResult });
-              }
-            );
-          }
-        );
-      }
+  try {
+    // 1. Ensure faculty exists
+    const [facultyRows] = await promisePool.query("SELECT 1 FROM faculty_details WHERE faculty_id = ?", [faculty_id]);
+    if (facultyRows.length === 0) {
+      userActionLogger.warn(`Faculty ID ${faculty_id} does not exist`);
+      return res.status(400).json({ message: "Faculty ID does not exist in faculty_details table" });
     }
-  );
+
+    // 2. Get or insert paper_type
+    let [typeRows] = await promisePool.query("SELECT type_id FROM research_paper_type WHERE type_name = ?", [paper_type]);
+    let paperTypeId;
+    if (typeRows.length > 0) {
+      paperTypeId = typeRows[0].type_id;
+    } else {
+      const [insertType] = await promisePool.query("INSERT INTO research_paper_type (type_name) VALUES (?)", [paper_type]);
+      paperTypeId = insertType.insertId;
+    }
+
+    // 3. Get or insert area_of_research
+    let [areaRows] = await promisePool.query("SELECT id FROM research_areas WHERE area_of_research = ?", [area_of_research]);
+    let researchAreaId;
+    if (areaRows.length > 0) {
+      researchAreaId = areaRows[0].id;
+    } else {
+      const [insertArea] = await promisePool.query("INSERT INTO research_areas (area_of_research) VALUES (?)", [area_of_research]);
+      researchAreaId = insertArea.insertId;
+    }
+
+    // 4. Insert research paper
+    const [result] = await promisePool.query(
+      `INSERT INTO faculty_research_paper
+      (faculty_id, paper_type, title_of_paper, area_of_research, published_year, pdf_path, citation, authors, name_of_publication, ISSN_number, Link, UGC)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        faculty_id,
+        paperTypeId,
+        title_of_paper,
+        researchAreaId,
+        published_year,
+        pdf_path,
+        citation || null,
+        authors,
+        name_of_publication,
+        ISSN_number,
+        Link,
+        UGC
+      ]
+    );
+    userActionLogger.info(`Added research paper ID: ${result.insertId} by faculty_id: ${faculty_id}`);
+    res.status(201).json({ message: "Research paper added successfully", insertId: result.insertId });
+  } catch (err) {
+    if (pdf_path && fs.existsSync(pdf_path)) fs.unlinkSync(pdf_path);
+    errorLogger.error(`Error adding research paper: ${err.message}`);
+    res.status(500).json({ message: "Error adding research paper", error: err.message });
+  }
 };
 
-// ✅ Delete Research Paper
-export const deleteResearchPaper = (req, res) => {
+export const updateResearchPaper = async (req, res) => {
+  const faculty_id = req.query.faculty_id;
+  if (!faculty_id) {
+    userActionLogger.warn("Attempt to update research paper without faculty_id");
+    return res.status(400).json({ message: "faculty_id is required" });
+  }
+  const { research_id } = req.params;
+  const {
+    paper_type,
+    title_of_paper,
+    area_of_research,
+    published_year,
+    citation,
+    authors,
+    name_of_publication,
+    ISSN_number,
+    Link,
+    UGC
+  } = req.body;
+  const pdf_path = req.file ? req.file.path : null;
+
+  // All fields required except citation, pdf_path optional
+  if (
+    !paper_type ||
+    !title_of_paper ||
+    !area_of_research ||
+    !published_year ||
+    !authors ||
+    !name_of_publication ||
+    !ISSN_number ||
+    !Link ||
+    !UGC
+  ) {
+    userActionLogger.warn(`Attempt to update research paper ${research_id} with missing fields`);
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  try {
+    // 1. Get old pdf_path for possible deletion
+    const [oldRows] = await promisePool.query("SELECT pdf_path FROM faculty_research_paper WHERE research_id = ?", [research_id]);
+    if (oldRows.length === 0) {
+      userActionLogger.warn(`No research paper found with research_id: ${research_id} for update`);
+      return res.status(404).json({ message: "Research paper not found" });
+    }
+    const oldPdfPath = oldRows[0].pdf_path;
+
+    // 2. Get or insert paper_type
+    let [typeRows] = await promisePool.query("SELECT type_id FROM research_paper_type WHERE type_name = ?", [paper_type]);
+    let paperTypeId;
+    if (typeRows.length > 0) {
+      paperTypeId = typeRows[0].type_id;
+    } else {
+      const [insertType] = await promisePool.query("INSERT INTO research_paper_type (type_name) VALUES (?)", [paper_type]);
+      paperTypeId = insertType.insertId;
+    }
+
+    // 3. Get or insert area_of_research
+    let [areaRows] = await promisePool.query("SELECT id FROM research_areas WHERE area_of_research = ?", [area_of_research]);
+    let researchAreaId;
+    if (areaRows.length > 0) {
+      researchAreaId = areaRows[0].id;
+    } else {
+      const [insertArea] = await promisePool.query("INSERT INTO research_areas (area_of_research) VALUES (?)", [area_of_research]);
+      researchAreaId = insertArea.insertId;
+    }
+
+    // 4. Update research paper
+    const [result] = await promisePool.query(
+      `UPDATE faculty_research_paper
+      SET paper_type = ?, title_of_paper = ?, area_of_research = ?, published_year = ?, citation = ?, authors = ?, name_of_publication = ?, ISSN_number = ?, Link = ?, UGC = ?, pdf_path = COALESCE(?, pdf_path)
+      WHERE research_id = ?`,
+      [
+        paperTypeId,
+        title_of_paper,
+        researchAreaId,
+        published_year,
+        citation || null,
+        authors,
+        name_of_publication,
+        ISSN_number,
+        Link,
+        UGC,
+        pdf_path,
+        research_id
+      ]
+    );
+    if (result.affectedRows === 0) {
+      userActionLogger.warn(`No research paper found with research_id: ${research_id} for update`);
+      return res.status(404).json({ message: "No research paper found with the given research_id" });
+    }
+
+    // Delete old PDF if new uploaded
+    if (pdf_path && oldPdfPath && fs.existsSync(oldPdfPath)) {
+      fs.unlinkSync(oldPdfPath);
+    }
+
+    userActionLogger.info(`Updated research paper ID: ${research_id}`);
+    res.status(200).json({ message: "Research paper updated successfully" });
+  } catch (err) {
+    if (pdf_path && fs.existsSync(pdf_path)) fs.unlinkSync(pdf_path);
+    errorLogger.error(`Error updating research paper ${research_id}: ${err.message}`);
+    res.status(500).json({ message: "Error updating research paper", error: err.message });
+  }
+};
+
+export const deleteResearchPaper = async (req, res) => {
+  const faculty_id = req.query.faculty_id;
+  if (!faculty_id) {
+    userActionLogger.warn("Attempt to delete research paper without faculty_id");
+    return res.status(400).json({ message: "faculty_id is required" });
+  }
   const { research_id } = req.params;
 
-  pool.query(
-    "SELECT pdf_path FROM faculty_research_paper WHERE research_id = ?",
-    [research_id],
-    (err, result) => {
-      if (err) {
-        return res.status(500).json({
-          message: "Error retrieving the research paper",
-          error: err,
-        });
-      }
-      if (result.length === 0) {
-        return res.status(404).json({
-          message: "No research paper found with the given research_id",
-        });
-      }
-
-      const pdfPath = result[0].pdf_path;
-      const deleteQuery =
-        "DELETE FROM faculty_research_paper WHERE research_id = ?";
-
-      pool.query(deleteQuery, [research_id], (err, deleteResult) => {
-        if (err) {
-          return res.status(500).json({
-            message: "Error deleting research paper from database",
-            error: err,
-          });
-        }
-        if (deleteResult.affectedRows === 0) {
-          return res.status(404).json({
-            message: "Failed to delete the research paper from the database",
-          });
-        }
-
-        // Step 1: Delete the associated PDF file if it exists
-        if (pdfPath) {
-          fs.unlink(pdfPath, (unlinkErr) => {
-            if (unlinkErr) {
-              return res.status(500).json({
-                message: "Error deleting the PDF file",
-                error: unlinkErr,
-              });
-            }
-            res
-              .status(200)
-              .json({ message: "Research paper and PDF deleted successfully" });
-          });
-        } else {
-          res.status(200).json({
-            message: "Research paper deleted successfully, no PDF file to remove",
-          });
-        }
-      });
+  try {
+    const [rows] = await promisePool.query("SELECT pdf_path FROM faculty_research_paper WHERE research_id = ?", [research_id]);
+    if (rows.length === 0) {
+      userActionLogger.warn(`No research paper found with research_id: ${research_id} for deletion`);
+      return res.status(404).json({ message: "No research paper found with the given research_id" });
     }
-  );
+    const pdfPath = rows[0].pdf_path;
+
+    const [result] = await promisePool.query("DELETE FROM faculty_research_paper WHERE research_id = ?", [research_id]);
+    if (result.affectedRows === 0) {
+      userActionLogger.warn(`Failed to delete research paper with research_id: ${research_id}`);
+      return res.status(404).json({ message: "Failed to delete the research paper from the database" });
+    }
+
+    // Delete associated PDF file if it exists
+    if (pdfPath && fs.existsSync(pdfPath)) {
+      try {
+        fs.unlinkSync(pdfPath);
+        userActionLogger.info(`Deleted PDF file for research paper ID: ${research_id}`);
+      } catch (unlinkErr) {
+        errorLogger.error(`Error deleting PDF file for research paper ${research_id}: ${unlinkErr.message}`);
+        return res.status(500).json({ message: "Error deleting the PDF file", error: unlinkErr.message });
+      }
+    }
+
+    userActionLogger.info(`Deleted research paper ID: ${research_id}`);
+    res.status(200).json({ message: "Research paper deleted successfully" });
+  } catch (err) {
+    errorLogger.error(`Error deleting research paper ${research_id}: ${err.message}`);
+    res.status(500).json({ message: "Error deleting research paper", error: err.message });
+  }
 };
 
 

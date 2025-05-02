@@ -28,7 +28,7 @@ import {
   updateFacultyAssociation,
   deleteFacultyAssociation,
   addResearchPaper,
-  getResearchPapersByFaculty,
+  getResearchPapers,
   updateResearchPaper,
   deleteResearchPaper,
   getFDPRecords,
@@ -114,13 +114,14 @@ router.put("/facultyassociation/:faculty_id", authorizeRoles("faculty"), updateF
 router.delete("/facultyassociation/:faculty_id", authorizeRoles("faculty"), deleteFacultyAssociation);
 
 // Research Paper Route
-router.get("/researchpaper/:faculty_id", authorizeRoles("faculty"), getResearchPapersByFaculty);
-router.post("/researchpaper", authorizeRoles("faculty"), uploadResearchPaper, compressUploadedFile, addResearchPaper);
-router.put("/researchpaper/:research_id", authorizeRoles("faculty"), uploadResearchPaper, compressUploadedFile, updateResearchPaper);
-router.delete("/researchpaper/:research_id", authorizeRoles("faculty"), deleteResearchPaper);
+router.get("/researchpaper/all", facultyAccessMiddleware, getResearchPapers);
+router.get("/researchpaper", authorizeByUserId, facultyAccessMiddleware, getResearchPapers);
+router.post("/researchpaper", authorizeByUserId, facultyAccessMiddleware, uploadResearchPaper, compressUploadedFile, addResearchPaper);
+router.put("/researchpaper/:research_id", authorizeByUserId, facultyAccessMiddleware, uploadResearchPaper, compressUploadedFile, updateResearchPaper);
+router.delete("/researchpaper/:research_id", authorizeByUserId, facultyAccessMiddleware, deleteResearchPaper);
 
 // FDP routes
-router.get("/fdp-records/all", authorizeByUserId, facultyAccessMiddleware, getFDPRecords);
+router.get("/fdp-records/all", facultyAccessMiddleware, getFDPRecords);
 router.get("/fdp-records", authorizeByUserId, facultyAccessMiddleware, getFDPRecords);
 router.post("/fdp-records", authorizeByUserId, facultyAccessMiddleware, uploadFDPDocument, addFDPRecord);
 router.put("/fdp-records/:FDP_id", authorizeByUserId, facultyAccessMiddleware, uploadFDPDocument, updateFDPRecord);
@@ -139,11 +140,11 @@ router.put("/interaction_type/:interaction_id", authorizeRoles("faculty"), updat
 router.delete("/interaction_type/:interaction_id", authorizeRoles("faculty"), deleteInteractionType);
 
 // Book routes
-router.get("/books/all", authorizeRoles("faculty"), getBookRecords);
-router.get("/books", authorizeRoles("faculty"), getBookRecords);
-router.post("/books", authorizeRoles("faculty"), addBookRecord);
-router.put("/books/:Book_id", authorizeRoles("faculty"), updateBookRecord);
-router.delete("/books/:Book_id", authorizeRoles("faculty"), deleteBookRecord);
+router.get("/books/all", facultyAccessMiddleware, getBookRecords);
+router.get("/books", authorizeByUserId, facultyAccessMiddleware, getBookRecords);
+router.post("/books", authorizeByUserId, facultyAccessMiddleware, addBookRecord);
+router.put("/books/:Book_id", authorizeByUserId, facultyAccessMiddleware, updateBookRecord);
+router.delete("/books/:Book_id", authorizeByUserId, facultyAccessMiddleware, deleteBookRecord);
 
 // PHD awarded routes
 router.get("/guidance", authorizeRoles("faculty"), getFacultyGuidanceRecords);
