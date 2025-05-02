@@ -69,6 +69,8 @@ import {
   checkFileReceived,
   uploadPlacementDoc } from "../config/studentMulterConfig.js";
 
+import { parseMultipartFields } from "../middlewares/parseMultipartFields.js";
+
 const router = express.Router();
 
 // Route for student login
@@ -84,7 +86,7 @@ router.post("/resetpassword/:token", resetStudentPassword);
 // Route for student details
 router.get("/details", authenticateToken, authorizeByUserId, studentAccessMiddleware, getStudentDetails);
 router.post("/details/", authenticateToken, authorizeByUserId, studentAccessMiddleware, addStudentDetails);
-router.put("/details/:roll_no", authenticateToken, authorizeByUserId, studentAccessMiddleware, updateStudentDetails);
+router.put("/details/:roll_no", authenticateToken, parseMultipartFields, authorizeByUserId, studentAccessMiddleware, updateStudentDetails);
 router.delete("/details/:roll_no", authenticateToken, authorizeByUserId, studentAccessMiddleware, deleteStudentDetails);
 
 

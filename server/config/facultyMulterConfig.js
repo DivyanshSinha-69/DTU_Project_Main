@@ -158,11 +158,10 @@ const facultyPatentStorage = multer.diskStorage({
 // Multer Storage for FDP Documents
 const facultyFDPStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const { faculty_id } = req.body;
+    const faculty_id = req.query.faculty_id;
     if (!faculty_id) {
       return cb(new Error("Faculty ID is required for FDP upload"), null);
     }
-
     const uploadPath = path.join("public", "Faculty", "FDP", faculty_id);
     fs.mkdirSync(uploadPath, { recursive: true });
     cb(null, uploadPath);

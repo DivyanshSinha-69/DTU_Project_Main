@@ -91,6 +91,9 @@ import {
   facultyVerifyAuth,
 } from "../controllers/faculty.js";
 
+import { parseMultipartFields } from "../middlewares/parseMultipartFields.js";
+
+
 const router = express.Router();
 
 router.post("/login", facultyLogin);
@@ -157,38 +160,11 @@ router.delete(
 );
 
 // FDP routes
-router.get(
-  "/fdp-records/all",
-  authorizeByUserId,
-  facultyAccessMiddleware,
-  getFDPRecords
-);
-router.get(
-  "/fdp-records",
-  authorizeByUserId,
-  facultyAccessMiddleware,
-  getFDPRecords
-);
-router.post(
-  "/fdp-records",
-  authorizeByUserId,
-  facultyAccessMiddleware,
-  uploadFDPDocument,
-  addFDPRecord
-);
-router.put(
-  "/fdp-records/:FDP_id",
-  authorizeByUserId,
-  facultyAccessMiddleware,
-  uploadFDPDocument,
-  updateFDPRecord
-);
-router.delete(
-  "/fdp-records/:FDP_id",
-  authorizeByUserId,
-  facultyAccessMiddleware,
-  deleteFDPRecord
-);
+router.get("/fdp-records/all", authorizeByUserId, facultyAccessMiddleware, getFDPRecords);
+router.get("/fdp-records", authorizeByUserId, facultyAccessMiddleware, getFDPRecords);
+router.post("/fdp-records", authorizeByUserId, facultyAccessMiddleware, uploadFDPDocument, addFDPRecord);
+router.put("/fdp-records/:FDP_id", authorizeByUserId, facultyAccessMiddleware, uploadFDPDocument, updateFDPRecord);
+router.delete("/fdp-records", authorizeByUserId, facultyAccessMiddleware, deleteFDPRecord);
 
 // Interaction routes
 router.get(
