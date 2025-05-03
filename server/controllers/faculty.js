@@ -1191,7 +1191,6 @@ export const addBookRecord = async (req, res) => {
   if (
     !ISBN ||
     !faculty_id ||
-    !book_chapter ||
     !chapter_title ||
     !affiliated ||
     !link_doi ||
@@ -1211,7 +1210,7 @@ export const addBookRecord = async (req, res) => {
       [
         ISBN,
         faculty_id,
-        book_chapter,
+        book_chapter || null,
         chapter_title,
         affiliated,
         link_doi,
@@ -1253,7 +1252,6 @@ export const updateBookRecord = async (req, res) => {
   if (
     !ISBN ||
     !faculty_id ||
-    !book_chapter ||
     !chapter_title ||
     !affiliated ||
     !link_doi ||
@@ -1273,7 +1271,7 @@ export const updateBookRecord = async (req, res) => {
       [
         ISBN,
         faculty_id,
-        book_chapter,
+        book_chapter || null,
         chapter_title,
         affiliated,
         link_doi,
@@ -2873,7 +2871,7 @@ export const getUserDutyOrders = (req, res) => {
     `;
 
     const studentQuery = `
-      SELECT order_number, RollNo 
+      SELECT order_number, roll_no 
       FROM mapping_duty_orders_students
       WHERE order_number IN (?);
     `;
@@ -2904,7 +2902,7 @@ export const getUserDutyOrders = (req, res) => {
         });
 
         studentResults.forEach((row) => {
-          studentMap[row.order_number].push(row.RollNo);
+          studentMap[row.order_number].push(row.roll_no);
         });
 
         // Attach faculty and student lists to each order
