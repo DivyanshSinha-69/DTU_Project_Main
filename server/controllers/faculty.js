@@ -1191,7 +1191,7 @@ export const addBookRecord = async (req, res) => {
   if (
     !ISBN ||
     !faculty_id ||
-    !chapter_title ||
+    !book_chapter ||
     !affiliated ||
     !link_doi ||
     !book_title ||
@@ -1210,8 +1210,8 @@ export const addBookRecord = async (req, res) => {
       [
         ISBN,
         faculty_id,
-        book_chapter || null,
-        chapter_title,
+        book_chapter,
+        chapter_title || null,
         affiliated,
         link_doi,
         book_title,
@@ -1252,7 +1252,7 @@ export const updateBookRecord = async (req, res) => {
   if (
     !ISBN ||
     !faculty_id ||
-    !chapter_title ||
+    !book_chapter ||
     !affiliated ||
     !link_doi ||
     !book_title ||
@@ -1271,8 +1271,8 @@ export const updateBookRecord = async (req, res) => {
       [
         ISBN,
         faculty_id,
-        book_chapter || null,
-        chapter_title,
+        book_chapter,
+        chapter_title || null,
         affiliated,
         link_doi,
         book_title,
