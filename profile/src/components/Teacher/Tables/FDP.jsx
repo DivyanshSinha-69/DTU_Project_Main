@@ -144,7 +144,9 @@ const FacultyDevelopmentProgram = ({ setBlurActive }) => {
 
   const handleDeleteFDP = async (fdpId) => {
     try {
-      const response = await API.delete(`/ece/faculty/fdp-records/${fdpId}`);
+      const response = await API.delete(`/ece/faculty/fdp-records/${fdpId}`, {
+        params: { faculty_id: facultyId },
+      });
       if (response && response.data) {
         toast.success("FDP record deleted successfully");
         setFdpDetails((prev) => prev.filter((fdp) => fdp.FDP_id !== fdpId));

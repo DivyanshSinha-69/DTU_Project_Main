@@ -709,65 +709,88 @@ const FacultyOfficeOrders = () => {
                 </div>
 
                 {/* Pagination */}
-                <div className="flex justify-center mt-4">
+                {/* Pagination with consistent styling */}
+                <div className="flex justify-center mt-3">
                   <nav className="flex items-center gap-2">
+                    {/* Previous Button */}
                     <button
                       onClick={() => paginate(currentPage - 1)}
                       disabled={currentPage === 1}
                       className={`px-3 py-1 rounded-md text-sm font-medium transition-all duration-300 ease-in-out
-                        ${
-                          currentPage === 1
-                            ? "text-gray-400 cursor-not-allowed"
-                            : darkMode
-                              ? "text-white hover:bg-gray-600"
-                              : "text-black hover:bg-gray-100"
-                        }`}
+          ${
+            currentPage === 1
+              ? "text-gray-400 cursor-not-allowed"
+              : darkMode
+                ? "text-white hover:bg-gray-600"
+                : "text-black hover:bg-gray-100"
+          }`}
                     >
                       {"<"}
                     </button>
-                    {Array.from(
+
+                    {/* Page Numbers */}
+                    {Array?.from(
                       {
-                        length: Math.ceil(filteredOrders.length / itemsPerPage),
+                        length: Math.ceil(
+                          filteredOrders?.length / itemsPerPage
+                        ),
                       },
                       (_, i) => (
                         <button
-                          key={i + 1}
+                          key={`page-${i + 1}`}
                           onClick={() => paginate(i + 1)}
-                          className={`px-4 py-1 rounded-md text-sm font-medium transition-all duration-300 ease-in-out
-                            ${
-                              currentPage === i + 1
-                                ? darkMode
-                                  ? "bg-[#F0F0F0] text-black shadow-sm transform scale-100"
-                                  : "bg-[#333] text-white shadow-sm transform scale-100"
-                                : darkMode
-                                  ? "bg-gray-700 text-white hover:bg-gray-600 hover:scale-100"
-                                  : "bg-white text-black hover:bg-gray-200 hover:scale-100"
-                            }`}
+                          className={`px-4 py-1 rounded-md text-xs font-medium transition-all duration-300 ease-in-out
+              ${
+                currentPage === i + 1
+                  ? darkMode
+                    ? "bg-gray-700 text-white shadow-sm transform scale-100"
+                    : "bg-[#F0F2F5] text-black shadow-sm transform scale-100"
+                  : darkMode
+                    ? "bg-[#161B22] text-white hover:bg-gray-600 hover:scale-100"
+                    : "bg-gray-400 text-black hover:bg-gray-200 hover:scale-100"
+              }`}
                         >
                           {i + 1}
                         </button>
                       )
                     )}
+
+                    {/* Next Button */}
                     <button
                       onClick={() => paginate(currentPage + 1)}
                       disabled={
                         currentPage ===
-                        Math.ceil(filteredOrders.length / itemsPerPage)
+                        Math.ceil(filteredOrders?.length / itemsPerPage)
                       }
                       className={`px-3 py-1 rounded-md text-sm font-medium transition-all duration-300 ease-in-out
-                        ${
-                          currentPage ===
-                          Math.ceil(filteredOrders.length / itemsPerPage)
-                            ? "text-gray-400 cursor-not-allowed"
-                            : darkMode
-                              ? "text-white hover:bg-gray-600"
-                              : "text-black hover:bg-gray-100"
-                        }`}
+          ${
+            currentPage === Math.ceil(filteredOrders?.length / itemsPerPage)
+              ? "text-gray-400 cursor-not-allowed"
+              : darkMode
+                ? "text-white hover:bg-gray-600"
+                : "text-black hover:bg-gray-100"
+          }`}
                     >
                       {">"}
                     </button>
                   </nav>
                 </div>
+                <style jsx>{`
+                  div::-webkit-scrollbar {
+                    width: 8px;
+                    height: 8px;
+                  }
+                  div::-webkit-scrollbar-track {
+                    background: ${darkMode ? "#0D1117" : "#F4F5F7"};
+                  }
+                  div::-webkit-scrollbar-thumb {
+                    background: ${darkMode ? "#2A2F36" : "#D0D3D6"};
+                    border-radius: 4px;
+                  }
+                  div::-webkit-scrollbar-thumb:hover {
+                    background: ${darkMode ? "#3B4149" : "#B0B3B8"};
+                  }
+                `}</style>
               </Card>
             )}
           </div>
