@@ -181,6 +181,29 @@ const CustomTable = ({
                     {/* Table Data */}
                     {columns.map((col) => {
                       let cellValue = row[col.key];
+                      if (col.type === "link") {
+                        return (
+                          <td key={col.key} className="p-4">
+                            {cellValue ? (
+                              <a
+                                href={cellValue}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-500 hover:underline font-poppins font-medium"
+                              >
+                                View
+                              </a>
+                            ) : (
+                              <Typography
+                                variant="small"
+                                className="font-poppins font-medium"
+                              >
+                                -
+                              </Typography>
+                            )}
+                          </td>
+                        );
+                      }
                       if (
                         col.key === "order_path" ||
                         col.key === "circular_path" ||
@@ -353,9 +376,27 @@ const CustomTable = ({
                                   >
                                     {col.label}
                                   </Typography>
-                                  {col.key === "document" ||
-                                  col.key === "order_path" ||
-                                  col.key === "circular_path" ? (
+                                  {col.type === "link" ? (
+                                    row[col.key] ? (
+                                      <a
+                                        href={row[col.key]}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-500 hover:underline font-poppins font-medium"
+                                      >
+                                        {row[col.key]}
+                                      </a>
+                                    ) : (
+                                      <Typography
+                                        variant="small"
+                                        className="font-poppins font-medium"
+                                      >
+                                        -
+                                      </Typography>
+                                    )
+                                  ) : col.key === "document" ||
+                                    col.key === "order_path" ||
+                                    col.key === "circular_path" ? (
                                     row[col.key] ? (
                                       <a
                                         href={`${process.env.REACT_APP_BACKEND_URL}/${row[col.key]}`}

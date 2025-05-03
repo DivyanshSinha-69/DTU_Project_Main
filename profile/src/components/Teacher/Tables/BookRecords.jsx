@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, Typography } from "@material-tailwind/react";
 import Popup from "reactjs-popup";
-import BookPopUp from "../PopUp/BookRecordsPopUp"; // Assuming you have a popup component for books
+import BookPopUp from "../PopUp/BookRecordsPopUp";
 import "../../../styles/popup.css";
 import editImg from "../../../assets/edit.svg";
 import addImg from "../../../assets/add.svg";
@@ -20,32 +20,39 @@ const BookRecordsPublished = ({ setBlurActive }) => {
   const { faculty_id } = user;
   const facultyId = faculty_id;
 
-  // Fetch book records from the backend
   const formatDateForInput = (isoDate) => {
-    if (!isoDate) return ""; // Handle null/undefined cases
+    if (!isoDate) return "";
     const date = new Date(isoDate);
-    return date.toLocaleDateString("en-GB"); // "dd/mm/yyyy" format
+    return date.toLocaleDateString("en-GB");
   };
+
   const fetchBookRecords = async () => {
     try {
-      const response = await API.get(`ece/faculty/books/${facultyId}`);
+      const response = await API.get(`ece/faculty/books`, {
+        params: {
+          faculty_id: facultyId,
+        },
+      });
       if (response.data.length === 0) {
         setBookDetails([]);
       } else {
         setBookDetails(
           response.data?.map((book) => ({
+            Book_id: book.Book_id,
             isbn: book.ISBN,
-            faculty_id: book.faculty_id,
-            title: book.book_title,
+            book_title: book.book_title,
+            chapter_title: book.chapter_title || "-",
             publication_name: book.publication_name,
             published_date: formatDateForInput(book.published_date),
-            Book_id: book.Book_id,
+            affiliated: book.affiliated === "yes" ? "Yes" : "No",
+            link: book.link_doi || "-",
+            book_chapter: book.book_chapter,
           }))
         );
       }
     } catch (error) {
       console.error("Error fetching book records:", error);
-      setBookDetails([]); // Fallback to empty array
+      setBookDetails([]);
     }
   };
 
@@ -58,16 +65,22 @@ const BookRecordsPublished = ({ setBlurActive }) => {
     const bookData = {
       ISBN: newBook.isbn,
       faculty_id: facultyId,
-      book_title: newBook.title,
-      publication_name: newBook.publication,
-      published_date: newBook.publishedDate,
+      book_title: newBook.book_title,
+      chapter_title: newBook.chapter_title,
+      publication_name: newBook.publication_name,
+      published_date: newBook.published_date,
+      affiliated: newBook.affiliated ? "yes" : "no",
+      link_doi: newBook.link_doi,
+      book_chapter: newBook.book_chapter,
     };
 
     try {
       if (isAddBook) {
         await API.post("ece/faculty/books", bookData);
       } else {
-        await API.put(`ece/faculty/books/${selectedBook.Book_id}`, bookData);
+        await API.put(`ece/faculty/books/${selectedBook.Book_id}`, bookData, {
+          params: { faculty_id: facultyId },
+        });
       }
       fetchBookRecords();
       closePopup();
@@ -85,9 +98,6 @@ const BookRecordsPublished = ({ setBlurActive }) => {
     }
   };
 
-  useEffect(() => {
-    fetchBookRecords(); // Fetch data on component mount
-  }, []);
   const openPopup = (book) => {
     setSelectedBook(book);
     setPopupOpen(true);
@@ -100,27 +110,42 @@ const BookRecordsPublished = ({ setBlurActive }) => {
     setBlurActive(false);
   };
 
-  const TABLE_HEAD = [
-    "ISBN No.",
-    "Book Title",
-    "Publication Name",
-    "Published Date",
-    "Actions",
-  ];
   const formatDateForInputPopup = (date) => {
+    if (!date) return "";
     const [day, month, year] = date.split("/");
-    return `${year}-${month}-${day}`; // yyyy-MM-dd
+    return `${year}-${month}-${day}`;
   };
+
   return (
     <>
       <CustomTable
         title="Book Records Published"
-        subtitle="(Details of books published)"
+        subtitle="(Details of books/chapters published)"
         columns={[
-          { key: "isbn", label: "ISBN" },
-          { key: "title", label: "Title" },
+          { key: "isbn", label: "ISBN No." },
+          {
+            key: "book_chapter",
+            label: "Book/Chapter",
+          },
+          {
+            key: "book_title",
+            label: "Book Title",
+          },
+          {
+            key: "chapter_title",
+            label: "Chapter Title",
+          },
           { key: "publication_name", label: "Publication Name" },
           { key: "published_date", label: "Published Date" },
+          {
+            key: "affiliated",
+            label: "Affiliated to DTU",
+          },
+          {
+            key: "link",
+            label: "Link/DOI",
+            type: "link",
+          },
           { key: "actions", label: "Actions" },
         ]}
         data={bookDetails}
@@ -128,12 +153,15 @@ const BookRecordsPublished = ({ setBlurActive }) => {
           edit: (book) => {
             setIsAddBook(false);
             setSelectedBook({
-              isbn: book.isbn,
-              faculty_id: book.faculty_id,
-              book_title: book.title,
-              publication_name: book.publication_name,
-              publishedDate: formatDateForInputPopup(book.published_date),
               Book_id: book.Book_id,
+              isbn: book.isbn,
+              book_title: book.book_title,
+              chapter_title: book.chapter_title,
+              publication_name: book.publication_name,
+              published_date: formatDateForInputPopup(book.published_date),
+              affiliated: book.affiliated,
+              link_doi: book.link,
+              book_chapter: book.book_chapter,
             });
             openPopup(book);
           },
@@ -156,20 +184,28 @@ const BookRecordsPublished = ({ setBlurActive }) => {
           {isAddBook ? (
             <BookPopUp
               isbn=""
-              title=""
-              publication=""
-              publishedDate=""
+              book_title=""
+              chapter_title=""
+              publication_name=""
+              published_date=""
+              affiliated={false}
+              link_doi=""
+              book_chapter="book"
               closeModal={closePopup}
               handleAddBook={handleAddBook}
             />
           ) : (
             selectedBook && (
               <BookPopUp
-                isbn={selectedBook.isbn}
-                title={selectedBook.title}
-                publication={selectedBook.publication_name}
                 Book_id={selectedBook.Book_id}
-                publishedDate={selectedBook.publishedDate}
+                isbn={selectedBook.isbn}
+                book_title={selectedBook.book_title}
+                chapter_title={selectedBook.chapter_title}
+                publication_name={selectedBook.publication_name}
+                published_date={selectedBook.published_date}
+                affiliated={selectedBook.affiliated}
+                link_doi={selectedBook.link}
+                book_chapter={selectedBook.book_chapter}
                 closeModal={closePopup}
                 handleAddBook={handleAddBook}
               />

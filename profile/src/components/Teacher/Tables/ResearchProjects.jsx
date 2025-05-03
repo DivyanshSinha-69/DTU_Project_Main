@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Card, Typography } from "@material-tailwind/react";
 import Popup from "reactjs-popup";
 import addImg from "../../../assets/add.svg";
-import editImg from "../../../assets/edit.svg"; // Import the edit icon
-import deleteImg from "../../../assets/delete.svg"; // Import the delete icon
-import ResearchProjectPopup from "../PopUp/ResearchProjectPopUp"; // Assume this popup component exists
+import editImg from "../../../assets/edit.svg";
+import deleteImg from "../../../assets/delete.svg";
+import ResearchProjectPopup from "../PopUp/ResearchProjectPopUp";
 import API from "../../../utils/API";
 import { useSelector } from "react-redux";
 import PdfModal from "../../PdfModal";
@@ -28,6 +28,10 @@ const ResearchProjects = ({ setBlurActive }) => {
     "Title of Paper",
     "Area of Research",
     "Published Year",
+    "Name of Publication",
+    "ISSN Number",
+    "UGC Care List",
+    "Journal Link",
     "Document",
     "Citation",
     "Authors/Co-Authors",
@@ -49,6 +53,10 @@ const ResearchProjects = ({ setBlurActive }) => {
               Title: item.title_of_paper,
               AreaOfResearch: item.area_of_research,
               PublishedYear: item.published_year,
+              PublicationName: item.name_of_publication,
+              ISSNNumber: item.ISSN_number,
+              UGCCareList: item.UGC,
+              JournalLink: item.Link,
               document: item.pdf_path,
               Citation: item.citation,
               Authors: item.authors,
@@ -67,7 +75,6 @@ const ResearchProjects = ({ setBlurActive }) => {
     fetchResearchProjects();
   }, [facultyId]);
 
-  // Open the popup for adding a new project or editing an existing one
   const openPopup = (project = null) => {
     setEditProject(
       project
@@ -85,7 +92,6 @@ const ResearchProjects = ({ setBlurActive }) => {
     setBlurActive(false);
   };
 
-  // Save research project (add or update)
   const saveProject = async (project) => {
     const method = editProject ? "PUT" : "POST";
     const url = editProject
@@ -98,6 +104,10 @@ const ResearchProjects = ({ setBlurActive }) => {
     formData.append("title_of_paper", project.Title);
     formData.append("area_of_research", project.AreaOfResearch);
     formData.append("published_year", project.PublishedYear);
+    formData.append("name_of_publication", project.PublicationName);
+    formData.append("ISSN_number", project.ISSNNumber);
+    formData.append("UGC", project.UGCCareList || "no"); // Default to 'no' if not provided
+    formData.append("Link", project.JournalLink);
     formData.append("citation", project.Citation);
     formData.append("authors", project.Authors);
 
@@ -111,9 +121,10 @@ const ResearchProjects = ({ setBlurActive }) => {
         method,
         headers: { "Content-Type": "multipart/form-data" },
         data: formData,
+        params: { faculty_id: facultyId },
       });
 
-      console.log("API Response:", response.data); // Debugging Log
+      console.log("API Response:", response.data);
 
       if (
         response.data.message &&
@@ -127,18 +138,20 @@ const ResearchProjects = ({ setBlurActive }) => {
             Title: project.Title,
             AreaOfResearch: project.AreaOfResearch,
             PublishedYear: project.PublishedYear,
+            PublicationName: project.PublicationName,
+            ISSNNumber: project.ISSNNumber,
+            UGCCareList: project.UGCCareList || "no",
+            JournalLink: project.JournalLink,
             Document: project.pdf ? { name: project.pdf.name } : null,
             Citation: project.Citation,
             Authors: project.Authors,
           };
 
           if (editProject) {
-            // Update existing project
             return prevDetails.map((p) =>
               p.research_id === editProject.research_id ? newProject : p
             );
           } else {
-            // Add new project
             return [...prevDetails, newProject];
           }
         });
@@ -150,7 +163,6 @@ const ResearchProjects = ({ setBlurActive }) => {
     }
   };
 
-  // Delete a research project
   const deleteProject = async (research_id) => {
     try {
       const response = await API.delete(
@@ -183,7 +195,7 @@ const ResearchProjects = ({ setBlurActive }) => {
             <ResearchProjectPopup
               closeModal={close}
               saveProject={saveProject}
-              project={editProject} // Pass the project to pre-fill the form for editing
+              project={editProject}
             />
           </div>
         )}
@@ -196,7 +208,32 @@ const ResearchProjects = ({ setBlurActive }) => {
           { key: "Title", label: "Title" },
           { key: "AreaOfResearch", label: "Area of Research" },
           { key: "PublishedYear", label: "Published Year" },
-          { key: "document", label: "Document" }, // View Button for Documents
+          { key: "PublicationName", label: "Name of Publication" },
+          { key: "ISSNNumber", label: "ISSN Number" },
+          {
+            key: "UGCCareList",
+            label: "UGC Care List",
+            render: (value) => (value === "yes" ? "Yes" : "No"),
+          },
+          {
+            key: "JournalLink",
+            label: "Journal Link",
+          },
+          {
+            key: "document",
+            label: "Document",
+            render: (value) =>
+              value ? (
+                <button
+                  onClick={() => setSelectedPdf(value)}
+                  className="text-blue-600 hover:underline"
+                >
+                  View PDF
+                </button>
+              ) : (
+                "N/A"
+              ),
+          },
           { key: "Citation", label: "Citation" },
           { key: "Authors", label: "Authors/Co-Authors" },
           { key: "actions", label: "Actions" },
@@ -209,7 +246,7 @@ const ResearchProjects = ({ setBlurActive }) => {
           },
           delete: (row) => deleteProject(row.research_id),
         }}
-        onAdd={() => openPopup()} // Opens popup when Add button is clicked
+        onAdd={() => openPopup()}
       />
       {selectedPdf && (
         <PdfModal pdfUrl={selectedPdf} onClose={() => setSelectedPdf(null)} />
