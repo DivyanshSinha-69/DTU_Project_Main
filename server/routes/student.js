@@ -19,7 +19,6 @@ import {
   updateEntrepreneurDetails,
   uploadCompanyRegCert,
   getCompanyRegCert,
-  getHigherEducationDetails,
   updateHigherEducationDetails,
   uploadofferletter,
   getOfferLetter,
@@ -54,6 +53,27 @@ import {
   addPlacement,
   updatePlacement,
   deletePlacement,
+  getAllPreviousPlacements,
+  getPreviousPlacementsByRollNo,
+  addPreviousPlacement,
+  updatePreviousPlacement,
+  deletePreviousPlacement,
+  getCurrentLocation,
+  addCurrentLocation,
+  updateCurrentLocation,
+  deleteCurrentLocation,
+  getHigherEducationDetails,
+  addHigherEducationDetail,
+  updateHigherEducationDetail,
+  deleteHigherEducationDetail,
+  getEntrepreneurshipDetails,
+  addEntrepreneurshipDetail,
+  updateEntrepreneurshipDetail,
+  deleteEntrepreneurshipDetail,
+  getPreviousEducationDetails,
+  addPreviousEducationDetail,
+  updatePreviousEducationDetail,
+  deletePreviousEducationDetail,
 } from "../controllers/student.js";
 
 import {
@@ -67,7 +87,9 @@ import { studentAccessMiddleware } from "../middlewares/sharedRoleCombos.js";
 import { 
   compressUploadedFile,
   checkFileReceived,
-  uploadPlacementDoc } from "../config/studentMulterConfig.js";
+  uploadPlacementDoc,
+  uploadHigherEduDoc,
+  uploadEntrepreneurshipDoc } from "../config/studentMulterConfig.js";
 
 import { parseMultipartFields } from "../middlewares/parseMultipartFields.js";
 
@@ -86,15 +108,46 @@ router.post("/resetpassword/:token", resetStudentPassword);
 // Route for student details
 router.get("/details", authenticateToken, authorizeByUserId, studentAccessMiddleware, getStudentDetails);
 router.post("/details/", authenticateToken, authorizeByUserId, studentAccessMiddleware, addStudentDetails);
-router.put("/details/:roll_no", authenticateToken, parseMultipartFields, authorizeByUserId, studentAccessMiddleware, updateStudentDetails);
+router.put("/details/:roll_no", authenticateToken, authorizeByUserId, studentAccessMiddleware, updateStudentDetails);
 router.delete("/details/:roll_no", authenticateToken, authorizeByUserId, studentAccessMiddleware, deleteStudentDetails);
 
 
-router.get("/placement/all", authenticateToken, authorizeByUserId, getPlacements);
-router.get("/placement", authenticateToken, authorizeByUserId, getPlacementByRollNo);
-router.post("/placement", authenticateToken, uploadPlacementDoc, compressUploadedFile, addPlacement);
-router.put("/placement/:id", authenticateToken, uploadPlacementDoc, compressUploadedFile, updatePlacement);
-router.delete("/placement/:id", authenticateToken, deletePlacement);
+router.get("/placement/all", authenticateToken, studentAccessMiddleware, getPlacements);
+router.get("/placement", authenticateToken, authorizeByUserId, studentAccessMiddleware, getPlacementByRollNo);
+router.post("/placement", authenticateToken, authorizeByUserId, studentAccessMiddleware, uploadPlacementDoc, compressUploadedFile, addPlacement);
+router.put("/placement/:id", authenticateToken, authorizeByUserId, studentAccessMiddleware, uploadPlacementDoc, compressUploadedFile, updatePlacement);
+router.delete("/placement/:id", authenticateToken, authorizeByUserId, studentAccessMiddleware, deletePlacement);
+
+// Route for previous placements
+router.get("/preplacement/all", authenticateToken, studentAccessMiddleware, getAllPreviousPlacements);
+router.get("/preplacement", authenticateToken, authorizeByUserId, studentAccessMiddleware, getPreviousPlacementsByRollNo);
+router.post("/preplacement", authenticateToken, authorizeByUserId, studentAccessMiddleware, addPreviousPlacement);
+router.put("/preplacement/:id", authenticateToken, authorizeByUserId, studentAccessMiddleware, updatePreviousPlacement);
+router.delete("/preplacement/:id", authenticateToken, authorizeByUserId, studentAccessMiddleware, deletePreviousPlacement);
+
+// Route for current location
+router.get('/curlocation', authenticateToken, authorizeByUserId, studentAccessMiddleware, getCurrentLocation);
+router.post('/curlocation', authenticateToken, authorizeByUserId, studentAccessMiddleware, addCurrentLocation);
+router.put('/curlocation/:location_id', authenticateToken, authorizeByUserId, studentAccessMiddleware, updateCurrentLocation);
+router.delete('/curlocation/:location_id', authenticateToken, authorizeByUserId, studentAccessMiddleware, deleteCurrentLocation);
+
+// Route for higher education details
+router.get("/higher-education", authenticateToken, authorizeByUserId, studentAccessMiddleware, getHigherEducationDetails);
+router.post("/higher-education", authenticateToken, authorizeByUserId, studentAccessMiddleware, uploadHigherEduDoc, compressUploadedFile, addHigherEducationDetail);
+router.put("/higher-education/:education_id", authenticateToken, authorizeByUserId, studentAccessMiddleware, uploadHigherEduDoc, compressUploadedFile, updateHigherEducationDetail);
+router.delete("/higher-education/:education_id", authenticateToken, authorizeByUserId, studentAccessMiddleware, deleteHigherEducationDetail);
+
+// Route for entrepreneurship details
+router.get("/entrepreneurship", authenticateToken, authorizeByUserId, studentAccessMiddleware, getEntrepreneurshipDetails);
+router.post("/entrepreneurship", authenticateToken, authorizeByUserId, studentAccessMiddleware, uploadEntrepreneurshipDoc, compressUploadedFile, addEntrepreneurshipDetail);
+router.put("/entrepreneurship/:entrepreneurship_id", authenticateToken, authorizeByUserId, studentAccessMiddleware, uploadEntrepreneurshipDoc, compressUploadedFile, updateEntrepreneurshipDetail);
+router.delete("/entrepreneurship/:entrepreneurship_id", authenticateToken, authorizeByUserId, studentAccessMiddleware, deleteEntrepreneurshipDetail);
+
+// Route for previous education details
+router.get("/previous-education", authenticateToken, authorizeByUserId, studentAccessMiddleware, getPreviousEducationDetails);
+router.post("/previous-education", authenticateToken, authorizeByUserId, studentAccessMiddleware, addPreviousEducationDetail);
+router.put("/previous-education/:id", authenticateToken, authorizeByUserId, studentAccessMiddleware, updatePreviousEducationDetail);
+router.delete("/previous-education/:id", authenticateToken, authorizeByUserId, studentAccessMiddleware, deletePreviousEducationDetail);
 
 
 router.get("/getall", getall);
@@ -124,7 +177,6 @@ router.put("/updateentrepreneurdetails", updateEntrepreneurDetails);
 router.post("/uploadcompanyregcert", uploadCompanyRegCert);
 router.post("/getcompanyregcert", getCompanyRegCert);
 
-router.post("/gethighereducationdetails", getHigherEducationDetails);
 router.put("/updatehighereducationdetails", updateHigherEducationDetails);
 
 router.post("/uploadofferletter", uploadofferletter);

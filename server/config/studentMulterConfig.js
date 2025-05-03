@@ -91,13 +91,14 @@ const studentResultStorage = multer.diskStorage({
 
 const placementStorage = multer.diskStorage({
     destination: (req, file, cb) => {
-      const { roll_no } = req.body;
+      const department_id = req.user?.department_id;
+      const { roll_no } = req.query || req.body;
       if (!roll_no) return cb(new Error("Roll number is required"), null);
       
       // Sanitize roll_no by replacing slashes with underscores
       const sanitizedRollNo = roll_no.replace(/\//g, '_');
       
-      const uploadPath = path.join("public", "Students", "Placements", sanitizedRollNo);
+      const uploadPath = path.join("public", department_id, "Students", "Placements", sanitizedRollNo);
       fs.mkdirSync(uploadPath, { recursive: true });
       cb(null, uploadPath);
     },
@@ -109,6 +110,49 @@ const placementStorage = multer.diskStorage({
       cb(null, uniqueFilename);
     },
   });
+
+// Storage for Higher Education Documents
+const higherEduDocStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const department_id = req.user?.department_id;
+    const { roll_no } = req.query || req.body;
+    if (!roll_no) return cb(new Error("Roll number is required"), null);
+
+    // Sanitize roll_no for folder name
+    const sanitizedRollNo = roll_no.replace(/\//g, '_');
+    const uploadPath = path.join("public", department_id, "Students", "HigherEducation", sanitizedRollNo);
+    fs.mkdirSync(uploadPath, { recursive: true });
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const timestamp = Date.now();
+    const ext = path.extname(file.originalname);
+    const baseName = path.basename(file.originalname, ext);
+    const uniqueFilename = `${baseName}_${timestamp}${ext}`;
+    cb(null, uniqueFilename);
+  },
+});
+
+const entrepreneurshipDocStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const department_id = req.user?.department_id;
+    const { roll_no } = req.query || req.body;
+    if (!roll_no) return cb(new Error("Roll number is required"), null);
+
+    // Sanitize roll_no for folder name
+    const sanitizedRollNo = roll_no.replace(/\//g, '_');
+    const uploadPath = path.join("public", department_id, "Students", "Entrepreneurship", sanitizedRollNo);
+    fs.mkdirSync(uploadPath, { recursive: true });
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const timestamp = Date.now();
+    const ext = path.extname(file.originalname);
+    const baseName = path.basename(file.originalname, ext);
+    const uniqueFilename = `${baseName}_${timestamp}${ext}`;
+    cb(null, uniqueFilename);
+  },
+});
 
 // File filter (accept only PDF, JPG, PNG)
 const fileFilter = (req, file, cb) => {
@@ -133,6 +177,20 @@ export const uploadPlacementDoc = multer({
     fileFilter: fileFilter,
     limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
   }).single("document");
+
+// Multer middleware export
+export const uploadHigherEduDoc = multer({
+  storage: higherEduDocStorage,
+  fileFilter,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+}).single("document");
+
+// Multer middleware export
+export const uploadEntrepreneurshipDoc = multer({
+  storage: entrepreneurshipDocStorage,
+  fileFilter,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+}).single("document");
 
 // Upload Middleware for Student Documents
 const uploadStudentDocument = multer({
@@ -205,5 +263,4 @@ export {
   uploadStudentResult,
   compressUploadedFile,
   checkFileReceived,
-  
 };

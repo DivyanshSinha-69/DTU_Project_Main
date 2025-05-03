@@ -949,25 +949,6 @@ export const uploadCompanyRegCert = (req, res) => {
   });
 };
 
-export const getHigherEducationDetails = (req, res) => {
-  const { rollno } = req.body;
-  const sql = "SELECT * FROM higherEducationDetails WHERE RollNo = ?";
-  pool.query(sql, [rollno], (err, results) => {
-    if (err) {
-      console.error("Error executing fetch query:", err);
-      res.status(500).json({ error: "Internal Server Error" });
-      return;
-    }
-    // Always return an array, even if it's empty
-    const user = results || [];
-
-    res.status(200).json({
-      user,
-      success: true,
-    });
-  });
-};
-
 export const updateHigherEducationDetails = (req, res) => {
   const { examName, instituteName, RollNo } = req.body;
   let sql =
@@ -2220,7 +2201,7 @@ export const addStudentDetails = async (req, res) => {
 
 // Controller to Update Student Details
 export const updateStudentDetails = async (req, res) => {
-  const { roll_no } = req.params; // Get the roll_no from request params
+  const roll_no = req.params.roll_no;
   const {
     student_name,
     father_name,
@@ -2281,7 +2262,7 @@ export const updateStudentDetails = async (req, res) => {
 
 // Controller to Delete Student
 export const deleteStudentDetails = async (req, res) => {
-  const { roll_no } = req.params; // Get the roll_no from request params
+  const { roll_no } = req.params || req.query; // Get the roll_no from request params
 
   try {
     // Check if student exists
@@ -2317,30 +2298,16 @@ export const deleteStudentDetails = async (req, res) => {
   }
 };
 
-// Utility function to log errors consistently
-const logError = (operation, error, additionalInfo = {}) => {
-  const errorInfo = {
-    operation,
-    error: error.message,
-    stack: error.stack,
-    ...additionalInfo,
-  };
-  errorLogger.error(JSON.stringify(errorInfo));
-};
-
-// 1. GET all placements
 export const getPlacements = async (req, res) => {
   try {
     const [rows] = await promisePool.query(
       `SELECT * FROM student_placement_data`
     );
-
     userActionLogger.info(`Fetched ${rows.length} placement records`, {
       action: "READ",
       table: "student_placement_data",
       count: rows.length,
     });
-
     res.status(200).json(rows);
   } catch (error) {
     logError("Fetch placements", error);
@@ -2350,7 +2317,6 @@ export const getPlacements = async (req, res) => {
 
 export const getPlacementByRollNo = async (req, res) => {
   const { roll_no } = req.query;
-  // Validate roll number exists in query
   if (!roll_no) {
     userActionLogger.warn("Missing roll number in query", {
       action: "READ",
@@ -2366,7 +2332,6 @@ export const getPlacementByRollNo = async (req, res) => {
       `SELECT * FROM student_placement_data WHERE roll_no = ?`,
       [roll_no]
     );
-
     if (rows.length === 0) {
       userActionLogger.warn("No placements found for roll number", {
         action: "READ",
@@ -2379,15 +2344,13 @@ export const getPlacementByRollNo = async (req, res) => {
         roll_no,
       });
     }
-
     userActionLogger.info("Fetched placement records by roll number", {
       action: "READ",
       table: "student_placement_data",
       roll_no,
       count: rows.length,
     });
-
-    res.status(200).json(rows); // Returns all placements for the student
+    res.status(200).json(rows);
   } catch (error) {
     logError("Fetch placements by roll_no", error, { roll_no });
     res.status(500).json({
@@ -2398,49 +2361,83 @@ export const getPlacementByRollNo = async (req, res) => {
 };
 
 export const addPlacement = async (req, res) => {
-  const { roll_no, company_name, placement_type } = req.body;
-
-  // Modified path construction to include /public/ in stored path
-  const documentPath = req.file
-    ? `/public/${req.file.path.replace(/\\/g, "/").replace("public/", "")}`
-    : null;
-
-  if (!documentPath) {
-    userActionLogger.error("Placement document missing", {
+  const { roll_no } = req.query;
+  if (!roll_no) {
+    userActionLogger.warn("Missing roll number in query", {
       action: "CREATE",
       table: "student_placement_data",
-      roll_no,
-      status: "Failed",
+      status: "Bad Request",
+      query: req.query,
+    });
+    return res.status(400).json({ error: "Roll number is required" });
+  }
+  if (!req.file) {
+    userActionLogger.warn("Missing placement document in request", {
+      action: "CREATE",
+      table: "student_placement_data",
+      status: "Bad Request",
+      query: req.query,
     });
     return res.status(400).json({ error: "Placement document is required" });
   }
+  const {
+    company_name,
+    placement_type,
+    placement_category,
+    role_name
+  } = req.body;
 
+    // Check for missing fields
+    if (
+      !company_name ||
+      !placement_type ||
+      !placement_category ||
+      !role_name
+    ) {
+      userActionLogger.warn("Missing required fields in request body", {
+        action: "CREATE",
+        table: "student_placement_data",
+        status: "Bad Request",
+        body: req.body,
+      });
+      return res.status(400).json({ error: "All fields are required." });
+    }
+
+  const documentPath = `public/${req.file.path.replace(/\\/g, "/").replace("public/", "")}`;
+  console.log("roll_no from query:", roll_no); // Should be defined
+  console.log("company_name:", company_name);
   try {
     const [result] = await promisePool.query(
       `INSERT INTO student_placement_data 
-       (roll_no, company_name, placement_type, document) 
-       VALUES (?, ?, ?, ?)`,
-      [roll_no, company_name, placement_type, documentPath]
+       (roll_no, company_name, placement_type, placement_category, role_name, document)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        roll_no,
+        company_name,
+        placement_type,
+        placement_category,
+        role_name,
+        documentPath,
+      ]
     );
-
     userActionLogger.info("Added new placement record", {
       action: "CREATE",
       table: "student_placement_data",
       placement_id: result.insertId,
       roll_no,
       company_name,
+      placement_type,
+      placement_category,
+      role_name,
       document_path: documentPath,
     });
-
     res.status(201).json({
       placement_id: result.insertId,
       message: "Placement record added successfully",
-      document_path: documentPath, // Optional: return path in response
+      document_path: documentPath,
     });
   } catch (error) {
     logError("Add placement", error, { roll_no, company_name });
-
-    // Clean up uploaded file if DB operation failed
     if (req.file?.path) {
       fs.unlink(req.file.path, (err) => {
         if (err)
@@ -2449,31 +2446,63 @@ export const addPlacement = async (req, res) => {
           );
       });
     }
-
     res.status(500).json({ error: "Failed to add placement record" });
   }
 };
 
-// 4. UPDATE placement
 export const updatePlacement = async (req, res) => {
+  const { roll_no } = req.query;
+  if (!roll_no) {
+    userActionLogger.warn("Missing roll number in query", {
+      action: "UPDATE",
+      table: "student_placement_data",
+      status: "Bad Request",
+      query: req.query,
+    });
+    return res.status(400).json({ error: "Roll number is required" });
+  }
+  if (!req.params.id) {
+    userActionLogger.warn("Missing placement ID in params", {
+      action: "UPDATE",
+      table: "student_placement_data",
+      status: "Bad Request",
+      params: req.params,
+    });
+    return res.status(400).json({ error: "Placement ID is required" });
+  }
   const { id } = req.params;
-  const { company_name, placement_type } = req.body;
+  const {
+    company_name,
+    placement_type,
+    placement_category,
+    role_name,
+  } = req.body;
   let documentPath = null;
 
-  try {
-    // Handle document update if file was uploaded
-    if (req.file) {
-      // Modified path construction to include /public/ prefix
-      documentPath = `/public/${req.file.path.replace(/\\/g, "/").replace("public/", "")}`;
+  if (
+    !company_name ||
+    !placement_type ||
+    !placement_category ||
+    !role_name
+  ) {
+    userActionLogger.warn("Missing required fields in request body", {
+      action: "CREATE",
+      table: "student_placement_data",
+      status: "Bad Request",
+      body: req.body,
+    });
+    return res.status(400).json({ error: "All fields are required." });
+  }
 
-      // Get old document path to delete it
+  try {
+    if (req.file) {
+      documentPath = `public/${req.file.path.replace(/\\/g, "/").replace("public/", "")}`;
+      // Delete old document if exists
       const [oldRecord] = await promisePool.query(
         `SELECT document FROM student_placement_data WHERE placement_id = ?`,
         [id]
       );
-
       if (oldRecord.length > 0 && oldRecord[0].document) {
-        // Remove the /public/ prefix when constructing filesystem path
         const oldFsPath = path.join(
           "public",
           oldRecord[0].document.replace("/public/", "")
@@ -2488,17 +2517,18 @@ export const updatePlacement = async (req, res) => {
       }
     }
 
+    // Build query dynamically based on whether document is updated
     const query = documentPath
       ? `UPDATE student_placement_data 
-         SET company_name = ?, placement_type = ?, document = ? 
+         SET company_name = ?, placement_type = ?, placement_category = ?, role_name = ?, document = ? 
          WHERE placement_id = ?`
       : `UPDATE student_placement_data 
-         SET company_name = ?, placement_type = ? 
+         SET company_name = ?, placement_type = ?, placement_category = ?, role_name = ?
          WHERE placement_id = ?`;
 
     const params = documentPath
-      ? [company_name, placement_type, documentPath, id]
-      : [company_name, placement_type, id];
+      ? [company_name, placement_type, placement_category, role_name, documentPath, id]
+      : [company_name, placement_type, placement_category, role_name, id];
 
     const [result] = await promisePool.query(query, params);
 
@@ -2519,6 +2549,8 @@ export const updatePlacement = async (req, res) => {
       changes: {
         company_name,
         placement_type,
+        placement_category,
+        role_name,
         document_updated: !!documentPath,
         new_document_path: documentPath || "unchanged",
       },
@@ -2526,12 +2558,10 @@ export const updatePlacement = async (req, res) => {
 
     res.status(200).json({
       message: "Placement updated successfully",
-      document_path: documentPath, // Optional: return new path if updated
+      document_path: documentPath,
     });
   } catch (error) {
     logError("Update placement", error, { placement_id: id });
-
-    // Clean up new file if update failed
     if (req.file?.path) {
       fs.unlink(req.file.path, (err) => {
         if (err)
@@ -2541,7 +2571,6 @@ export const updatePlacement = async (req, res) => {
           });
       });
     }
-
     res.status(500).json({
       error: "Failed to update placement record",
       details:
@@ -2551,9 +2580,27 @@ export const updatePlacement = async (req, res) => {
 };
 
 export const deletePlacement = async (req, res) => {
+  const { roll_no } = req.query;
+  if (!roll_no) {
+    userActionLogger.warn("Missing roll number in query", {
+      action: "DELETE",
+      table: "student_placement_data",
+      status: "Bad Request",
+      query: req.query,
+    });
+    return res.status(400).json({ error: "Roll number is required" });
+  }
+  if (!req.params.id) {
+    userActionLogger.warn("Missing placement ID in params", {
+      action: "DELETE",
+      table: "student_placement_data",
+      status: "Bad Request",
+      params: req.params,
+    });
+    return res.status(400).json({ error: "Placement ID is required" });
+  }
   const { id } = req.params;
   try {
-    // First get the document path to delete the file
     const [record] = await promisePool.query(
       `SELECT document, roll_no FROM student_placement_data WHERE placement_id = ?`,
       [id]
@@ -2577,10 +2624,7 @@ export const deletePlacement = async (req, res) => {
         const sanitizedPath = record[0].document.startsWith("/public/")
           ? record[0].document.substring("/public/".length)
           : record[0].document;
-
         const filePath = path.join("public", sanitizedPath);
-
-        // Use synchronous unlink for better error handling
         if (fs.existsSync(filePath)) {
           fs.unlinkSync(filePath);
           userActionLogger.info("Deleted placement document file", {
@@ -2650,5 +2694,833 @@ export const deletePlacement = async (req, res) => {
       details:
         process.env.NODE_ENV === "development" ? error.message : undefined,
     });
+  }
+};
+
+export const getAllPreviousPlacements = async (req, res) => {
+  try {
+    const [rows] = await promisePool.query(
+      `SELECT * FROM student_previous_placement_data`
+    );
+    userActionLogger.info(`Fetched ${rows.length} previous placement records`, {
+      action: "READ",
+      table: "student_previous_placement_data",
+      count: rows.length,
+    });
+    res.status(200).json(rows);
+  } catch (error) {
+    logError("Fetch all previous placements", error);
+    res.status(500).json({ error: "Failed to fetch previous placements" });
+  }
+};
+
+export const getPreviousPlacementsByRollNo = async (req, res) => {
+  const { roll_no } = req.query;
+  if (!roll_no) {
+    userActionLogger.warn("Missing roll number in query", {
+      action: "READ",
+      table: "student_previous_placement_data",
+      status: "Bad Request",
+      query: req.query,
+    });
+    return res.status(400).json({ error: "Roll number is required" });
+  }
+
+  try {
+    const [rows] = await promisePool.query(
+      `SELECT * FROM student_previous_placement_data WHERE roll_no = ?`,
+      [roll_no]
+    );
+    if (rows.length === 0) {
+      userActionLogger.warn("No previous placements found for roll number", {
+        action: "READ",
+        table: "student_previous_placement_data",
+        roll_no,
+        status: "Not Found",
+      });
+      return res.status(404).json({
+        error: "No previous placement records found for this student",
+        roll_no,
+      });
+    }
+    userActionLogger.info("Fetched previous placement records by roll number", {
+      action: "READ",
+      table: "student_previous_placement_data",
+      roll_no,
+      count: rows.length,
+    });
+    res.status(200).json(rows);
+  } catch (error) {
+    logError("Fetch previous placements by roll_no", error, { roll_no });
+    res.status(500).json({
+      error: "Failed to fetch previous placement records",
+      roll_no,
+    });
+  }
+};
+
+export const addPreviousPlacement = async (req, res) => {
+  const { roll_no } = req.query;
+  const {
+    company_name,
+    placement_type,
+    placement_category,
+    role_name,
+  } = req.body;
+
+  // Check for missing fields
+  if (
+    !company_name ||
+    !placement_type ||
+    !placement_category ||
+    !role_name
+  ) {
+    userActionLogger.warn("Missing required fields in request body", {
+      action: "CREATE",
+      table: "student_previous_placement_data",
+      status: "Bad Request",
+      body: req.body,
+    });
+    return res.status(400).json({ error: "All fields are required." });
+  }
+
+  try {
+    const [result] = await promisePool.query(
+      `INSERT INTO student_previous_placement_data 
+       (roll_no, company_name, placement_type, placement_category, role_name)
+       VALUES (?, ?, ?, ?, ?)`,
+      [
+        roll_no,
+        company_name,
+        placement_type,
+        placement_category,
+        role_name,
+      ]
+    );
+    userActionLogger.info("Added new previous placement record", {
+      action: "CREATE",
+      table: "student_previous_placement_data",
+      placement_id: result.insertId,
+      roll_no,
+      company_name,
+      placement_type,
+      placement_category,
+      role_name,
+    });
+    res.status(201).json({
+      placement_id: result.insertId,
+      message: "Previous placement record added successfully",
+    });
+  } catch (error) {
+    logError("Add previous placement", error, { roll_no, company_name });
+    res.status(500).json({ error: "Failed to add previous placement record" });
+  }
+};
+
+export const updatePreviousPlacement = async (req, res) => {
+  const { roll_no } = req.query;
+  if (!roll_no) {
+    userActionLogger.warn("Missing roll number in query", {
+      action: "UPDATE",
+      table: "student_previous_placement_data",
+      status: "Bad Request",
+      query: req.query,
+    });
+    return res.status(400).json({ error: "Roll number is required" });
+  }
+  const { id } = req.params;
+  const {
+    company_name,
+    placement_type,
+    placement_category,
+    role_name,
+  } = req.body;
+
+  // Check for missing fields
+  if (
+    !company_name ||
+    !placement_type ||
+    !placement_category ||
+    !role_name
+  ) {
+    userActionLogger.warn("Missing required fields in request body", {
+      action: "UPDATE",
+      table: "student_previous_placement_data",
+      status: "Bad Request",
+      body: req.body,
+    });
+    return res.status(400).json({ error: "All fields are required." });
+  }
+
+  const query = `
+    UPDATE student_previous_placement_data
+    SET company_name = ?, placement_type = ?, placement_category = ?, role_name = ?
+    WHERE placement_id = ? AND roll_no = ?
+  `;
+  const params = [
+    company_name,
+    placement_type,
+    placement_category,
+    role_name,
+    id,
+    roll_no,
+  ];
+
+  try {
+    const [result] = await promisePool.query(query, params);
+
+    if (result.affectedRows === 0) {
+      userActionLogger.warn("Previous placement update failed - record not found", {
+        action: "UPDATE",
+        table: "student_previous_placement_data",
+        placement_id: id,
+        status: "Not Found",
+      });
+      return res.status(404).json({ error: "Previous placement record not found" });
+    }
+
+    userActionLogger.info("Updated previous placement record", {
+      action: "UPDATE",
+      table: "student_previous_placement_data",
+      placement_id: id,
+      changes: { company_name, placement_type, placement_category, role_name },
+    });
+
+    res.status(200).json({
+      message: "Previous placement updated successfully",
+    });
+  } catch (error) {
+    logError("Update previous placement", error, { placement_id: id });
+    res.status(500).json({
+      error: "Failed to update previous placement record",
+      details: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+};
+
+
+export const deletePreviousPlacement = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [result] = await promisePool.query(
+      `DELETE FROM student_previous_placement_data WHERE placement_id = ?`,
+      [id]
+    );
+
+    if (result.affectedRows === 0) {
+      userActionLogger.warn("Previous placement deletion failed - record not found", {
+        action: "DELETE",
+        placement_id: id,
+        status: "Not Found",
+      });
+      return res.status(404).json({ error: "Previous placement record not found" });
+    }
+
+    userActionLogger.info("Deleted previous placement record", {
+      action: "DELETE",
+      placement_id: id,
+    });
+
+    res.status(200).json({
+      message: "Previous placement record deleted successfully",
+      placement_id: id,
+    });
+  } catch (error) {
+    logError("Delete previous placement", error, {
+      placement_id: id,
+      error_details: {
+        message: error.message,
+        stack: error.stack,
+      },
+    });
+
+    res.status(500).json({
+      error: "Failed to delete previous placement record",
+      placement_id: id,
+      details: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+};
+
+export const getCurrentLocation = async (req, res) => {
+  const { roll_no } = req.query;
+  if (!roll_no) {
+    userActionLogger.warn("Missing roll number in query", {
+      action: "READ",
+      table: "student_current_location",
+      status: "Bad Request",
+      query: req.query,
+    });
+    return res.status(400).json({ error: "Roll number is required" });
+  }
+  try {
+    const [rows] = await promisePool.query(
+      "SELECT * FROM student_current_location WHERE roll_no = ?",
+      [roll_no]
+    );
+    if (rows.length === 0) {
+      userActionLogger.warn("No current location found for roll number", {
+        action: "READ",
+        table: "student_current_location",
+        roll_no,
+        status: "Not Found",
+      });
+      return res.status(404).json({ error: "Current location not found for this student." });
+    }
+    userActionLogger.info("Fetched current location by roll number", {
+      action: "READ",
+      table: "student_current_location",
+      roll_no,
+    });
+    res.status(200).json(rows[0]);
+  } catch (error) {
+    logError("Fetch current location", error, { roll_no });
+    res.status(500).json({ error: "Failed to fetch current location" });
+  }
+};
+
+export const addCurrentLocation = async (req, res) => {
+  const { roll_no } = req.query;
+  const { current_city, current_country } = req.body;
+
+  if (!roll_no || !current_city || !current_country) {
+    userActionLogger.warn("Missing required fields in request", {
+      action: "CREATE",
+      table: "student_current_location",
+      status: "Bad Request",
+      query: req.query,
+      body: req.body,
+    });
+    return res.status(400).json({ error: "roll_no, current_city, and current_country are required." });
+  }
+
+  try {
+    const [result] = await promisePool.query(
+      `INSERT INTO student_current_location (roll_no, current_city, current_country)
+       VALUES (?, ?, ?)`,
+      [roll_no, current_city, current_country]
+    );
+    userActionLogger.info("Added current location", {
+      action: "CREATE",
+      table: "student_current_location",
+      location_id: result.insertId,
+      roll_no,
+      current_city,
+      current_country,
+    });
+    res.status(201).json({
+      location_id: result.insertId,
+      message: "Current location added successfully",
+    });
+  } catch (error) {
+    logError("Add current location", error, { roll_no });
+    res.status(500).json({ error: "Failed to add current location" });
+  }
+};
+
+export const updateCurrentLocation = async (req, res) => {
+  const { roll_no } = req.query;
+  const { location_id } = req.params;
+  const { current_city, current_country } = req.body;
+
+  if (!location_id) {
+    userActionLogger.warn("Missing location_id in params", {
+      action: "UPDATE",
+      table: "student_current_location",
+      status: "Bad Request",
+      params: req.params,
+    });
+    return res.status(400).json({ error: "location_id is required in params." });
+  }
+
+  if (!roll_no || !current_city || !current_country) {
+    userActionLogger.warn("Missing required fields in request", {
+      action: "UPDATE",
+      table: "student_current_location",
+      status: "Bad Request",
+      query: req.query,
+      body: req.body,
+    });
+    return res.status(400).json({ error: "roll_no, current_city, and current_country are required." });
+  }
+
+  try {
+    const [result] = await promisePool.query(
+      `UPDATE student_current_location
+       SET current_city = ?, current_country = ?
+       WHERE location_id = ? AND roll_no = ?`,
+      [current_city, current_country, location_id, roll_no]
+    );
+
+    if (result.affectedRows === 0) {
+      userActionLogger.warn("Current location update failed - record not found", {
+        action: "UPDATE",
+        table: "student_current_location",
+        location_id,
+        roll_no,
+        status: "Not Found",
+      });
+      return res.status(404).json({ error: "Current location not found for this student." });
+    }
+
+    userActionLogger.info("Updated current location", {
+      action: "UPDATE",
+      table: "student_current_location",
+      location_id,
+      roll_no,
+      current_city,
+      current_country,
+    });
+
+    res.status(200).json({ message: "Current location updated successfully" });
+  } catch (error) {
+    logError("Update current location", error, { location_id, roll_no });
+    res.status(500).json({ error: "Failed to update current location" });
+  }
+};
+
+export const deleteCurrentLocation = async (req, res) => {
+  const { roll_no } = req.query;
+  const { location_id } = req.params;
+
+  if (!location_id) {
+    userActionLogger.warn("Missing location_id in params", {
+      action: "DELETE",
+      table: "student_current_location",
+      status: "Bad Request",
+      params: req.params,
+    });
+    return res.status(400).json({ error: "location_id is required in params." });
+  }
+
+  if (!roll_no) {
+    userActionLogger.warn("Missing roll number in query", {
+      action: "DELETE",
+      table: "student_current_location",
+      status: "Bad Request",
+      query: req.query,
+    });
+    return res.status(400).json({ error: "Roll number is required" });
+  }
+
+  try {
+    const [result] = await promisePool.query(
+      `DELETE FROM student_current_location WHERE location_id = ? AND roll_no = ?`,
+      [location_id, roll_no]
+    );
+
+    if (result.affectedRows === 0) {
+      userActionLogger.warn("Current location deletion failed - record not found", {
+        action: "DELETE",
+        table: "student_current_location",
+        location_id,
+        roll_no,
+        status: "Not Found",
+      });
+      return res.status(404).json({ error: "Current location not found for this student." });
+    }
+
+    userActionLogger.info("Deleted current location", {
+      action: "DELETE",
+      table: "student_current_location",
+      location_id,
+      roll_no,
+    });
+
+    res.status(200).json({
+      message: "Current location deleted successfully",
+      location_id,
+      roll_no,
+    });
+  } catch (error) {
+    logError("Delete current location", error, { location_id, roll_no });
+    res.status(500).json({ error: "Failed to delete current location" });
+  }
+};
+
+export const getHigherEducationDetails = async (req, res) => {
+  const { roll_no } = req.query;
+  if (!roll_no) {
+    return res.status(400).json({ error: "roll_no is required in query." });
+  }
+  try {
+    const [rows] = await promisePool.query(
+      "SELECT * FROM student_higher_education_details WHERE roll_no = ?",
+      [roll_no]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "No higher education details found for this student." });
+    }
+    res.status(200).json(rows);
+  } catch (error) {
+    logError("Get higher education details", error, { roll_no });
+    res.status(500).json({ error: "Failed to fetch higher education details" });
+  }
+};
+
+export const addHigherEducationDetail = async (req, res) => {
+  const { roll_no } = req.query;
+  const { exam_name, institute_name } = req.body;
+
+  if (!roll_no || !exam_name || !institute_name) {
+    return res.status(400).json({ error: "roll_no, exam_name, and institute_name are required." });
+  }
+  if (!req.file) {
+    return res.status(400).json({ error: "Document file is required." });
+  }
+
+  const documentPath = `/public/${req.file.path.replace(/\\/g, "/").replace("public/", "")}`;
+
+  try {
+    const [result] = await promisePool.query(
+      `INSERT INTO student_higher_education_details
+       (roll_no, exam_name, institute_name, document)
+       VALUES (?, ?, ?, ?)`,
+      [roll_no, exam_name, institute_name, documentPath]
+    );
+    res.status(201).json({
+      education_id: result.insertId,
+      message: "Higher education detail added successfully",
+      document_path: documentPath,
+    });
+  } catch (error) {
+    logError("Add higher education detail", error, { roll_no, exam_name });
+    // Cleanup file if DB insert fails
+    if (req.file?.path) {
+      fs.unlink(req.file.path, () => {});
+    }
+    res.status(500).json({ error: "Failed to add higher education detail" });
+  }
+};
+
+export const updateHigherEducationDetail = async (req, res) => {
+  const { roll_no } = req.query;
+  const { education_id } = req.params;
+  const { exam_name, institute_name } = req.body;
+
+  if (!roll_no || !education_id || !exam_name || !institute_name) {
+    return res.status(400).json({ error: "roll_no (query), education_id (param), exam_name, and institute_name are required." });
+  }
+  if (!req.file) {
+    return res.status(400).json({ error: "Document file is required." });
+  }
+
+  const documentPath = `/public/${req.file.path.replace(/\\/g, "/").replace("public/", "")}`;
+
+  try {
+    // Delete old document if exists
+    const [oldRows] = await promisePool.query(
+      "SELECT document FROM student_higher_education_details WHERE education_id = ? AND roll_no = ?",
+      [education_id, roll_no]
+    );
+    if (oldRows.length > 0 && oldRows[0].document) {
+      const oldDocPath = path.join("public", oldRows[0].document.replace("/public/", ""));
+      if (fs.existsSync(oldDocPath)) fs.unlinkSync(oldDocPath);
+    }
+
+    const [result] = await promisePool.query(
+      `UPDATE student_higher_education_details
+       SET exam_name = ?, institute_name = ?, document = ?
+       WHERE education_id = ? AND roll_no = ?`,
+      [exam_name, institute_name, documentPath, education_id, roll_no]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Higher education detail not found." });
+    }
+
+    res.status(200).json({
+      message: "Higher education detail updated successfully",
+      document_path: documentPath,
+    });
+  } catch (error) {
+    logError("Update higher education detail", error, { education_id, roll_no });
+    // Cleanup new file if DB update fails
+    if (req.file?.path) {
+      fs.unlink(req.file.path, () => {});
+    }
+    res.status(500).json({ error: "Failed to update higher education detail" });
+  }
+};
+
+export const deleteHigherEducationDetail = async (req, res) => {
+  const { roll_no } = req.query;
+  const { education_id } = req.params;
+
+  if (!roll_no || !education_id) {
+    return res.status(400).json({ error: "roll_no (query) and education_id (param) are required." });
+  }
+
+  try {
+    // Delete document file if exists
+    const [rows] = await promisePool.query(
+      "SELECT document FROM student_higher_education_details WHERE education_id = ? AND roll_no = ?",
+      [education_id, roll_no]
+    );
+    if (rows.length > 0 && rows[0].document) {
+      const docPath = path.join("public", rows[0].document.replace("/public/", ""));
+      if (fs.existsSync(docPath)) fs.unlinkSync(docPath);
+    }
+
+    const [result] = await promisePool.query(
+      "DELETE FROM student_higher_education_details WHERE education_id = ? AND roll_no = ?",
+      [education_id, roll_no]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Higher education detail not found." });
+    }
+
+    res.status(200).json({
+      message: "Higher education detail deleted successfully",
+      education_id,
+    });
+  } catch (error) {
+    logError("Delete higher education detail", error, { education_id, roll_no });
+    res.status(500).json({ error: "Failed to delete higher education detail" });
+  }
+};
+
+export const getEntrepreneurshipDetails = async (req, res) => {
+  const { roll_no } = req.query;
+  if (!roll_no) {
+    return res.status(400).json({ error: "roll_no is required in query." });
+  }
+  try {
+    const [rows] = await promisePool.query(
+      "SELECT * FROM student_entrepreneurship_details WHERE roll_no = ?",
+      [roll_no]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "No entrepreneurship details found for this student." });
+    }
+    res.status(200).json(rows);
+  } catch (error) {
+    logError("Get entrepreneurship details", error, { roll_no });
+    res.status(500).json({ error: "Failed to fetch entrepreneurship details" });
+  }
+};
+
+export const addEntrepreneurshipDetail = async (req, res) => {
+  const { roll_no } = req.query;
+  const { company_name, affiliated_number, website_link } = req.body;
+
+  if (!roll_no || !company_name || !affiliated_number) {
+    return res.status(400).json({ error: "roll_no, company_name, and affiliated_number are required." });
+  }
+  if (!req.file) {
+    return res.status(400).json({ error: "Document file is required." });
+  }
+
+  const documentPath = `/public/${req.file.path.replace(/\\/g, "/").replace("public/", "")}`;
+
+  try {
+    const [result] = await promisePool.query(
+      `INSERT INTO student_entrepreneurship_details
+       (roll_no, company_name, affiliated_number, website_link, document)
+       VALUES (?, ?, ?, ?, ?)`,
+      [roll_no, company_name, affiliated_number, website_link || null, documentPath]
+    );
+    res.status(201).json({
+      entrepreneurship_id: result.insertId,
+      message: "Entrepreneurship detail added successfully",
+      document_path: documentPath,
+    });
+  } catch (error) {
+    logError("Add entrepreneurship detail", error, { roll_no, company_name });
+    // Cleanup file if DB insert fails
+    if (req.file?.path) {
+      fs.unlink(req.file.path, () => {});
+    }
+    res.status(500).json({ error: "Failed to add entrepreneurship detail" });
+  }
+};
+
+export const updateEntrepreneurshipDetail = async (req, res) => {
+  const { roll_no } = req.query;
+  const { entrepreneurship_id } = req.params;
+  const { company_name, affiliated_number, website_link } = req.body;
+
+  if (!roll_no || !entrepreneurship_id || !company_name || !affiliated_number) {
+    return res.status(400).json({ error: "roll_no (query), entrepreneurship_id (param), company_name, and affiliated_number are required." });
+  }
+  if (!req.file) {
+    return res.status(400).json({ error: "Document file is required." });
+  }
+
+  const documentPath = `/public/${req.file.path.replace(/\\/g, "/").replace("public/", "")}`;
+
+  try {
+    // Delete old document if exists
+    const [oldRows] = await promisePool.query(
+      "SELECT document FROM student_entrepreneurship_details WHERE entrepreneurship_id = ? AND roll_no = ?",
+      [entrepreneurship_id, roll_no]
+    );
+    if (oldRows.length > 0 && oldRows[0].document) {
+      const oldDocPath = path.join("public", oldRows[0].document.replace("/public/", ""));
+      if (fs.existsSync(oldDocPath)) fs.unlinkSync(oldDocPath);
+    }
+
+    const [result] = await promisePool.query(
+      `UPDATE student_entrepreneurship_details
+       SET company_name = ?, affiliated_number = ?, website_link = ?, document = ?
+       WHERE entrepreneurship_id = ? AND roll_no = ?`,
+      [company_name, affiliated_number, website_link || null, documentPath, entrepreneurship_id, roll_no]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Entrepreneurship detail not found." });
+    }
+
+    res.status(200).json({
+      message: "Entrepreneurship detail updated successfully",
+      document_path: documentPath,
+    });
+  } catch (error) {
+    logError("Update entrepreneurship detail", error, { entrepreneurship_id, roll_no });
+    // Cleanup new file if DB update fails
+    if (req.file?.path) {
+      fs.unlink(req.file.path, () => {});
+    }
+    res.status(500).json({ error: "Failed to update entrepreneurship detail" });
+  }
+};
+
+export const deleteEntrepreneurshipDetail = async (req, res) => {
+  const { roll_no } = req.query;
+  const { entrepreneurship_id } = req.params;
+
+  if (!roll_no || !entrepreneurship_id) {
+    return res.status(400).json({ error: "roll_no (query) and entrepreneurship_id (param) are required." });
+  }
+
+  try {
+    // Delete document file if exists
+    const [rows] = await promisePool.query(
+      "SELECT document FROM student_entrepreneurship_details WHERE entrepreneurship_id = ? AND roll_no = ?",
+      [entrepreneurship_id, roll_no]
+    );
+    if (rows.length > 0 && rows[0].document) {
+      const docPath = path.join("public", rows[0].document.replace("/public/", ""));
+      if (fs.existsSync(docPath)) fs.unlinkSync(docPath);
+    }
+
+    const [result] = await promisePool.query(
+      "DELETE FROM student_entrepreneurship_details WHERE entrepreneurship_id = ? AND roll_no = ?",
+      [entrepreneurship_id, roll_no]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Entrepreneurship detail not found." });
+    }
+
+    res.status(200).json({
+      message: "Entrepreneurship detail deleted successfully",
+      entrepreneurship_id,
+    });
+  } catch (error) {
+    logError("Delete entrepreneurship detail", error, { entrepreneurship_id, roll_no });
+    res.status(500).json({ error: "Failed to delete entrepreneurship detail" });
+  }
+};
+
+export const getPreviousEducationDetails = async (req, res) => {
+  const { roll_no } = req.query;
+  if (!roll_no) {
+    return res.status(400).json({ error: "roll_no is required in query." });
+  }
+  try {
+    const [rows] = await promisePool.query(
+      "SELECT * FROM student_previous_education_details WHERE roll_no = ?",
+      [roll_no]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "No previous education details found for this student." });
+    }
+    res.status(200).json(rows);
+  } catch (error) {
+    logError("Get previous education details", error, { roll_no });
+    res.status(500).json({ error: "Failed to fetch previous education details" });
+  }
+};
+
+export const addPreviousEducationDetail = async (req, res) => {
+  const { roll_no } = req.query;
+  const { course, specialization, institution, percent_obtained, passout_year } = req.body;
+
+  if (!roll_no || !course || !institution || !percent_obtained || !passout_year) {
+    return res.status(400).json({ error: "roll_no, course, institution, percent_obtained, and passout_year are required." });
+  }
+
+  try {
+    const [result] = await promisePool.query(
+      `INSERT INTO student_previous_education_details
+       (roll_no, course, specialization, institution, percent_obtained, passout_year)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [roll_no, course, specialization || null, institution, percent_obtained, passout_year]
+    );
+    res.status(201).json({
+      message: "Previous education detail added successfully"
+    });
+  } catch (error) {
+    logError("Add previous education detail", error, { roll_no, course });
+    res.status(500).json({ error: "Failed to add previous education detail" });
+  }
+};
+
+export const updatePreviousEducationDetail = async (req, res) => {
+  const { roll_no } = req.query;
+  const { course } = req.params;
+  const { specialization, institution, percent_obtained, passout_year } = req.body;
+
+  if (!roll_no || !course || !institution || !percent_obtained || !passout_year) {
+    return res.status(400).json({ error: "roll_no (query), course (param), institution, percent_obtained, and passout_year are required." });
+  }
+
+  try {
+    const [result] = await promisePool.query(
+      `UPDATE student_previous_education_details
+       SET specialization = ?, institution = ?, percent_obtained = ?, passout_year = ?
+       WHERE roll_no = ? AND course = ?`,
+      [specialization || null, institution, percent_obtained, passout_year, roll_no, course]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Previous education detail not found." });
+    }
+
+    res.status(200).json({
+      message: "Previous education detail updated successfully"
+    });
+  } catch (error) {
+    logError("Update previous education detail", error, { roll_no, course });
+    res.status(500).json({ error: "Failed to update previous education detail" });
+  }
+};
+
+export const deletePreviousEducationDetail = async (req, res) => {
+  const { roll_no } = req.query;
+  const { course } = req.params;
+
+  if (!roll_no || !course) {
+    return res.status(400).json({ error: "roll_no (query) and course (param) are required." });
+  }
+
+  try {
+    const [result] = await promisePool.query(
+      "DELETE FROM student_previous_education_details WHERE roll_no = ? AND course = ?",
+      [roll_no, course]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Previous education detail not found." });
+    }
+
+    res.status(200).json({
+      message: "Previous education detail deleted successfully"
+    });
+  } catch (error) {
+    logError("Delete previous education detail", error, { roll_no, course });
+    res.status(500).json({ error: "Failed to delete previous education detail" });
   }
 };

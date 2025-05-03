@@ -120,7 +120,6 @@ export const authorizeByUserId = (req, res, next) => {
 export const authorizeByRoleCombo = (allowedCombos) => {
   return (req, res, next) => {
     const { position, role_assigned } = req.user || {};
-    console.log("User:", req.user);
     if (!position || !role_assigned) {
       errorLogger.warn("❌ Missing position or role_assigned in token.");
       return res
