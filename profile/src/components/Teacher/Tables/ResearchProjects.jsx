@@ -222,17 +222,6 @@ const ResearchProjects = ({ setBlurActive }) => {
           {
             key: "document",
             label: "Document",
-            render: (value) =>
-              value ? (
-                <button
-                  onClick={() => setSelectedPdf(value)}
-                  className="text-blue-600 hover:underline"
-                >
-                  View PDF
-                </button>
-              ) : (
-                "N/A"
-              ),
           },
           { key: "Citation", label: "Citation" },
           { key: "Authors", label: "Authors/Co-Authors" },
