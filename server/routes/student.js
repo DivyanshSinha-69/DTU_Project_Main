@@ -74,6 +74,22 @@ import {
   addPreviousEducationDetail,
   updatePreviousEducationDetail,
   deletePreviousEducationDetail,
+  getCurrentEducationDetails,
+  addCurrentEducationDetail,
+  updateCurrentEducationDetail,
+  deleteCurrentEducationDetail,
+  getExtracurricularActivities,
+  addExtracurricularActivity,
+  updateExtracurricularActivity,
+  deleteExtracurricularActivity,
+  getSocietyDetails,
+  addSocietyDetail,
+  updateSocietyDetail,
+  deleteSocietyDetail,
+  getEventOrgDetails,
+  addEventOrgDetail,
+  updateEventOrgDetail,
+  deleteEventOrgDetail,
 } from "../controllers/student.js";
 
 import {
@@ -82,6 +98,7 @@ import {
   authorizeByRoleCombo,
   authorizeByUserId,
   authorizeSameDepartment,
+  
 } from "../middlewares/auth.js";
 import { studentAccessMiddleware } from "../middlewares/sharedRoleCombos.js";
 import { 
@@ -89,7 +106,11 @@ import {
   checkFileReceived,
   uploadPlacementDoc,
   uploadHigherEduDoc,
-  uploadEntrepreneurshipDoc } from "../config/studentMulterConfig.js";
+  uploadEntrepreneurshipDoc,
+  uploadCurrentEduDoc,
+  uploadExtracurricularDoc,
+  uploadSocietyDoc,
+  uploadEventOrgDoc } from "../config/studentMulterConfig.js";
 
 import { parseMultipartFields } from "../middlewares/parseMultipartFields.js";
 
@@ -149,6 +170,29 @@ router.post("/previous-education", authenticateToken, authorizeByUserId, student
 router.put("/previous-education/:id", authenticateToken, authorizeByUserId, studentAccessMiddleware, updatePreviousEducationDetail);
 router.delete("/previous-education/:id", authenticateToken, authorizeByUserId, studentAccessMiddleware, deletePreviousEducationDetail);
 
+// Route for current education details
+router.get("/current-education", authenticateToken, authorizeByUserId, studentAccessMiddleware, getCurrentEducationDetails);
+router.post("/current-education", authenticateToken, authorizeByUserId, studentAccessMiddleware, uploadCurrentEduDoc, compressUploadedFile, addCurrentEducationDetail);
+router.put("/current-education/:id", authenticateToken, authorizeByUserId, studentAccessMiddleware, uploadCurrentEduDoc, compressUploadedFile, updateCurrentEducationDetail);
+router.delete("/current-education/:id", authenticateToken, authorizeByUserId, studentAccessMiddleware, deleteCurrentEducationDetail);
+
+// Route for extracurricular activities
+router.get("/extracurricular", authenticateToken, authorizeByUserId, studentAccessMiddleware, getExtracurricularActivities);
+router.post("/extracurricular", authenticateToken, authorizeByUserId, studentAccessMiddleware, uploadExtracurricularDoc, compressUploadedFile, addExtracurricularActivity);
+router.put("/extracurricular/:activity_id", authenticateToken, authorizeByUserId, studentAccessMiddleware, uploadExtracurricularDoc, compressUploadedFile, updateExtracurricularActivity);
+router.delete("/extracurricular/:activity_id", authenticateToken, authorizeByUserId, studentAccessMiddleware, deleteExtracurricularActivity);
+
+// Route for society details
+router.get("/society", authenticateToken, authorizeByUserId, studentAccessMiddleware, getSocietyDetails);
+router.post("/society", authenticateToken, authorizeByUserId, studentAccessMiddleware, uploadSocietyDoc, compressUploadedFile, addSocietyDetail);
+router.put("/society/:id", authenticateToken, authorizeByUserId, studentAccessMiddleware, uploadSocietyDoc, compressUploadedFile, updateSocietyDetail);
+router.delete("/society/:id", authenticateToken, authorizeByUserId, studentAccessMiddleware, deleteSocietyDetail);
+
+// Route for event organization details
+router.get("/event-org", authenticateToken, authorizeByUserId, studentAccessMiddleware, getEventOrgDetails);
+router.post("/event-org", authenticateToken, authorizeByUserId, studentAccessMiddleware, uploadEventOrgDoc, compressUploadedFile, addEventOrgDetail);
+router.put("/event-org/:id", authenticateToken, authorizeByUserId, studentAccessMiddleware, uploadEventOrgDoc, compressUploadedFile, updateEventOrgDetail);
+router.delete("/event-org/:id", authenticateToken, authorizeByUserId, studentAccessMiddleware, deleteEventOrgDetail);
 
 router.get("/getall", getall);
 router.post("/profskills", getProfessionalSkills);

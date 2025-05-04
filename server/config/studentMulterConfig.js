@@ -154,6 +154,93 @@ const entrepreneurshipDocStorage = multer.diskStorage({
   },
 });
 
+// Storage for Current Education Documents
+const currentEduDocStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const { roll_no } = req.query || req.body;
+    if (!roll_no) return cb(new Error("Roll number is required"), null);
+
+    // Optional: Use department_id if available
+    const department_id = req.user?.department_id || req.query.department_id || req.body.department_id || "General";
+    const sanitizedRollNo = roll_no.replace(/\//g, '_');
+    const uploadPath = path.join("public", department_id, "Students", "CurrentEducation", sanitizedRollNo);
+    fs.mkdirSync(uploadPath, { recursive: true });
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const timestamp = Date.now();
+    const ext = path.extname(file.originalname);
+    const baseName = path.basename(file.originalname, ext);
+    const uniqueFilename = `${baseName}_${timestamp}${ext}`;
+    cb(null, uniqueFilename);
+  },
+});
+
+const extracurricularDocStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const { roll_no } = req.query || req.body;
+    if (!roll_no) return cb(new Error("Roll number is required"), null);
+
+    // Optional: Use department_id if available
+    const department_id = req.user?.department_id || req.query.department_id || req.body.department_id || "General";
+    const sanitizedRollNo = roll_no.replace(/\//g, '_');
+    const uploadPath = path.join("public", department_id, "Students", "Extracurricular", sanitizedRollNo);
+    fs.mkdirSync(uploadPath, { recursive: true });
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const timestamp = Date.now();
+    const ext = path.extname(file.originalname);
+    const baseName = path.basename(file.originalname, ext);
+    const uniqueFilename = `${baseName}_${timestamp}${ext}`;
+    cb(null, uniqueFilename);
+  },
+});
+
+// Storage for Society Documents
+const societyDocStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const { roll_no } = req.query || req.body;
+    if (!roll_no) return cb(new Error("Roll number is required"), null);
+
+    // Optional: Use department_id if available
+    const department_id = req.user?.department_id || req.query.department_id || req.body.department_id || "General";
+    const sanitizedRollNo = roll_no.replace(/\//g, '_');
+    const uploadPath = path.join("public", department_id, "Students", "Societies", sanitizedRollNo);
+    fs.mkdirSync(uploadPath, { recursive: true });
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const timestamp = Date.now();
+    const ext = path.extname(file.originalname);
+    const baseName = path.basename(file.originalname, ext);
+    const uniqueFilename = `${baseName}_${timestamp}${ext}`;
+    cb(null, uniqueFilename);
+  },
+});
+
+// Storage for Event Organization Documents
+const eventOrgDocStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const { roll_no } = req.query || req.body;
+    if (!roll_no) return cb(new Error("Roll number is required"), null);
+
+    // Optional: Use department_id if available
+    const department_id = req.user?.department_id || req.query.department_id || req.body.department_id || "General";
+    const sanitizedRollNo = roll_no.replace(/\//g, '_');
+    const uploadPath = path.join("public", department_id, "Students", "EventOrg", sanitizedRollNo);
+    fs.mkdirSync(uploadPath, { recursive: true });
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const timestamp = Date.now();
+    const ext = path.extname(file.originalname);
+    const baseName = path.basename(file.originalname, ext);
+    const uniqueFilename = `${baseName}_${timestamp}${ext}`;
+    cb(null, uniqueFilename);
+  },
+});
+
 // File filter (accept only PDF, JPG, PNG)
 const fileFilter = (req, file, cb) => {
   if (["application/pdf", "image/jpeg", "image/png"].includes(file.mimetype)) {
@@ -171,6 +258,30 @@ const studentImageFilter = (req, file, cb) => {
     cb(new Error("Only JPG, JPEG or PNG files are allowed"), false);
   }
 };
+
+export const uploadEventOrgDoc = multer({
+  storage: eventOrgDocStorage,
+  fileFilter,
+  limits: { fileSize: 10 * 1024 * 1024 },
+}).single("document");
+
+export const uploadSocietyDoc = multer({
+  storage: societyDocStorage,
+  fileFilter,
+  limits: { fileSize: 10 * 1024 * 1024 },
+}).single("document");
+
+export const uploadExtracurricularDoc = multer({
+  storage: extracurricularDocStorage,
+  fileFilter,
+  limits: { fileSize: 10 * 1024 * 1024 },
+}).single("document");
+
+export const uploadCurrentEduDoc = multer({
+  storage: currentEduDocStorage,
+  fileFilter,
+  limits: { fileSize: 10 * 1024 * 1024 },
+}).single("document");
 
 export const uploadPlacementDoc = multer({
     storage: placementStorage,
