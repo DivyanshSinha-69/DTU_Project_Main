@@ -2343,7 +2343,6 @@ export const getPlacementByRollNo = async (req, res) => {
       `SELECT * FROM student_placement_data WHERE roll_no = ?`,
       [roll_no]
     );
-    res.status(200).json(rows);
     userActionLogger.info("Fetched placement records by roll number", {
       action: "READ",
       table: "student_placement_data",
@@ -2731,8 +2730,7 @@ export const getPreviousPlacementsByRollNo = async (req, res) => {
       `SELECT * FROM student_previous_placement_data WHERE roll_no = ?`,
       [roll_no]
     );
-    res.status(200).json(rows);
-    userActionLogger.info("Fetched previous placement records by roll number", {
+      userActionLogger.info("Fetched previous placement records by roll number", {
       action: "READ",
       table: "student_previous_placement_data",
       roll_no,
@@ -4496,3 +4494,311 @@ export const deleteEventOrgDetail = async (req, res) => {
   }
 };
 
+async function getOrCreateResearchAreaId(area_name) {
+  if (!area_name) return null;
+  const [rows] = await promisePool.query(
+    "SELECT id FROM research_areas WHERE area_name = ?",
+    [area_name]
+  );
+  if (rows.length > 0) return rows[0].id;
+  const [result] = await promisePool.query(
+    "INSERT INTO research_areas (area_name) VALUES (?)",
+    [area_name]
+  );
+  return result.insertId;
+}
+
+async function getOrCreatePaperTypeId(type_name) {
+  if (!type_name) return null;
+  const [rows] = await promisePool.query(
+    "SELECT type_id FROM research_paper_type WHERE type_name = ?",
+    [type_name]
+  );
+  if (rows.length > 0) return rows[0].type_id;
+  const [result] = await promisePool.query(
+    "INSERT INTO research_paper_type (type_name) VALUES (?)",
+    [type_name]
+  );
+  return result.insertId;
+}
+
+export const getPublicationDetails = async (req, res) => {
+  const { roll_no } = req.query;
+  if (!roll_no) {
+    userActionLogger.warn("Missing roll_no in query for GET publication details", {
+      action: "READ",
+      table: "student_publication_details",
+      status: "Bad Request",
+    });
+    return res.status(400).json({ error: "roll_no is required in query." });
+  }
+  try {
+    const [rows] = await promisePool.query(
+      `SELECT spd.*, ra.area_name, rpt.type_name
+       FROM student_publication_details spd
+       LEFT JOIN research_areas ra ON spd.area_of_research = ra.id
+       LEFT JOIN research_paper_type rpt ON spd.paper_type = rpt.type_id
+       WHERE spd.roll_no = ?`,
+      [roll_no]
+    );
+    userActionLogger.info(`Fetched Publication Details for ${roll_no}`, {
+      action: "READ",
+      table: "student_publication_details",
+      roll_no,
+      count: rows.length,
+    });
+    res.status(200).json(rows);
+  } catch (error) {
+    logError("Get publication details", error, { roll_no });
+    res.status(500).json({ error: "Failed to fetch publication details" });
+  }
+};
+
+export const addPublicationDetail = async (req, res) => {
+  const { roll_no } = req.query;
+  const {
+    paper_type_name, // optional, if client sends type name
+    area_of_research_name, // optional, if client sends area name
+    title_of_paper,
+    published_year,
+    citation,
+    authors,
+    name_of_publication,
+    ISSN_number,
+    Link,
+    UGC
+  } = req.body;
+
+  if (
+    !roll_no ||
+    !title_of_paper ||
+    !published_year ||
+    !authors ||
+    !name_of_publication ||
+    !ISSN_number ||
+    !UGC
+  ) {
+    userActionLogger.warn("Missing fields in request body for ADD publication detail", {
+      action: "CREATE",
+      table: "student_publication_details",
+      status: "Bad Request",
+    });
+    return res.status(400).json({ error: "All compulsory fields must be provided." });
+  }
+  if (!req.file) {
+    userActionLogger.warn("Missing document file for ADD publication detail", {
+      action: "CREATE",
+      table: "student_publication_details",
+      status: "Bad Request",
+    });
+    return res.status(400).json({ error: "Document file is required." });
+  }
+
+  try {
+    const areaId = area_of_research_name ? await getOrCreateResearchAreaId(area_of_research_name) : req.body.area_of_research || null;
+    const typeId = paper_type_name ? await getOrCreatePaperTypeId(paper_type_name) : req.body.paper_type || null;
+    const documentPath = req.file.path.replace(/\\/g, "/").replace(/^.*?public[\\/]/, "public/");
+
+    const [result] = await promisePool.query(
+      `INSERT INTO student_publication_details
+       (roll_no, paper_type, title_of_paper, area_of_research, published_year, citation, authors, name_of_publication, ISSN_number, Link, UGC, document)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        roll_no,
+        typeId,
+        title_of_paper,
+        areaId,
+        published_year,
+        citation || null,
+        authors,
+        name_of_publication,
+        ISSN_number,
+        Link || null,
+        UGC,
+        documentPath
+      ]
+    );
+    userActionLogger.info(`Added Publication Detail for ${roll_no} (${title_of_paper})`, {
+      action: "CREATE",
+      table: "student_publication_details",
+      roll_no,
+      title_of_paper,
+      published_year,
+      authors,
+      name_of_publication,
+    });
+    res.status(201).json({
+      message: "Publication detail added successfully"
+    });
+  } catch (error) {
+    logError("Add publication detail", error, { roll_no, title_of_paper });
+    if (req.file?.path) fs.unlink(req.file.path, () => {});
+    res.status(500).json({ error: "Failed to add publication detail" });
+  }
+};
+
+export const updatePublicationDetail = async (req, res) => {
+  const { roll_no } = req.query;
+  const { research_id } = req.params;
+  const {
+    paper_type_name,
+    area_of_research_name,
+    title_of_paper,
+    published_year,
+    citation,
+    authors,
+    name_of_publication,
+    ISSN_number,
+    Link,
+    UGC
+  } = req.body;
+
+  if (
+    !roll_no ||
+    !research_id ||
+    !title_of_paper ||
+    !published_year ||
+    !authors ||
+    !name_of_publication ||
+    !ISSN_number ||
+    !UGC
+  ) {
+    userActionLogger.warn("Missing fields in request body for UPDATE publication detail", {
+      action: "UPDATE",
+      table: "student_publication_details",
+      status: "Bad Request",
+    });
+    return res.status(400).json({ error: "All compulsory fields must be provided." });
+  }
+  if (!req.file) {
+    userActionLogger.warn("Missing document file for UPDATE publication detail", {
+      action: "UPDATE",
+      table: "student_publication_details",
+      status: "Bad Request",
+    });
+    return res.status(400).json({ error: "Document file is required." });
+  }
+
+  try {
+    const areaId = area_of_research_name ? await getOrCreateResearchAreaId(area_of_research_name) : req.body.area_of_research || null;
+    const typeId = paper_type_name ? await getOrCreatePaperTypeId(paper_type_name) : req.body.paper_type || null;
+    const documentPath = req.file.path.replace(/\\/g, "/").replace(/^.*?public[\\/]/, "public/");
+
+    // Delete old document if exists
+    const [oldRows] = await promisePool.query(
+      "SELECT document FROM student_publication_details WHERE research_id = ? AND roll_no = ?",
+      [research_id, roll_no]
+    );
+    if (oldRows.length > 0 && oldRows[0].document) {
+      const oldDocPath = path.join("public", oldRows[0].document.replace("public/", ""));
+      if (fs.existsSync(oldDocPath)) fs.unlinkSync(oldDocPath);
+    }
+
+    const [result] = await promisePool.query(
+      `UPDATE student_publication_details
+       SET paper_type = ?, title_of_paper = ?, area_of_research = ?, published_year = ?, citation = ?, authors = ?, name_of_publication = ?, ISSN_number = ?, Link = ?, UGC = ?, document = ?
+       WHERE research_id = ? AND roll_no = ?`,
+      [
+        typeId,
+        title_of_paper,
+        areaId,
+        published_year,
+        citation || null,
+        authors,
+        name_of_publication,
+        ISSN_number,
+        Link || null,
+        UGC,
+        documentPath,
+        research_id,
+        roll_no
+      ]
+    );
+
+    if (result.affectedRows === 0) {
+      userActionLogger.warn(`Publication detail not found for update (research_id: ${research_id}, roll_no: ${roll_no})`, {
+        action: "UPDATE",
+        table: "student_publication_details",
+        research_id,
+        roll_no,
+        status: "Not Found",
+      });
+      return res.status(404).json({ error: "Publication detail not found." });
+    }
+
+    userActionLogger.info(`Updated Publication Detail for ${roll_no} (research_id: ${research_id}, title: ${title_of_paper})`, {
+      action: "UPDATE",
+      table: "student_publication_details",
+      research_id,
+      roll_no,
+      title_of_paper,
+      published_year,
+      authors,
+      name_of_publication,
+    });
+
+    res.status(200).json({
+      message: "Publication detail updated successfully"
+    });
+  } catch (error) {
+    logError("Update publication detail", error, { roll_no, research_id, title_of_paper });
+    if (req.file?.path) fs.unlink(req.file.path, () => {});
+    res.status(500).json({ error: "Failed to update publication detail" });
+  }
+};
+
+export const deletePublicationDetail = async (req, res) => {
+  const { roll_no } = req.query;
+  const { research_id } = req.params;
+
+  if (!roll_no || !research_id) {
+    userActionLogger.warn("Missing roll_no or research_id for DELETE publication detail", {
+      action: "DELETE",
+      table: "student_publication_details",
+      status: "Bad Request",
+    });
+    return res.status(400).json({ error: "roll_no (query) and research_id (param) are required." });
+  }
+
+  try {
+    // Delete document file if exists
+    const [rows] = await promisePool.query(
+      "SELECT document FROM student_publication_details WHERE research_id = ? AND roll_no = ?",
+      [research_id, roll_no]
+    );
+    if (rows.length > 0 && rows[0].document) {
+      const docPath = path.join("public", rows[0].document.replace("public/", ""));
+      if (fs.existsSync(docPath)) fs.unlinkSync(docPath);
+    }
+
+    const [result] = await promisePool.query(
+      "DELETE FROM student_publication_details WHERE research_id = ? AND roll_no = ?",
+      [research_id, roll_no]
+    );
+
+    if (result.affectedRows === 0) {
+      userActionLogger.warn(`Publication detail not found for delete (research_id: ${research_id}, roll_no: ${roll_no})`, {
+        action: "DELETE",
+        table: "student_publication_details",
+        research_id,
+        roll_no,
+        status: "Not Found",
+      });
+      return res.status(404).json({ error: "Publication detail not found." });
+    }
+
+    userActionLogger.info(`Deleted Publication Detail for ${roll_no} (research_id: ${research_id})`, {
+      action: "DELETE",
+      table: "student_publication_details",
+      research_id,
+      roll_no,
+    });
+
+    res.status(200).json({
+      message: "Publication detail deleted successfully"
+    });
+  } catch (error) {
+    logError("Delete publication detail", error, { roll_no, research_id });
+    res.status(500).json({ error: "Failed to delete publication detail" });
+  }
+};

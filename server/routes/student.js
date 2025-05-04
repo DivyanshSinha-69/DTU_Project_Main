@@ -90,6 +90,10 @@ import {
   addEventOrgDetail,
   updateEventOrgDetail,
   deleteEventOrgDetail,
+  getPublicationDetails,
+  addPublicationDetail,
+  updatePublicationDetail,
+  deletePublicationDetail,
 } from "../controllers/student.js";
 
 import {
@@ -110,7 +114,8 @@ import {
   uploadCurrentEduDoc,
   uploadExtracurricularDoc,
   uploadSocietyDoc,
-  uploadEventOrgDoc } from "../config/studentMulterConfig.js";
+  uploadEventOrgDoc,
+  uploadPublicationDoc } from "../config/studentMulterConfig.js";
 
 import { parseMultipartFields } from "../middlewares/parseMultipartFields.js";
 
@@ -193,6 +198,12 @@ router.get("/event-org", authenticateToken, authorizeByUserId, studentAccessMidd
 router.post("/event-org", authenticateToken, authorizeByUserId, studentAccessMiddleware, uploadEventOrgDoc, compressUploadedFile, addEventOrgDetail);
 router.put("/event-org/:id", authenticateToken, authorizeByUserId, studentAccessMiddleware, uploadEventOrgDoc, compressUploadedFile, updateEventOrgDetail);
 router.delete("/event-org/:id", authenticateToken, authorizeByUserId, studentAccessMiddleware, deleteEventOrgDetail);
+
+// Route for publication details
+router.get("/publication", authenticateToken, authorizeByUserId, studentAccessMiddleware, getPublicationDetails);
+router.post("/publication", authenticateToken, authorizeByUserId, studentAccessMiddleware, uploadPublicationDoc, compressUploadedFile, addPublicationDetail);
+router.put("/publication/:research_id", authenticateToken, authorizeByUserId, studentAccessMiddleware, uploadPublicationDoc, compressUploadedFile, updatePublicationDetail);
+router.delete("/publication/:research_id", authenticateToken, authorizeByUserId, studentAccessMiddleware, deletePublicationDetail);
 
 router.get("/getall", getall);
 router.post("/profskills", getProfessionalSkills);
