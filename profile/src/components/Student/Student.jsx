@@ -12,6 +12,10 @@ import { useThemeContext } from "../../context/ThemeContext.jsx";
 import dtuImg from "../../assets/dtufullimage.jpg";
 import StudentHeader from "./StudentHeader.jsx";
 import StudentPersonalDetails from "./Tables/PersonalDetails.jsx";
+import StudentPlacementDetails from "./Tables/CurrPlacement.jsx";
+import StudentPreviousPlacements from "./Tables/PrevPlacement.jsx";
+import HigherEducationDetails from "./Tables/HigherEducationDetails.jsx";
+import EntrepreneurshipDetails from "./Tables/EntrepreneurshipDetails.jsx";
 
 const Student = () => {
   const [isBlurActive, setBlurActive] = useState(false);
@@ -25,10 +29,10 @@ const Student = () => {
   // Create refs for all sections
   const sectionRefs = {
     "personal-details": useRef(null),
-    "academic-details": useRef(null),
-    "attendance-records": useRef(null),
-    "course-registration": useRef(null),
-    "exam-results": useRef(null),
+    "current-placements": useRef(null),
+    "previous-placements": useRef(null),
+    "higher-education": useRef(null),
+    "entrepreneurship-details": useRef(null),
     projects: useRef(null),
     internships: useRef(null),
     extracurricular: useRef(null),
@@ -36,10 +40,10 @@ const Student = () => {
 
   const sidebarItems = [
     { id: "personal-details", label: "Personal Details" },
-    { id: "academic-details", label: "Academic Details" },
-    { id: "attendance-records", label: "Attendance Records" },
-    { id: "course-registration", label: "Course Registration" },
-    { id: "exam-results", label: "Exam Results" },
+    { id: "current-placements", label: "Current Placement Details" },
+    { id: "previous-placements", label: "Previous Placements" },
+    { id: "higher-education", label: "Higher Education Details" },
+    { id: "entrepreneurship-details", label: "Entrepreneuship Details" },
     { id: "projects", label: "Projects" },
     { id: "internships", label: "Internships" },
     { id: "extracurricular", label: "Extracurricular" },
@@ -304,23 +308,33 @@ const Student = () => {
                   <StudentPersonalDetails setBlurActive={setBlurActive} />
                 </div>
 
-                {/* Add other sections with their refs */}
                 <div
-                  ref={sectionRefs["academic-details"]}
-                  className="pt-6 pb-3 px-4 md:px-6"
+                  style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
+                  ref={sectionRefs["current-placements"]}
+                  className={`pt-6 pb-3 ${isBlurActive ? "blur-effect" : ""}`}
                 >
-                  {/* Academic Details Component */}
-                  <h2 className="text-xl font-bold mb-4">Academic Details</h2>
-                  {/* Add content here */}
+                  <StudentPlacementDetails setBlurActive={setBlurActive} />
                 </div>
-
                 <div
-                  ref={sectionRefs["attendance-records"]}
-                  className="pt-6 pb-3 px-4 md:px-6"
+                  style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
+                  ref={sectionRefs["previous-placements"]}
+                  className={`pt-6 pb-3 ${isBlurActive ? "blur-effect" : ""}`}
                 >
-                  {/* Attendance Records Component */}
-                  <h2 className="text-xl font-bold mb-4">Attendance Records</h2>
-                  {/* Add content here */}
+                  <StudentPreviousPlacements setBlurActive={setBlurActive} />
+                </div>
+                <div
+                  style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
+                  ref={sectionRefs["higher-education"]}
+                  className={`pt-6 pb-3 ${isBlurActive ? "blur-effect" : ""}`}
+                >
+                  <HigherEducationDetails setBlurActive={setBlurActive} />
+                </div>
+                <div
+                  style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
+                  ref={sectionRefs["entrepreneurship-details"]}
+                  className={`pt-6 pb-3 ${isBlurActive ? "blur-effect" : ""}`}
+                >
+                  <EntrepreneurshipDetails setBlurActive={setBlurActive} />
                 </div>
 
                 <Toaster
