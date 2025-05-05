@@ -283,7 +283,7 @@ export const deleteFacultyAssociation = (req, res) => {
 
 // Get all research papers or by faculty_id (from query or param)
 export const getResearchPapers = async (req, res) => {
-  const faculty_id = req.params.faculty_id || req.query.faculty_id;
+  const faculty_id = req.query.faculty_id;
   try {
     let query = `
       SELECT frp.*, ra.area_of_research, rpt.type_name as paper_type
@@ -1704,13 +1704,6 @@ export const getSponsoredResearch = (req, res) => {
         error: err,
       });
     }
-    if (result.length === 0) {
-      return res.status(404).json({
-        message: faculty_id
-          ? "No sponsored research found for this faculty"
-          : "No sponsored research records found",
-      });
-    }
     res.status(200).json(result);
   });
 };
@@ -2859,8 +2852,9 @@ export const updateFacultyPatent = async (req, res) => {
 
 // Delete patent
 export const deleteFacultyPatent = async (req, res) => {
-  const { patent_id, faculty_id } = req.body;
-
+  const { faculty_id } = req.query;
+  const { patent_id} = req.params;
+  
   try {
     // First get the document path if it exists
     const [patent] = await promisePool.query(
@@ -3290,8 +3284,7 @@ export const getUserDutyOrders = (req, res) => {
 };
 
 export const getCirculars = (req, res) => {
-  const { department_id } = req.query;
-
+  const { department_id } = req.params;
   let query = "SELECT * FROM department_circular";
   let params = [];
 

@@ -47,7 +47,7 @@ export const compressImage = (filePath, callback) => {
 // 🔹 Change this path based on your installation
 const gsCommand =
   os.platform() === "win32"
-    ? `"C:\\Program Files\\gs\\gs10.05.1\\bin\\gswin64c.exe"`
+    ? `"C:\\Program Files\\gs\\gs10.04.0\\bin\\gswin64c.exe"`
     : "gs"; // Linux uses "gs"
 
 export const compressPDF = (filePath, callback) => {

@@ -184,3 +184,36 @@ export const authorizeSameDepartment = (req, res, next) => {
   );
   next();
 };
+
+export const authorizeAdminDepartment = (req, res, next) => {
+  const { position, role_assigned, department_id } = req.user || {};
+
+  // Only admins
+  if (position !== "admin") {
+    return res.status(403).json({ error: "Not an admin." });
+  }
+
+  // Super admin: allow all
+  if (role_assigned === "super") {
+    return next();
+  }
+
+  // Department admin: restrict to their own department
+  if (role_assigned === "department") {
+    const requestedDept =
+      req.params.department_id ||
+      req.query.department_id ||
+      req.body.department_id;
+
+    if (!requestedDept) {
+      return res.status(400).json({ error: "department_id is required." });
+    }
+    if (requestedDept !== department_id) {
+      return res.status(403).json({ error: "Access denied to other departments." });
+    }
+    return next();
+  }
+
+  // Fallback
+  return res.status(403).json({ error: "Invalid admin role." });
+};

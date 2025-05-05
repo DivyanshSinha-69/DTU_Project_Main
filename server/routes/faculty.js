@@ -403,7 +403,7 @@ router.put(
   updateFacultyPatent
 ); // Update a patent
 router.delete(
-  "/patent",
+  "/patent/:patent_id",
   authorizeByUserId,
   facultyAccessMiddleware,
   deleteFacultyPatent
@@ -441,7 +441,7 @@ router.get(
 
 router.get(
   "/circulars",
-  authorizeRoles("faculty"),
+  authorizeByUserId,
   authorizeSameDepartment,
   getCirculars
 );
