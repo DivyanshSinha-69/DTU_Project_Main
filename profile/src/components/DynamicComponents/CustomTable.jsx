@@ -148,10 +148,10 @@ const CustomTable = ({
           <tbody>
             {currentItems?.map((row, index) => {
               const isLast = index === currentItems.length - 1;
-              const isExpanded = expandedRow === (row.id || index);
+              const isExpanded = expandedRow === (row?.id || index);
 
               return (
-                <React.Fragment key={row.id || `row-${index}`}>
+                <React.Fragment key={row?.id || `row-${index}`}>
                   {/* Main Row */}
                   <tr
                     className="hover:bg-opacity-10 transition-all" // Subtle hover effect
@@ -180,8 +180,10 @@ const CustomTable = ({
 
                     {/* Table Data */}
                     {columns.map((col) => {
-                      let cellValue = row[col.key];
-                      if (col.type === "link") {
+                      if (!col || typeof col !== "object") return null;
+                      const { [col?.key]: cellValue } = row || {};
+
+                      if (col?.type === "link") {
                         return (
                           <td key={col.key} className="p-4">
                             {cellValue ? (
@@ -210,7 +212,7 @@ const CustomTable = ({
                         col.key === "document"
                       ) {
                         return (
-                          <td key={col.key} className="p-4">
+                          <td key={col?.key} className="p-4">
                             {cellValue ? (
                               <a
                                 href={`${process.env.REACT_APP_BACKEND_URL}/${cellValue}`}

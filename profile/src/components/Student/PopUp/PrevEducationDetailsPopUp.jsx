@@ -2,22 +2,22 @@ import React, { useState } from "react";
 import { Card } from "@material-tailwind/react";
 import toast from "react-hot-toast";
 
-export default function EntrepreneurshipDetailsPopUp({
+export default function PreviousEducationPopUp({
   closeModal,
-  handleAddEntrepreneurshipDetails,
-  company_name,
-  affiliated_number,
-  website_link,
-  document,
+  handleAddEducationDetails,
+  course,
+  specialization,
+  institution,
+  percent_obtained,
+  passout_year,
 }) {
   const [formData, setFormData] = useState({
-    company_name: company_name || "",
-    affiliated_number: affiliated_number || "",
-    website_link: website_link || "",
-    document: document || null,
+    course: course || "",
+    specialization: specialization || "",
+    institution: institution || "",
+    percent_obtained: percent_obtained || "",
+    passout_year: passout_year || "",
   });
-
-  const [file, setFile] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -27,24 +27,21 @@ export default function EntrepreneurshipDetailsPopUp({
     }));
   };
 
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Validation
     if (
-      !formData.company_name ||
-      !formData.affiliated_number ||
-      (!file && !document)
+      !formData.course ||
+      !formData.institution ||
+      !formData.percent_obtained ||
+      !formData.passout_year
     ) {
       toast.error("Please fill in all required fields");
       return;
     }
 
-    handleAddEntrepreneurshipDetails(formData, file);
+    await handleAddEducationDetails(formData);
   };
 
   return (
@@ -59,71 +56,83 @@ export default function EntrepreneurshipDetailsPopUp({
             onSubmit={handleSubmit}
             className="text-white flex flex-col space-y-6"
           >
-            {/* Company Name */}
+            {/* Course */}
             <div className="relative z-0 w-full group">
-              <label htmlFor="company_name" className="block text-sm">
-                Company Name <span className="text-red-500">*</span>
+              <label htmlFor="course" className="block text-sm">
+                Course <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                name="company_name"
+                name="course"
                 className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
                 onChange={handleChange}
-                value={formData.company_name}
+                value={formData.course}
               />
             </div>
 
-            {/* Affiliated Number */}
+            {/* Specialization */}
             <div className="relative z-0 w-full group">
-              <label htmlFor="affiliated_number" className="block text-sm">
-                Affiliated Number (CIN/Registration){" "}
-                <span className="text-red-500">*</span>
+              <label htmlFor="specialization" className="block text-sm">
+                Specialization
               </label>
               <input
                 type="text"
-                name="affiliated_number"
+                name="specialization"
+                className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={handleChange}
+                value={formData.specialization}
+              />
+            </div>
+
+            {/* Institution */}
+            <div className="relative z-0 w-full group">
+              <label htmlFor="institution" className="block text-sm">
+                Institution <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="institution"
                 className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
                 onChange={handleChange}
-                value={formData.affiliated_number}
+                value={formData.institution}
               />
             </div>
 
-            {/* Website Link */}
+            {/* Percentage Obtained */}
             <div className="relative z-0 w-full group">
-              <label htmlFor="website_link" className="block text-sm">
-                Company Website Link
+              <label htmlFor="percent_obtained" className="block text-sm">
+                Percentage Obtained <span className="text-red-500">*</span>
               </label>
               <input
-                type="url"
-                name="website_link"
+                type="number"
+                name="percent_obtained"
+                min="0"
+                max="100"
+                step="0.01"
                 className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
                 onChange={handleChange}
-                value={formData.website_link}
-                placeholder="https://example.com"
+                value={formData.percent_obtained}
               />
             </div>
 
-            {/* Document Upload */}
+            {/* Passout Year */}
             <div className="relative z-0 w-full group">
-              <label htmlFor="document" className="block text-sm">
-                Upload Registration Document{" "}
-                <span className="text-red-500">*</span>
+              <label htmlFor="passout_year" className="block text-sm">
+                Passout Year <span className="text-red-500">*</span>
               </label>
               <input
-                type="file"
-                name="document"
-                accept=".pdf"
+                type="number"
+                name="passout_year"
+                min="1900"
+                max={new Date().getFullYear()}
                 className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required={!document}
-                onChange={handleFileChange}
+                required
+                onChange={handleChange}
+                value={formData.passout_year}
               />
-              {document && !file && (
-                <p className="text-xs text-gray-400 mt-1">
-                  Current file: {document.split("/").pop()}
-                </p>
-              )}
             </div>
 
             <p className="text-sm text-gray-400">
@@ -135,7 +144,7 @@ export default function EntrepreneurshipDetailsPopUp({
                 type="submit"
                 className="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
               >
-                {company_name ? "Update" : "Save"}
+                Save
               </button>
               <button
                 type="button"

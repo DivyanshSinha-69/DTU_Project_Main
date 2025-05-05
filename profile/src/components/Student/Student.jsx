@@ -16,6 +16,11 @@ import StudentPlacementDetails from "./Tables/CurrPlacement.jsx";
 import StudentPreviousPlacements from "./Tables/PrevPlacement.jsx";
 import HigherEducationDetails from "./Tables/HigherEducationDetails.jsx";
 import EntrepreneurshipDetails from "./Tables/EntrepreneurshipDetails.jsx";
+import StudentPreviousEducationDetails from "./Tables/PrevEducationDetails.jsx";
+import StudentCurrentEducationDetails from "./Tables/CurrEducationDetails.jsx";
+import StudentExtracurricularActivities from "./Tables/ExtracurricularDetails.jsx";
+import StudentSocietyDetails from "./Tables/SocietyDetails.jsx";
+import StudentPublicationDetails from "./Tables/PublicationDetails.jsx";
 
 const Student = () => {
   const [isBlurActive, setBlurActive] = useState(false);
@@ -33,20 +38,26 @@ const Student = () => {
     "previous-placements": useRef(null),
     "higher-education": useRef(null),
     "entrepreneurship-details": useRef(null),
-    projects: useRef(null),
-    internships: useRef(null),
+    "previous-education": useRef(null),
+    "current-education": useRef(null),
     extracurricular: useRef(null),
+    "society-details": useRef(null),
+    publications: useRef(null),
   };
 
   const sidebarItems = [
     { id: "personal-details", label: "Personal Details" },
-    { id: "current-placements", label: "Current Placement Details" },
+
+    { id: "previous-education", label: "Previous Education Details" },
+    { id: "current-education", label: "Current Education Details" },
+    { id: "society-details", label: "Society Details" },
+
     { id: "previous-placements", label: "Previous Placements" },
+    { id: "current-placements", label: "Current Placement Details" },
+    { id: "publications", label: "Publications" },
     { id: "higher-education", label: "Higher Education Details" },
     { id: "entrepreneurship-details", label: "Entrepreneuship Details" },
-    { id: "projects", label: "Projects" },
-    { id: "internships", label: "Internships" },
-    { id: "extracurricular", label: "Extracurricular" },
+    { id: "extracurricular", label: "Extracurricular Activities" },
   ];
 
   const handleSidebarSelect = (sectionId) => {
@@ -310,6 +321,42 @@ const Student = () => {
 
                 <div
                   style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
+                  ref={sectionRefs["previous-education"]}
+                  className={`pt-6 pb-3 ${isBlurActive ? "blur-effect" : ""}`}
+                >
+                  <StudentPreviousEducationDetails
+                    setBlurActive={setBlurActive}
+                  />
+                </div>
+
+                <div
+                  style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
+                  ref={sectionRefs["current-education"]}
+                  className={`pt-6 pb-3 ${isBlurActive ? "blur-effect" : ""}`}
+                >
+                  <StudentCurrentEducationDetails
+                    setBlurActive={setBlurActive}
+                  />
+                </div>
+
+                <div
+                  style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
+                  ref={sectionRefs["society-details"]}
+                  className={`pt-6 pb-3 ${isBlurActive ? "blur-effect" : ""}`}
+                >
+                  <StudentSocietyDetails setBlurActive={setBlurActive} />
+                </div>
+
+                <div
+                  style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
+                  ref={sectionRefs["previous-placements"]}
+                  className={`pt-6 pb-3 ${isBlurActive ? "blur-effect" : ""}`}
+                >
+                  <StudentPreviousPlacements setBlurActive={setBlurActive} />
+                </div>
+
+                <div
+                  style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
                   ref={sectionRefs["current-placements"]}
                   className={`pt-6 pb-3 ${isBlurActive ? "blur-effect" : ""}`}
                 >
@@ -317,10 +364,10 @@ const Student = () => {
                 </div>
                 <div
                   style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
-                  ref={sectionRefs["previous-placements"]}
+                  ref={sectionRefs["higher-education"]}
                   className={`pt-6 pb-3 ${isBlurActive ? "blur-effect" : ""}`}
                 >
-                  <StudentPreviousPlacements setBlurActive={setBlurActive} />
+                  <StudentPublicationDetails setBlurActive={setBlurActive} />
                 </div>
                 <div
                   style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
@@ -335,6 +382,16 @@ const Student = () => {
                   className={`pt-6 pb-3 ${isBlurActive ? "blur-effect" : ""}`}
                 >
                   <EntrepreneurshipDetails setBlurActive={setBlurActive} />
+                </div>
+
+                <div
+                  style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
+                  ref={sectionRefs["extracurricular"]}
+                  className={`pt-6 pb-3 ${isBlurActive ? "blur-effect" : ""}`}
+                >
+                  <StudentExtracurricularActivities
+                    setBlurActive={setBlurActive}
+                  />
                 </div>
 
                 <Toaster

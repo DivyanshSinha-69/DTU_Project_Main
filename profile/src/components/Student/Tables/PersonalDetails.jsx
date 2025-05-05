@@ -43,12 +43,11 @@ const StudentPersonalDetails = ({ setBlurActive }) => {
               original_country: student.original_country,
             },
           ]);
-        } else {
-          toast.error("No student details available");
         }
       } catch (error) {
-        console.error("Error fetching student details:", error);
-        toast.error("Error while fetching student details");
+        toast.error(
+          error?.response?.data?.error || "Error communicating with server"
+        );
       }
     };
 
@@ -131,7 +130,9 @@ const StudentPersonalDetails = ({ setBlurActive }) => {
         toast.error("Failed to save student details.");
       }
     } catch (error) {
-      toast.error("Error connecting to the server.");
+      toast.error(
+        error?.response?.data?.error || "Error communicating with server"
+      );
     }
   };
 
@@ -147,8 +148,9 @@ const StudentPersonalDetails = ({ setBlurActive }) => {
         toast.error(response.data.message || "Something went wrong");
       }
     } catch (err) {
-      console.error("Error deleting student details:", err);
-      toast.error("Error while deleting student details");
+      toast.error(
+        err?.response?.data?.error || "Error communicating with server"
+      );
     }
   };
 

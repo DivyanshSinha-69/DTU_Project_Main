@@ -53,7 +53,7 @@ const logError = (operation, error, additionalInfo = {}) => {
     operation,
     error: error.message,
     stack: error.stack,
-    ...additionalInfo
+    ...additionalInfo,
   };
   errorLogger.error(JSON.stringify(errorInfo));
 };
@@ -2379,28 +2379,19 @@ export const addPlacement = async (req, res) => {
     });
     return res.status(400).json({ error: "Placement document is required" });
   }
-  const {
-    company_name,
-    placement_type,
-    placement_category,
-    role_name
-  } = req.body;
+  const { company_name, placement_type, placement_category, role_name } =
+    req.body;
 
-    // Check for missing fields
-    if (
-      !company_name ||
-      !placement_type ||
-      !placement_category ||
-      !role_name
-    ) {
-      userActionLogger.warn("Missing required fields in request body", {
-        action: "CREATE",
-        table: "student_placement_data",
-        status: "Bad Request",
-        body: req.body,
-      });
-      return res.status(400).json({ error: "All fields are required." });
-    }
+  // Check for missing fields
+  if (!company_name || !placement_type || !placement_category || !role_name) {
+    userActionLogger.warn("Missing required fields in request body", {
+      action: "CREATE",
+      table: "student_placement_data",
+      status: "Bad Request",
+      body: req.body,
+    });
+    return res.status(400).json({ error: "All fields are required." });
+  }
 
   const documentPath = `public/${req.file.path.replace(/\\/g, "/").replace("public/", "")}`;
   console.log("roll_no from query:", roll_no); // Should be defined
@@ -2470,20 +2461,11 @@ export const updatePlacement = async (req, res) => {
     return res.status(400).json({ error: "Placement ID is required" });
   }
   const { id } = req.params;
-  const {
-    company_name,
-    placement_type,
-    placement_category,
-    role_name,
-  } = req.body;
+  const { company_name, placement_type, placement_category, role_name } =
+    req.body;
   let documentPath = null;
 
-  if (
-    !company_name ||
-    !placement_type ||
-    !placement_category ||
-    !role_name
-  ) {
+  if (!company_name || !placement_type || !placement_category || !role_name) {
     userActionLogger.warn("Missing required fields in request body", {
       action: "CREATE",
       table: "student_placement_data",
@@ -2526,7 +2508,14 @@ export const updatePlacement = async (req, res) => {
          WHERE placement_id = ?`;
 
     const params = documentPath
-      ? [company_name, placement_type, placement_category, role_name, documentPath, id]
+      ? [
+          company_name,
+          placement_type,
+          placement_category,
+          role_name,
+          documentPath,
+          id,
+        ]
       : [company_name, placement_type, placement_category, role_name, id];
 
     const [result] = await promisePool.query(query, params);
@@ -2730,7 +2719,7 @@ export const getPreviousPlacementsByRollNo = async (req, res) => {
       `SELECT * FROM student_previous_placement_data WHERE roll_no = ?`,
       [roll_no]
     );
-      userActionLogger.info("Fetched previous placement records by roll number", {
+    userActionLogger.info("Fetched previous placement records by roll number", {
       action: "READ",
       table: "student_previous_placement_data",
       roll_no,
@@ -2748,20 +2737,11 @@ export const getPreviousPlacementsByRollNo = async (req, res) => {
 
 export const addPreviousPlacement = async (req, res) => {
   const { roll_no } = req.query;
-  const {
-    company_name,
-    placement_type,
-    placement_category,
-    role_name,
-  } = req.body;
+  const { company_name, placement_type, placement_category, role_name } =
+    req.body;
 
   // Check for missing fields
-  if (
-    !company_name ||
-    !placement_type ||
-    !placement_category ||
-    !role_name
-  ) {
+  if (!company_name || !placement_type || !placement_category || !role_name) {
     userActionLogger.warn("Missing required fields in request body", {
       action: "CREATE",
       table: "student_previous_placement_data",
@@ -2776,13 +2756,7 @@ export const addPreviousPlacement = async (req, res) => {
       `INSERT INTO student_previous_placement_data 
        (roll_no, company_name, placement_type, placement_category, role_name)
        VALUES (?, ?, ?, ?, ?)`,
-      [
-        roll_no,
-        company_name,
-        placement_type,
-        placement_category,
-        role_name,
-      ]
+      [roll_no, company_name, placement_type, placement_category, role_name]
     );
     userActionLogger.info("Added new previous placement record", {
       action: "CREATE",
@@ -2816,20 +2790,11 @@ export const updatePreviousPlacement = async (req, res) => {
     return res.status(400).json({ error: "Roll number is required" });
   }
   const { id } = req.params;
-  const {
-    company_name,
-    placement_type,
-    placement_category,
-    role_name,
-  } = req.body;
+  const { company_name, placement_type, placement_category, role_name } =
+    req.body;
 
   // Check for missing fields
-  if (
-    !company_name ||
-    !placement_type ||
-    !placement_category ||
-    !role_name
-  ) {
+  if (!company_name || !placement_type || !placement_category || !role_name) {
     userActionLogger.warn("Missing required fields in request body", {
       action: "UPDATE",
       table: "student_previous_placement_data",
@@ -2857,13 +2822,18 @@ export const updatePreviousPlacement = async (req, res) => {
     const [result] = await promisePool.query(query, params);
 
     if (result.affectedRows === 0) {
-      userActionLogger.warn("Previous placement update failed - record not found", {
-        action: "UPDATE",
-        table: "student_previous_placement_data",
-        placement_id: id,
-        status: "Not Found",
-      });
-      return res.status(404).json({ error: "Previous placement record not found" });
+      userActionLogger.warn(
+        "Previous placement update failed - record not found",
+        {
+          action: "UPDATE",
+          table: "student_previous_placement_data",
+          placement_id: id,
+          status: "Not Found",
+        }
+      );
+      return res
+        .status(404)
+        .json({ error: "Previous placement record not found" });
     }
 
     userActionLogger.info("Updated previous placement record", {
@@ -2880,11 +2850,11 @@ export const updatePreviousPlacement = async (req, res) => {
     logError("Update previous placement", error, { placement_id: id });
     res.status(500).json({
       error: "Failed to update previous placement record",
-      details: process.env.NODE_ENV === "development" ? error.message : undefined,
+      details:
+        process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 };
-
 
 export const deletePreviousPlacement = async (req, res) => {
   const { id } = req.params;
@@ -2895,12 +2865,17 @@ export const deletePreviousPlacement = async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      userActionLogger.warn("Previous placement deletion failed - record not found", {
-        action: "DELETE",
-        placement_id: id,
-        status: "Not Found",
-      });
-      return res.status(404).json({ error: "Previous placement record not found" });
+      userActionLogger.warn(
+        "Previous placement deletion failed - record not found",
+        {
+          action: "DELETE",
+          placement_id: id,
+          status: "Not Found",
+        }
+      );
+      return res
+        .status(404)
+        .json({ error: "Previous placement record not found" });
     }
 
     userActionLogger.info("Deleted previous placement record", {
@@ -2924,7 +2899,8 @@ export const deletePreviousPlacement = async (req, res) => {
     res.status(500).json({
       error: "Failed to delete previous placement record",
       placement_id: id,
-      details: process.env.NODE_ENV === "development" ? error.message : undefined,
+      details:
+        process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 };
@@ -2952,7 +2928,9 @@ export const getCurrentLocation = async (req, res) => {
         roll_no,
         status: "Not Found",
       });
-      return res.status(404).json({ error: "Current location not found for this student." });
+      return res
+        .status(404)
+        .json({ error: "Current location not found for this student." });
     }
     userActionLogger.info("Fetched current location by roll number", {
       action: "READ",
@@ -2978,7 +2956,9 @@ export const addCurrentLocation = async (req, res) => {
       query: req.query,
       body: req.body,
     });
-    return res.status(400).json({ error: "roll_no, current_city, and current_country are required." });
+    return res.status(400).json({
+      error: "roll_no, current_city, and current_country are required.",
+    });
   }
 
   try {
@@ -3017,7 +2997,9 @@ export const updateCurrentLocation = async (req, res) => {
       status: "Bad Request",
       params: req.params,
     });
-    return res.status(400).json({ error: "location_id is required in params." });
+    return res
+      .status(400)
+      .json({ error: "location_id is required in params." });
   }
 
   if (!roll_no || !current_city || !current_country) {
@@ -3028,7 +3010,9 @@ export const updateCurrentLocation = async (req, res) => {
       query: req.query,
       body: req.body,
     });
-    return res.status(400).json({ error: "roll_no, current_city, and current_country are required." });
+    return res.status(400).json({
+      error: "roll_no, current_city, and current_country are required.",
+    });
   }
 
   try {
@@ -3040,14 +3024,19 @@ export const updateCurrentLocation = async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      userActionLogger.warn("Current location update failed - record not found", {
-        action: "UPDATE",
-        table: "student_current_location",
-        location_id,
-        roll_no,
-        status: "Not Found",
-      });
-      return res.status(404).json({ error: "Current location not found for this student." });
+      userActionLogger.warn(
+        "Current location update failed - record not found",
+        {
+          action: "UPDATE",
+          table: "student_current_location",
+          location_id,
+          roll_no,
+          status: "Not Found",
+        }
+      );
+      return res
+        .status(404)
+        .json({ error: "Current location not found for this student." });
     }
 
     userActionLogger.info("Updated current location", {
@@ -3077,7 +3066,9 @@ export const deleteCurrentLocation = async (req, res) => {
       status: "Bad Request",
       params: req.params,
     });
-    return res.status(400).json({ error: "location_id is required in params." });
+    return res
+      .status(400)
+      .json({ error: "location_id is required in params." });
   }
 
   if (!roll_no) {
@@ -3097,14 +3088,19 @@ export const deleteCurrentLocation = async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      userActionLogger.warn("Current location deletion failed - record not found", {
-        action: "DELETE",
-        table: "student_current_location",
-        location_id,
-        roll_no,
-        status: "Not Found",
-      });
-      return res.status(404).json({ error: "Current location not found for this student." });
+      userActionLogger.warn(
+        "Current location deletion failed - record not found",
+        {
+          action: "DELETE",
+          table: "student_current_location",
+          location_id,
+          roll_no,
+          status: "Not Found",
+        }
+      );
+      return res
+        .status(404)
+        .json({ error: "Current location not found for this student." });
     }
 
     userActionLogger.info("Deleted current location", {
@@ -3147,7 +3143,9 @@ export const addHigherEducationDetail = async (req, res) => {
   const { exam_name, institute_name } = req.body;
 
   if (!roll_no || !exam_name || !institute_name) {
-    return res.status(400).json({ error: "roll_no, exam_name, and institute_name are required." });
+    return res
+      .status(400)
+      .json({ error: "roll_no, exam_name, and institute_name are required." });
   }
   if (!req.file) {
     return res.status(400).json({ error: "Document file is required." });
@@ -3183,7 +3181,10 @@ export const updateHigherEducationDetail = async (req, res) => {
   const { exam_name, institute_name } = req.body;
 
   if (!roll_no || !education_id || !exam_name || !institute_name) {
-    return res.status(400).json({ error: "roll_no (query), education_id (param), exam_name, and institute_name are required." });
+    return res.status(400).json({
+      error:
+        "roll_no (query), education_id (param), exam_name, and institute_name are required.",
+    });
   }
   if (!req.file) {
     return res.status(400).json({ error: "Document file is required." });
@@ -3198,7 +3199,10 @@ export const updateHigherEducationDetail = async (req, res) => {
       [education_id, roll_no]
     );
     if (oldRows.length > 0 && oldRows[0].document) {
-      const oldDocPath = path.join("public", oldRows[0].document.replace("public/", ""));
+      const oldDocPath = path.join(
+        "public",
+        oldRows[0].document.replace("public/", "")
+      );
       if (fs.existsSync(oldDocPath)) fs.unlinkSync(oldDocPath);
     }
 
@@ -3210,7 +3214,9 @@ export const updateHigherEducationDetail = async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Higher education detail not found." });
+      return res
+        .status(404)
+        .json({ error: "Higher education detail not found." });
     }
 
     res.status(200).json({
@@ -3218,7 +3224,10 @@ export const updateHigherEducationDetail = async (req, res) => {
       document_path: documentPath,
     });
   } catch (error) {
-    logError("Update higher education detail", error, { education_id, roll_no });
+    logError("Update higher education detail", error, {
+      education_id,
+      roll_no,
+    });
     // Cleanup new file if DB update fails
     if (req.file?.path) {
       fs.unlink(req.file.path, () => {});
@@ -3232,7 +3241,9 @@ export const deleteHigherEducationDetail = async (req, res) => {
   const { education_id } = req.params;
 
   if (!roll_no || !education_id) {
-    return res.status(400).json({ error: "roll_no (query) and education_id (param) are required." });
+    return res.status(400).json({
+      error: "roll_no (query) and education_id (param) are required.",
+    });
   }
 
   try {
@@ -3242,7 +3253,10 @@ export const deleteHigherEducationDetail = async (req, res) => {
       [education_id, roll_no]
     );
     if (rows.length > 0 && rows[0].document) {
-      const docPath = path.join("public", rows[0].document.replace("public/", ""));
+      const docPath = path.join(
+        "public",
+        rows[0].document.replace("public/", "")
+      );
       if (fs.existsSync(docPath)) fs.unlinkSync(docPath);
     }
 
@@ -3252,7 +3266,9 @@ export const deleteHigherEducationDetail = async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Higher education detail not found." });
+      return res
+        .status(404)
+        .json({ error: "Higher education detail not found." });
     }
 
     res.status(200).json({
@@ -3260,7 +3276,10 @@ export const deleteHigherEducationDetail = async (req, res) => {
       education_id,
     });
   } catch (error) {
-    logError("Delete higher education detail", error, { education_id, roll_no });
+    logError("Delete higher education detail", error, {
+      education_id,
+      roll_no,
+    });
     res.status(500).json({ error: "Failed to delete higher education detail" });
   }
 };
@@ -3287,7 +3306,9 @@ export const addEntrepreneurshipDetail = async (req, res) => {
   const { company_name, affiliated_number, website_link } = req.body;
 
   if (!roll_no || !company_name || !affiliated_number) {
-    return res.status(400).json({ error: "roll_no, company_name, and affiliated_number are required." });
+    return res.status(400).json({
+      error: "roll_no, company_name, and affiliated_number are required.",
+    });
   }
   if (!req.file) {
     return res.status(400).json({ error: "Document file is required." });
@@ -3300,7 +3321,13 @@ export const addEntrepreneurshipDetail = async (req, res) => {
       `INSERT INTO student_entrepreneurship_details
        (roll_no, company_name, affiliated_number, website_link, document)
        VALUES (?, ?, ?, ?, ?)`,
-      [roll_no, company_name, affiliated_number, website_link || null, documentPath]
+      [
+        roll_no,
+        company_name,
+        affiliated_number,
+        website_link || null,
+        documentPath,
+      ]
     );
     res.status(201).json({
       entrepreneurship_id: result.insertId,
@@ -3323,7 +3350,10 @@ export const updateEntrepreneurshipDetail = async (req, res) => {
   const { company_name, affiliated_number, website_link } = req.body;
 
   if (!roll_no || !entrepreneurship_id || !company_name || !affiliated_number) {
-    return res.status(400).json({ error: "roll_no (query), entrepreneurship_id (param), company_name, and affiliated_number are required." });
+    return res.status(400).json({
+      error:
+        "roll_no (query), entrepreneurship_id (param), company_name, and affiliated_number are required.",
+    });
   }
   if (!req.file) {
     return res.status(400).json({ error: "Document file is required." });
@@ -3338,7 +3368,10 @@ export const updateEntrepreneurshipDetail = async (req, res) => {
       [entrepreneurship_id, roll_no]
     );
     if (oldRows.length > 0 && oldRows[0].document) {
-      const oldDocPath = path.join("public", oldRows[0].document.replace("public/", ""));
+      const oldDocPath = path.join(
+        "public",
+        oldRows[0].document.replace("public/", "")
+      );
       if (fs.existsSync(oldDocPath)) fs.unlinkSync(oldDocPath);
     }
 
@@ -3346,11 +3379,20 @@ export const updateEntrepreneurshipDetail = async (req, res) => {
       `UPDATE student_entrepreneurship_details
        SET company_name = ?, affiliated_number = ?, website_link = ?, document = ?
        WHERE entrepreneurship_id = ? AND roll_no = ?`,
-      [company_name, affiliated_number, website_link || null, documentPath, entrepreneurship_id, roll_no]
+      [
+        company_name,
+        affiliated_number,
+        website_link || null,
+        documentPath,
+        entrepreneurship_id,
+        roll_no,
+      ]
     );
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Entrepreneurship detail not found." });
+      return res
+        .status(404)
+        .json({ error: "Entrepreneurship detail not found." });
     }
 
     res.status(200).json({
@@ -3358,7 +3400,10 @@ export const updateEntrepreneurshipDetail = async (req, res) => {
       document_path: documentPath,
     });
   } catch (error) {
-    logError("Update entrepreneurship detail", error, { entrepreneurship_id, roll_no });
+    logError("Update entrepreneurship detail", error, {
+      entrepreneurship_id,
+      roll_no,
+    });
     // Cleanup new file if DB update fails
     if (req.file?.path) {
       fs.unlink(req.file.path, () => {});
@@ -3372,7 +3417,9 @@ export const deleteEntrepreneurshipDetail = async (req, res) => {
   const { entrepreneurship_id } = req.params;
 
   if (!roll_no || !entrepreneurship_id) {
-    return res.status(400).json({ error: "roll_no (query) and entrepreneurship_id (param) are required." });
+    return res.status(400).json({
+      error: "roll_no (query) and entrepreneurship_id (param) are required.",
+    });
   }
 
   try {
@@ -3382,7 +3429,10 @@ export const deleteEntrepreneurshipDetail = async (req, res) => {
       [entrepreneurship_id, roll_no]
     );
     if (rows.length > 0 && rows[0].document) {
-      const docPath = path.join("public", rows[0].document.replace("public/", ""));
+      const docPath = path.join(
+        "public",
+        rows[0].document.replace("public/", "")
+      );
       if (fs.existsSync(docPath)) fs.unlinkSync(docPath);
     }
 
@@ -3392,7 +3442,9 @@ export const deleteEntrepreneurshipDetail = async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Entrepreneurship detail not found." });
+      return res
+        .status(404)
+        .json({ error: "Entrepreneurship detail not found." });
     }
 
     res.status(200).json({
@@ -3400,7 +3452,10 @@ export const deleteEntrepreneurshipDetail = async (req, res) => {
       entrepreneurship_id,
     });
   } catch (error) {
-    logError("Delete entrepreneurship detail", error, { entrepreneurship_id, roll_no });
+    logError("Delete entrepreneurship detail", error, {
+      entrepreneurship_id,
+      roll_no,
+    });
     res.status(500).json({ error: "Failed to delete entrepreneurship detail" });
   }
 };
@@ -3423,15 +3478,17 @@ async function getOrCreateCourseId(course_name) {
   return result.insertId;
 }
 
-
 export const getPreviousEducationDetails = async (req, res) => {
   const { roll_no } = req.query;
   if (!roll_no) {
-    userActionLogger.warn("Missing roll_no in query for GET previous education details", {
-      action: "READ",
-      table: "student_previous_education_details",
-      status: "Bad Request",
-    });
+    userActionLogger.warn(
+      "Missing roll_no in query for GET previous education details",
+      {
+        action: "READ",
+        table: "student_previous_education_details",
+        status: "Bad Request",
+      }
+    );
     return res.status(400).json({ error: "roll_no is required in query." });
   }
   try {
@@ -3442,30 +3499,53 @@ export const getPreviousEducationDetails = async (req, res) => {
        WHERE ped.roll_no = ?`,
       [roll_no]
     );
-    userActionLogger.info(`Successfully fetched Previous Education Details for ${roll_no}`, {
-      action: "READ",
-      table: "student_previous_education_details",
-      roll_no,
-      count: rows.length,
-    });
+    userActionLogger.info(
+      `Successfully fetched Previous Education Details for ${roll_no}`,
+      {
+        action: "READ",
+        table: "student_previous_education_details",
+        roll_no,
+        count: rows.length,
+      }
+    );
     res.status(200).json(rows);
   } catch (error) {
     logError("Get previous education details", error, { roll_no });
-    res.status(500).json({ error: "Failed to fetch previous education details" });
+    res
+      .status(500)
+      .json({ error: "Failed to fetch previous education details" });
   }
 };
 
 export const addPreviousEducationDetail = async (req, res) => {
   const { roll_no } = req.query;
-  const { course_name, specialization, institution, percent_obtained, passout_year } = req.body;
+  const {
+    course_name,
+    specialization,
+    institution,
+    percent_obtained,
+    passout_year,
+  } = req.body;
 
-  if (!roll_no || !course_name || !institution || !percent_obtained || !passout_year) {
-    userActionLogger.warn("Missing fields in request body for ADD previous education detail", {
-      action: "CREATE",
-      table: "student_previous_education_details",
-      status: "Bad Request",
+  if (
+    !roll_no ||
+    !course_name ||
+    !institution ||
+    !percent_obtained ||
+    !passout_year
+  ) {
+    userActionLogger.warn(
+      "Missing fields in request body for ADD previous education detail",
+      {
+        action: "CREATE",
+        table: "student_previous_education_details",
+        status: "Bad Request",
+      }
+    );
+    return res.status(400).json({
+      error:
+        "roll_no, course_name, institution, percent_obtained, and passout_year are required.",
     });
-    return res.status(400).json({ error: "roll_no, course_name, institution, percent_obtained, and passout_year are required." });
   }
 
   try {
@@ -3475,19 +3555,29 @@ export const addPreviousEducationDetail = async (req, res) => {
       `INSERT INTO student_previous_education_details
        (roll_no, course, specialization, institution, percent_obtained, passout_year)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [roll_no, courseId, specialization || null, institution, percent_obtained, passout_year]
+      [
+        roll_no,
+        courseId,
+        specialization || null,
+        institution,
+        percent_obtained,
+        passout_year,
+      ]
     );
-    userActionLogger.info(`Added Previous Education Detail for ${roll_no} (${course_name})`, {
-      action: "CREATE",
-      table: "student_previous_education_details",
-      roll_no,
-      course_name,
-      institution,
-      percent_obtained,
-      passout_year,
-    });
+    userActionLogger.info(
+      `Added Previous Education Detail for ${roll_no} (${course_name})`,
+      {
+        action: "CREATE",
+        table: "student_previous_education_details",
+        roll_no,
+        course_name,
+        institution,
+        percent_obtained,
+        passout_year,
+      }
+    );
     res.status(201).json({
-      message: "Previous education detail added successfully"
+      message: "Previous education detail added successfully",
     });
   } catch (error) {
     logError("Add previous education detail", error, { roll_no, course_name });
@@ -3498,15 +3588,34 @@ export const addPreviousEducationDetail = async (req, res) => {
 export const updatePreviousEducationDetail = async (req, res) => {
   const { roll_no } = req.query;
   const { id } = req.params;
-  const { course_name, specialization, institution, percent_obtained, passout_year } = req.body;
+  const {
+    course_name,
+    specialization,
+    institution,
+    percent_obtained,
+    passout_year,
+  } = req.body;
 
-  if (!roll_no || !id || !course_name || !institution || !percent_obtained || !passout_year) {
-    userActionLogger.warn("Missing fields in request body for UPDATE previous education detail", {
-      action: "UPDATE",
-      table: "student_previous_education_details",
-      status: "Bad Request",
+  if (
+    !roll_no ||
+    !id ||
+    !course_name ||
+    !institution ||
+    !percent_obtained ||
+    !passout_year
+  ) {
+    userActionLogger.warn(
+      "Missing fields in request body for UPDATE previous education detail",
+      {
+        action: "UPDATE",
+        table: "student_previous_education_details",
+        status: "Bad Request",
+      }
+    );
+    return res.status(400).json({
+      error:
+        "roll_no (query), id (param), course_name, institution, percent_obtained, and passout_year are required.",
     });
-    return res.status(400).json({ error: "roll_no (query), id (param), course_name, institution, percent_obtained, and passout_year are required." });
   }
 
   try {
@@ -3516,37 +3625,59 @@ export const updatePreviousEducationDetail = async (req, res) => {
       `UPDATE student_previous_education_details
        SET course = ?, specialization = ?, institution = ?, percent_obtained = ?, passout_year = ?
        WHERE id = ? AND roll_no = ?`,
-      [courseId, specialization || null, institution, percent_obtained, passout_year, id, roll_no]
+      [
+        courseId,
+        specialization || null,
+        institution,
+        percent_obtained,
+        passout_year,
+        id,
+        roll_no,
+      ]
     );
 
     if (result.affectedRows === 0) {
-      userActionLogger.warn(`Previous education detail not found for update (id: ${id}, roll_no: ${roll_no})`, {
+      userActionLogger.warn(
+        `Previous education detail not found for update (id: ${id}, roll_no: ${roll_no})`,
+        {
+          action: "UPDATE",
+          table: "student_previous_education_details",
+          id,
+          roll_no,
+          status: "Not Found",
+        }
+      );
+      return res
+        .status(404)
+        .json({ error: "Previous education detail not found." });
+    }
+
+    userActionLogger.info(
+      `Updated Previous Education Detail for ${roll_no} (id: ${id}, course: ${course_name})`,
+      {
         action: "UPDATE",
         table: "student_previous_education_details",
         id,
         roll_no,
-        status: "Not Found",
-      });
-      return res.status(404).json({ error: "Previous education detail not found." });
-    }
-
-    userActionLogger.info(`Updated Previous Education Detail for ${roll_no} (id: ${id}, course: ${course_name})`, {
-      action: "UPDATE",
-      table: "student_previous_education_details",
-      id,
-      roll_no,
-      course_name,
-      institution,
-      percent_obtained,
-      passout_year,
-    });
+        course_name,
+        institution,
+        percent_obtained,
+        passout_year,
+      }
+    );
 
     res.status(200).json({
-      message: "Previous education detail updated successfully"
+      message: "Previous education detail updated successfully",
     });
   } catch (error) {
-    logError("Update previous education detail", error, { roll_no, id, course_name });
-    res.status(500).json({ error: "Failed to update previous education detail" });
+    logError("Update previous education detail", error, {
+      roll_no,
+      id,
+      course_name,
+    });
+    res
+      .status(500)
+      .json({ error: "Failed to update previous education detail" });
   }
 };
 
@@ -3555,12 +3686,17 @@ export const deletePreviousEducationDetail = async (req, res) => {
   const { id } = req.params;
 
   if (!roll_no || !id) {
-    userActionLogger.warn("Missing roll_no or id for DELETE previous education detail", {
-      action: "DELETE",
-      table: "student_previous_education_details",
-      status: "Bad Request",
-    });
-    return res.status(400).json({ error: "roll_no (query) and id (param) are required." });
+    userActionLogger.warn(
+      "Missing roll_no or id for DELETE previous education detail",
+      {
+        action: "DELETE",
+        table: "student_previous_education_details",
+        status: "Bad Request",
+      }
+    );
+    return res
+      .status(400)
+      .json({ error: "roll_no (query) and id (param) are required." });
   }
 
   try {
@@ -3570,40 +3706,53 @@ export const deletePreviousEducationDetail = async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      userActionLogger.warn(`Previous education detail not found for delete (id: ${id}, roll_no: ${roll_no})`, {
+      userActionLogger.warn(
+        `Previous education detail not found for delete (id: ${id}, roll_no: ${roll_no})`,
+        {
+          action: "DELETE",
+          table: "student_previous_education_details",
+          id,
+          roll_no,
+          status: "Not Found",
+        }
+      );
+      return res
+        .status(404)
+        .json({ error: "Previous education detail not found." });
+    }
+
+    userActionLogger.info(
+      `Deleted Previous Education Detail for ${roll_no} (id: ${id})`,
+      {
         action: "DELETE",
         table: "student_previous_education_details",
         id,
         roll_no,
-        status: "Not Found",
-      });
-      return res.status(404).json({ error: "Previous education detail not found." });
-    }
-
-    userActionLogger.info(`Deleted Previous Education Detail for ${roll_no} (id: ${id})`, {
-      action: "DELETE",
-      table: "student_previous_education_details",
-      id,
-      roll_no,
-    });
+      }
+    );
 
     res.status(200).json({
-      message: "Previous education detail deleted successfully"
+      message: "Previous education detail deleted successfully",
     });
   } catch (error) {
     logError("Delete previous education detail", error, { roll_no, id });
-    res.status(500).json({ error: "Failed to delete previous education detail" });
+    res
+      .status(500)
+      .json({ error: "Failed to delete previous education detail" });
   }
 };
 
 export const getCurrentEducationDetails = async (req, res) => {
   const { roll_no } = req.query;
   if (!roll_no) {
-    userActionLogger.warn("Missing roll_no in query for GET current education details", {
-      action: "READ",
-      table: "student_current_education_details",
-      status: "Bad Request",
-    });
+    userActionLogger.warn(
+      "Missing roll_no in query for GET current education details",
+      {
+        action: "READ",
+        table: "student_current_education_details",
+        status: "Bad Request",
+      }
+    );
     return res.status(400).json({ error: "roll_no is required in query." });
   }
   try {
@@ -3623,7 +3772,9 @@ export const getCurrentEducationDetails = async (req, res) => {
     res.status(200).json(rows);
   } catch (error) {
     logError("Get current education details", error, { roll_no });
-    res.status(500).json({ error: "Failed to fetch current education details" });
+    res
+      .status(500)
+      .json({ error: "Failed to fetch current education details" });
   }
 };
 
@@ -3632,41 +3783,54 @@ export const addCurrentEducationDetail = async (req, res) => {
   const { course_name, admitted_through, AIR } = req.body;
 
   if (!roll_no || !course_name || !admitted_through) {
-    userActionLogger.warn("Missing fields in request body for ADD current education detail", {
-      action: "CREATE",
-      table: "student_current_education_details",
-      status: "Bad Request",
+    userActionLogger.warn(
+      "Missing fields in request body for ADD current education detail",
+      {
+        action: "CREATE",
+        table: "student_current_education_details",
+        status: "Bad Request",
+      }
+    );
+    return res.status(400).json({
+      error: "roll_no, course_name, and admitted_through are required.",
     });
-    return res.status(400).json({ error: "roll_no, course_name, and admitted_through are required." });
   }
   if (!req.file) {
-    userActionLogger.warn("Missing document file for ADD current education detail", {
-      action: "CREATE",
-      table: "student_current_education_details",
-      status: "Bad Request",
-    });
+    userActionLogger.warn(
+      "Missing document file for ADD current education detail",
+      {
+        action: "CREATE",
+        table: "student_current_education_details",
+        status: "Bad Request",
+      }
+    );
     return res.status(400).json({ error: "Document file is required." });
   }
 
   try {
     const courseId = await getOrCreateCourseId(course_name);
-    const documentPath = req.file.path.replace(/\\/g, "/").replace(/^.*?public[\\/]/, "public/");
+    const documentPath = req.file.path
+      .replace(/\\/g, "/")
+      .replace(/^.*?public[\\/]/, "public/");
     const [result] = await promisePool.query(
       `INSERT INTO student_current_education_details
        (roll_no, course_id, admitted_through, AIR, document)
        VALUES (?, ?, ?, ?, ?)`,
       [roll_no, courseId, admitted_through, AIR || null, documentPath]
     );
-    userActionLogger.info(`Added Current Education Detail for ${roll_no} (${course_name})`, {
-      action: "CREATE",
-      table: "student_current_education_details",
-      roll_no,
-      course_name,
-      admitted_through,
-      AIR,
-    });
+    userActionLogger.info(
+      `Added Current Education Detail for ${roll_no} (${course_name})`,
+      {
+        action: "CREATE",
+        table: "student_current_education_details",
+        roll_no,
+        course_name,
+        admitted_through,
+        AIR,
+      }
+    );
     res.status(201).json({
-      message: "Current education detail added successfully"
+      message: "Current education detail added successfully",
     });
   } catch (error) {
     logError("Add current education detail", error, { roll_no, course_name });
@@ -3681,32 +3845,46 @@ export const updateCurrentEducationDetail = async (req, res) => {
   const { course_name, admitted_through, AIR } = req.body;
 
   if (!roll_no || !id || !course_name || !admitted_through) {
-    userActionLogger.warn("Missing fields in request body for UPDATE current education detail", {
-      action: "UPDATE",
-      table: "student_current_education_details",
-      status: "Bad Request",
+    userActionLogger.warn(
+      "Missing fields in request body for UPDATE current education detail",
+      {
+        action: "UPDATE",
+        table: "student_current_education_details",
+        status: "Bad Request",
+      }
+    );
+    return res.status(400).json({
+      error:
+        "roll_no (query), id (param), course_name, and admitted_through are required.",
     });
-    return res.status(400).json({ error: "roll_no (query), id (param), course_name, and admitted_through are required." });
   }
   if (!req.file) {
-    userActionLogger.warn("Missing document file for UPDATE current education detail", {
-      action: "UPDATE",
-      table: "student_current_education_details",
-      status: "Bad Request",
-    });
+    userActionLogger.warn(
+      "Missing document file for UPDATE current education detail",
+      {
+        action: "UPDATE",
+        table: "student_current_education_details",
+        status: "Bad Request",
+      }
+    );
     return res.status(400).json({ error: "Document file is required." });
   }
 
   try {
     const courseId = await getOrCreateCourseId(course_name);
-    const documentPath = req.file.path.replace(/\\/g, "/").replace(/^.*?public[\\/]/, "public/");
+    const documentPath = req.file.path
+      .replace(/\\/g, "/")
+      .replace(/^.*?public[\\/]/, "public/");
     // Delete old document if exists
     const [oldRows] = await promisePool.query(
       "SELECT document FROM student_current_education_details WHERE id = ? AND roll_no = ?",
       [id, roll_no]
     );
     if (oldRows.length > 0 && oldRows[0].document) {
-      const oldDocPath = path.join("public", oldRows[0].document.replace("public/", ""));
+      const oldDocPath = path.join(
+        "public",
+        oldRows[0].document.replace("public/", "")
+      );
       if (fs.existsSync(oldDocPath)) fs.unlinkSync(oldDocPath);
     }
 
@@ -3718,33 +3896,47 @@ export const updateCurrentEducationDetail = async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      userActionLogger.warn(`Current education detail not found for update (id: ${id}, roll_no: ${roll_no})`, {
+      userActionLogger.warn(
+        `Current education detail not found for update (id: ${id}, roll_no: ${roll_no})`,
+        {
+          action: "UPDATE",
+          table: "student_current_education_details",
+          id,
+          roll_no,
+          status: "Not Found",
+        }
+      );
+      return res
+        .status(404)
+        .json({ error: "Current education detail not found." });
+    }
+
+    userActionLogger.info(
+      `Updated Current Education Detail for ${roll_no} (id: ${id}, course: ${course_name})`,
+      {
         action: "UPDATE",
         table: "student_current_education_details",
         id,
         roll_no,
-        status: "Not Found",
-      });
-      return res.status(404).json({ error: "Current education detail not found." });
-    }
-
-    userActionLogger.info(`Updated Current Education Detail for ${roll_no} (id: ${id}, course: ${course_name})`, {
-      action: "UPDATE",
-      table: "student_current_education_details",
-      id,
-      roll_no,
-      course_name,
-      admitted_through,
-      AIR,
-    });
+        course_name,
+        admitted_through,
+        AIR,
+      }
+    );
 
     res.status(200).json({
-      message: "Current education detail updated successfully"
+      message: "Current education detail updated successfully",
     });
   } catch (error) {
-    logError("Update current education detail", error, { roll_no, id, course_name });
+    logError("Update current education detail", error, {
+      roll_no,
+      id,
+      course_name,
+    });
     if (req.file?.path) fs.unlink(req.file.path, () => {});
-    res.status(500).json({ error: "Failed to update current education detail" });
+    res
+      .status(500)
+      .json({ error: "Failed to update current education detail" });
   }
 };
 
@@ -3753,12 +3945,17 @@ export const deleteCurrentEducationDetail = async (req, res) => {
   const { id } = req.params;
 
   if (!roll_no || !id) {
-    userActionLogger.warn("Missing roll_no or id for DELETE current education detail", {
-      action: "DELETE",
-      table: "student_current_education_details",
-      status: "Bad Request",
-    });
-    return res.status(400).json({ error: "roll_no (query) and id (param) are required." });
+    userActionLogger.warn(
+      "Missing roll_no or id for DELETE current education detail",
+      {
+        action: "DELETE",
+        table: "student_current_education_details",
+        status: "Bad Request",
+      }
+    );
+    return res
+      .status(400)
+      .json({ error: "roll_no (query) and id (param) are required." });
   }
 
   try {
@@ -3768,7 +3965,10 @@ export const deleteCurrentEducationDetail = async (req, res) => {
       [id, roll_no]
     );
     if (rows.length > 0 && rows[0].document) {
-      const docPath = path.join("public", rows[0].document.replace("public/", ""));
+      const docPath = path.join(
+        "public",
+        rows[0].document.replace("public/", "")
+      );
       if (fs.existsSync(docPath)) fs.unlinkSync(docPath);
     }
 
@@ -3778,29 +3978,39 @@ export const deleteCurrentEducationDetail = async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      userActionLogger.warn(`Current education detail not found for delete (id: ${id}, roll_no: ${roll_no})`, {
+      userActionLogger.warn(
+        `Current education detail not found for delete (id: ${id}, roll_no: ${roll_no})`,
+        {
+          action: "DELETE",
+          table: "student_current_education_details",
+          id,
+          roll_no,
+          status: "Not Found",
+        }
+      );
+      return res
+        .status(404)
+        .json({ error: "Current education detail not found." });
+    }
+
+    userActionLogger.info(
+      `Deleted Current Education Detail for ${roll_no} (id: ${id})`,
+      {
         action: "DELETE",
         table: "student_current_education_details",
         id,
         roll_no,
-        status: "Not Found",
-      });
-      return res.status(404).json({ error: "Current education detail not found." });
-    }
-
-    userActionLogger.info(`Deleted Current Education Detail for ${roll_no} (id: ${id})`, {
-      action: "DELETE",
-      table: "student_current_education_details",
-      id,
-      roll_no,
-    });
+      }
+    );
 
     res.status(200).json({
-      message: "Current education detail deleted successfully"
+      message: "Current education detail deleted successfully",
     });
   } catch (error) {
     logError("Delete current education detail", error, { roll_no, id });
-    res.status(500).json({ error: "Failed to delete current education detail" });
+    res
+      .status(500)
+      .json({ error: "Failed to delete current education detail" });
   }
 };
 
@@ -3820,11 +4030,14 @@ async function getOrCreateEventTypeId(extracurricular_name) {
 export const getExtracurricularActivities = async (req, res) => {
   const { roll_no } = req.query;
   if (!roll_no) {
-    userActionLogger.warn("Missing roll_no in query for GET extracurricular activities", {
-      action: "READ",
-      table: "student_extracurricular_activities",
-      status: "Bad Request",
-    });
+    userActionLogger.warn(
+      "Missing roll_no in query for GET extracurricular activities",
+      {
+        action: "READ",
+        table: "student_extracurricular_activities",
+        status: "Bad Request",
+      }
+    );
     return res.status(400).json({ error: "roll_no is required in query." });
   }
   try {
@@ -3844,7 +4057,9 @@ export const getExtracurricularActivities = async (req, res) => {
     res.status(200).json(rows);
   } catch (error) {
     logError("Get extracurricular activities", error, { roll_no });
-    res.status(500).json({ error: "Failed to fetch extracurricular activities" });
+    res
+      .status(500)
+      .json({ error: "Failed to fetch extracurricular activities" });
   }
 };
 
@@ -3857,29 +4072,47 @@ export const addExtracurricularActivity = async (req, res) => {
     event,
     event_date,
     position,
-    description
+    description,
   } = req.body;
 
-  if (!roll_no || !organizer || !event_name || !extracurricular_name || !event || !event_date || !position) {
-    userActionLogger.warn("Missing fields in request body for ADD extracurricular activity", {
-      action: "CREATE",
-      table: "student_extracurricular_activities",
-      status: "Bad Request",
-    });
-    return res.status(400).json({ error: "All fields except description are required." });
+  if (
+    !roll_no ||
+    !organizer ||
+    !event_name ||
+    !extracurricular_name ||
+    !event ||
+    !event_date ||
+    !position
+  ) {
+    userActionLogger.warn(
+      "Missing fields in request body for ADD extracurricular activity",
+      {
+        action: "CREATE",
+        table: "student_extracurricular_activities",
+        status: "Bad Request",
+      }
+    );
+    return res
+      .status(400)
+      .json({ error: "All fields except description are required." });
   }
   if (!req.file) {
-    userActionLogger.warn("Missing document file for ADD extracurricular activity", {
-      action: "CREATE",
-      table: "student_extracurricular_activities",
-      status: "Bad Request",
-    });
+    userActionLogger.warn(
+      "Missing document file for ADD extracurricular activity",
+      {
+        action: "CREATE",
+        table: "student_extracurricular_activities",
+        status: "Bad Request",
+      }
+    );
     return res.status(400).json({ error: "Document file is required." });
   }
 
   try {
     const eventTypeId = await getOrCreateEventTypeId(extracurricular_name);
-    const documentPath = req.file.path.replace(/\\/g, "/").replace(/^.*?public[\\/]/, "public/");
+    const documentPath = req.file.path
+      .replace(/\\/g, "/")
+      .replace(/^.*?public[\\/]/, "public/");
     const [result] = await promisePool.query(
       `INSERT INTO student_extracurricular_activities
        (roll_no, organizer, event_name, event_type, event, event_date, position, description, document)
@@ -3893,22 +4126,25 @@ export const addExtracurricularActivity = async (req, res) => {
         event_date,
         position,
         description || null,
-        documentPath
+        documentPath,
       ]
     );
-    userActionLogger.info(`Added Extracurricular Activity for ${roll_no} (${event_name})`, {
-      action: "CREATE",
-      table: "student_extracurricular_activities",
-      roll_no,
-      organizer,
-      event_name,
-      extracurricular_name,
-      event,
-      event_date,
-      position
-    });
+    userActionLogger.info(
+      `Added Extracurricular Activity for ${roll_no} (${event_name})`,
+      {
+        action: "CREATE",
+        table: "student_extracurricular_activities",
+        roll_no,
+        organizer,
+        event_name,
+        extracurricular_name,
+        event,
+        event_date,
+        position,
+      }
+    );
     res.status(201).json({
-      message: "Extracurricular activity added successfully"
+      message: "Extracurricular activity added successfully",
     });
   } catch (error) {
     logError("Add extracurricular activity", error, { roll_no, event_name });
@@ -3927,36 +4163,58 @@ export const updateExtracurricularActivity = async (req, res) => {
     event,
     event_date,
     position,
-    description
+    description,
   } = req.body;
 
-  if (!roll_no || !activity_id || !organizer || !event_name || !extracurricular_name || !event || !event_date || !position) {
-    userActionLogger.warn("Missing fields in request body for UPDATE extracurricular activity", {
-      action: "UPDATE",
-      table: "student_extracurricular_activities",
-      status: "Bad Request",
-    });
-    return res.status(400).json({ error: "All fields except description are required." });
+  if (
+    !roll_no ||
+    !activity_id ||
+    !organizer ||
+    !event_name ||
+    !extracurricular_name ||
+    !event ||
+    !event_date ||
+    !position
+  ) {
+    userActionLogger.warn(
+      "Missing fields in request body for UPDATE extracurricular activity",
+      {
+        action: "UPDATE",
+        table: "student_extracurricular_activities",
+        status: "Bad Request",
+      }
+    );
+    return res
+      .status(400)
+      .json({ error: "All fields except description are required." });
   }
   if (!req.file) {
-    userActionLogger.warn("Missing document file for UPDATE extracurricular activity", {
-      action: "UPDATE",
-      table: "student_extracurricular_activities",
-      status: "Bad Request",
-    });
+    userActionLogger.warn(
+      "Missing document file for UPDATE extracurricular activity",
+      {
+        action: "UPDATE",
+        table: "student_extracurricular_activities",
+        status: "Bad Request",
+      }
+    );
     return res.status(400).json({ error: "Document file is required." });
   }
 
   try {
     const eventTypeId = await getOrCreateEventTypeId(extracurricular_name);
-    const documentPath = req.file.path.replace(/\\/g, "/").replace(/^.*?public[\\/]/, "public/");
+    const documentPath = req.file.path
+      .replace(/\\/g, "/")
+      .replace(/^.*?public[\\/]/, "public/");
     // Delete old document if exists
     const [oldRows] = await promisePool.query(
       "SELECT document FROM student_extracurricular_activities WHERE activity_id = ? AND roll_no = ?",
       [activity_id, roll_no]
     );
     if (oldRows.length > 0 && oldRows[0].document) {
-      const oldDocPath = path.join("public", oldRows[0].document.replace("public/", ""));
+      const oldDocPath = path.join(
+        "public",
+        oldRows[0].document.replace("public/", "")
+      );
       if (fs.existsSync(oldDocPath)) fs.unlinkSync(oldDocPath);
     }
 
@@ -3974,41 +4232,55 @@ export const updateExtracurricularActivity = async (req, res) => {
         description || null,
         documentPath,
         activity_id,
-        roll_no
+        roll_no,
       ]
     );
 
     if (result.affectedRows === 0) {
-      userActionLogger.warn(`Extracurricular activity not found for update (activity_id: ${activity_id}, roll_no: ${roll_no})`, {
+      userActionLogger.warn(
+        `Extracurricular activity not found for update (activity_id: ${activity_id}, roll_no: ${roll_no})`,
+        {
+          action: "UPDATE",
+          table: "student_extracurricular_activities",
+          activity_id,
+          roll_no,
+          status: "Not Found",
+        }
+      );
+      return res
+        .status(404)
+        .json({ error: "Extracurricular activity not found." });
+    }
+
+    userActionLogger.info(
+      `Updated Extracurricular Activity for ${roll_no} (activity_id: ${activity_id}, event: ${event_name})`,
+      {
         action: "UPDATE",
         table: "student_extracurricular_activities",
         activity_id,
         roll_no,
-        status: "Not Found",
-      });
-      return res.status(404).json({ error: "Extracurricular activity not found." });
-    }
-
-    userActionLogger.info(`Updated Extracurricular Activity for ${roll_no} (activity_id: ${activity_id}, event: ${event_name})`, {
-      action: "UPDATE",
-      table: "student_extracurricular_activities",
-      activity_id,
-      roll_no,
-      organizer,
-      event_name,
-      extracurricular_name,
-      event,
-      event_date,
-      position
-    });
+        organizer,
+        event_name,
+        extracurricular_name,
+        event,
+        event_date,
+        position,
+      }
+    );
 
     res.status(200).json({
-      message: "Extracurricular activity updated successfully"
+      message: "Extracurricular activity updated successfully",
     });
   } catch (error) {
-    logError("Update extracurricular activity", error, { roll_no, activity_id, event_name });
+    logError("Update extracurricular activity", error, {
+      roll_no,
+      activity_id,
+      event_name,
+    });
     if (req.file?.path) fs.unlink(req.file.path, () => {});
-    res.status(500).json({ error: "Failed to update extracurricular activity" });
+    res
+      .status(500)
+      .json({ error: "Failed to update extracurricular activity" });
   }
 };
 
@@ -4017,12 +4289,17 @@ export const deleteExtracurricularActivity = async (req, res) => {
   const { activity_id } = req.params;
 
   if (!roll_no || !activity_id) {
-    userActionLogger.warn("Missing roll_no or activity_id for DELETE extracurricular activity", {
-      action: "DELETE",
-      table: "student_extracurricular_activities",
-      status: "Bad Request",
-    });
-    return res.status(400).json({ error: "roll_no (query) and activity_id (param) are required." });
+    userActionLogger.warn(
+      "Missing roll_no or activity_id for DELETE extracurricular activity",
+      {
+        action: "DELETE",
+        table: "student_extracurricular_activities",
+        status: "Bad Request",
+      }
+    );
+    return res
+      .status(400)
+      .json({ error: "roll_no (query) and activity_id (param) are required." });
   }
 
   try {
@@ -4032,7 +4309,10 @@ export const deleteExtracurricularActivity = async (req, res) => {
       [activity_id, roll_no]
     );
     if (rows.length > 0 && rows[0].document) {
-      const docPath = path.join("public", rows[0].document.replace("/public/", ""));
+      const docPath = path.join(
+        "public",
+        rows[0].document.replace("/public/", "")
+      );
       if (fs.existsSync(docPath)) fs.unlinkSync(docPath);
     }
 
@@ -4042,29 +4322,42 @@ export const deleteExtracurricularActivity = async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      userActionLogger.warn(`Extracurricular activity not found for delete (activity_id: ${activity_id}, roll_no: ${roll_no})`, {
+      userActionLogger.warn(
+        `Extracurricular activity not found for delete (activity_id: ${activity_id}, roll_no: ${roll_no})`,
+        {
+          action: "DELETE",
+          table: "student_extracurricular_activities",
+          activity_id,
+          roll_no,
+          status: "Not Found",
+        }
+      );
+      return res
+        .status(404)
+        .json({ error: "Extracurricular activity not found." });
+    }
+
+    userActionLogger.info(
+      `Deleted Extracurricular Activity for ${roll_no} (activity_id: ${activity_id})`,
+      {
         action: "DELETE",
         table: "student_extracurricular_activities",
         activity_id,
         roll_no,
-        status: "Not Found",
-      });
-      return res.status(404).json({ error: "Extracurricular activity not found." });
-    }
-
-    userActionLogger.info(`Deleted Extracurricular Activity for ${roll_no} (activity_id: ${activity_id})`, {
-      action: "DELETE",
-      table: "student_extracurricular_activities",
-      activity_id,
-      roll_no,
-    });
+      }
+    );
 
     res.status(200).json({
-      message: "Extracurricular activity deleted successfully"
+      message: "Extracurricular activity deleted successfully",
     });
   } catch (error) {
-    logError("Delete extracurricular activity", error, { roll_no, activity_id });
-    res.status(500).json({ error: "Failed to delete extracurricular activity" });
+    logError("Delete extracurricular activity", error, {
+      roll_no,
+      activity_id,
+    });
+    res
+      .status(500)
+      .json({ error: "Failed to delete extracurricular activity" });
   }
 };
 
@@ -4117,12 +4410,17 @@ export const addSocietyDetail = async (req, res) => {
   const { type, society_name, role } = req.body;
 
   if (!roll_no || !type || !society_name || !role) {
-    userActionLogger.warn("Missing fields in request body for ADD society detail", {
-      action: "CREATE",
-      table: "student_society_details",
-      status: "Bad Request",
-    });
-    return res.status(400).json({ error: "roll_no, type, society_name, and role are required." });
+    userActionLogger.warn(
+      "Missing fields in request body for ADD society detail",
+      {
+        action: "CREATE",
+        table: "student_society_details",
+        status: "Bad Request",
+      }
+    );
+    return res
+      .status(400)
+      .json({ error: "roll_no, type, society_name, and role are required." });
   }
   if (!req.file) {
     userActionLogger.warn("Missing document file for ADD society detail", {
@@ -4135,23 +4433,28 @@ export const addSocietyDetail = async (req, res) => {
 
   try {
     const societyId = await getOrCreateSocietyId(society_name);
-    const documentPath = req.file.path.replace(/\\/g, "/").replace(/^.*?public[\\/]/, "public/");
+    const documentPath = req.file.path
+      .replace(/\\/g, "/")
+      .replace(/^.*?public[\\/]/, "public/");
     const [result] = await promisePool.query(
       `INSERT INTO student_society_details
        (roll_no, type, name, role, document)
        VALUES (?, ?, ?, ?, ?)`,
       [roll_no, type, societyId, role, documentPath]
     );
-    userActionLogger.info(`Added Society Detail for ${roll_no} (${society_name})`, {
-      action: "CREATE",
-      table: "student_society_details",
-      roll_no,
-      type,
-      society_name,
-      role,
-    });
+    userActionLogger.info(
+      `Added Society Detail for ${roll_no} (${society_name})`,
+      {
+        action: "CREATE",
+        table: "student_society_details",
+        roll_no,
+        type,
+        society_name,
+        role,
+      }
+    );
     res.status(201).json({
-      message: "Society detail added successfully"
+      message: "Society detail added successfully",
     });
   } catch (error) {
     logError("Add society detail", error, { roll_no, society_name });
@@ -4166,12 +4469,18 @@ export const updateSocietyDetail = async (req, res) => {
   const { type, society_name, role } = req.body;
 
   if (!roll_no || !id || !type || !society_name || !role) {
-    userActionLogger.warn("Missing fields in request body for UPDATE society detail", {
-      action: "UPDATE",
-      table: "student_society_details",
-      status: "Bad Request",
+    userActionLogger.warn(
+      "Missing fields in request body for UPDATE society detail",
+      {
+        action: "UPDATE",
+        table: "student_society_details",
+        status: "Bad Request",
+      }
+    );
+    return res.status(400).json({
+      error:
+        "roll_no (query), id (param), type, society_name, and role are required.",
     });
-    return res.status(400).json({ error: "roll_no (query), id (param), type, society_name, and role are required." });
   }
   if (!req.file) {
     userActionLogger.warn("Missing document file for UPDATE society detail", {
@@ -4184,14 +4493,19 @@ export const updateSocietyDetail = async (req, res) => {
 
   try {
     const societyId = await getOrCreateSocietyId(society_name);
-    const documentPath = req.file.path.replace(/\\/g, "/").replace(/^.*?public[\\/]/, "public/");
+    const documentPath = req.file.path
+      .replace(/\\/g, "/")
+      .replace(/^.*?public[\\/]/, "public/");
     // Delete old document if exists
     const [oldRows] = await promisePool.query(
       "SELECT document FROM student_society_details WHERE id = ? AND roll_no = ?",
       [id, roll_no]
     );
     if (oldRows.length > 0 && oldRows[0].document) {
-      const oldDocPath = path.join("public", oldRows[0].document.replace("public/", ""));
+      const oldDocPath = path.join(
+        "public",
+        oldRows[0].document.replace("public/", "")
+      );
       if (fs.existsSync(oldDocPath)) fs.unlinkSync(oldDocPath);
     }
 
@@ -4203,28 +4517,34 @@ export const updateSocietyDetail = async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      userActionLogger.warn(`Society detail not found for update (id: ${id}, roll_no: ${roll_no})`, {
+      userActionLogger.warn(
+        `Society detail not found for update (id: ${id}, roll_no: ${roll_no})`,
+        {
+          action: "UPDATE",
+          table: "student_society_details",
+          id,
+          roll_no,
+          status: "Not Found",
+        }
+      );
+      return res.status(404).json({ error: "Society detail not found." });
+    }
+
+    userActionLogger.info(
+      `Updated Society Detail for ${roll_no} (id: ${id}, society: ${society_name})`,
+      {
         action: "UPDATE",
         table: "student_society_details",
         id,
         roll_no,
-        status: "Not Found",
-      });
-      return res.status(404).json({ error: "Society detail not found." });
-    }
-
-    userActionLogger.info(`Updated Society Detail for ${roll_no} (id: ${id}, society: ${society_name})`, {
-      action: "UPDATE",
-      table: "student_society_details",
-      id,
-      roll_no,
-      type,
-      society_name,
-      role,
-    });
+        type,
+        society_name,
+        role,
+      }
+    );
 
     res.status(200).json({
-      message: "Society detail updated successfully"
+      message: "Society detail updated successfully",
     });
   } catch (error) {
     logError("Update society detail", error, { roll_no, id, society_name });
@@ -4243,7 +4563,9 @@ export const deleteSocietyDetail = async (req, res) => {
       table: "student_society_details",
       status: "Bad Request",
     });
-    return res.status(400).json({ error: "roll_no (query) and id (param) are required." });
+    return res
+      .status(400)
+      .json({ error: "roll_no (query) and id (param) are required." });
   }
 
   try {
@@ -4253,7 +4575,10 @@ export const deleteSocietyDetail = async (req, res) => {
       [id, roll_no]
     );
     if (rows.length > 0 && rows[0].document) {
-      const docPath = path.join("public", rows[0].document.replace("public/", ""));
+      const docPath = path.join(
+        "public",
+        rows[0].document.replace("public/", "")
+      );
       if (fs.existsSync(docPath)) fs.unlinkSync(docPath);
     }
 
@@ -4263,13 +4588,16 @@ export const deleteSocietyDetail = async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      userActionLogger.warn(`Society detail not found for delete (id: ${id}, roll_no: ${roll_no})`, {
-        action: "DELETE",
-        table: "student_society_details",
-        id,
-        roll_no,
-        status: "Not Found",
-      });
+      userActionLogger.warn(
+        `Society detail not found for delete (id: ${id}, roll_no: ${roll_no})`,
+        {
+          action: "DELETE",
+          table: "student_society_details",
+          id,
+          roll_no,
+          status: "Not Found",
+        }
+      );
       return res.status(404).json({ error: "Society detail not found." });
     }
 
@@ -4281,7 +4609,7 @@ export const deleteSocietyDetail = async (req, res) => {
     });
 
     res.status(200).json({
-      message: "Society detail deleted successfully"
+      message: "Society detail deleted successfully",
     });
   } catch (error) {
     logError("Delete society detail", error, { roll_no, id });
@@ -4292,11 +4620,14 @@ export const deleteSocietyDetail = async (req, res) => {
 export const getEventOrgDetails = async (req, res) => {
   const { roll_no } = req.query;
   if (!roll_no) {
-    userActionLogger.warn("Missing roll_no in query for GET event org details", {
-      action: "READ",
-      table: "student_event_org_details",
-      status: "Bad Request",
-    });
+    userActionLogger.warn(
+      "Missing roll_no in query for GET event org details",
+      {
+        action: "READ",
+        table: "student_event_org_details",
+        status: "Bad Request",
+      }
+    );
     return res.status(400).json({ error: "roll_no is required in query." });
   }
   try {
@@ -4313,7 +4644,9 @@ export const getEventOrgDetails = async (req, res) => {
     res.status(200).json(rows);
   } catch (error) {
     logError("Get event org details", error, { roll_no });
-    res.status(500).json({ error: "Failed to fetch event organization details" });
+    res
+      .status(500)
+      .json({ error: "Failed to fetch event organization details" });
   }
 };
 
@@ -4322,12 +4655,17 @@ export const addEventOrgDetail = async (req, res) => {
   const { type, event_name, event_date, description } = req.body;
 
   if (!roll_no || !type || !event_name || !event_date) {
-    userActionLogger.warn("Missing fields in request body for ADD event org detail", {
-      action: "CREATE",
-      table: "student_event_org_details",
-      status: "Bad Request",
+    userActionLogger.warn(
+      "Missing fields in request body for ADD event org detail",
+      {
+        action: "CREATE",
+        table: "student_event_org_details",
+        status: "Bad Request",
+      }
+    );
+    return res.status(400).json({
+      error: "roll_no, type, event_name, and event_date are required.",
     });
-    return res.status(400).json({ error: "roll_no, type, event_name, and event_date are required." });
   }
   if (!req.file) {
     userActionLogger.warn("Missing document file for ADD event org detail", {
@@ -4339,7 +4677,9 @@ export const addEventOrgDetail = async (req, res) => {
   }
 
   try {
-    const documentPath = req.file.path.replace(/\\/g, "/").replace(/^.*?public[\\/]/, "public/");
+    const documentPath = req.file.path
+      .replace(/\\/g, "/")
+      .replace(/^.*?public[\\/]/, "public/");
 
     const [result] = await promisePool.query(
       `INSERT INTO student_event_org_details
@@ -4347,16 +4687,19 @@ export const addEventOrgDetail = async (req, res) => {
        VALUES (?, ?, ?, ?, ?, ?)`,
       [roll_no, type, event_name, event_date, description || null, documentPath]
     );
-    userActionLogger.info(`Added Event Organization Detail for ${roll_no} (${event_name})`, {
-      action: "CREATE",
-      table: "student_event_org_details",
-      roll_no,
-      type,
-      event_name,
-      event_date,
-    });
+    userActionLogger.info(
+      `Added Event Organization Detail for ${roll_no} (${event_name})`,
+      {
+        action: "CREATE",
+        table: "student_event_org_details",
+        roll_no,
+        type,
+        event_name,
+        event_date,
+      }
+    );
     res.status(201).json({
-      message: "Event organization detail added successfully"
+      message: "Event organization detail added successfully",
     });
   } catch (error) {
     logError("Add event org detail", error, { roll_no, event_name });
@@ -4371,12 +4714,18 @@ export const updateEventOrgDetail = async (req, res) => {
   const { type, event_name, event_date, description } = req.body;
 
   if (!roll_no || !id || !type || !event_name || !event_date) {
-    userActionLogger.warn("Missing fields in request body for UPDATE event org detail", {
-      action: "UPDATE",
-      table: "student_event_org_details",
-      status: "Bad Request",
+    userActionLogger.warn(
+      "Missing fields in request body for UPDATE event org detail",
+      {
+        action: "UPDATE",
+        table: "student_event_org_details",
+        status: "Bad Request",
+      }
+    );
+    return res.status(400).json({
+      error:
+        "roll_no (query), id (param), type, event_name, and event_date are required.",
     });
-    return res.status(400).json({ error: "roll_no (query), id (param), type, event_name, and event_date are required." });
   }
   if (!req.file) {
     userActionLogger.warn("Missing document file for UPDATE event org detail", {
@@ -4388,7 +4737,9 @@ export const updateEventOrgDetail = async (req, res) => {
   }
 
   try {
-    const documentPath = req.file.path.replace(/\\/g, "/").replace(/^.*?public[\\/]/, "public/");
+    const documentPath = req.file.path
+      .replace(/\\/g, "/")
+      .replace(/^.*?public[\\/]/, "public/");
 
     // Delete old document if exists
     const [oldRows] = await promisePool.query(
@@ -4396,7 +4747,10 @@ export const updateEventOrgDetail = async (req, res) => {
       [id, roll_no]
     );
     if (oldRows.length > 0 && oldRows[0].document) {
-      const oldDocPath = path.join("public", oldRows[0].document.replace("public/", ""));
+      const oldDocPath = path.join(
+        "public",
+        oldRows[0].document.replace("public/", "")
+      );
       if (fs.existsSync(oldDocPath)) fs.unlinkSync(oldDocPath);
     }
 
@@ -4404,37 +4758,55 @@ export const updateEventOrgDetail = async (req, res) => {
       `UPDATE student_event_org_details
        SET type = ?, event_name = ?, event_date = ?, description = ?, document = ?
        WHERE id = ? AND roll_no = ?`,
-      [type, event_name, event_date, description || null, documentPath, id, roll_no]
+      [
+        type,
+        event_name,
+        event_date,
+        description || null,
+        documentPath,
+        id,
+        roll_no,
+      ]
     );
 
     if (result.affectedRows === 0) {
-      userActionLogger.warn(`Event org detail not found for update (id: ${id}, roll_no: ${roll_no})`, {
+      userActionLogger.warn(
+        `Event org detail not found for update (id: ${id}, roll_no: ${roll_no})`,
+        {
+          action: "UPDATE",
+          table: "student_event_org_details",
+          id,
+          roll_no,
+          status: "Not Found",
+        }
+      );
+      return res
+        .status(404)
+        .json({ error: "Event organization detail not found." });
+    }
+
+    userActionLogger.info(
+      `Updated Event Organization Detail for ${roll_no} (id: ${id}, event: ${event_name})`,
+      {
         action: "UPDATE",
         table: "student_event_org_details",
         id,
         roll_no,
-        status: "Not Found",
-      });
-      return res.status(404).json({ error: "Event organization detail not found." });
-    }
-
-    userActionLogger.info(`Updated Event Organization Detail for ${roll_no} (id: ${id}, event: ${event_name})`, {
-      action: "UPDATE",
-      table: "student_event_org_details",
-      id,
-      roll_no,
-      type,
-      event_name,
-      event_date,
-    });
+        type,
+        event_name,
+        event_date,
+      }
+    );
 
     res.status(200).json({
-      message: "Event organization detail updated successfully"
+      message: "Event organization detail updated successfully",
     });
   } catch (error) {
     logError("Update event org detail", error, { roll_no, id, event_name });
     if (req.file?.path) fs.unlink(req.file.path, () => {});
-    res.status(500).json({ error: "Failed to update event organization detail" });
+    res
+      .status(500)
+      .json({ error: "Failed to update event organization detail" });
   }
 };
 
@@ -4448,7 +4820,9 @@ export const deleteEventOrgDetail = async (req, res) => {
       table: "student_event_org_details",
       status: "Bad Request",
     });
-    return res.status(400).json({ error: "roll_no (query) and id (param) are required." });
+    return res
+      .status(400)
+      .json({ error: "roll_no (query) and id (param) are required." });
   }
 
   try {
@@ -4458,7 +4832,10 @@ export const deleteEventOrgDetail = async (req, res) => {
       [id, roll_no]
     );
     if (rows.length > 0 && rows[0].document) {
-      const docPath = path.join("public", rows[0].document.replace("public/", ""));
+      const docPath = path.join(
+        "public",
+        rows[0].document.replace("public/", "")
+      );
       if (fs.existsSync(docPath)) fs.unlinkSync(docPath);
     }
 
@@ -4468,29 +4845,39 @@ export const deleteEventOrgDetail = async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      userActionLogger.warn(`Event org detail not found for delete (id: ${id}, roll_no: ${roll_no})`, {
+      userActionLogger.warn(
+        `Event org detail not found for delete (id: ${id}, roll_no: ${roll_no})`,
+        {
+          action: "DELETE",
+          table: "student_event_org_details",
+          id,
+          roll_no,
+          status: "Not Found",
+        }
+      );
+      return res
+        .status(404)
+        .json({ error: "Event organization detail not found." });
+    }
+
+    userActionLogger.info(
+      `Deleted Event Organization Detail for ${roll_no} (id: ${id})`,
+      {
         action: "DELETE",
         table: "student_event_org_details",
         id,
         roll_no,
-        status: "Not Found",
-      });
-      return res.status(404).json({ error: "Event organization detail not found." });
-    }
-
-    userActionLogger.info(`Deleted Event Organization Detail for ${roll_no} (id: ${id})`, {
-      action: "DELETE",
-      table: "student_event_org_details",
-      id,
-      roll_no,
-    });
+      }
+    );
 
     res.status(200).json({
-      message: "Event organization detail deleted successfully"
+      message: "Event organization detail deleted successfully",
     });
   } catch (error) {
     logError("Delete event org detail", error, { roll_no, id });
-    res.status(500).json({ error: "Failed to delete event organization detail" });
+    res
+      .status(500)
+      .json({ error: "Failed to delete event organization detail" });
   }
 };
 
@@ -4525,11 +4912,14 @@ async function getOrCreatePaperTypeId(type_name) {
 export const getPublicationDetails = async (req, res) => {
   const { roll_no } = req.query;
   if (!roll_no) {
-    userActionLogger.warn("Missing roll_no in query for GET publication details", {
-      action: "READ",
-      table: "student_publication_details",
-      status: "Bad Request",
-    });
+    userActionLogger.warn(
+      "Missing roll_no in query for GET publication details",
+      {
+        action: "READ",
+        table: "student_publication_details",
+        status: "Bad Request",
+      }
+    );
     return res.status(400).json({ error: "roll_no is required in query." });
   }
   try {
@@ -4567,7 +4957,7 @@ export const addPublicationDetail = async (req, res) => {
     name_of_publication,
     ISSN_number,
     Link,
-    UGC
+    UGC,
   } = req.body;
 
   if (
@@ -4579,12 +4969,17 @@ export const addPublicationDetail = async (req, res) => {
     !ISSN_number ||
     !UGC
   ) {
-    userActionLogger.warn("Missing fields in request body for ADD publication detail", {
-      action: "CREATE",
-      table: "student_publication_details",
-      status: "Bad Request",
-    });
-    return res.status(400).json({ error: "All compulsory fields must be provided." });
+    userActionLogger.warn(
+      "Missing fields in request body for ADD publication detail",
+      {
+        action: "CREATE",
+        table: "student_publication_details",
+        status: "Bad Request",
+      }
+    );
+    return res
+      .status(400)
+      .json({ error: "All compulsory fields must be provided." });
   }
   if (!req.file) {
     userActionLogger.warn("Missing document file for ADD publication detail", {
@@ -4596,9 +4991,15 @@ export const addPublicationDetail = async (req, res) => {
   }
 
   try {
-    const areaId = area_of_research_name ? await getOrCreateResearchAreaId(area_of_research_name) : req.body.area_of_research || null;
-    const typeId = paper_type_name ? await getOrCreatePaperTypeId(paper_type_name) : req.body.paper_type || null;
-    const documentPath = req.file.path.replace(/\\/g, "/").replace(/^.*?public[\\/]/, "public/");
+    const areaId = area_of_research_name
+      ? await getOrCreateResearchAreaId(area_of_research_name)
+      : req.body.area_of_research || null;
+    const typeId = paper_type_name
+      ? await getOrCreatePaperTypeId(paper_type_name)
+      : req.body.paper_type || null;
+    const documentPath = req.file.path
+      .replace(/\\/g, "/")
+      .replace(/^.*?public[\\/]/, "public/");
 
     const [result] = await promisePool.query(
       `INSERT INTO student_publication_details
@@ -4616,20 +5017,23 @@ export const addPublicationDetail = async (req, res) => {
         ISSN_number,
         Link || null,
         UGC,
-        documentPath
+        documentPath,
       ]
     );
-    userActionLogger.info(`Added Publication Detail for ${roll_no} (${title_of_paper})`, {
-      action: "CREATE",
-      table: "student_publication_details",
-      roll_no,
-      title_of_paper,
-      published_year,
-      authors,
-      name_of_publication,
-    });
+    userActionLogger.info(
+      `Added Publication Detail for ${roll_no} (${title_of_paper})`,
+      {
+        action: "CREATE",
+        table: "student_publication_details",
+        roll_no,
+        title_of_paper,
+        published_year,
+        authors,
+        name_of_publication,
+      }
+    );
     res.status(201).json({
-      message: "Publication detail added successfully"
+      message: "Publication detail added successfully",
     });
   } catch (error) {
     logError("Add publication detail", error, { roll_no, title_of_paper });
@@ -4651,7 +5055,7 @@ export const updatePublicationDetail = async (req, res) => {
     name_of_publication,
     ISSN_number,
     Link,
-    UGC
+    UGC,
   } = req.body;
 
   if (
@@ -4664,26 +5068,40 @@ export const updatePublicationDetail = async (req, res) => {
     !ISSN_number ||
     !UGC
   ) {
-    userActionLogger.warn("Missing fields in request body for UPDATE publication detail", {
-      action: "UPDATE",
-      table: "student_publication_details",
-      status: "Bad Request",
-    });
-    return res.status(400).json({ error: "All compulsory fields must be provided." });
+    userActionLogger.warn(
+      "Missing fields in request body for UPDATE publication detail",
+      {
+        action: "UPDATE",
+        table: "student_publication_details",
+        status: "Bad Request",
+      }
+    );
+    return res
+      .status(400)
+      .json({ error: "All compulsory fields must be provided." });
   }
   if (!req.file) {
-    userActionLogger.warn("Missing document file for UPDATE publication detail", {
-      action: "UPDATE",
-      table: "student_publication_details",
-      status: "Bad Request",
-    });
+    userActionLogger.warn(
+      "Missing document file for UPDATE publication detail",
+      {
+        action: "UPDATE",
+        table: "student_publication_details",
+        status: "Bad Request",
+      }
+    );
     return res.status(400).json({ error: "Document file is required." });
   }
 
   try {
-    const areaId = area_of_research_name ? await getOrCreateResearchAreaId(area_of_research_name) : req.body.area_of_research || null;
-    const typeId = paper_type_name ? await getOrCreatePaperTypeId(paper_type_name) : req.body.paper_type || null;
-    const documentPath = req.file.path.replace(/\\/g, "/").replace(/^.*?public[\\/]/, "public/");
+    const areaId = area_of_research_name
+      ? await getOrCreateResearchAreaId(area_of_research_name)
+      : req.body.area_of_research || null;
+    const typeId = paper_type_name
+      ? await getOrCreatePaperTypeId(paper_type_name)
+      : req.body.paper_type || null;
+    const documentPath = req.file.path
+      .replace(/\\/g, "/")
+      .replace(/^.*?public[\\/]/, "public/");
 
     // Delete old document if exists
     const [oldRows] = await promisePool.query(
@@ -4691,7 +5109,10 @@ export const updatePublicationDetail = async (req, res) => {
       [research_id, roll_no]
     );
     if (oldRows.length > 0 && oldRows[0].document) {
-      const oldDocPath = path.join("public", oldRows[0].document.replace("public/", ""));
+      const oldDocPath = path.join(
+        "public",
+        oldRows[0].document.replace("public/", "")
+      );
       if (fs.existsSync(oldDocPath)) fs.unlinkSync(oldDocPath);
     }
 
@@ -4712,37 +5133,47 @@ export const updatePublicationDetail = async (req, res) => {
         UGC,
         documentPath,
         research_id,
-        roll_no
+        roll_no,
       ]
     );
 
     if (result.affectedRows === 0) {
-      userActionLogger.warn(`Publication detail not found for update (research_id: ${research_id}, roll_no: ${roll_no})`, {
+      userActionLogger.warn(
+        `Publication detail not found for update (research_id: ${research_id}, roll_no: ${roll_no})`,
+        {
+          action: "UPDATE",
+          table: "student_publication_details",
+          research_id,
+          roll_no,
+          status: "Not Found",
+        }
+      );
+      return res.status(404).json({ error: "Publication detail not found." });
+    }
+
+    userActionLogger.info(
+      `Updated Publication Detail for ${roll_no} (research_id: ${research_id}, title: ${title_of_paper})`,
+      {
         action: "UPDATE",
         table: "student_publication_details",
         research_id,
         roll_no,
-        status: "Not Found",
-      });
-      return res.status(404).json({ error: "Publication detail not found." });
-    }
-
-    userActionLogger.info(`Updated Publication Detail for ${roll_no} (research_id: ${research_id}, title: ${title_of_paper})`, {
-      action: "UPDATE",
-      table: "student_publication_details",
-      research_id,
-      roll_no,
-      title_of_paper,
-      published_year,
-      authors,
-      name_of_publication,
-    });
+        title_of_paper,
+        published_year,
+        authors,
+        name_of_publication,
+      }
+    );
 
     res.status(200).json({
-      message: "Publication detail updated successfully"
+      message: "Publication detail updated successfully",
     });
   } catch (error) {
-    logError("Update publication detail", error, { roll_no, research_id, title_of_paper });
+    logError("Update publication detail", error, {
+      roll_no,
+      research_id,
+      title_of_paper,
+    });
     if (req.file?.path) fs.unlink(req.file.path, () => {});
     res.status(500).json({ error: "Failed to update publication detail" });
   }
@@ -4753,12 +5184,17 @@ export const deletePublicationDetail = async (req, res) => {
   const { research_id } = req.params;
 
   if (!roll_no || !research_id) {
-    userActionLogger.warn("Missing roll_no or research_id for DELETE publication detail", {
-      action: "DELETE",
-      table: "student_publication_details",
-      status: "Bad Request",
-    });
-    return res.status(400).json({ error: "roll_no (query) and research_id (param) are required." });
+    userActionLogger.warn(
+      "Missing roll_no or research_id for DELETE publication detail",
+      {
+        action: "DELETE",
+        table: "student_publication_details",
+        status: "Bad Request",
+      }
+    );
+    return res
+      .status(400)
+      .json({ error: "roll_no (query) and research_id (param) are required." });
   }
 
   try {
@@ -4768,7 +5204,10 @@ export const deletePublicationDetail = async (req, res) => {
       [research_id, roll_no]
     );
     if (rows.length > 0 && rows[0].document) {
-      const docPath = path.join("public", rows[0].document.replace("public/", ""));
+      const docPath = path.join(
+        "public",
+        rows[0].document.replace("public/", "")
+      );
       if (fs.existsSync(docPath)) fs.unlinkSync(docPath);
     }
 
@@ -4778,25 +5217,31 @@ export const deletePublicationDetail = async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      userActionLogger.warn(`Publication detail not found for delete (research_id: ${research_id}, roll_no: ${roll_no})`, {
+      userActionLogger.warn(
+        `Publication detail not found for delete (research_id: ${research_id}, roll_no: ${roll_no})`,
+        {
+          action: "DELETE",
+          table: "student_publication_details",
+          research_id,
+          roll_no,
+          status: "Not Found",
+        }
+      );
+      return res.status(404).json({ error: "Publication detail not found." });
+    }
+
+    userActionLogger.info(
+      `Deleted Publication Detail for ${roll_no} (research_id: ${research_id})`,
+      {
         action: "DELETE",
         table: "student_publication_details",
         research_id,
         roll_no,
-        status: "Not Found",
-      });
-      return res.status(404).json({ error: "Publication detail not found." });
-    }
-
-    userActionLogger.info(`Deleted Publication Detail for ${roll_no} (research_id: ${research_id})`, {
-      action: "DELETE",
-      table: "student_publication_details",
-      research_id,
-      roll_no,
-    });
+      }
+    );
 
     res.status(200).json({
-      message: "Publication detail deleted successfully"
+      message: "Publication detail deleted successfully",
     });
   } catch (error) {
     logError("Delete publication detail", error, { roll_no, research_id });

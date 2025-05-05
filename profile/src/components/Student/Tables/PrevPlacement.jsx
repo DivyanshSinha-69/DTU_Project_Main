@@ -17,27 +17,24 @@ const StudentPreviousPlacements = ({ setBlurActive }) => {
   const user = useSelector((state) => state.auth.user) || {};
   const { roll_no } = user;
   const { darkMode } = useThemeContext();
+  const fetchPlacements = async () => {
+    try {
+      const response = await API.get(
+        `ece/student/preplacement?roll_no=${roll_no}`
+      );
+      const placementsData = response?.data || [];
 
+      if (placementsData.length > 0) {
+        setPlacements(placementsData);
+      }
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.error || "Error communicating with server"
+      );
+    }
+  };
   useEffect(() => {
     if (!roll_no) return;
-
-    const fetchPlacements = async () => {
-      try {
-        const response = await API.get(
-          `ece/student/preplacement?roll_no=${roll_no}`
-        );
-        const placementsData = response?.data?.data || [];
-
-        if (placementsData.length > 0) {
-          setPlacements(placementsData);
-        } else {
-          toast.error("No previous placement data available");
-        }
-      } catch (error) {
-        console.error("Error fetching placement data:", error);
-        toast.error("Error while fetching placement data");
-      }
-    };
 
     fetchPlacements();
   }, [roll_no]);
@@ -59,7 +56,6 @@ const StudentPreviousPlacements = ({ setBlurActive }) => {
       newPlacement;
 
     const payload = {
-      roll_no: roll_no,
       placement_category,
       placement_type,
       company_name,
@@ -69,11 +65,20 @@ const StudentPreviousPlacements = ({ setBlurActive }) => {
     try {
       let response;
       if (isAddPlacement) {
-        response = await API.post("ece/student/preplacement", payload);
+        response = await API.post("ece/student/preplacement", payload, {
+          params: {
+            roll_no: roll_no,
+          },
+        });
       } else {
         response = await API.put(
           `ece/student/preplacement/${selectedPlacement.placement_id}`,
-          payload
+          payload,
+          {
+            params: {
+              roll_no: roll_no,
+            },
+          }
         );
       }
 
@@ -91,31 +96,28 @@ const StudentPreviousPlacements = ({ setBlurActive }) => {
           role_name: response.data.role_name || role_name,
         };
 
-        if (isAddPlacement) {
-          setPlacements((prev) => [...prev, newPlacementRecord]);
-        } else {
-          setPlacements((prev) =>
-            prev.map((placement) =>
-              placement.placement_id === selectedPlacement.placement_id
-                ? newPlacementRecord
-                : placement
-            )
-          );
-        }
+        fetchPlacements(); // Refresh the placements list
 
         closePopup();
       } else {
         toast.error("Failed to save placement data.");
       }
     } catch (error) {
-      toast.error("Error connecting to the server.");
+      toast.error(
+        error?.response?.data?.error || "Error communicating with server"
+      );
     }
   };
 
   const handleDeletePlacement = async (placementId) => {
     try {
       const response = await API.delete(
-        `ece/student/preplacement/${placementId}`
+        `ece/student/preplacement/${placementId}`,
+        {
+          params: {
+            roll_no: roll_no,
+          },
+        }
       );
       if (response && response.data) {
         toast.success("Placement data deleted successfully");
@@ -126,8 +128,9 @@ const StudentPreviousPlacements = ({ setBlurActive }) => {
         toast.error(response.data.message || "Something went wrong");
       }
     } catch (err) {
-      console.error("Error deleting placement data:", err);
-      toast.error("Error while deleting placement data");
+      toast.error(
+        err?.response?.data?.error || "Error communicating with server"
+      );
     }
   };
 

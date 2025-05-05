@@ -32,52 +32,67 @@ const getCurrentRole = () => {
 };
 
 // Response interceptor: catch 401/403, refresh, then retry
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve();
+    }
+  });
+
+  failedQueue = [];
+};
+
 API.interceptors.response.use(
   (response) => response,
-  (error) => {
-    const { config, response } = error;
-    const originalRequest = config;
+  async (error) => {
+    const originalRequest = error.config;
 
-    // only handle 401/403 once per request
     if (
-      response &&
-      (response.status === 401 || response.status === 403) &&
+      error.response &&
+      (error.response.status === 401 || error.response.status === 403) &&
       !originalRequest._retry
     ) {
       originalRequest._retry = true;
 
-      if (!isRefreshing) {
-        isRefreshing = true;
-        const currentRole = getCurrentRole();
-        // Use raw axios to avoid recursion into this interceptor
-        console.log("Refreshing token for role:", currentRole);
-        axios
-          .post(
-            `${BACKEND}/ece/${currentRole}/refresh`,
-            {},
-            { withCredentials: true }
-          )
-          .then(() => {
-            isRefreshing = false;
-            onRefreshed();
-          })
-          .catch((refreshError) => {
-            isRefreshing = false;
-            subscribers = [];
-            store.dispatch(logout());
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({
+            resolve: () => {
+              resolve(API(originalRequest));
+            },
+            reject: (err) => {
+              reject(err);
+            },
           });
+        });
       }
 
-      // return a promise that will retry the original request
-      return new Promise((resolve, reject) => {
-        addSubscriber(() => {
-          API(originalRequest).then(resolve).catch(reject);
-        });
-      });
+      isRefreshing = true;
+
+      try {
+        const role = getCurrentRole();
+        await axios.post(
+          `${BACKEND}/ece/${role}/refresh`,
+          {},
+          { withCredentials: true }
+        );
+
+        isRefreshing = false;
+        processQueue(null);
+        return API(originalRequest); // ✅ return retried request
+      } catch (refreshError) {
+        isRefreshing = false;
+        processQueue(refreshError, null);
+        store.dispatch(logout());
+        return Promise.reject(refreshError);
+      }
     }
 
-    // all other errors
-    return Promise.reject(error);
+    return Promise.reject(error); // all other errors
   }
 );
 

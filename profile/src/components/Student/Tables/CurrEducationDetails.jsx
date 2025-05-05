@@ -6,34 +6,43 @@ import { toast } from "react-hot-toast";
 import { useSelector } from "react-redux";
 import API from "../../../utils/API";
 import CustomTable from "../../DynamicComponents/CustomTable";
-import { useThemeContext } from "../../../context/ThemeContext";
-import HigherEducationPopUp from "../PopUp/HigherEducationDetailsPopUp";
-const StudentHigherEducation = ({ setBlurActive }) => {
+import CurrentEducationPopUp from "../PopUp/CurrEducationDetailsPopUp";
+
+const StudentCurrentEducationDetails = ({ setBlurActive }) => {
   const [educationDetails, setEducationDetails] = useState(null);
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [selectedEducation, setSelectedEducation] = useState(null);
   const [isAddEducation, setIsAddEducation] = useState(false);
   const user = useSelector((state) => state.auth.user) || {};
   const { roll_no } = user;
-  const { darkMode } = useThemeContext();
-  const fetchEducationDetails = async () => {
-    try {
-      const response = await API.get(
-        `ece/student/higher-education?roll_no=${roll_no}`
-      );
-      const educationData = response?.data;
-      console.log("Education Data:", educationData); // Debugging line
-      if (educationData && educationData.length > 0) {
-        setEducationDetails(educationData);
-      }
-    } catch (error) {
-      toast.error(
-        error?.response?.data?.error || "Error communicating with server"
-      );
-    }
-  };
+
   useEffect(() => {
     if (!roll_no) return;
+
+    const fetchEducationDetails = async () => {
+      try {
+        const response = await API.get(
+          `ece/student/current-education?roll_no=${roll_no}`
+        );
+        const details = response?.data;
+
+        if (details && details.length > 0) {
+          setEducationDetails(
+            details.map((item) => ({
+              id: item.id,
+              course: item.course_name || item.course_id,
+              admitted_through: item.admitted_through,
+              AIR: item.AIR,
+              document: item.document,
+            }))
+          );
+        }
+      } catch (error) {
+        toast.error(
+          error?.response?.data?.error || "Error communicating with server"
+        );
+      }
+    };
 
     fetchEducationDetails();
   }, [roll_no]);
@@ -50,12 +59,14 @@ const StudentHigherEducation = ({ setBlurActive }) => {
     setBlurActive(false);
   };
 
-  const handleAddEducationDetails = async (newEducationDetails, file) => {
-    const { exam_name, institute_name } = newEducationDetails;
+  const handleAddEducationDetails = async (newDetails, file) => {
+    const { course, admitted_through, AIR } = newDetails;
 
     const formData = new FormData();
-    formData.append("exam_name", exam_name);
-    formData.append("institute_name", institute_name);
+    formData.append("roll_no", roll_no);
+    formData.append("course_name", course);
+    formData.append("admitted_through", admitted_through);
+    formData.append("AIR", AIR);
     if (file) {
       formData.append("document", file);
     }
@@ -63,20 +74,18 @@ const StudentHigherEducation = ({ setBlurActive }) => {
     try {
       let response;
       if (isAddEducation) {
-        response = await API.post(
-          `ece/student/higher-education?roll_no=${roll_no}`,
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
+        response = await API.post("ece/student/current-education", formData, {
+          params: { roll_no },
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
       } else {
         response = await API.put(
-          `ece/student/higher-education/${selectedEducation.education_id}?roll_no=${roll_no}`,
+          `ece/student/current-education/${selectedEducation.id}`,
           formData,
           {
+            params: { roll_no },
             headers: {
               "Content-Type": "multipart/form-data",
             },
@@ -85,21 +94,29 @@ const StudentHigherEducation = ({ setBlurActive }) => {
       }
 
       if (response && response.data) {
-        toast.success("Higher education details successfully saved");
+        toast.success("Education details successfully saved");
 
-        const newEducationRecord = {
-          education_id:
-            response.data.education_id || selectedEducation.education_id,
-          exam_name: response.data.exam_name || exam_name,
-          institute_name: response.data.institute_name || institute_name,
+        const newRecord = {
+          id: response.data.id || selectedEducation.id,
+          course: response.data.course_name || course,
+          admitted_through: response.data.admitted_through || admitted_through,
+          AIR: response.data.AIR || AIR,
           document: response.data.document || selectedEducation?.document,
         };
 
-        fetchEducationDetails(); // Refresh the education details after adding/editing
+        if (isAddEducation) {
+          setEducationDetails((prev) => [...prev, newRecord]);
+        } else {
+          setEducationDetails((prev) =>
+            prev.map((item) =>
+              item.id === selectedEducation.id ? newRecord : item
+            )
+          );
+        }
 
         closePopup();
       } else {
-        toast.error("Failed to save higher education details.");
+        toast.error("Failed to save education details.");
       }
     } catch (error) {
       toast.error(
@@ -108,16 +125,14 @@ const StudentHigherEducation = ({ setBlurActive }) => {
     }
   };
 
-  const handleDeleteEducationDetails = async (educationId) => {
+  const handleDeleteEducationDetails = async (id) => {
     try {
       const response = await API.delete(
-        `ece/student/higher-education/${educationId}?roll_no=${roll_no}`
+        `ece/student/current-education/${id}?roll_no=${roll_no}`
       );
       if (response && response.data) {
-        toast.success("Higher education details deleted successfully");
-        setEducationDetails((prev) =>
-          prev.filter((education) => education.education_id !== educationId)
-        );
+        toast.success("Education details deleted successfully");
+        setEducationDetails((prev) => prev.filter((item) => item.id !== id));
       } else {
         toast.error(response.data.message || "Something went wrong");
       }
@@ -130,13 +145,13 @@ const StudentHigherEducation = ({ setBlurActive }) => {
 
   return (
     <>
-      {/* Reusable Custom Table Component */}
       <CustomTable
-        title="Higher Education Details"
-        subtitle="(Student's Higher Education Information)"
+        title="Current Education Details"
+        subtitle="(Student's Current Academic Information)"
         columns={[
-          { key: "exam_name", label: "Exam Name" },
-          { key: "institute_name", label: "Institute Name" },
+          { key: "course", label: "Course" },
+          { key: "admitted_through", label: "Admitted Through" },
+          { key: "AIR", label: "AIR" },
           { key: "document", label: "Document" },
           { key: "actions", label: "Actions" },
         ]}
@@ -149,8 +164,8 @@ const StudentHigherEducation = ({ setBlurActive }) => {
             setSelectedEducation(education);
           },
           delete: (education) => {
-            if (education?.education_id) {
-              handleDeleteEducationDetails(education.education_id);
+            if (education?.id) {
+              handleDeleteEducationDetails(education.id);
             } else {
               console.error("Education ID is missing or undefined", education);
               toast.error("Education ID not found");
@@ -165,7 +180,6 @@ const StudentHigherEducation = ({ setBlurActive }) => {
         }}
       />
 
-      {/* Popup for Adding/Editing Higher Education Details */}
       <Popup
         open={isPopupOpen}
         onClose={closePopup}
@@ -174,18 +188,20 @@ const StudentHigherEducation = ({ setBlurActive }) => {
       >
         <div>
           {isAddEducation ? (
-            <HigherEducationPopUp
-              exam_name=""
-              institute_name=""
+            <CurrentEducationPopUp
+              course=""
+              admitted_through=""
+              AIR=""
               document=""
               closeModal={closePopup}
               handleAddEducationDetails={handleAddEducationDetails}
             />
           ) : (
             selectedEducation && (
-              <HigherEducationPopUp
-                exam_name={selectedEducation.exam_name}
-                institute_name={selectedEducation.institute_name}
+              <CurrentEducationPopUp
+                course={selectedEducation.course}
+                admitted_through={selectedEducation.admitted_through}
+                AIR={selectedEducation.AIR}
                 document={selectedEducation.document}
                 closeModal={closePopup}
                 handleAddEducationDetails={handleAddEducationDetails}
@@ -198,4 +214,4 @@ const StudentHigherEducation = ({ setBlurActive }) => {
   );
 };
 
-export default StudentHigherEducation;
+export default StudentCurrentEducationDetails;

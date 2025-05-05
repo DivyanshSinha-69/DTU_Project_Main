@@ -18,27 +18,25 @@ const StudentEntrepreneurshipDetails = ({ setBlurActive }) => {
   const user = useSelector((state) => state.auth.user) || {};
   const { roll_no } = user;
   const { darkMode } = useThemeContext();
+  const fetchEntrepreneurshipDetails = async () => {
+    try {
+      const response = await API.get(
+        `ece/student/entrepreneurship?roll_no=${roll_no}`
+      );
+      const details = response?.data || [];
+
+      if (details.length > 0) {
+        setEntrepreneurshipDetails(details);
+      }
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.error || "Error communicating with server"
+      );
+    }
+  };
 
   useEffect(() => {
     if (!roll_no) return;
-
-    const fetchEntrepreneurshipDetails = async () => {
-      try {
-        const response = await API.get(
-          `ece/student/entrepreneurship?roll_no=${roll_no}`
-        );
-        const details = response?.data?.data || [];
-
-        if (details.length > 0) {
-          setEntrepreneurshipDetails(details);
-        } else {
-          toast.error("No entrepreneurship details available");
-        }
-      } catch (error) {
-        console.error("Error fetching entrepreneurship details:", error);
-        toast.error("Error while fetching entrepreneurship details");
-      }
-    };
 
     fetchEntrepreneurshipDetails();
   }, [roll_no]);
@@ -81,6 +79,7 @@ const StudentEntrepreneurshipDetails = ({ setBlurActive }) => {
           `ece/student/entrepreneurship/${selectedEntrepreneurship.entrepreneurship_id}`,
           formData,
           {
+            params: { roll_no },
             headers: {
               "Content-Type": "multipart/form-data",
             },
@@ -104,25 +103,16 @@ const StudentEntrepreneurshipDetails = ({ setBlurActive }) => {
             response.data.document || selectedEntrepreneurship?.document,
         };
 
-        if (isAddEntrepreneurship) {
-          setEntrepreneurshipDetails((prev) => [...prev, newRecord]);
-        } else {
-          setEntrepreneurshipDetails((prev) =>
-            prev.map((item) =>
-              item.entrepreneurship_id ===
-              selectedEntrepreneurship.entrepreneurship_id
-                ? newRecord
-                : item
-            )
-          );
-        }
+        fetchEntrepreneurshipDetails();
 
         closePopup();
       } else {
         toast.error("Failed to save entrepreneurship details.");
       }
     } catch (error) {
-      toast.error("Error connecting to the server.");
+      toast.error(
+        error?.response?.data?.error || "Error communicating with server"
+      );
     }
   };
 
@@ -134,14 +124,17 @@ const StudentEntrepreneurshipDetails = ({ setBlurActive }) => {
       if (response && response.data) {
         toast.success("Entrepreneurship details deleted successfully");
         setEntrepreneurshipDetails((prev) =>
-          prev.filter((item) => item.entrepreneurship_id !== entrepreneurshipId)
+          prev?.filter(
+            (item) => item.entrepreneurship_id !== entrepreneurshipId
+          )
         );
       } else {
         toast.error(response.data.message || "Something went wrong");
       }
     } catch (err) {
-      console.error("Error deleting entrepreneurship details:", err);
-      toast.error("Error while deleting entrepreneurship details");
+      toast.error(
+        err?.response?.data?.error || "Error communicating with server"
+      );
     }
   };
 
@@ -156,33 +149,11 @@ const StudentEntrepreneurshipDetails = ({ setBlurActive }) => {
           {
             key: "website_link",
             label: "Website",
-            render: (link) => (
-              <a
-                href={link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 hover:underline"
-              >
-                {link}
-              </a>
-            ),
+            type: "link",
           },
           {
             key: "document",
             label: "Document",
-            render: (doc) =>
-              doc ? (
-                <a
-                  href={`${API.defaults.baseURL}/${doc}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-500 hover:underline"
-                >
-                  View Document
-                </a>
-              ) : (
-                "No document"
-              ),
           },
           { key: "actions", label: "Actions" },
         ]}

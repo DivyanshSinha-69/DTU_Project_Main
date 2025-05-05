@@ -17,36 +17,33 @@ const StudentPlacementDetails = ({ setBlurActive }) => {
   const user = useSelector((state) => state.auth.user) || {};
   const { roll_no } = user;
   const { darkMode } = useThemeContext();
+  const fetchPlacementDetails = async () => {
+    try {
+      const response = await API.get(
+        `ece/student/placement?roll_no=${roll_no}`
+      );
+      const placements = response?.data;
 
+      if (placements && placements.length > 0) {
+        setPlacementDetails(
+          placements.map((placement) => ({
+            placement_id: placement.placement_id,
+            company_name: placement.company_name,
+            placement_category: placement.placement_category,
+            placement_type: placement.placement_type,
+            role_name: placement.role_name,
+            document: placement.document,
+          }))
+        );
+      }
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.error || "Error communicating with server"
+      );
+    }
+  };
   useEffect(() => {
     if (!roll_no) return;
-
-    const fetchPlacementDetails = async () => {
-      try {
-        const response = await API.get(
-          `ece/student/placement?roll_no=${roll_no}`
-        );
-        const placements = response?.data;
-
-        if (placements && placements.length > 0) {
-          setPlacementDetails(
-            placements.map((placement) => ({
-              placement_id: placement.placement_id,
-              company_name: placement.company_name,
-              placement_category: placement.placement_category,
-              placement_type: placement.placement_type,
-              role_name: placement.role_name,
-              document: placement.document,
-            }))
-          );
-        } else {
-          toast.error("No placement details available");
-        }
-      } catch (error) {
-        console.error("Error fetching placement details:", error);
-        toast.error("Error while fetching placement details");
-      }
-    };
 
     fetchPlacementDetails();
   }, [roll_no]);
@@ -114,25 +111,16 @@ const StudentPlacementDetails = ({ setBlurActive }) => {
           document: response.data.document || selectedPlacement?.document,
         };
 
-        if (isAddPlacement) {
-          setPlacementDetails((prev) => [...prev, newPlacementRecord]);
-        } else {
-          setPlacementDetails((prev) =>
-            prev.map((placement) =>
-              placement.placement_id === selectedPlacement.placement_id
-                ? newPlacementRecord
-                : placement
-            )
-          );
-        }
+        fetchPlacementDetails();
 
         closePopup();
       } else {
         toast.error("Failed to save placement details.");
       }
     } catch (error) {
-      console.error("Error saving placement details:", error);
-      toast.error("Error connecting to the server.");
+      toast.error(
+        error?.response?.data?.error || "Error communicating with server"
+      );
     }
   };
 
@@ -150,8 +138,9 @@ const StudentPlacementDetails = ({ setBlurActive }) => {
         toast.error(response.data.message || "Something went wrong");
       }
     } catch (err) {
-      console.error("Error deleting placement details:", err);
-      toast.error("Error while deleting placement details");
+      toast.error(
+        err?.response?.data?.error || "Error communicating with server"
+      );
     }
   };
 

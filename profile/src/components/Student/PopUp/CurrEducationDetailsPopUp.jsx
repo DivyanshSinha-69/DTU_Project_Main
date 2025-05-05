@@ -2,21 +2,19 @@ import React, { useState } from "react";
 import { Card } from "@material-tailwind/react";
 import toast from "react-hot-toast";
 
-export default function EntrepreneurshipDetailsPopUp({
+export default function CurrentEducationPopUp({
   closeModal,
-  handleAddEntrepreneurshipDetails,
-  company_name,
-  affiliated_number,
-  website_link,
+  handleAddEducationDetails,
+  course,
+  admitted_through,
+  AIR,
   document,
 }) {
   const [formData, setFormData] = useState({
-    company_name: company_name || "",
-    affiliated_number: affiliated_number || "",
-    website_link: website_link || "",
-    document: document || null,
+    course: course || "",
+    admitted_through: admitted_through || "",
+    AIR: AIR || "",
   });
-
   const [file, setFile] = useState(null);
 
   const handleChange = (e) => {
@@ -36,15 +34,15 @@ export default function EntrepreneurshipDetailsPopUp({
 
     // Validation
     if (
-      !formData.company_name ||
-      !formData.affiliated_number ||
+      !formData.course ||
+      !formData.admitted_through ||
       (!file && !document)
     ) {
       toast.error("Please fill in all required fields");
       return;
     }
 
-    handleAddEntrepreneurshipDetails(formData, file);
+    handleAddEducationDetails(formData, file);
   };
 
   return (
@@ -59,57 +57,55 @@ export default function EntrepreneurshipDetailsPopUp({
             onSubmit={handleSubmit}
             className="text-white flex flex-col space-y-6"
           >
-            {/* Company Name */}
+            {/* Course */}
             <div className="relative z-0 w-full group">
-              <label htmlFor="company_name" className="block text-sm">
-                Company Name <span className="text-red-500">*</span>
+              <label htmlFor="course" className="block text-sm">
+                Course <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                name="company_name"
+                name="course"
                 className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
                 onChange={handleChange}
-                value={formData.company_name}
+                value={formData.course}
               />
             </div>
 
-            {/* Affiliated Number */}
+            {/* Admitted Through */}
             <div className="relative z-0 w-full group">
-              <label htmlFor="affiliated_number" className="block text-sm">
-                Affiliated Number (CIN/Registration){" "}
-                <span className="text-red-500">*</span>
+              <label htmlFor="admitted_through" className="block text-sm">
+                Admitted Through <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                name="affiliated_number"
+                name="admitted_through"
                 className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
                 onChange={handleChange}
-                value={formData.affiliated_number}
+                value={formData.admitted_through}
               />
             </div>
 
-            {/* Website Link */}
+            {/* AIR */}
             <div className="relative z-0 w-full group">
-              <label htmlFor="website_link" className="block text-sm">
-                Company Website Link
+              <label htmlFor="AIR" className="block text-sm">
+                AIR (All India Rank)
               </label>
               <input
-                type="url"
-                name="website_link"
+                type="number"
+                name="AIR"
+                min="1"
                 className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 onChange={handleChange}
-                value={formData.website_link}
-                placeholder="https://example.com"
+                value={formData.AIR}
               />
             </div>
 
             {/* Document Upload */}
             <div className="relative z-0 w-full group">
               <label htmlFor="document" className="block text-sm">
-                Upload Registration Document{" "}
-                <span className="text-red-500">*</span>
+                Upload Document <span className="text-red-500">*</span>
               </label>
               <input
                 type="file"
@@ -135,7 +131,7 @@ export default function EntrepreneurshipDetailsPopUp({
                 type="submit"
                 className="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
               >
-                {company_name ? "Update" : "Save"}
+                Save
               </button>
               <button
                 type="button"
