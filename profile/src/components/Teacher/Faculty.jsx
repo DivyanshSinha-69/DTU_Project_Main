@@ -65,7 +65,6 @@ const Faculty = () => {
       }
     } catch (error) {
       if (error.response && error.response.status >= 500) {
-        console.error("❌ Server error fetching faculty image:", error);
         toast.error("⚠️ Failed to fetch faculty image due to a server error.");
       } else {
         console.error("❌ Error fetching faculty image:", error);
@@ -116,8 +115,7 @@ const Faculty = () => {
         toast.error("Failed to upload or update image.");
       }
     } catch (error) {
-      console.error("Error uploading/updating image:", error);
-      toast.error("Failed to upload or update image.");
+      toast.error(error.response?.data?.error || "Failed to upload image.");
     } finally {
       setIsUploadingImage(false);
       setOperationInProgress(false);

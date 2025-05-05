@@ -53,7 +53,6 @@ const SponsoredResearch = ({ setBlurActive }) => {
         setResearchDetails([]);
       }
     } catch (error) {
-      console.error("Error fetching sponsored research records:", error);
       setResearchDetails([]);
     }
   };
