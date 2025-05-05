@@ -665,10 +665,6 @@ export const getFDPRecords = async (req, res) => {
 
     const [results] = await promisePool.query(query, params);
 
-    if (results.length === 0) {
-      return res.status(404).json({ message: "No FDP details found" });
-    }
-
     userActionLogger.info(`Fetched ${results.length} FDP records`);
     res.status(200).json({
       message: "FDP details fetched successfully",
