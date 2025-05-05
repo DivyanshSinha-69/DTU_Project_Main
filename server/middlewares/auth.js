@@ -34,7 +34,6 @@ export const authenticateToken = (req, res, next) => {
         .status(403)
         .json({ error: "Unauthorized access. No position found." });
     }
-
     req.user = decoded;
     next();
   });
@@ -169,7 +168,9 @@ export const authorizeSameDepartment = (req, res, next) => {
       .status(400)
       .json({ message: "department_id is required in request." });
   }
-
+  console.log("Requested department:", requestedDept);
+  console.log("User position:", user);
+  console.log("User department:", user.department_id);
   if (user.department_id !== requestedDept) {
     errorLogger.error(
       `🚫 Unauthorized department access by ${user.position} ${user.faculty_id || user.roll_no}`
