@@ -9,7 +9,7 @@ import puppeteer from "puppeteer";
 import { userActionLogger, errorLogger } from "../utils/logger.js";
 import requestIp from "request-ip";
 import { promisePool } from "../data/database.js";
-import axios from 'axios'; // Import axios for HTTP requests
+import axios from "axios"; // Import axios for HTTP requests
 import nodemailer from "nodemailer";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -68,9 +68,13 @@ function getMonthNumber(monthName) {
 // });
 
 const generateAccessToken = (id, position, role_assigned, department_id) => {
-  return jwt.sign({ id, position, role_assigned, department_id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
-  });
+  return jwt.sign(
+    { id, position, role_assigned, department_id },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
+    }
+  );
 };
 
 // ==================== Generate Refresh Token ====================
@@ -78,9 +82,13 @@ const generateRefreshToken = (id, position, role_assigned, department_id) => {
   const expiryDays = parseInt(process.env.REFRESH_TOKEN_EXPIRY) || 7;
   const expirySeconds = expiryDays * 24 * 60 * 60;
 
-  return jwt.sign({ id, position, role_assigned, department_id }, process.env.JWT_REFRESH_SECRET, {
-    expiresIn: expirySeconds,
-  });
+  return jwt.sign(
+    { id, position, role_assigned, department_id },
+    process.env.JWT_REFRESH_SECRET,
+    {
+      expiresIn: expirySeconds,
+    }
+  );
 };
 
 // Fetch all faculty associations
@@ -285,15 +293,19 @@ export const getResearchPapers = async (req, res) => {
     `;
     let params = [];
     if (faculty_id) {
-      query += ' WHERE frp.faculty_id = ?';
+      query += " WHERE frp.faculty_id = ?";
       params.push(faculty_id);
     }
     const [results] = await promisePool.query(query, params);
-    userActionLogger.info(`Fetched research papers${faculty_id ? ` for faculty_id: ${faculty_id}` : ''}`);
+    userActionLogger.info(
+      `Fetched research papers${faculty_id ? ` for faculty_id: ${faculty_id}` : ""}`
+    );
     res.status(200).json(results);
   } catch (err) {
     errorLogger.error(`Error fetching research papers: ${err.message}`);
-    res.status(500).json({ message: "Error fetching research papers", error: err.message });
+    res
+      .status(500)
+      .json({ message: "Error fetching research papers", error: err.message });
   }
 };
 
@@ -313,7 +325,7 @@ export const addResearchPaper = async (req, res) => {
     name_of_publication,
     ISSN_number,
     Link,
-    UGC
+    UGC,
   } = req.body;
   const pdf_path = req.file ? req.file.path : null;
 
@@ -331,35 +343,56 @@ export const addResearchPaper = async (req, res) => {
     !UGC ||
     !pdf_path
   ) {
-    userActionLogger.warn(`Attempt to add research paper with missing fields by faculty_id: ${faculty_id || 'unknown'}`);
+    userActionLogger.warn(
+      `Attempt to add research paper with missing fields by faculty_id: ${faculty_id || "unknown"}`
+    );
     return res.status(400).json({ message: "All fields are required" });
   }
 
   try {
     // 1. Ensure faculty exists
-    const [facultyRows] = await promisePool.query("SELECT 1 FROM faculty_details WHERE faculty_id = ?", [faculty_id]);
+    const [facultyRows] = await promisePool.query(
+      "SELECT 1 FROM faculty_details WHERE faculty_id = ?",
+      [faculty_id]
+    );
     if (facultyRows.length === 0) {
       userActionLogger.warn(`Faculty ID ${faculty_id} does not exist`);
-      return res.status(400).json({ message: "Faculty ID does not exist in faculty_details table" });
+      return res
+        .status(400)
+        .json({
+          message: "Faculty ID does not exist in faculty_details table",
+        });
     }
 
     // 2. Get or insert paper_type
-    let [typeRows] = await promisePool.query("SELECT type_id FROM research_paper_type WHERE type_name = ?", [paper_type]);
+    let [typeRows] = await promisePool.query(
+      "SELECT type_id FROM research_paper_type WHERE type_name = ?",
+      [paper_type]
+    );
     let paperTypeId;
     if (typeRows.length > 0) {
       paperTypeId = typeRows[0].type_id;
     } else {
-      const [insertType] = await promisePool.query("INSERT INTO research_paper_type (type_name) VALUES (?)", [paper_type]);
+      const [insertType] = await promisePool.query(
+        "INSERT INTO research_paper_type (type_name) VALUES (?)",
+        [paper_type]
+      );
       paperTypeId = insertType.insertId;
     }
 
     // 3. Get or insert area_of_research
-    let [areaRows] = await promisePool.query("SELECT id FROM research_areas WHERE area_of_research = ?", [area_of_research]);
+    let [areaRows] = await promisePool.query(
+      "SELECT id FROM research_areas WHERE area_of_research = ?",
+      [area_of_research]
+    );
     let researchAreaId;
     if (areaRows.length > 0) {
       researchAreaId = areaRows[0].id;
     } else {
-      const [insertArea] = await promisePool.query("INSERT INTO research_areas (area_of_research) VALUES (?)", [area_of_research]);
+      const [insertArea] = await promisePool.query(
+        "INSERT INTO research_areas (area_of_research) VALUES (?)",
+        [area_of_research]
+      );
       researchAreaId = insertArea.insertId;
     }
 
@@ -380,22 +413,33 @@ export const addResearchPaper = async (req, res) => {
         name_of_publication,
         ISSN_number,
         Link,
-        UGC
+        UGC,
       ]
     );
-    userActionLogger.info(`Added research paper ID: ${result.insertId} by faculty_id: ${faculty_id}`);
-    res.status(201).json({ message: "Research paper added successfully", insertId: result.insertId });
+    userActionLogger.info(
+      `Added research paper ID: ${result.insertId} by faculty_id: ${faculty_id}`
+    );
+    res
+      .status(201)
+      .json({
+        message: "Research paper added successfully",
+        insertId: result.insertId,
+      });
   } catch (err) {
     if (pdf_path && fs.existsSync(pdf_path)) fs.unlinkSync(pdf_path);
     errorLogger.error(`Error adding research paper: ${err.message}`);
-    res.status(500).json({ message: "Error adding research paper", error: err.message });
+    res
+      .status(500)
+      .json({ message: "Error adding research paper", error: err.message });
   }
 };
 
 export const updateResearchPaper = async (req, res) => {
   const faculty_id = req.query.faculty_id;
   if (!faculty_id) {
-    userActionLogger.warn("Attempt to update research paper without faculty_id");
+    userActionLogger.warn(
+      "Attempt to update research paper without faculty_id"
+    );
     return res.status(400).json({ message: "faculty_id is required" });
   }
   const { research_id } = req.params;
@@ -409,7 +453,7 @@ export const updateResearchPaper = async (req, res) => {
     name_of_publication,
     ISSN_number,
     Link,
-    UGC
+    UGC,
   } = req.body;
   const pdf_path = req.file ? req.file.path : null;
 
@@ -425,36 +469,55 @@ export const updateResearchPaper = async (req, res) => {
     !Link ||
     !UGC
   ) {
-    userActionLogger.warn(`Attempt to update research paper ${research_id} with missing fields`);
+    userActionLogger.warn(
+      `Attempt to update research paper ${research_id} with missing fields`
+    );
     return res.status(400).json({ message: "All fields are required" });
   }
 
   try {
     // 1. Get old pdf_path for possible deletion
-    const [oldRows] = await promisePool.query("SELECT pdf_path FROM faculty_research_paper WHERE research_id = ?", [research_id]);
+    const [oldRows] = await promisePool.query(
+      "SELECT pdf_path FROM faculty_research_paper WHERE research_id = ?",
+      [research_id]
+    );
     if (oldRows.length === 0) {
-      userActionLogger.warn(`No research paper found with research_id: ${research_id} for update`);
+      userActionLogger.warn(
+        `No research paper found with research_id: ${research_id} for update`
+      );
       return res.status(404).json({ message: "Research paper not found" });
     }
     const oldPdfPath = oldRows[0].pdf_path;
 
     // 2. Get or insert paper_type
-    let [typeRows] = await promisePool.query("SELECT type_id FROM research_paper_type WHERE type_name = ?", [paper_type]);
+    let [typeRows] = await promisePool.query(
+      "SELECT type_id FROM research_paper_type WHERE type_name = ?",
+      [paper_type]
+    );
     let paperTypeId;
     if (typeRows.length > 0) {
       paperTypeId = typeRows[0].type_id;
     } else {
-      const [insertType] = await promisePool.query("INSERT INTO research_paper_type (type_name) VALUES (?)", [paper_type]);
+      const [insertType] = await promisePool.query(
+        "INSERT INTO research_paper_type (type_name) VALUES (?)",
+        [paper_type]
+      );
       paperTypeId = insertType.insertId;
     }
 
     // 3. Get or insert area_of_research
-    let [areaRows] = await promisePool.query("SELECT id FROM research_areas WHERE area_of_research = ?", [area_of_research]);
+    let [areaRows] = await promisePool.query(
+      "SELECT id FROM research_areas WHERE area_of_research = ?",
+      [area_of_research]
+    );
     let researchAreaId;
     if (areaRows.length > 0) {
       researchAreaId = areaRows[0].id;
     } else {
-      const [insertArea] = await promisePool.query("INSERT INTO research_areas (area_of_research) VALUES (?)", [area_of_research]);
+      const [insertArea] = await promisePool.query(
+        "INSERT INTO research_areas (area_of_research) VALUES (?)",
+        [area_of_research]
+      );
       researchAreaId = insertArea.insertId;
     }
 
@@ -475,12 +538,18 @@ export const updateResearchPaper = async (req, res) => {
         Link,
         UGC,
         pdf_path,
-        research_id
+        research_id,
       ]
     );
     if (result.affectedRows === 0) {
-      userActionLogger.warn(`No research paper found with research_id: ${research_id} for update`);
-      return res.status(404).json({ message: "No research paper found with the given research_id" });
+      userActionLogger.warn(
+        `No research paper found with research_id: ${research_id} for update`
+      );
+      return res
+        .status(404)
+        .json({
+          message: "No research paper found with the given research_id",
+        });
     }
 
     // Delete old PDF if new uploaded
@@ -492,52 +561,88 @@ export const updateResearchPaper = async (req, res) => {
     res.status(200).json({ message: "Research paper updated successfully" });
   } catch (err) {
     if (pdf_path && fs.existsSync(pdf_path)) fs.unlinkSync(pdf_path);
-    errorLogger.error(`Error updating research paper ${research_id}: ${err.message}`);
-    res.status(500).json({ message: "Error updating research paper", error: err.message });
+    errorLogger.error(
+      `Error updating research paper ${research_id}: ${err.message}`
+    );
+    res
+      .status(500)
+      .json({ message: "Error updating research paper", error: err.message });
   }
 };
 
 export const deleteResearchPaper = async (req, res) => {
   const faculty_id = req.query.faculty_id;
   if (!faculty_id) {
-    userActionLogger.warn("Attempt to delete research paper without faculty_id");
+    userActionLogger.warn(
+      "Attempt to delete research paper without faculty_id"
+    );
     return res.status(400).json({ message: "faculty_id is required" });
   }
   const { research_id } = req.params;
 
   try {
-    const [rows] = await promisePool.query("SELECT pdf_path FROM faculty_research_paper WHERE research_id = ?", [research_id]);
+    const [rows] = await promisePool.query(
+      "SELECT pdf_path FROM faculty_research_paper WHERE research_id = ?",
+      [research_id]
+    );
     if (rows.length === 0) {
-      userActionLogger.warn(`No research paper found with research_id: ${research_id} for deletion`);
-      return res.status(404).json({ message: "No research paper found with the given research_id" });
+      userActionLogger.warn(
+        `No research paper found with research_id: ${research_id} for deletion`
+      );
+      return res
+        .status(404)
+        .json({
+          message: "No research paper found with the given research_id",
+        });
     }
     const pdfPath = rows[0].pdf_path;
 
-    const [result] = await promisePool.query("DELETE FROM faculty_research_paper WHERE research_id = ?", [research_id]);
+    const [result] = await promisePool.query(
+      "DELETE FROM faculty_research_paper WHERE research_id = ?",
+      [research_id]
+    );
     if (result.affectedRows === 0) {
-      userActionLogger.warn(`Failed to delete research paper with research_id: ${research_id}`);
-      return res.status(404).json({ message: "Failed to delete the research paper from the database" });
+      userActionLogger.warn(
+        `Failed to delete research paper with research_id: ${research_id}`
+      );
+      return res
+        .status(404)
+        .json({
+          message: "Failed to delete the research paper from the database",
+        });
     }
 
     // Delete associated PDF file if it exists
     if (pdfPath && fs.existsSync(pdfPath)) {
       try {
         fs.unlinkSync(pdfPath);
-        userActionLogger.info(`Deleted PDF file for research paper ID: ${research_id}`);
+        userActionLogger.info(
+          `Deleted PDF file for research paper ID: ${research_id}`
+        );
       } catch (unlinkErr) {
-        errorLogger.error(`Error deleting PDF file for research paper ${research_id}: ${unlinkErr.message}`);
-        return res.status(500).json({ message: "Error deleting the PDF file", error: unlinkErr.message });
+        errorLogger.error(
+          `Error deleting PDF file for research paper ${research_id}: ${unlinkErr.message}`
+        );
+        return res
+          .status(500)
+          .json({
+            message: "Error deleting the PDF file",
+            error: unlinkErr.message,
+          });
       }
     }
 
     userActionLogger.info(`Deleted research paper ID: ${research_id}`);
     res.status(200).json({ message: "Research paper deleted successfully" });
   } catch (err) {
-    errorLogger.error(`Error deleting research paper ${research_id}: ${err.message}`);
-    res.status(500).json({ message: "Error deleting research paper", error: err.message });
+    errorLogger.error(
+      `Error deleting research paper ${research_id}: ${err.message}`
+    );
+    res
+      .status(500)
+      .json({ message: "Error deleting research paper", error: err.message });
   }
 };
-
 
 // Get FDP Records
 export const getFDPRecords = async (req, res) => {
@@ -571,9 +676,9 @@ export const getFDPRecords = async (req, res) => {
     });
   } catch (err) {
     errorLogger.error(`Error fetching FDP details: ${err.message}`);
-    res.status(500).json({ 
+    res.status(500).json({
       message: "Error fetching FDP details",
-      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+      error: process.env.NODE_ENV === "development" ? err.message : undefined,
     });
   }
 };
@@ -581,13 +686,8 @@ export const getFDPRecords = async (req, res) => {
 export const addFDPRecord = async (req, res) => {
   // Get faculty_id from query first, then body (for backward compatibility)
   const faculty_id = req.query.faculty_id || req.body.faculty_id;
-  const {
-    FDP_name,
-    FDP_progress,
-    start_date,
-    end_date,
-    organizing_institute
-  } = req.body;
+  const { FDP_name, FDP_progress, start_date, end_date, organizing_institute } =
+    req.body;
 
   // Validate required fields
   if (!faculty_id || !FDP_name || !FDP_progress || !start_date || !end_date) {
@@ -595,7 +695,9 @@ export const addFDPRecord = async (req, res) => {
   }
 
   if (new Date(start_date) > new Date(end_date)) {
-    return res.status(400).json({ message: "Start date cannot be after end date" });
+    return res
+      .status(400)
+      .json({ message: "Start date cannot be after end date" });
   }
 
   try {
@@ -610,7 +712,7 @@ export const addFDPRecord = async (req, res) => {
         start_date,
         end_date,
         organizing_institute || null,
-        req.file ? req.file.path : null
+        req.file ? req.file.path : null,
       ]
     );
 
@@ -623,27 +725,22 @@ export const addFDPRecord = async (req, res) => {
     // Clean up uploaded file if insertion failed
     if (req.file) {
       fs.unlink(req.file.path, (unlinkErr) => {
-        if (unlinkErr) errorLogger.error(`Error cleaning up file: ${unlinkErr.message}`);
+        if (unlinkErr)
+          errorLogger.error(`Error cleaning up file: ${unlinkErr.message}`);
       });
     }
-    
+
     errorLogger.error(`Error adding FDP record: ${err.message}`);
     res.status(500).json({ message: "Error adding FDP record" });
   }
 };
 
-
 export const updateFDPRecord = async (req, res) => {
   const { FDP_id } = req.params;
   // Get faculty_id from query first, then body (for backward compatibility)
   const faculty_id = req.query.faculty_id || req.body.faculty_id;
-  const {
-    FDP_name,
-    FDP_progress,
-    start_date,
-    end_date,
-    organizing_institute
-  } = req.body;
+  const { FDP_name, FDP_progress, start_date, end_date, organizing_institute } =
+    req.body;
 
   try {
     // Get existing document path first
@@ -673,7 +770,7 @@ export const updateFDPRecord = async (req, res) => {
         end_date,
         organizing_institute || null,
         req.file ? req.file.path : null,
-        FDP_id
+        FDP_id,
       ]
     );
 
@@ -684,7 +781,8 @@ export const updateFDPRecord = async (req, res) => {
     // Delete old file if new file was uploaded
     if (req.file && oldDocumentPath) {
       fs.unlink(oldDocumentPath, (err) => {
-        if (err) errorLogger.error(`Error deleting old document: ${err.message}`);
+        if (err)
+          errorLogger.error(`Error deleting old document: ${err.message}`);
       });
     }
 
@@ -694,15 +792,15 @@ export const updateFDPRecord = async (req, res) => {
     // Clean up new file if update failed
     if (req.file) {
       fs.unlink(req.file.path, (unlinkErr) => {
-        if (unlinkErr) errorLogger.error(`Error cleaning up file: ${unlinkErr.message}`);
+        if (unlinkErr)
+          errorLogger.error(`Error cleaning up file: ${unlinkErr.message}`);
       });
     }
-    
+
     errorLogger.error(`Error updating FDP record ${FDP_id}: ${err.message}`);
     res.status(500).json({ message: "Error updating FDP record" });
   }
 };
-
 
 // Delete FDP Record
 export const deleteFDPRecord = async (req, res) => {
@@ -1160,19 +1258,26 @@ export const getBookRecords = async (req, res) => {
   const { faculty_id } = req.query;
   try {
     const [results] = faculty_id
-      ? await promisePool.query("SELECT * FROM faculty_Book_records WHERE faculty_id = ?", [faculty_id])
+      ? await promisePool.query(
+          "SELECT * FROM faculty_Book_records WHERE faculty_id = ?",
+          [faculty_id]
+        )
       : await promisePool.query("SELECT * FROM faculty_Book_records");
-    userActionLogger.info(`Fetched book records${faculty_id ? ` for faculty_id: ${faculty_id}` : ''}`);
+    userActionLogger.info(
+      `Fetched book records${faculty_id ? ` for faculty_id: ${faculty_id}` : ""}`
+    );
     res.status(200).json(results);
   } catch (err) {
     errorLogger.error(`Error fetching book records: ${err.message}`);
-    res.status(500).json({ message: "Error fetching book records", error: err.message });
+    res
+      .status(500)
+      .json({ message: "Error fetching book records", error: err.message });
   }
 };
 
 // Add a new Book record (all fields required)
 export const addBookRecord = async (req, res) => {
-  const faculty_id = req.query.faculty_id || req.body.faculty_id;
+  const { faculty_id } = req.query;
   if (!faculty_id) {
     userActionLogger.warn(`Attempt to add book record with missing faculty_id`);
   }
@@ -1198,7 +1303,9 @@ export const addBookRecord = async (req, res) => {
     !publication_name ||
     !published_date
   ) {
-    userActionLogger.warn(`Attempt to add book record with missing fields by faculty_id: ${faculty_id || 'unknown'}`);
+    userActionLogger.warn(
+      `Attempt to add book record with missing fields by faculty_id: ${faculty_id || "unknown"}`
+    );
     return res.status(400).json({ message: "All fields are required" });
   }
 
@@ -1219,14 +1326,18 @@ export const addBookRecord = async (req, res) => {
         published_date,
       ]
     );
-    userActionLogger.info(`Added new book record ID: ${result.insertId} by faculty_id: ${faculty_id}`);
+    userActionLogger.info(
+      `Added new book record ID: ${result.insertId} by faculty_id: ${faculty_id}`
+    );
     res.status(201).json({
       message: "Book record added successfully",
       insertId: result.insertId,
     });
   } catch (err) {
     errorLogger.error(`Error adding book record: ${err.message}`);
-    res.status(500).json({ message: "Error adding book record", error: err.message });
+    res
+      .status(500)
+      .json({ message: "Error adding book record", error: err.message });
   }
 };
 
@@ -1259,7 +1370,9 @@ export const updateBookRecord = async (req, res) => {
     !publication_name ||
     !published_date
   ) {
-    userActionLogger.warn(`Attempt to update book record ${Book_id} with missing fields`);
+    userActionLogger.warn(
+      `Attempt to update book record ${Book_id} with missing fields`
+    );
     return res.status(400).json({ message: "All fields are required" });
   }
 
@@ -1282,14 +1395,20 @@ export const updateBookRecord = async (req, res) => {
       ]
     );
     if (result.affectedRows === 0) {
-      userActionLogger.warn(`No book record found with Book_id: ${Book_id} for update`);
-      return res.status(404).json({ message: "No book record found with the given Book_id" });
+      userActionLogger.warn(
+        `No book record found with Book_id: ${Book_id} for update`
+      );
+      return res
+        .status(404)
+        .json({ message: "No book record found with the given Book_id" });
     }
     userActionLogger.info(`Updated book record ID: ${Book_id}`);
     res.status(200).json({ message: "Book record updated successfully" });
   } catch (err) {
     errorLogger.error(`Error updating book record ${Book_id}: ${err.message}`);
-    res.status(500).json({ message: "Error updating book record", error: err.message });
+    res
+      .status(500)
+      .json({ message: "Error updating book record", error: err.message });
   }
 };
 
@@ -1299,8 +1418,14 @@ export const deleteBookRecord = async (req, res) => {
   const { faculty_id } = req.query;
 
   if (!Book_id || !faculty_id) {
-    userActionLogger.warn(`Attempt to delete book record with missing Book_id or faculty_id`);
-    return res.status(400).json({ message: "Both Book_id (route) and faculty_id (query) are required" });
+    userActionLogger.warn(
+      `Attempt to delete book record with missing Book_id or faculty_id`
+    );
+    return res
+      .status(400)
+      .json({
+        message: "Both Book_id (route) and faculty_id (query) are required",
+      });
   }
 
   try {
@@ -1309,14 +1434,24 @@ export const deleteBookRecord = async (req, res) => {
       [Book_id, faculty_id]
     );
     if (result.affectedRows === 0) {
-      userActionLogger.warn(`No book record found with Book_id: ${Book_id} and faculty_id: ${faculty_id} for deletion`);
-      return res.status(404).json({ message: "No book record found with the given Book_id and faculty_id" });
+      userActionLogger.warn(
+        `No book record found with Book_id: ${Book_id} and faculty_id: ${faculty_id} for deletion`
+      );
+      return res
+        .status(404)
+        .json({
+          message: "No book record found with the given Book_id and faculty_id",
+        });
     }
-    userActionLogger.info(`Deleted book record ID: ${Book_id} (faculty_id: ${faculty_id})`);
+    userActionLogger.info(
+      `Deleted book record ID: ${Book_id} (faculty_id: ${faculty_id})`
+    );
     res.status(200).json({ message: "Book record deleted successfully" });
   } catch (err) {
     errorLogger.error(`Error deleting book record ${Book_id}: ${err.message}`);
-    res.status(500).json({ message: "Error deleting book record", error: err.message });
+    res
+      .status(500)
+      .json({ message: "Error deleting book record", error: err.message });
   }
 };
 
@@ -1343,7 +1478,9 @@ export const getFacultyGuidanceRecords = (req, res) => {
 
     const updatedResults = results.map((record) => ({
       ...record,
-      passing_month: record.passing_month ? getMonthName(record.passing_month) : null,
+      passing_month: record.passing_month
+        ? getMonthName(record.passing_month)
+        : null,
     }));
 
     res.status(200).json({
@@ -1353,12 +1490,25 @@ export const getFacultyGuidanceRecords = (req, res) => {
   });
 };
 
-
 // 3️⃣ Add a new faculty guidance record (with file upload)
 export const addFacultyGuidanceRecord = (req, res) => {
-  let { faculty_id, degree, mentee_name, mentee_rn, passing_year, passing_month } = req.body;
-  
-  if (!faculty_id || !degree || !mentee_name || !mentee_rn || !passing_year || !passing_month) {
+  let {
+    faculty_id,
+    degree,
+    mentee_name,
+    mentee_rn,
+    passing_year,
+    passing_month,
+  } = req.body;
+
+  if (
+    !faculty_id ||
+    !degree ||
+    !mentee_name ||
+    !mentee_rn ||
+    !passing_year ||
+    !passing_month
+  ) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
@@ -1379,7 +1529,15 @@ export const addFacultyGuidanceRecord = (req, res) => {
 
   pool.query(
     query,
-    [faculty_id, degree, mentee_name, mentee_rn, passing_year, passing_month, document],
+    [
+      faculty_id,
+      degree,
+      mentee_name,
+      mentee_rn,
+      passing_year,
+      passing_month,
+      document,
+    ],
     (err, result) => {
       if (err) {
         return res.status(500).json({
@@ -1399,7 +1557,8 @@ export const addFacultyGuidanceRecord = (req, res) => {
 // 4️⃣ Update an existing faculty guidance record (with file update)
 export const updateFacultyGuidanceRecord = (req, res) => {
   const { Guidance_id } = req.params;
-  let { degree, mentee_name, mentee_rn, passing_year, passing_month } = req.body;
+  let { degree, mentee_name, mentee_rn, passing_year, passing_month } =
+    req.body;
 
   if (!Guidance_id) {
     return res.status(400).json({ message: "Guidance_id is required" });
@@ -1418,11 +1577,15 @@ export const updateFacultyGuidanceRecord = (req, res) => {
     [Guidance_id],
     (err, results) => {
       if (err) {
-        return res.status(500).json({ message: "Error fetching record", error: err });
+        return res
+          .status(500)
+          .json({ message: "Error fetching record", error: err });
       }
 
       if (results.length === 0) {
-        return res.status(404).json({ message: "Faculty guidance record not found" });
+        return res
+          .status(404)
+          .json({ message: "Faculty guidance record not found" });
       }
 
       const oldFilePath = results[0].document;
@@ -1430,7 +1593,8 @@ export const updateFacultyGuidanceRecord = (req, res) => {
 
       if (req.file && oldFilePath) {
         fs.unlink(oldFilePath, (err) => {
-          if (err && err.code !== "ENOENT") console.error("Error deleting old file:", err);
+          if (err && err.code !== "ENOENT")
+            console.error("Error deleting old file:", err);
         });
       }
 
@@ -1442,7 +1606,15 @@ export const updateFacultyGuidanceRecord = (req, res) => {
 
       pool.query(
         query,
-        [degree, mentee_name, mentee_rn, passing_year, passing_month, newFilePath, Guidance_id],
+        [
+          degree,
+          mentee_name,
+          mentee_rn,
+          passing_year,
+          passing_month,
+          newFilePath,
+          Guidance_id,
+        ],
         (err, result) => {
           if (err) {
             return res.status(500).json({
@@ -1451,7 +1623,9 @@ export const updateFacultyGuidanceRecord = (req, res) => {
             });
           }
           if (result.affectedRows === 0) {
-            return res.status(404).json({ message: "Faculty guidance record not found" });
+            return res
+              .status(404)
+              .json({ message: "Faculty guidance record not found" });
           }
           res.status(200).json({
             message: "Faculty guidance record updated successfully",
@@ -1463,7 +1637,6 @@ export const updateFacultyGuidanceRecord = (req, res) => {
   );
 };
 
-
 // 5️⃣ Delete a faculty guidance record (also delete proof file)
 export const deleteFacultyGuidanceRecord = (req, res) => {
   const { Guidance_id } = req.params;
@@ -1473,30 +1646,45 @@ export const deleteFacultyGuidanceRecord = (req, res) => {
     [Guidance_id],
     (err, results) => {
       if (err) {
-        return res.status(500).json({ message: "Error fetching document path", error: err });
+        return res
+          .status(500)
+          .json({ message: "Error fetching document path", error: err });
       }
       if (results.length === 0) {
-        return res.status(404).json({ message: "Faculty guidance record not found" });
+        return res
+          .status(404)
+          .json({ message: "Faculty guidance record not found" });
       }
 
       const filePath = results[0].document;
 
       if (filePath) {
         fs.unlink(filePath, (err) => {
-          if (err && err.code !== "ENOENT") console.error("Error deleting file:", err);
+          if (err && err.code !== "ENOENT")
+            console.error("Error deleting file:", err);
         });
       }
 
-      pool.query(`DELETE FROM faculty_guidance WHERE Guidance_id = ?`, [Guidance_id], (err, result) => {
-        if (err) {
-          return res.status(500).json({ message: "Error deleting faculty guidance record", error: err });
+      pool.query(
+        `DELETE FROM faculty_guidance WHERE Guidance_id = ?`,
+        [Guidance_id],
+        (err, result) => {
+          if (err) {
+            return res
+              .status(500)
+              .json({
+                message: "Error deleting faculty guidance record",
+                error: err,
+              });
+          }
+          res
+            .status(200)
+            .json({ message: "Faculty guidance record deleted successfully" });
         }
-        res.status(200).json({ message: "Faculty guidance record deleted successfully" });
-      });
+      );
     }
   );
 };
-
 
 export const getSponsoredResearch = (req, res) => {
   const { faculty_id } = req.query;
@@ -1511,16 +1699,16 @@ export const getSponsoredResearch = (req, res) => {
 
   pool.query(query, queryParams, (err, result) => {
     if (err) {
-      return res.status(500).json({ 
-        message: "Error fetching sponsored research", 
-        error: err 
+      return res.status(500).json({
+        message: "Error fetching sponsored research",
+        error: err,
       });
     }
     if (result.length === 0) {
-      return res.status(404).json({ 
-        message: faculty_id 
-          ? "No sponsored research found for this faculty" 
-          : "No sponsored research records found" 
+      return res.status(404).json({
+        message: faculty_id
+          ? "No sponsored research found for this faculty"
+          : "No sponsored research records found",
       });
     }
     res.status(200).json(result);
@@ -1540,7 +1728,15 @@ export const addSponsoredResearch = (req, res) => {
 
   const document = req.file ? req.file.path : null; // Get uploaded file path
 
-  if (!faculty_id || !project_title || !start_date || !funding_agency || !amount_sponsored || !document || !status) {
+  if (
+    !faculty_id ||
+    !project_title ||
+    !start_date ||
+    !funding_agency ||
+    !amount_sponsored ||
+    !document ||
+    !status
+  ) {
     return res.status(400).json({
       message: "All fields except end_date are required",
     });
@@ -1564,9 +1760,9 @@ export const addSponsoredResearch = (req, res) => {
 
   pool.query(query, queryParams, (err, result) => {
     if (err) {
-      return res.status(500).json({ 
-        message: "Error adding sponsored research", 
-        error: err 
+      return res.status(500).json({
+        message: "Error adding sponsored research",
+        error: err,
       });
     }
     res.status(201).json({
@@ -1590,7 +1786,14 @@ export const updateSponsoredResearch = (req, res) => {
 
   const document = req.file ? req.file.path : null; // Get new uploaded file path
 
-  if (!faculty_id || !project_title || !start_date || !funding_agency || !amount_sponsored || !status) {
+  if (
+    !faculty_id ||
+    !project_title ||
+    !start_date ||
+    !funding_agency ||
+    !amount_sponsored ||
+    !status
+  ) {
     return res.status(400).json({
       message: "All fields except end_date are required",
     });
@@ -1598,12 +1801,14 @@ export const updateSponsoredResearch = (req, res) => {
 
   // 1️⃣ Get the old document path before updating
   const getOldDocumentQuery = `SELECT document FROM faculty_sponsored_research WHERE sponsorship_id = ?`;
-  
+
   pool.query(getOldDocumentQuery, [sponsorship_id], (err, results) => {
     if (err) {
-      return res.status(500).json({ message: "Error fetching old document", error: err });
+      return res
+        .status(500)
+        .json({ message: "Error fetching old document", error: err });
     }
-    
+
     if (results.length === 0) {
       return res.status(404).json({ message: "Sponsored research not found" });
     }
@@ -1636,11 +1841,18 @@ export const updateSponsoredResearch = (req, res) => {
     // 3️⃣ Update the record in the database
     pool.query(updateQuery, queryParams, (updateErr, result) => {
       if (updateErr) {
-        return res.status(500).json({ message: "Error updating sponsored research", error: updateErr });
+        return res
+          .status(500)
+          .json({
+            message: "Error updating sponsored research",
+            error: updateErr,
+          });
       }
 
       if (result.affectedRows === 0) {
-        return res.status(404).json({ message: "Sponsored research not found" });
+        return res
+          .status(404)
+          .json({ message: "Sponsored research not found" });
       }
 
       // 4️⃣ Delete old document if a new file was uploaded
@@ -1652,11 +1864,12 @@ export const updateSponsoredResearch = (req, res) => {
         });
       }
 
-      res.status(200).json({ message: "Sponsored research updated successfully" });
+      res
+        .status(200)
+        .json({ message: "Sponsored research updated successfully" });
     });
   });
 };
-
 
 export const deleteSponsoredResearch = (req, res) => {
   const { sponsorship_id } = req.params;
@@ -1666,7 +1879,9 @@ export const deleteSponsoredResearch = (req, res) => {
 
   pool.query(getDocumentQuery, [sponsorship_id], (err, results) => {
     if (err) {
-      return res.status(500).json({ message: "Error fetching document path", error: err });
+      return res
+        .status(500)
+        .json({ message: "Error fetching document path", error: err });
     }
 
     if (results.length === 0) {
@@ -1679,11 +1894,18 @@ export const deleteSponsoredResearch = (req, res) => {
     const deleteQuery = `DELETE FROM faculty_sponsored_research WHERE sponsorship_id = ?`;
     pool.query(deleteQuery, [sponsorship_id], (deleteErr, result) => {
       if (deleteErr) {
-        return res.status(500).json({ message: "Error deleting sponsored research", error: deleteErr });
+        return res
+          .status(500)
+          .json({
+            message: "Error deleting sponsored research",
+            error: deleteErr,
+          });
       }
 
       if (result.affectedRows === 0) {
-        return res.status(404).json({ message: "Sponsored research not found" });
+        return res
+          .status(404)
+          .json({ message: "Sponsored research not found" });
       }
 
       // 3️⃣ Delete the associated file from storage
@@ -1695,7 +1917,9 @@ export const deleteSponsoredResearch = (req, res) => {
         });
       }
 
-      res.status(200).json({ message: "Sponsored research deleted successfully" });
+      res
+        .status(200)
+        .json({ message: "Sponsored research deleted successfully" });
     });
   });
 };
@@ -1714,16 +1938,16 @@ export const getConsultancyByFaculty = (req, res) => {
 
   pool.query(query, queryParams, (err, result) => {
     if (err) {
-      return res.status(500).json({ 
-        message: "Error fetching Consultancy records", 
-        error: err 
+      return res.status(500).json({
+        message: "Error fetching Consultancy records",
+        error: err,
       });
     }
     if (result.length === 0) {
-      return res.status(404).json({ 
-        message: faculty_id 
-          ? "No consultancy records found for this faculty" 
-          : "No consultancy records found" 
+      return res.status(404).json({
+        message: faculty_id
+          ? "No consultancy records found for this faculty"
+          : "No consultancy records found",
       });
     }
     res.status(200).json(result);
@@ -1743,7 +1967,15 @@ export const addConsultancy = (req, res) => {
 
   const document = req.file ? req.file.path : null; // Get uploaded file path
 
-  if (!faculty_id || !project_title || !start_date || !funding_agency || !amount_sponsored || !document || !status) {
+  if (
+    !faculty_id ||
+    !project_title ||
+    !start_date ||
+    !funding_agency ||
+    !amount_sponsored ||
+    !document ||
+    !status
+  ) {
     return res.status(400).json({
       message: "All fields except end_date are required",
     });
@@ -1767,9 +1999,9 @@ export const addConsultancy = (req, res) => {
 
   pool.query(query, queryParams, (err, result) => {
     if (err) {
-      return res.status(500).json({ 
-        message: "Error adding Consultancy record", 
-        error: err 
+      return res.status(500).json({
+        message: "Error adding Consultancy record",
+        error: err,
       });
     }
     res.status(201).json({
@@ -1793,7 +2025,14 @@ export const updateConsultancy = (req, res) => {
 
   const document = req.file ? req.file.path : null; // Get new uploaded file path
 
-  if (!faculty_id || !project_title || !start_date || !funding_agency || !amount_sponsored || !status) {
+  if (
+    !faculty_id ||
+    !project_title ||
+    !start_date ||
+    !funding_agency ||
+    !amount_sponsored ||
+    !status
+  ) {
     return res.status(400).json({
       message: "All fields except end_date are required",
     });
@@ -1801,12 +2040,14 @@ export const updateConsultancy = (req, res) => {
 
   // 1️⃣ Get the old document path before updating
   const getOldDocumentQuery = `SELECT document FROM faculty_consultancy WHERE consultancy_id = ?`;
-  
+
   pool.query(getOldDocumentQuery, [consultancy_id], (err, results) => {
     if (err) {
-      return res.status(500).json({ message: "Error fetching old document", error: err });
+      return res
+        .status(500)
+        .json({ message: "Error fetching old document", error: err });
     }
-    
+
     if (results.length === 0) {
       return res.status(404).json({ message: "Consultancy record not found" });
     }
@@ -1839,11 +2080,18 @@ export const updateConsultancy = (req, res) => {
     // 3️⃣ Update the record in the database
     pool.query(updateQuery, queryParams, (updateErr, result) => {
       if (updateErr) {
-        return res.status(500).json({ message: "Error updating consultancy record", error: updateErr });
+        return res
+          .status(500)
+          .json({
+            message: "Error updating consultancy record",
+            error: updateErr,
+          });
       }
 
       if (result.affectedRows === 0) {
-        return res.status(404).json({ message: "Consultancy record not found" });
+        return res
+          .status(404)
+          .json({ message: "Consultancy record not found" });
       }
 
       // 4️⃣ Delete old document if a new file was uploaded
@@ -1855,11 +2103,12 @@ export const updateConsultancy = (req, res) => {
         });
       }
 
-      res.status(200).json({ message: "Consultancy record updated successfully" });
+      res
+        .status(200)
+        .json({ message: "Consultancy record updated successfully" });
     });
   });
 };
-
 
 export const deleteConsultancy = (req, res) => {
   const { consultancy_id } = req.params;
@@ -1869,7 +2118,9 @@ export const deleteConsultancy = (req, res) => {
 
   pool.query(getDocumentQuery, [consultancy_id], (err, results) => {
     if (err) {
-      return res.status(500).json({ message: "Error fetching document path", error: err });
+      return res
+        .status(500)
+        .json({ message: "Error fetching document path", error: err });
     }
 
     if (results.length === 0) {
@@ -1882,11 +2133,18 @@ export const deleteConsultancy = (req, res) => {
     const deleteQuery = `DELETE FROM faculty_consultancy WHERE consultancy_id = ?`;
     pool.query(deleteQuery, [consultancy_id], (deleteErr, result) => {
       if (deleteErr) {
-        return res.status(500).json({ message: "Error deleting consultancy record", error: deleteErr });
+        return res
+          .status(500)
+          .json({
+            message: "Error deleting consultancy record",
+            error: deleteErr,
+          });
       }
 
       if (result.affectedRows === 0) {
-        return res.status(404).json({ message: "Consultancy record not found" });
+        return res
+          .status(404)
+          .json({ message: "Consultancy record not found" });
       }
 
       // 3️⃣ Delete the associated file from storage
@@ -1898,11 +2156,12 @@ export const deleteConsultancy = (req, res) => {
         });
       }
 
-      res.status(200).json({ message: "Consultancy record deleted successfully" });
+      res
+        .status(200)
+        .json({ message: "Consultancy record deleted successfully" });
     });
   });
 };
-
 
 export const getFacultyDetails = (req, res) => {
   const { faculty_id } = req.params; // Get faculty_id from route parameters (if provided)
@@ -2042,43 +2301,81 @@ export const deleteFaculty = (req, res) => {
 export const addSpecialization = (req, res) => {
   const { faculty_id, specialization_name } = req.body; // specialization comes as a string
 
-  if (!faculty_id || !specialization_name) 
-    {
-      return res.status(400).json({ message: "All fields are required" });
-    }
+  if (!faculty_id || !specialization_name) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
   // Step 1: Check if faculty_id exists
-  pool.query("SELECT * FROM faculty_details WHERE faculty_id = ?", [faculty_id], (err, facultyResults) => {
-    if (err) return res.status(500).json({ message: "Error checking faculty", error: err });
-    if (facultyResults.length === 0) return res.status(400).json({ message: "Invalid faculty_id" });
+  pool.query(
+    "SELECT * FROM faculty_details WHERE faculty_id = ?",
+    [faculty_id],
+    (err, facultyResults) => {
+      if (err)
+        return res
+          .status(500)
+          .json({ message: "Error checking faculty", error: err });
+      if (facultyResults.length === 0)
+        return res.status(400).json({ message: "Invalid faculty_id" });
 
-    // Step 2: Check if specialization already exists
-    pool.query("SELECT id FROM specialization_areas WHERE specialization_name = ?", [specialization_name], (err, specializationResults) => {
-      if (err) return res.status(500).json({ message: "Error checking specialization", error: err });
+      // Step 2: Check if specialization already exists
+      pool.query(
+        "SELECT id FROM specialization_areas WHERE specialization_name = ?",
+        [specialization_name],
+        (err, specializationResults) => {
+          if (err)
+            return res
+              .status(500)
+              .json({ message: "Error checking specialization", error: err });
 
-      if (specializationResults.length > 0) {
-        // Specialization exists, insert into faculty_specialization
-        insertFacultySpecialization(specializationResults[0].id);
-      } else {
-        // Specialization does not exist, insert into specialization_areas first
-        pool.query("INSERT INTO specialization_areas (specialization_name) VALUES (?)", [specialization_name], (err, insertResult) => {
-          if (err) return res.status(500).json({ message: "Error inserting specialization", error: err });
+          if (specializationResults.length > 0) {
+            // Specialization exists, insert into faculty_specialization
+            insertFacultySpecialization(specializationResults[0].id);
+          } else {
+            // Specialization does not exist, insert into specialization_areas first
+            pool.query(
+              "INSERT INTO specialization_areas (specialization_name) VALUES (?)",
+              [specialization_name],
+              (err, insertResult) => {
+                if (err)
+                  return res
+                    .status(500)
+                    .json({
+                      message: "Error inserting specialization",
+                      error: err,
+                    });
 
-          insertFacultySpecialization(insertResult.insertId);
-        });
-      }
-    });
-  });
+                insertFacultySpecialization(insertResult.insertId);
+              }
+            );
+          }
+        }
+      );
+    }
+  );
 
   // Step 3: Insert into faculty_specialization
   function insertFacultySpecialization(specializationId) {
-    pool.query("INSERT INTO faculty_specialization (faculty_id, specialization) VALUES (?, ?)", [faculty_id, specializationId], (err, result) => {
-      if (err) return res.status(500).json({ message: "Error adding faculty specialization", error: err });
+    pool.query(
+      "INSERT INTO faculty_specialization (faculty_id, specialization) VALUES (?, ?)",
+      [faculty_id, specializationId],
+      (err, result) => {
+        if (err)
+          return res
+            .status(500)
+            .json({
+              message: "Error adding faculty specialization",
+              error: err,
+            });
 
-      res.status(201).json({ message: "Faculty specialization added successfully", data: result });
-    });
+        res
+          .status(201)
+          .json({
+            message: "Faculty specialization added successfully",
+            data: result,
+          });
+      }
+    );
   }
 };
-
 
 export const getSpecializations = (req, res) => {
   const { faculty_id } = req.query; // Use query parameters
@@ -2096,7 +2393,10 @@ export const getSpecializations = (req, res) => {
   }
 
   pool.query(query, queryParams, (err, results) => {
-    if (err) return res.status(500).json({ message: "Error fetching specializations", error: err });
+    if (err)
+      return res
+        .status(500)
+        .json({ message: "Error fetching specializations", error: err });
 
     if (results.length === 0) {
       return res.status(404).json({
@@ -2110,50 +2410,90 @@ export const getSpecializations = (req, res) => {
   });
 };
 
-
 export const updateSpecialization = (req, res) => {
   const { specialization_id } = req.params;
   const { specialization_name } = req.body; // Comes as a string
 
   // Step 1: Check if the new specialization exists
-  pool.query("SELECT id FROM specialization_areas WHERE specialization_name = ?", [specialization_name], (err, specializationResults) => {
-    if (err) return res.status(500).json({ message: "Error checking specialization", error: err });
+  pool.query(
+    "SELECT id FROM specialization_areas WHERE specialization_name = ?",
+    [specialization_name],
+    (err, specializationResults) => {
+      if (err)
+        return res
+          .status(500)
+          .json({ message: "Error checking specialization", error: err });
 
-    if (specializationResults.length > 0) {
-      // Specialization exists, update faculty_specialization
-      updateSpecialization(specializationResults[0].id);
-    } else {
-      // Insert new specialization
-      pool.query("INSERT INTO specialization_areas (specialization_name) VALUES (?)", [specialization_name], (err, insertResult) => {
-        if (err) return res.status(500).json({ message: "Error inserting specialization", error: err });
+      if (specializationResults.length > 0) {
+        // Specialization exists, update faculty_specialization
+        updateSpecialization(specializationResults[0].id);
+      } else {
+        // Insert new specialization
+        pool.query(
+          "INSERT INTO specialization_areas (specialization_name) VALUES (?)",
+          [specialization_name],
+          (err, insertResult) => {
+            if (err)
+              return res
+                .status(500)
+                .json({
+                  message: "Error inserting specialization",
+                  error: err,
+                });
 
-        updateSpecialization(insertResult.insertId);
-      });
+            updateSpecialization(insertResult.insertId);
+          }
+        );
+      }
     }
-  });
+  );
 
   // Step 2: Update faculty_specialization with new specialization_id
   function updateSpecialization(specializationId) {
-    pool.query("UPDATE faculty_specialization SET specialization = ? WHERE specialization_id = ?", [specializationId, specialization_id], (err, result) => {
-      if (err) return res.status(500).json({ message: "Error updating faculty specialization", error: err });
+    pool.query(
+      "UPDATE faculty_specialization SET specialization = ? WHERE specialization_id = ?",
+      [specializationId, specialization_id],
+      (err, result) => {
+        if (err)
+          return res
+            .status(500)
+            .json({
+              message: "Error updating faculty specialization",
+              error: err,
+            });
 
-      res.status(200).json({ message: "Faculty specialization updated successfully", data: result });
-    });
+        res
+          .status(200)
+          .json({
+            message: "Faculty specialization updated successfully",
+            data: result,
+          });
+      }
+    );
   }
 };
 
 export const deleteSpecialization = (req, res) => {
   const { specialization_id } = req.params;
 
-  pool.query("DELETE FROM faculty_specialization WHERE specialization_id = ?", [specialization_id], (err, result) => {
-    if (err) return res.status(500).json({ message: "Error deleting specialization", error: err });
+  pool.query(
+    "DELETE FROM faculty_specialization WHERE specialization_id = ?",
+    [specialization_id],
+    (err, result) => {
+      if (err)
+        return res
+          .status(500)
+          .json({ message: "Error deleting specialization", error: err });
 
-    if (result.affectedRows === 0) return res.status(404).json({ message: "Specialization not found" });
+      if (result.affectedRows === 0)
+        return res.status(404).json({ message: "Specialization not found" });
 
-    res.status(200).json({ message: "Faculty specialization deleted successfully" });
-  });
+      res
+        .status(200)
+        .json({ message: "Faculty specialization deleted successfully" });
+    }
+  );
 };
-
 
 export const getFacultyImage = (req, res) => {
   const { faculty_id } = req.params;
@@ -2325,9 +2665,9 @@ export const getFacultyPatents = async (req, res) => {
 
     if (faculty_id) {
       // Validate faculty_id format if needed (e.g., length, pattern)
-      if (typeof faculty_id !== 'string') {
-        return res.status(400).json({ 
-          message: "Invalid faculty_id format. Must be 10 characters long." 
+      if (typeof faculty_id !== "string") {
+        return res.status(400).json({
+          message: "Invalid faculty_id format. Must be 10 characters long.",
         });
       }
 
@@ -2343,16 +2683,18 @@ export const getFacultyPatents = async (req, res) => {
     userActionLogger.info(
       `Fetched ${results.length} patents for ${faculty_id ? `faculty ${faculty_id}` : "all faculties"}`
     );
-    
+
     res.status(200).json({
       message: "Patents fetched successfully",
       data: results,
     });
   } catch (err) {
-    errorLogger.error(`Error fetching patents: ${err.message}\nStack: ${err.stack}`);
-    res.status(500).json({ 
+    errorLogger.error(
+      `Error fetching patents: ${err.message}\nStack: ${err.stack}`
+    );
+    res.status(500).json({
       message: "Error fetching patents",
-      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+      error: process.env.NODE_ENV === "development" ? err.message : undefined,
     });
   }
 };
@@ -2385,7 +2727,6 @@ export const addFacultyPatent = async (req, res) => {
   }
 
   try {
-
     // Insert the patent
     const [result] = await promisePool.query(
       `INSERT INTO faculty_patents 
@@ -2459,9 +2800,14 @@ export const updateFacultyPatent = async (req, res) => {
     // Handle faculty_id change - move file to new faculty directory if needed
     let newDocumentPath = req.file ? req.file.path : oldDocumentPath;
     if (req.file && faculty_id && faculty_id !== oldFacultyId) {
-      const newDirectory = path.join("public", "Faculty", "Patents", faculty_id);
+      const newDirectory = path.join(
+        "public",
+        "Faculty",
+        "Patents",
+        faculty_id
+      );
       fs.mkdirSync(newDirectory, { recursive: true });
-      
+
       const newPath = path.join(newDirectory, path.basename(req.file.path));
       fs.renameSync(req.file.path, newPath);
       newDocumentPath = newPath;
@@ -2495,7 +2841,7 @@ export const updateFacultyPatent = async (req, res) => {
     res.status(200).json({ message: "Patent updated successfully" });
   } catch (err) {
     errorLogger.error(`Error updating patent ${patent_id}: ${err.message}`);
-    
+
     // Clean up newly uploaded file if update failed
     if (req.file) {
       try {
@@ -2506,7 +2852,7 @@ export const updateFacultyPatent = async (req, res) => {
         );
       }
     }
-    
+
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -2514,7 +2860,7 @@ export const updateFacultyPatent = async (req, res) => {
 // Delete patent
 export const deleteFacultyPatent = async (req, res) => {
   const { patent_id, faculty_id } = req.body;
-  
+
   try {
     // First get the document path if it exists
     const [patent] = await promisePool.query(
@@ -2573,7 +2919,6 @@ export const getFacultyQualifications = (req, res) => {
   });
 };
 
-
 // ✅ ADD a new faculty qualification
 export const addFacultyQualification = (req, res) => {
   const {
@@ -2602,7 +2947,9 @@ export const addFacultyQualification = (req, res) => {
     [degree_level],
     (err, results) => {
       if (err) {
-        return res.status(500).json({ message: "Error checking degree", error: err });
+        return res
+          .status(500)
+          .json({ message: "Error checking degree", error: err });
       }
 
       if (results.length > 0) {
@@ -2615,7 +2962,9 @@ export const addFacultyQualification = (req, res) => {
           [degree_level],
           (insertErr, insertResult) => {
             if (insertErr) {
-              return res.status(500).json({ message: "Error inserting degree", error: insertErr });
+              return res
+                .status(500)
+                .json({ message: "Error inserting degree", error: insertErr });
             }
             insertQualification(insertResult.insertId);
           }
@@ -2632,10 +2981,19 @@ export const addFacultyQualification = (req, res) => {
 
     pool.query(
       query,
-      [faculty_id, degreeId, institute, degree_name, year_of_passing, specialization],
+      [
+        faculty_id,
+        degreeId,
+        institute,
+        degree_name,
+        year_of_passing,
+        specialization,
+      ],
       (err, result) => {
         if (err) {
-          return res.status(500).json({ message: "Error adding qualification", error: err });
+          return res
+            .status(500)
+            .json({ message: "Error adding qualification", error: err });
         }
         res.status(201).json({
           message: "Qualification added successfully",
@@ -2645,7 +3003,6 @@ export const addFacultyQualification = (req, res) => {
     );
   }
 };
-
 
 // ✅ UPDATE a faculty qualification
 export const updateFacultyQualification = (req, res) => {
@@ -2676,7 +3033,9 @@ export const updateFacultyQualification = (req, res) => {
     [degree_level],
     (err, results) => {
       if (err) {
-        return res.status(500).json({ message: "Error checking degree", error: err });
+        return res
+          .status(500)
+          .json({ message: "Error checking degree", error: err });
       }
 
       if (results.length > 0) {
@@ -2689,7 +3048,9 @@ export const updateFacultyQualification = (req, res) => {
           [degree_level],
           (insertErr, insertResult) => {
             if (insertErr) {
-              return res.status(500).json({ message: "Error inserting degree", error: insertErr });
+              return res
+                .status(500)
+                .json({ message: "Error inserting degree", error: insertErr });
             }
             updateQualification(insertResult.insertId);
           }
@@ -2706,10 +3067,20 @@ export const updateFacultyQualification = (req, res) => {
 
     pool.query(
       query,
-      [faculty_id, degreeId, institute, degree_name, year_of_passing, specialization, education_id],
+      [
+        faculty_id,
+        degreeId,
+        institute,
+        degree_name,
+        year_of_passing,
+        specialization,
+        education_id,
+      ],
       (err, result) => {
         if (err) {
-          return res.status(500).json({ message: "Error updating qualification", error: err });
+          return res
+            .status(500)
+            .json({ message: "Error updating qualification", error: err });
         }
         if (result.affectedRows === 0) {
           return res.status(404).json({ message: "Qualification not found" });
@@ -2720,7 +3091,6 @@ export const updateFacultyQualification = (req, res) => {
   }
 };
 
-
 // ✅ DELETE a faculty qualification
 export const deleteFacultyQualification = (req, res) => {
   const { education_id } = req.params;
@@ -2729,7 +3099,9 @@ export const deleteFacultyQualification = (req, res) => {
 
   pool.query(query, [education_id], (err, result) => {
     if (err) {
-      return res.status(500).json({ message: "Error deleting qualification", error: err });
+      return res
+        .status(500)
+        .json({ message: "Error deleting qualification", error: err });
     }
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Qualification not found" });
@@ -2737,7 +3109,6 @@ export const deleteFacultyQualification = (req, res) => {
     res.status(200).json({ message: "Qualification deleted successfully" });
   });
 };
-
 
 export const updateLastSeen = (req, res) => {
   const { user_id, position_name, notification_type } = req.body;
@@ -2918,7 +3289,6 @@ export const getUserDutyOrders = (req, res) => {
   });
 };
 
-
 export const getCirculars = (req, res) => {
   const { department_id } = req.query;
 
@@ -2981,41 +3351,48 @@ export const markDutyOrderAsSeen = (req, res) => {
   });
 };
 
-
-
-
 export const downloadFacultySummary = async (req, res) => {
   const { faculty_id } = req.params;
 
-  pool.query("SELECT * FROM faculty_details WHERE faculty_id = ?", [faculty_id], async (err, results) => {
-    if (err) return res.status(500).json({ message: "Error fetching faculty data", error: err });
-    if (results.length === 0) return res.status(404).json({ message: "Faculty not found" });
+  pool.query(
+    "SELECT * FROM faculty_details WHERE faculty_id = ?",
+    [faculty_id],
+    async (err, results) => {
+      if (err)
+        return res
+          .status(500)
+          .json({ message: "Error fetching faculty data", error: err });
+      if (results.length === 0)
+        return res.status(404).json({ message: "Faculty not found" });
 
-    const faculty = results[0];
+      const faculty = results[0];
 
-    try {
-      const browser = await puppeteer.launch({ headless: "new" });
-      const page = await browser.newPage();
+      try {
+        const browser = await puppeteer.launch({ headless: "new" });
+        const page = await browser.newPage();
 
-      // ✅ Open the React Page (Hosted on Frontend)
-      const frontendURL = `https://dtu-eceportal.com/faculty-summary?faculty_id=${faculty_id}`;
-      await page.goto(frontendURL, { waitUntil: "networkidle2" });
+        // ✅ Open the React Page (Hosted on Frontend)
+        const frontendURL = `https://dtu-eceportal.com/faculty-summary?faculty_id=${faculty_id}`;
+        await page.goto(frontendURL, { waitUntil: "networkidle2" });
 
-      // ✅ Generate PDF
-      const pdfBuffer = await page.pdf({ format: "A4" });
+        // ✅ Generate PDF
+        const pdfBuffer = await page.pdf({ format: "A4" });
 
-      await browser.close();
+        await browser.close();
 
-      // ✅ Send PDF as Response
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader("Content-Disposition", `attachment; filename="faculty_${faculty_id}.pdf"`);
-      res.send(pdfBuffer);
-    } catch (error) {
-      res.status(500).json({ message: "Error generating PDF", error });
+        // ✅ Send PDF as Response
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename="faculty_${faculty_id}.pdf"`
+        );
+        res.send(pdfBuffer);
+      } catch (error) {
+        res.status(500).json({ message: "Error generating PDF", error });
+      }
     }
-  });
+  );
 };
-
 
 export const getFacultyMappingByDepartment = (req, res) => {
   const { department_id } = req.query;
@@ -3028,10 +3405,14 @@ export const getFacultyMappingByDepartment = (req, res) => {
   `;
 
   pool.query(query, [department_id], (err, results) => {
-
-    if (err) return res.status(500).json({ message: "Error fetching faculty mapping", error: err });
-    if (results.length === 0) return res.status(404).json({ message: "No faculty found for this department." });
-
+    if (err)
+      return res
+        .status(500)
+        .json({ message: "Error fetching faculty mapping", error: err });
+    if (results.length === 0)
+      return res
+        .status(404)
+        .json({ message: "No faculty found for this department." });
 
     res.status(200).json(results);
   });
@@ -3043,12 +3424,14 @@ export const forgotPassword = async (req, res) => {
   try {
     // Check if faculty exists
     const [result] = await promisePool.query(
-      "SELECT * FROM faculty_auth WHERE email = ?", 
+      "SELECT * FROM faculty_auth WHERE email = ?",
       [email]
     );
 
     if (result.length === 0) {
-      errorLogger.warn(`⚠️ Forgot password attempted for non-existent faculty email: ${email}`);
+      errorLogger.warn(
+        `⚠️ Forgot password attempted for non-existent faculty email: ${email}`
+      );
       return res.status(404).json({ message: "Faculty not found" });
     }
 
@@ -3058,7 +3441,9 @@ export const forgotPassword = async (req, res) => {
       algorithm: "HS256",
     });
 
-    const expiryTime = new Date(Date.now() + Number(process.env.TOKEN_EXPIRY) * 60000);
+    const expiryTime = new Date(
+      Date.now() + Number(process.env.TOKEN_EXPIRY) * 60000
+    );
 
     // Store token in database
     await promisePool.query(
@@ -3084,25 +3469,22 @@ export const forgotPassword = async (req, res) => {
       `,
     };
 
-    await axios.post(
-      'https://api.brevo.com/v3/smtp/email',
-      emailData,
-      {
-        headers: {
-          'api-key': process.env.BREVO_API_KEY,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    await axios.post("https://api.brevo.com/v3/smtp/email", emailData, {
+      headers: {
+        "api-key": process.env.BREVO_API_KEY,
+        "Content-Type": "application/json",
+      },
+    });
 
     userActionLogger.info(`🔐 Password reset link sent to faculty: ${email}`);
     res.json({ message: "Reset link sent to faculty email" });
-
   } catch (err) {
-    errorLogger.error(`❌ Faculty password reset error for ${email}: ${err.message}`);
-    res.status(500).json({ 
+    errorLogger.error(
+      `❌ Faculty password reset error for ${email}: ${err.message}`
+    );
+    res.status(500).json({
       error: "Internal server error",
-      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+      details: process.env.NODE_ENV === "development" ? err.message : undefined,
     });
   }
 };
@@ -3143,29 +3525,32 @@ export const resetPassword = async (req, res) => {
     );
 
     // Clear any existing auth cookies
-    res.clearCookie("accessToken", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "Strict"
-    }).clearCookie("refreshToken", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "Strict"
-    });
+    res
+      .clearCookie("accessToken", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "Strict",
+      })
+      .clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "Strict",
+      });
 
-    userActionLogger.info(`✅ Faculty password successfully reset for ${email}`);
+    userActionLogger.info(
+      `✅ Faculty password successfully reset for ${email}`
+    );
     res.json({ message: "Faculty password reset successful" });
-
   } catch (err) {
     errorLogger.error(`❌ Faculty password reset error: ${err.message}`);
-    
-    if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+
+    if (err.name === "JsonWebTokenError" || err.name === "TokenExpiredError") {
       return res.status(400).json({ error: "Invalid or expired token" });
     }
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: "Internal server error",
-      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+      details: process.env.NODE_ENV === "development" ? err.message : undefined,
     });
   }
 };
@@ -3174,7 +3559,9 @@ export const facultyLogin = async (req, res) => {
   const { faculty_id, password } = req.body;
 
   if (!faculty_id || !password) {
-    return res.status(400).json({ message: "Faculty ID and password are required!" });
+    return res
+      .status(400)
+      .json({ message: "Faculty ID and password are required!" });
   }
 
   try {
@@ -3241,11 +3628,23 @@ export const facultyLogin = async (req, res) => {
 
     // Step 5: Generate tokens
     const role_assigned = "general"; // <-- Added
-    const accessToken = generateAccessToken(faculty_id, position, role_assigned, deptid);
-    const refreshToken = generateRefreshToken(faculty_id, position, role_assigned, deptid);
+    const accessToken = generateAccessToken(
+      faculty_id,
+      position,
+      role_assigned,
+      deptid
+    );
+    const refreshToken = generateRefreshToken(
+      faculty_id,
+      position,
+      role_assigned,
+      deptid
+    );
 
     const expiryDays = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7;
-    const refreshTokenExpiry = new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000);
+    const refreshTokenExpiry = new Date(
+      Date.now() + expiryDays * 24 * 60 * 60 * 1000
+    );
 
     // Step 6: Save refresh token in DB
     await promisePool.query(
@@ -3265,39 +3664,39 @@ export const facultyLogin = async (req, res) => {
 
     // Step 8: Send response and set httpOnly cookie
     res
-  .cookie("accessToken", accessToken, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "Strict",
-    maxAge: 15 * 60 * 1000, // 15 minutes or whatever ACCESS_TOKEN_EXPIRY is
-  })
-  .cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "Strict",
-    maxAge: expiryDays * 24 * 60 * 60 * 1000,
-  })
-  .json({
-    message: "Login successful!",
-    user: {
-      faculty_id: user.faculty_id,
-      faculty_name,
-      faculty_designation: designation,
-      position,
-      researchCount: counts[0].research_papers,
-      sponsorCount: counts[0].sponsorships,
-      patentCount: counts[0].patents,
-      bookCount: counts[0].book_records,
-      consultancyCount: counts[0].consultancy,
-      unreadDuties: notifications[0].unread_duties,
-      unreadCirculars: notifications[0].unread_circulars,
-      department_id: deptid,
-    },
-  });
-
-
+      .cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "Strict",
+        maxAge: 15 * 60 * 1000, // 15 minutes or whatever ACCESS_TOKEN_EXPIRY is
+      })
+      .cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "Strict",
+        maxAge: expiryDays * 24 * 60 * 60 * 1000,
+      })
+      .json({
+        message: "Login successful!",
+        user: {
+          faculty_id: user.faculty_id,
+          faculty_name,
+          faculty_designation: designation,
+          position,
+          researchCount: counts[0].research_papers,
+          sponsorCount: counts[0].sponsorships,
+          patentCount: counts[0].patents,
+          bookCount: counts[0].book_records,
+          consultancyCount: counts[0].consultancy,
+          unreadDuties: notifications[0].unread_duties,
+          unreadCirculars: notifications[0].unread_circulars,
+          department_id: deptid,
+        },
+      });
   } catch (err) {
-    errorLogger.error(`❌ Faculty login error for ${faculty_id}: ${err.message}`);
+    errorLogger.error(
+      `❌ Faculty login error for ${faculty_id}: ${err.message}`
+    );
     res.status(500).json({ message: "Server error!" });
   }
 };
@@ -3329,7 +3728,9 @@ export const facultyRefresh = async (req, res) => {
     const tokenExpiry = new Date(user.refresh_token_expiry);
 
     if (tokenExpiry < new Date()) {
-      errorLogger.warn(`⏳ Refresh token expired for faculty ${user.faculty_id}`);
+      errorLogger.warn(
+        `⏳ Refresh token expired for faculty ${user.faculty_id}`
+      );
       return res.status(401).json({ message: "Refresh token expired!" });
     }
 
@@ -3338,15 +3739,26 @@ export const facultyRefresh = async (req, res) => {
       await jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET); // await here directly
 
       // Generate new access and refresh tokens
-      const newAccessToken = generateAccessToken(user.faculty_id, user.position_name, "general");
+      const newAccessToken = generateAccessToken(
+        user.faculty_id,
+        user.position_name,
+        "general"
+      );
 
-      const newRefreshToken = generateRefreshToken(user.faculty_id, user.position_name, "general");
+      const newRefreshToken = generateRefreshToken(
+        user.faculty_id,
+        user.position_name,
+        "general"
+      );
 
       // Update the refresh token in the database and its expiry time
       const expiryDays = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7;
       const newRefreshTokenExpiry = new Date(
         Date.now() + expiryDays * 24 * 60 * 60 * 1000
-      ).toISOString().slice(0, 19).replace("T", " ");
+      )
+        .toISOString()
+        .slice(0, 19)
+        .replace("T", " ");
 
       await promisePool.query(
         "UPDATE faculty_auth SET refresh_token = ?, refresh_token_expiry = ? WHERE faculty_id = ?",
@@ -3371,13 +3783,21 @@ export const facultyRefresh = async (req, res) => {
           message: "New access token and refresh token issued.",
         });
 
-      userActionLogger.info(`🔄 Tokens refreshed for faculty ${user.faculty_id}`);
+      userActionLogger.info(
+        `🔄 Tokens refreshed for faculty ${user.faculty_id}`
+      );
     } catch (err) {
-      errorLogger.warn(`❌ Refresh token verification failed for faculty ${user.faculty_id}: ${err.message}`);
-      return res.status(401).json({ message: "Invalid or expired refresh token!" });
+      errorLogger.warn(
+        `❌ Refresh token verification failed for faculty ${user.faculty_id}: ${err.message}`
+      );
+      return res
+        .status(401)
+        .json({ message: "Invalid or expired refresh token!" });
     }
   } catch (err) {
-    errorLogger.error(`🚨 Server error during faculty token refresh: ${err.message}`);
+    errorLogger.error(
+      `🚨 Server error during faculty token refresh: ${err.message}`
+    );
     res.status(500).json({ message: "Server error!" });
   }
 };
@@ -3398,24 +3818,29 @@ export const facultyLogout = async (req, res) => {
     );
 
     // Log the successful logout
-    userActionLogger.info(`Faculty logged out successfully. Faculty ID: ${user.id}`);
+    userActionLogger.info(
+      `Faculty logged out successfully. Faculty ID: ${user.id}`
+    );
 
     // Clear cookies
-    res.clearCookie("accessToken", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "Strict",
-    })
-    .clearCookie("refreshToken", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "Strict",
-    });
+    res
+      .clearCookie("accessToken", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "Strict",
+      })
+      .clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "Strict",
+      });
 
     // Send response
     res.json({ message: "Logged out successfully!" });
   } catch (err) {
-    errorLogger.error(`❌ Logout failed for faculty ${user.id}: ${err.message}`);
+    errorLogger.error(
+      `❌ Logout failed for faculty ${user.id}: ${err.message}`
+    );
     res.status(500).json({ message: "Server error!" });
   }
 };
@@ -3426,7 +3851,7 @@ export const facultyVerifyAuth = async (req, res) => {
     const token = req.cookies?.accessToken;
 
     if (!token) {
-      errorLogger.warn('❌ No access token found in cookies');
+      errorLogger.warn("❌ No access token found in cookies");
       return res.status(401).json({ message: "Unauthorized - No token found" });
     }
 
@@ -3436,13 +3861,19 @@ export const facultyVerifyAuth = async (req, res) => {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (err) {
       errorLogger.warn(`❌ Invalid or expired token in cookie: ${err.message}`);
-      return res.status(401).json({ message: "Unauthorized - Invalid or expired token" });
+      return res
+        .status(401)
+        .json({ message: "Unauthorized - Invalid or expired token" });
     }
 
     const { id } = decoded;
     if (!id) {
-      errorLogger.warn(`❌ Missing required fields in token payload: ${JSON.stringify(decoded)}`);
-      return res.status(400).json({ message: "Bad request - Missing token data" });
+      errorLogger.warn(
+        `❌ Missing required fields in token payload: ${JSON.stringify(decoded)}`
+      );
+      return res
+        .status(400)
+        .json({ message: "Bad request - Missing token data" });
     }
 
     const faculty_id = id;
@@ -3507,7 +3938,9 @@ export const facultyVerifyAuth = async (req, res) => {
     );
 
     // Log successful verification
-    userActionLogger.info(`✔️ Faculty token verified successfully for ${faculty_id}`);
+    userActionLogger.info(
+      `✔️ Faculty token verified successfully for ${faculty_id}`
+    );
 
     // Respond with same structure as login
     res.json({
@@ -3525,16 +3958,17 @@ export const facultyVerifyAuth = async (req, res) => {
         unreadDuties: notifications[0].unread_duties || 0,
         unreadCirculars: notifications[0].unread_circulars || 0,
         department_id: deptid,
-        department_name: user.department_name // Added from your original verify
+        department_name: user.department_name, // Added from your original verify
       },
     });
-
   } catch (err) {
-    errorLogger.error(`❌ Server error during faculty token verification: ${err.message}`);
+    errorLogger.error(
+      `❌ Server error during faculty token verification: ${err.message}`
+    );
     console.error(err);
-    res.status(500).json({ 
+    res.status(500).json({
       message: "Server error!",
-      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+      error: process.env.NODE_ENV === "development" ? err.message : undefined,
     });
   }
 };

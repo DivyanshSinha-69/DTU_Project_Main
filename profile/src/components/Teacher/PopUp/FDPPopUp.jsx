@@ -177,29 +177,17 @@ export default function FacultyDevelopmentPopUp({
           {/* Proof Document */}
           <div className="relative z-0 w-full group">
             <label htmlFor="document" className="block text-sm">
-              Proof Document <span className="text-red-500">*</span>
+              Upload Document
             </label>
-            {fileName ? (
-              <div className="flex items-center justify-between bg-gray-800 border border-gray-300 rounded-lg p-3">
-                <span className="text-sm truncate">{fileName}</span>
-                <button
-                  type="button"
-                  onClick={handleRemoveFile}
-                  className="text-red-500 hover:text-red-400 ml-2 text-sm"
-                >
-                  Remove
-                </button>
-              </div>
-            ) : (
-              <input
-                type="file"
-                name="document"
-                id="document"
-                className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onChange={handleFileChange}
-                required
-              />
-            )}
+            <input
+              type="file"
+              name="document"
+              id="document"
+              accept=".pdf,.jpeg"
+              className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={handleFileChange}
+              required
+            />
           </div>
 
           {/* Red Star Explanation */}

@@ -41,7 +41,9 @@ const ResearchProjects = ({ setBlurActive }) => {
   // Fetch research projects from the API
   const fetchResearchProjects = async () => {
     try {
-      const response = await API.get(`/ece/faculty/researchpaper/${facultyId}`);
+      const response = await API.get(`/ece/faculty/researchpaper`, {
+        params: { faculty_id },
+      });
       if (Array.isArray(response.data)) {
         if (response.data.length === 0) {
           setResearchProjectsDetails([]);
@@ -132,8 +134,7 @@ const ResearchProjects = ({ setBlurActive }) => {
       ) {
         setResearchProjectsDetails((prevDetails) => {
           const newProject = {
-            research_id:
-              response.data.data.insertId || editProject?.research_id,
+            research_id: project.research_id,
             TypeOfPaper: project.TypeOfPaper,
             Title: project.Title,
             AreaOfResearch: project.AreaOfResearch,
@@ -166,7 +167,10 @@ const ResearchProjects = ({ setBlurActive }) => {
   const deleteProject = async (research_id) => {
     try {
       const response = await API.delete(
-        `${API_BASE_URL}/researchpaper/${research_id}`
+        `${API_BASE_URL}/researchpaper/${research_id}`,
+        {
+          params: { faculty_id },
+        }
       );
       if (
         response.data.message &&
