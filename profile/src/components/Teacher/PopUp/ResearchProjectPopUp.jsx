@@ -9,18 +9,21 @@ export default function ResearchProjectPopup({
 }) {
   const [formData, setFormData] = useState({
     title: "",
-    typeOfPaper: "Conference",
+    typeOfPaper: "",
     areaOfResearch: "",
     publishedYear: "",
     document: null,
     citation: "",
     authors: "",
     pdf: null,
+    publicationName: "",
+    issnNumber: "",
+    ugcCareList: "",
+    journalLink: "",
   });
 
-  const [showOtherInput, setShowOtherInput] = useState(false); // State to toggle "Other" input field for Area of Research
-  const [showOtherTypeOfPaperInput, setShowOtherTypeOfPaperInput] =
-    useState(false); // State to toggle "Other" input field for Type of Paper
+  const [showOtherInput, setShowOtherInput] = useState(false);
+  const [showOtherPaperTypeInput, setShowOtherPaperTypeInput] = useState(false);
 
   const specializationOptions = [
     "Image processing",
@@ -57,20 +60,24 @@ export default function ResearchProjectPopup({
     "Nanotechnology",
     "Biomedical Image & Signal processing",
     "Automation/Control Systems",
-  ].sort((a, b) => a.localeCompare(b)); // Sort alphabetically
+  ].sort((a, b) => a.localeCompare(b));
 
   // Pre-fill form with existing data if editing
   useEffect(() => {
     if (project) {
       setFormData({
         title: project.Title || "",
-        typeOfPaper: project.TypeOfPaper || "Conference",
+        typeOfPaper: project.TypeOfPaper || "",
         areaOfResearch: project.AreaOfResearch || "",
         publishedYear: project.PublishedYear || "",
         document: project.Document || null,
         citation: project.Citation || "",
         authors: project.Authors || "",
         pdf: formData.pdf,
+        publicationName: project.PublicationName || "",
+        issnNumber: project.ISSNNumber || "",
+        ugcCareList: project.UGCCareList || "",
+        journalLink: project.JournalLink || "",
       });
 
       // Check if the area of research is "Other"
@@ -79,10 +86,8 @@ export default function ResearchProjectPopup({
       }
 
       // Check if the type of paper is "Other"
-      if (
-        !["Conference", "Journal", "Book Chapter"].includes(project.TypeOfPaper)
-      ) {
-        setShowOtherTypeOfPaperInput(true);
+      if (!["Journal", "Conference"].includes(project.TypeOfPaper)) {
+        setShowOtherPaperTypeInput(true);
       }
     }
   }, [project]);
@@ -103,9 +108,9 @@ export default function ResearchProjectPopup({
 
     // Handle "Other" selection in Type of Paper
     if (name === "typeOfPaper" && value === "Other") {
-      setShowOtherTypeOfPaperInput(true);
+      setShowOtherPaperTypeInput(true);
     } else if (name === "typeOfPaper") {
-      setShowOtherTypeOfPaperInput(false);
+      setShowOtherPaperTypeInput(false);
     }
   };
 
@@ -121,12 +126,17 @@ export default function ResearchProjectPopup({
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Validation: Ensure all fields are filled
+    // Validation: Ensure all required fields are filled
     if (
       !formData.title ||
       !formData.typeOfPaper ||
       !formData.areaOfResearch ||
-      !formData.publishedYear
+      !formData.publishedYear ||
+      !formData.publicationName ||
+      !formData.issnNumber ||
+      !formData.journalLink ||
+      !formData.authors ||
+      !formData.pdf
     ) {
       toast.error("Please fill in all required fields");
       return;
@@ -141,13 +151,17 @@ export default function ResearchProjectPopup({
       Document: formData.document,
       Citation: formData.citation,
       Authors: formData.authors,
-      pdf: formData.pdf, // Pass the pdf file for API upload
+      pdf: formData.pdf,
+      PublicationName: formData.publicationName,
+      ISSNNumber: formData.issnNumber,
+      UGCCareList: formData.ugcCareList || undefined, // Only send if selected
+      JournalLink: formData.journalLink,
     };
 
-    // Call the function to save the project (either add or edit)
+    // Call the function to save the project
     saveProject(newProject);
 
-    // Success toast and close modal
+    // Success toast
     toast.success("Research project saved successfully!");
     closeModal();
   };
@@ -193,25 +207,25 @@ export default function ResearchProjectPopup({
                 onChange={handleChange}
                 value={formData.typeOfPaper}
               >
-                <option value="Conference">Conference</option>
+                <option value="">Select Type</option>
                 <option value="Journal">Journal</option>
-                <option value="Book Chapter">Book Chapter</option>
+                <option value="Conference">Conference</option>
                 <option value="Other">Other</option>
               </select>
             </div>
 
             {/* Show input field if "Other" is selected for Type of Paper */}
-            {showOtherTypeOfPaperInput && (
+            {showOtherPaperTypeInput && (
               <div className="relative z-0 w-full group">
-                <label htmlFor="otherTypeOfPaper" className="block text-sm">
-                  Specify Other Type of Paper{" "}
+                <label htmlFor="otherPaperType" className="block text-sm">
+                  Specify Other Paper Type{" "}
                   <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
-                  name="otherTypeOfPaper"
+                  name="otherPaperType"
                   className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter other type of paper"
+                  placeholder="Enter other paper type"
                   onChange={(e) =>
                     setFormData((prevData) => ({
                       ...prevData,
@@ -221,6 +235,7 @@ export default function ResearchProjectPopup({
                   value={
                     formData.typeOfPaper === "Other" ? "" : formData.typeOfPaper
                   }
+                  required
                 />
               </div>
             )}
@@ -237,6 +252,7 @@ export default function ResearchProjectPopup({
                 onChange={handleChange}
                 value={formData.areaOfResearch}
               >
+                <option value="">Select Area</option>
                 {specializationOptions.map((area) => (
                   <option key={area} value={area}>
                     {area}
@@ -269,6 +285,7 @@ export default function ResearchProjectPopup({
                       ? ""
                       : formData.areaOfResearch
                   }
+                  required
                 />
               </div>
             )}
@@ -285,20 +302,86 @@ export default function ResearchProjectPopup({
                 required
                 onChange={handleChange}
                 value={formData.publishedYear}
+                min="1900"
+                max={new Date().getFullYear()}
+              />
+            </div>
+
+            {/* Name of Publication Field */}
+            <div className="relative z-0 w-full group">
+              <label htmlFor="publicationName" className="block text-sm">
+                Name of Publication <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="publicationName"
+                className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Journal or conference name"
+                onChange={handleChange}
+                value={formData.publicationName}
+                required
+              />
+            </div>
+
+            {/* ISSN Number Field */}
+            <div className="relative z-0 w-full group">
+              <label htmlFor="issnNumber" className="block text-sm">
+                ISSN Number <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="issnNumber"
+                className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="ISSN or ISBN number"
+                onChange={handleChange}
+                value={formData.issnNumber}
+                required
+              />
+            </div>
+
+            {/* UGC Care List Field */}
+            <div className="relative z-0 w-full group">
+              <label htmlFor="ugcCareList" className="block text-sm">
+                Is this paper in UGC Care List?
+              </label>
+              <select
+                name="ugcCareList"
+                className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={handleChange}
+                value={formData.ugcCareList}
+              >
+                <option value="">Select Option</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </div>
+
+            {/* Journal Link Field */}
+            <div className="relative z-0 w-full group">
+              <label htmlFor="journalLink" className="block text-sm">
+                Journal/Conference Link <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="url"
+                name="journalLink"
+                className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="https://example.com"
+                onChange={handleChange}
+                value={formData.journalLink}
+                required
               />
             </div>
 
             {/* Citation Field */}
             <div className="relative z-0 w-full group">
               <label htmlFor="citation" className="block text-sm">
-                Citation (IEEE format) <span className="text-red-500">*</span>
+                Citation (IEEE format)
               </label>
               <input
                 type="text"
                 name="citation"
                 className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Example: J. Doe et al., 'Paper Title', Journal Name, vol. 1, no. 1, pp. 1-10, 2023."
-                required
                 onChange={handleChange}
                 value={formData.citation}
               />
@@ -336,9 +419,14 @@ export default function ResearchProjectPopup({
                 name="document"
                 accept=".pdf"
                 className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
+                required={!project?.Document}
                 onChange={handleFileChange}
               />
+              {project?.Document && (
+                <p className="text-xs text-gray-400 mt-1">
+                  Current file: {project.Document.name || "Uploaded file"}
+                </p>
+              )}
             </div>
 
             {/* Red Star Explanation */}
@@ -349,14 +437,14 @@ export default function ResearchProjectPopup({
               <button
                 type="submit"
                 onClick={handleSubmit}
-                className="w-full px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+                className="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
               >
-                Save
+                {project ? "Update" : "Save"}
               </button>
               <button
                 type="button"
                 onClick={closeModal}
-                className="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                className="w-full px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
               >
                 Cancel
               </button>

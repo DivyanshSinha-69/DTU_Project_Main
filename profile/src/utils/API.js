@@ -1,93 +1,54 @@
 import axios from "axios";
 import { store } from "../redux/Store";
-import { updateAccessToken, logout } from "../redux/reducers/AuthSlice";
-import { useSelector } from "react-redux";
-// const {refreshToken, accessToken} = useSelector((state) => state.auth) || {};
+import { logout } from "../redux/reducers/AuthSlice";
+
+const BACKEND = process.env.REACT_APP_BACKEND_URL;
+let isRefreshing = false;
+let subscribers = [];
+
+/**
+ * When refresh finishes, call all queued callbacks
+ */
+function onRefreshed() {
+  subscribers.forEach((cb) => cb());
+  subscribers = [];
+}
+
+/**
+ * Queue requests until the refresh is done
+ */
+function addSubscriber(cb) {
+  subscribers.push(cb);
+}
 
 const API = axios.create({
-  baseURL: `${process.env.REACT_APP_BACKEND_URL}`,
-  withCredentials: true, // Ensure cookies are sent if used for refresh tokens
+  baseURL: BACKEND,
+  withCredentials: true, // send HttpOnly cookies
 });
-const decodeToken = (token) => {
-  try {
-    if (!token) return null;
-    const base64Url = token.split(".")[1]; // Get the payload part of the token
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const payload = JSON.parse(atob(base64)); // Decode the base64 payload
-    return payload;
-  } catch (error) {
-    console.error("Failed to decode token:", error);
-    return null;
-  }
+// Helper function to get current role from Redux store
+const getCurrentRole = () => {
+  const state = store.getState();
+  return state.user.role || "student"; // Default to 'student' if role not set
 };
-const isTokenExpired = (token) => {
-  const payload = decodeToken(token);
-  if (!payload || !payload.exp) return true; // Assume expired if no expiry time
 
-  const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
-  return payload.exp < currentTime; // Check if expiry time is in the past
-};
-// 🔹 Attach Access Token to Every Request
-API.interceptors.request.use(
-  async (config) => {
-    const state = store.getState(); // Get the latest state
-    const token = state.auth.accessToken; // Access token dynamically
+// Response interceptor: catch 401/403, refresh, then retry
+let failedQueue = [];
 
-    if (token) {
-      // Check if the token is expired or about to expire (e.g., within 5 minutes)
-      const isExpired = isTokenExpired(token);
-
-      if (isExpired) {
-        console.log("🔴 Token expired or about to expire. Refreshing token...");
-
-        try {
-          const refreshToken = state.auth.refreshToken; // Access refresh token dynamically
-          if (!refreshToken) {
-            console.error("❌ No refresh token available!");
-            store.dispatch(logout());
-            return Promise.reject(new Error("No refresh token available"));
-          }
-
-          // Refresh the token
-          const res = await axios.post(
-            `${process.env.REACT_APP_BACKEND_URL}/ece/facultyauth/refresh`,
-            {
-              refreshToken: refreshToken,
-            }
-          );
-
-          if (res.status === 200) {
-            const newAccessToken = res.data.accessToken;
-            store.dispatch(updateAccessToken(newAccessToken));
-
-            // Update the Authorization header with the new token
-            config.headers["Authorization"] = `Bearer ${newAccessToken}`;
-          }
-        } catch (refreshError) {
-          console.error("🔴 Failed to refresh token:", refreshError);
-          store.dispatch(logout());
-          return Promise.reject(refreshError);
-        }
-      } else {
-        // Token is still valid, attach it to the request
-        config.headers["Authorization"] = `Bearer ${token}`;
-      }
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
     } else {
-      console.warn("⚠️ No token found in Redux store!");
+      prom.resolve();
     }
+  });
 
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+  failedQueue = [];
+};
 
-// 🔹 Handle Expired Token (401 Unauthorized)
 API.interceptors.response.use(
   (response) => response,
   async (error) => {
-    console.log("❌ API Error Status:", error.response?.status);
-    console.log("❌ API Error Data:", error.response?.data);
-
     const originalRequest = error.config;
 
     if (
@@ -96,45 +57,42 @@ API.interceptors.response.use(
       !originalRequest._retry
     ) {
       originalRequest._retry = true;
-      const state = store.getState();
-      console.log(
-        "🔍 Refresh Token Before Refresh Request:",
-        state.auth.refreshToken
-      );
+
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({
+            resolve: () => {
+              resolve(API(originalRequest));
+            },
+            reject: (err) => {
+              reject(err);
+            },
+          });
+        });
+      }
+
+      isRefreshing = true;
 
       try {
-        const refreshToken = state.auth.refreshToken;
-
-        if (!refreshToken) {
-          console.error("❌ No refresh token available!");
-          store.dispatch(logout());
-          return Promise.reject(error);
-        }
-
-        const res = await axios.post(
-          `${process.env.REACT_APP_BACKEND_URL}/ece/facultyauth/refresh`,
-          {
-            refreshToken: refreshToken, // 🔹 Send stored refresh token
-          }
+        const role = getCurrentRole();
+        await axios.post(
+          `${BACKEND}/ece/${role}/refresh`,
+          {},
+          { withCredentials: true }
         );
 
-        console.log("🔹 New Access Token Response:", res.data);
-
-        if (res.status === 200) {
-          const newAccessToken = res.data.accessToken;
-
-          store.dispatch(updateAccessToken(newAccessToken));
-
-          originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
-          return API(originalRequest);
-        }
+        isRefreshing = false;
+        processQueue(null);
+        return API(originalRequest); // ✅ return retried request
       } catch (refreshError) {
-        console.error("🔴 Refresh token expired or invalid:", refreshError);
+        isRefreshing = false;
+        processQueue(refreshError, null);
         store.dispatch(logout());
+        return Promise.reject(refreshError);
       }
     }
 
-    return Promise.reject(error);
+    return Promise.reject(error); // all other errors
   }
 );
 

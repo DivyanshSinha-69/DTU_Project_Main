@@ -1,199 +1,244 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, Typography } from "@material-tailwind/react";
 import Popup from "reactjs-popup";
-import PersonalDetailPopup from "../PopupWindow/PersonalDetailPopup";
 import "../../../styles/popup.css";
+import { toast } from "react-hot-toast";
 import { useSelector } from "react-redux";
-import editImg from "../../../assets/edit.svg";
+import API from "../../../utils/API";
+import CustomTable from "../../DynamicComponents/CustomTable";
+import { useThemeContext } from "../../../context/ThemeContext";
+import StudentDetailsPopUp from "../PopUp/PersonalDetailsPopUp";
 
-const PersonalDetails = ({ setBlurActive }) => {
-  const PersonalDetails = useSelector((state) => state.personalDetails);
-  const { RollNo } = useSelector((state) => state.auth.user);
-  // console.log(PersonalDetails);
+const StudentPersonalDetails = ({ setBlurActive }) => {
+  const [studentDetails, setStudentDetails] = useState(null);
   const [isPopupOpen, setPopupOpen] = useState(false);
-  const openPopup = () => {
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [isAddStudent, setIsAddStudent] = useState(false);
+  const user = useSelector((state) => state.auth.user) || {};
+  const { roll_no } = user;
+  const { darkMode } = useThemeContext();
+
+  useEffect(() => {
+    if (!roll_no) return;
+
+    const fetchStudentDetails = async () => {
+      try {
+        const response = await API.get(
+          `ece/student/details?roll_no=${roll_no}`
+        );
+        const student = response?.data?.data?.[0]; // <- Correct mapping here
+
+        if (student) {
+          setStudentDetails([
+            {
+              roll_no: student.roll_no,
+              full_name: student.student_name,
+              father_name: student.father_name,
+              mother_name: student.mother_name,
+              personal_contact: student.personal_contact,
+              parent_contact: student.parent_contact,
+              personal_email: student.personal_email,
+              dtu_email: student.dtu_email,
+              original_city: student.original_city,
+              original_country: student.original_country,
+            },
+          ]);
+        }
+      } catch (error) {
+        toast.error(
+          error?.response?.data?.error || "Error communicating with server"
+        );
+      }
+    };
+
+    fetchStudentDetails();
+  }, [roll_no]);
+
+  const openPopup = (student) => {
+    setSelectedStudent(student);
     setPopupOpen(true);
-    setBlurActive(true); // Activate blur when opening the popup
+    setBlurActive(true);
   };
 
   const closePopup = () => {
     setPopupOpen(false);
-    setBlurActive(false); // Deactivate blur when closing the popup
+    setIsAddStudent(false);
+    setBlurActive(false);
   };
 
-  const TABLE_HEAD = [
-    "Mother's Name",
-    "Father's Name",
-    "Phone No.",
-    "Parent's Contact No.",
-    "Personal Mail",
-    "College Mail",
-  ];
-  const TABLE_ROWS = PersonalDetails.PersonalDetails;
+  const handleAddStudentDetails = async (newStudentDetails) => {
+    const {
+      fullName,
+      dateOfBirth,
+      gender,
+      email,
+      phoneNumber,
+      address,
+      bloodGroup,
+    } = newStudentDetails;
+
+    const payload = {
+      roll_no: roll_no,
+      full_name: fullName,
+      date_of_birth: dateOfBirth,
+      gender: gender,
+      email: email,
+      phone_number: phoneNumber,
+      address: address,
+      blood_group: bloodGroup,
+    };
+
+    try {
+      let response;
+      if (isAddStudent) {
+        response = await API.post("ece/student/details", payload);
+      } else {
+        response = await API.put(
+          `student/details/${selectedStudent.roll_no}`,
+          payload
+        );
+      }
+
+      if (response && response.data) {
+        toast.success("Student details successfully saved");
+
+        const newStudentRecord = {
+          roll_no: response.data.roll_no || selectedStudent.roll_no,
+          full_name: response.data.full_name || fullName,
+          date_of_birth: response.data.date_of_birth || dateOfBirth,
+          gender: response.data.gender || gender,
+          email: response.data.email || email,
+          phone_number: response.data.phone_number || phoneNumber,
+          address: response.data.address || address,
+          blood_group: response.data.blood_group || bloodGroup,
+        };
+
+        if (isAddStudent) {
+          setStudentDetails((prev) => [...prev, newStudentRecord]);
+        } else {
+          setStudentDetails((prev) =>
+            prev.map((student) =>
+              student.roll_no === selectedStudent.roll_no
+                ? newStudentRecord
+                : student
+            )
+          );
+        }
+
+        closePopup();
+      } else {
+        toast.error("Failed to save student details.");
+      }
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.error || "Error communicating with server"
+      );
+    }
+  };
+
+  const handleDeleteStudentDetails = async (rollNo) => {
+    try {
+      const response = await API.delete(`ece/student/details/${rollNo}`);
+      if (response && response.data) {
+        toast.success("Student details deleted successfully");
+        setStudentDetails((prev) =>
+          prev.filter((student) => student.roll_no !== rollNo)
+        );
+      } else {
+        toast.error(response.data.message || "Something went wrong");
+      }
+    } catch (err) {
+      toast.error(
+        err?.response?.data?.error || "Error communicating with server"
+      );
+    }
+  };
 
   return (
-    <div>
-      <div className="h-auto p-10">
-        <div className="flex flex-row justify-between pr-5 pl-5">
-          <p className="p-3 text-2xl font1 border-top my-auto">
-            Personal Details <br />
-            <span className="text-lg text-red-600">
-              ( As per class 10th marksheet )
-            </span>
-          </p>
+    <>
+      {/* Reusable Custom Table Component */}
+      <CustomTable
+        title="Personal Details"
+        subtitle="(Student's Personal Information)"
+        columns={[
+          { key: "full_name", label: "Full Name" },
+          { key: "father_name", label: "Father's Name" },
+          { key: "mother_name", label: "Mother's Name" },
+          { key: "personal_contact", label: "Personal Contact" },
+          { key: "parent_contact", label: "Parent Contact" },
+          { key: "personal_email", label: "Personal Email" },
+          { key: "dtu_email", label: "DTU Email" },
+          { key: "original_city", label: "City" },
+          { key: "original_country", label: "Country" },
+          { key: "actions", label: "Actions" },
+        ]}
+        data={studentDetails}
+        actions={{
+          edit: (student) => {
+            setIsAddStudent(false);
+            setPopupOpen(true);
+            setBlurActive(true);
+            setSelectedStudent(student);
+          },
+          delete: (student) => {
+            if (student?.roll_no) {
+              handleDeleteStudentDetails(student.roll_no);
+            } else {
+              console.error(
+                "Student roll number is missing or undefined",
+                student
+              );
+              toast.error("Student roll number not found");
+            }
+          },
+        }}
+        onAdd={() => {
+          setIsAddStudent(true);
+          setPopupOpen(true);
+          setBlurActive(true);
+          setSelectedStudent(null);
+        }}
+      />
 
-          <button
-            onClick={openPopup}
-            className="p-3 text-lg m-5 font1 border-top bg-green-700 text-white rounded-full  hover:invert hover:scale-[130%] transition-transform ease-in"
-          >
-            <img src={editImg} alt="hello" className="h-5 w-5" />
-          </button>
-
-          <Popup
-            trigger={null}
-            open={isPopupOpen}
-            onClose={closePopup}
-            className="mx-auto my-auto p-2"
-            closeOnDocumentClick
-          >
-            <div className="h-[550px] w-[auto] md:w-[500px] md:mx-auto bg-gray-800 opacity-[0.8] rounded-[12%] top-10 fixed inset-5 md:inset-20 flex items-center justify-center">
-              <PersonalDetailPopup
-                motherName={
-                  TABLE_ROWS.length > 0 ? TABLE_ROWS[0].motherName : ""
-                }
-                fatherName={
-                  TABLE_ROWS.length > 0 ? TABLE_ROWS[0].fatherName : ""
-                }
-                personalContactNo={
-                  TABLE_ROWS.length > 0 ? TABLE_ROWS[0].personalContactNo : ""
-                }
-                parentContactNo={
-                  TABLE_ROWS.length > 0 ? TABLE_ROWS[0].parentContactNo : ""
-                }
-                personalEmail={
-                  TABLE_ROWS.length > 0 ? TABLE_ROWS[0].personalEmail : ""
-                }
-                dtuEmail={TABLE_ROWS.length > 0 ? TABLE_ROWS[0].dtuEmail : ""}
-                rollNo={RollNo}
-                studentimage={
-                  TABLE_ROWS.length > 0 ? TABLE_ROWS[0].studentImage : ""
-                }
+      {/* Popup for Adding/Editing Student Details */}
+      <Popup
+        open={isPopupOpen}
+        onClose={closePopup}
+        className="mx-auto my-auto p-2"
+        closeOnDocumentClick
+      >
+        <div>
+          {isAddStudent ? (
+            <StudentDetailsPopUp
+              fullName=""
+              dateOfBirth=""
+              gender=""
+              email=""
+              phoneNumber=""
+              address=""
+              bloodGroup=""
+              closeModal={closePopup}
+              handleAddStudentDetails={handleAddStudentDetails}
+            />
+          ) : (
+            selectedStudent && (
+              <StudentDetailsPopUp
+                fullName={selectedStudent.full_name}
+                dateOfBirth={selectedStudent.date_of_birth}
+                gender={selectedStudent.gender}
+                email={selectedStudent.email}
+                phoneNumber={selectedStudent.phone_number}
+                address={selectedStudent.address}
+                bloodGroup={selectedStudent.blood_group}
                 closeModal={closePopup}
-                name={"ADD"}
+                handleAddStudentDetails={handleAddStudentDetails}
               />
-            </div>
-          </Popup>
+            )
+          )}
         </div>
-        <hr className="mb-7"></hr>
-
-        {/* table */}
-        <div className="">
-          <Card className="h-auto w-full pl-10 pr-10 overflow-x-scroll md:overflow-hidden">
-            <table className="w-full min-w-auto lg:min-w-max table-auto text-left">
-              <thead>
-                <tr>
-                  {TABLE_HEAD.map((head) => (
-                    <th
-                      key={head}
-                      className="border-b border-blue-gray-100 bg-blue-gray-50 p-4"
-                    >
-                      <Typography
-                        variant="small"
-                        color="blue-gray"
-                        className="font-normal leading-none opacity-70"
-                      >
-                        {head}
-                      </Typography>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {TABLE_ROWS.map(
-                  (
-                    {
-                      RollNo,
-                      motherName,
-                      fatherName,
-                      personalContactNo,
-                      parentContactNo,
-                      personalEmail,
-                      dtuEmail,
-                    },
-                    index,
-                  ) => {
-                    const isLast = index === TABLE_ROWS.length - 1;
-                    const classes = isLast
-                      ? "p-4"
-                      : "p-4 border-b border-blue-gray-50";
-
-                    return (
-                      <tr key={RollNo}>
-                        <td className={classes}>
-                          <Typography
-                            variant="small"
-                            color="blue-gray"
-                            className="font-normal"
-                          >
-                            {motherName}
-                          </Typography>
-                        </td>
-                        <td className={classes}>
-                          <Typography
-                            variant="small"
-                            color="blue-gray"
-                            className="font-normal"
-                          >
-                            {fatherName}
-                          </Typography>
-                        </td>
-                        <td className={classes}>
-                          <Typography
-                            variant="small"
-                            color="blue-gray"
-                            className="font-normal"
-                          >
-                            {personalContactNo}
-                          </Typography>
-                        </td>
-                        <td className={classes}>
-                          <Typography
-                            variant="small"
-                            color="blue-gray"
-                            className="font-normal"
-                          >
-                            {parentContactNo}
-                          </Typography>
-                        </td>
-                        <td className={classes}>
-                          <Typography
-                            variant="small"
-                            color="blue-gray"
-                            className="font-normal"
-                          >
-                            {personalEmail}
-                          </Typography>
-                        </td>
-                        <td className={classes}>
-                          <Typography
-                            variant="small"
-                            color="blue-gray"
-                            className="font-normal"
-                          >
-                            {dtuEmail}
-                          </Typography>
-                        </td>
-                      </tr>
-                    );
-                  },
-                )}
-              </tbody>
-            </table>
-          </Card>
-        </div>
-      </div>
-    </div>
+      </Popup>
+    </>
   );
 };
 
-export default PersonalDetails;
+export default StudentPersonalDetails;

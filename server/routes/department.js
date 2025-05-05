@@ -34,16 +34,18 @@ import {
   updateNotification,
   deleteNotification,
   departmentLogin,
-  refreshToken,
-  logout,
+  departmentRefreshToken,
+  departmentLogout,
+  departmentVerifyAuth,
 } from "../controllers/department.js";
 
 const router = express.Router();
 
 // Department Session Routes
 router.post("/login", departmentLogin);
-router.post("/refresh", refreshToken);
-router.post("/logout", logout);
+router.post("/refresh", departmentRefreshToken);
+router.post("/logout", authenticateToken, departmentLogout);
+router.get("/verify", departmentVerifyAuth);
 
 router.use(authenticateToken); // Middleware to authenticate token and verify user roles.
 

@@ -33,7 +33,12 @@ const FacultyCircularPage = () => {
   const fetchCirculars = async () => {
     try {
       const response = await API.get(
-        `/ece/faculty/circulars?department_id=${department_id}`
+        `/ece/faculty/circulars/${department_id}`,
+        {
+          params: {
+            faculty_id: user.faculty_id,
+          },
+        }
       );
 
       // Check if the response contains valid data

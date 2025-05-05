@@ -38,6 +38,9 @@ import FacultyOfficeOrders from "./components/Teacher/OfficeOrders";
 import FacultyCircularPage from "./components/Teacher/CircularNotices";
 import FacultyCircular from "./components/Teacher/CircularNotices";
 import DepartmentCirculars from "./components/Department/Pages/CircularsNotices";
+import { useLocation } from "react-router-dom";
+import API from "./utils/API";
+
 const CURRENT_VERSION = "2.4"; // Change this on every deployment
 if (localStorage.getItem("appVersion") !== CURRENT_VERSION) {
   localStorage.clear(); // Clears old cache
@@ -49,67 +52,64 @@ if (localStorage.getItem("appVersion") !== CURRENT_VERSION) {
   window.location.reload(true); // Force reload to fetch fresh files
 }
 
+// List of routes that don't require authentication
+const PUBLIC_ROUTES = [
+  "/",
+  "/login",
+  "/login/admin",
+  "/forgot",
+  "/reset-password/:token",
+  "/unauthorized",
+];
+
 function App() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { role } = useSelector((state) => state.user);
-
-  const user1 = useSelector((state) => state.auth.user) || {};
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  const location = useLocation();
+  let isRefreshing = false;
 
   useEffect(() => {
-    const checkExistingToken = async () => {
+    const checkSession = async () => {
+      // 1) Skip public routes
+      if (
+        PUBLIC_ROUTES.some(
+          (route) =>
+            route === location.pathname ||
+            (route === "/reset-password" && location.pathname.startsWith(route))
+        )
+      ) {
+        return;
+      }
+
       try {
-        // let userDetails;
-        // if (user1.Position === "student") {
-        //   const response = await axios.get(
-        //     `${process.env.REACT_APP_BACKEND_URL}/cookiescheck`,
-        //     {
-        //       withCredentials: true,
-        //     }
-        //   );
-        //   userDetails = response.data;
+        // 2) This GET will hit /auth/verify - if access-token expired,
+        //    our interceptor auto‐refreshes it, then retries this verify.
+        const currentRole = role || "student";
+        const { data } = await API.get(`ece/${currentRole}/verify`);
 
-        //   if (userDetails) {
-        //     dispatch(
-        //       login({
-        //         user: userDetails?.user,
-        //         facultyId: null,
-        //         accessToken: null,
-        //         refreshToken: null,
-        //       })
-        //     );
-        //   }
-
-        //   dispatch(setRole(userDetails?.user.Position));
-        //   navigate("/student/portal");
-        // } else dispatch(setRole(user1.position));
-        const accessToken = localStorage.getItem("accessToken");
-        const refreshToken = localStorage.getItem("refreshToken");
-        const user = JSON.parse(localStorage.getItem("user"));
-
-        if (accessToken && refreshToken && user) {
-          dispatch(
-            login({
-              user: user,
-              accessToken: accessToken,
-              refreshToken: refreshToken,
-            })
-          );
-          dispatch(setRole(user.position));
+        if (data.user) {
+          dispatch(login({ user: data.user }));
+          if (!role) {
+            dispatch(setRole(data.user.position));
+          }
         }
-      } catch (error) {
-        console.log(error);
-        console.error("Error checking existing token:", error.message);
+      } catch (err) {
+        // 3) On any failure (expired refresh‐token, network error…), log out
+        dispatch(logout());
+        if (!PUBLIC_ROUTES.includes(location.pathname)) {
+          navigate("/login");
+        }
       }
     };
 
-    checkExistingToken();
-  }, [navigate, dispatch]);
+    checkSession();
+  }, [location.pathname, dispatch, navigate, role, isAuthenticated]);
   const { darkMode } = useThemeContext();
   useEffect(() => {
     document.body.style.backgroundColor = darkMode ? "#0D1117" : "#FFFFFF";
-    document.body.style.color = darkMode ? "#EAEAEA" : "#000000"; // Optional: Set text color
+    document.body.style.color = darkMode ? "#EAEAEA" : "#000000";
   }, [darkMode]);
 
   return (
@@ -128,31 +128,46 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/login/admin" element={<AdminLogin />} />
-
-        <Route path="/student" element={<Student />} />
-        {role === "faculty" && (
-          <Route path="/faculty">
-            <Route index element={<Faculty />} />{" "}
-            <Route path="office-orders" element={<FacultyOfficeOrders />} />{" "}
-            <Route path="circular-notices" element={<FacultyCircular />} />{" "}
-          </Route>
-        )}
-        {role === "admin" && <Route path="/admin" element={<Dashboard />} />}
-        {role === "department" && (
-          <Route path="/department">
-            <Route index element={<Department />} />{" "}
-            {/* Default route for /department */}
-            <Route path="office-orders" element={<Department />} />{" "}
-            <Route path="circular-notices" element={<DepartmentCirculars />} />{" "}
-          </Route>
-        )}
-        <Route path="/parents" element={<Parents />} />
-        <Route path="/loader" element={<Loader />} />
-        <Route path="/alumini" element={<Alumini />} />
         <Route path="/forgot" element={<Forgot />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
 
-        <Route path="*" element={<Unauthorized />} />
+        {/* Protected routes */}
+        {isAuthenticated && (
+          <>
+            <Route path="/student" element={<Student />} />
+            {role === "faculty" && (
+              <Route path="/faculty">
+                <Route index element={<Faculty />} />
+                <Route path="office-orders" element={<FacultyOfficeOrders />} />
+                <Route path="circular-notices" element={<FacultyCircular />} />
+              </Route>
+            )}
+            {role === "admin" && (
+              <Route path="/admin" element={<Dashboard />} />
+            )}
+            {role === "department" && (
+              <Route path="/department">
+                <Route index element={<Department />} />
+                <Route path="office-orders" element={<Department />} />
+                <Route
+                  path="circular-notices"
+                  element={<DepartmentCirculars />}
+                />
+              </Route>
+            )}
+            <Route path="/parents" element={<Parents />} />
+            <Route path="/alumini" element={<Alumini />} />
+          </>
+        )}
+
+        {/* Fallback route */}
+        <Route
+          path="*"
+          element={
+            isAuthenticated ? <Unauthorized /> : <Navigate to="/login" />
+          }
+        />
       </Routes>
       <Footer />
     </>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import studentImg from "../../assets/teacherImg.png";
 import "../../styles/popup.css";
 import { Toaster } from "react-hot-toast";
@@ -11,25 +11,83 @@ import Sidebar from "../DynamicComponents/SideBar.jsx";
 import { useThemeContext } from "../../context/ThemeContext.jsx";
 import dtuImg from "../../assets/dtufullimage.jpg";
 import StudentHeader from "./StudentHeader.jsx";
+import StudentPersonalDetails from "./Tables/PersonalDetails.jsx";
+import StudentPlacementDetails from "./Tables/CurrPlacement.jsx";
+import StudentPreviousPlacements from "./Tables/PrevPlacement.jsx";
+import HigherEducationDetails from "./Tables/HigherEducationDetails.jsx";
+import EntrepreneurshipDetails from "./Tables/EntrepreneurshipDetails.jsx";
+import StudentPreviousEducationDetails from "./Tables/PrevEducationDetails.jsx";
+import StudentCurrentEducationDetails from "./Tables/CurrEducationDetails.jsx";
+import StudentExtracurricularActivities from "./Tables/ExtracurricularDetails.jsx";
+import StudentSocietyDetails from "./Tables/SocietyDetails.jsx";
+import StudentPublicationDetails from "./Tables/PublicationDetails.jsx";
 
 const Student = () => {
   const [isBlurActive, setBlurActive] = useState(false);
   const [loader, setLoader] = useState(true);
   const [selectedImage, setSelectedImage] = useState(null);
   const [isOperationInProgress, setOperationInProgress] = useState(false);
+  const [selectedSection, setSelectedSection] = useState("personal-details");
   const { darkMode } = useThemeContext();
-
-  // Dummy student data
-  const studentData = {
-    student_name: "Divyansh Bansal",
-    enrollment_number: "2K21/EC/81",
-    program: "B.Tech",
-    batch: "2021-2025",
-    department: "ECE",
-    semester: "6th",
-    cgpa: "8.5",
-    attendance: "85%",
+  const { department_name, role_assigned, roll_no, student_name } =
+    useSelector((state) => state.auth.user) || {};
+  // Create refs for all sections
+  const sectionRefs = {
+    "personal-details": useRef(null),
+    "current-placements": useRef(null),
+    "previous-placements": useRef(null),
+    "higher-education": useRef(null),
+    "entrepreneurship-details": useRef(null),
+    "previous-education": useRef(null),
+    "current-education": useRef(null),
+    extracurricular: useRef(null),
+    "society-details": useRef(null),
+    publications: useRef(null),
   };
+
+  const sidebarItems = [
+    { id: "personal-details", label: "Personal Details" },
+
+    { id: "previous-education", label: "Previous Education Details" },
+    { id: "current-education", label: "Current Education Details" },
+    { id: "society-details", label: "Society Details" },
+
+    { id: "previous-placements", label: "Previous Placements" },
+    { id: "current-placements", label: "Current Placement Details" },
+    { id: "publications", label: "Publications" },
+    { id: "higher-education", label: "Higher Education Details" },
+    { id: "entrepreneurship-details", label: "Entrepreneuship Details" },
+    { id: "extracurricular", label: "Extracurricular Activities" },
+  ];
+
+  const handleSidebarSelect = (sectionId) => {
+    setSelectedSection(sectionId);
+    sectionRefs[sectionId]?.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      let currentSection = "personal-details";
+
+      Object.keys(sectionRefs).forEach((key) => {
+        const section = sectionRefs[key]?.current;
+        if (section) {
+          const rect = section.getBoundingClientRect();
+          if (rect.top <= 150 && rect.bottom >= 150) {
+            currentSection = key;
+          }
+        }
+      });
+
+      setSelectedSection(currentSection);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const statsData = [
     { value: 12, label: "Courses Completed" },
@@ -43,7 +101,6 @@ const Student = () => {
     setTimeout(() => setLoader(false), 1000);
   }, []);
 
-  // Dummy image upload handler
   const handleImageUploadOrUpdate = async (event) => {
     if (!event.target.files || event.target.files.length === 0) return;
 
@@ -73,13 +130,14 @@ const Student = () => {
         <>
           <StudentHeader />
           <div className="flex mt-4 min-h-screen">
-            {/* Sidebar - Simplified for student */}
+            {/* Sidebar with enhanced functionality */}
             <div className="flex-shrink-0 sticky top-0 h-screen">
               <Sidebar
-                menuItems={[{ id: "details", label: "Student Details" }]}
-                selectedItem="details"
+                menuItems={sidebarItems}
+                selectedItem={selectedSection}
+                onSelect={handleSidebarSelect}
                 role="student"
-                student_id={studentData.enrollment_number}
+                student_id={roll_no}
               />
             </div>
 
@@ -167,7 +225,7 @@ const Student = () => {
                         className="text-xl md:text-3xl font-semibold"
                         style={{ color: darkMode ? "#EAEAEA" : "#1F252E" }}
                       >
-                        {studentData.student_name}
+                        {student_name}
                       </h1>
 
                       {/* Divider */}
@@ -185,7 +243,7 @@ const Student = () => {
                         className="text-sm md:text-base italic font-medium mt-1"
                         style={{ color: darkMode ? "#B0B3B8" : "#4A5568" }}
                       >
-                        {studentData.program}
+                        {role_assigned}
                       </h2>
 
                       {/* Additional Details */}
@@ -199,7 +257,7 @@ const Student = () => {
                           <span
                             style={{ color: darkMode ? "#EAEAEA" : "#1F252E" }}
                           >
-                            {studentData.enrollment_number}
+                            {roll_no}
                           </span>
                         </div>
                         <div className="flex justify-between md:justify-start gap-2">
@@ -211,20 +269,7 @@ const Student = () => {
                           <span
                             style={{ color: darkMode ? "#EAEAEA" : "#1F252E" }}
                           >
-                            {studentData.department}
-                          </span>
-                        </div>
-
-                        <div className="flex justify-between md:justify-start gap-2">
-                          <span
-                            style={{ color: darkMode ? "#B0B3B8" : "#6B7280" }}
-                          >
-                            CGPA:
-                          </span>
-                          <span
-                            style={{ color: darkMode ? "#EAEAEA" : "#1F252E" }}
-                          >
-                            {studentData.cgpa}
+                            {department_name}
                           </span>
                         </div>
                       </div>
@@ -265,8 +310,89 @@ const Student = () => {
                     </div>
                   </div>
                 </div>
+                {/* Sections with refs */}
+                <div
+                  style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
+                  ref={sectionRefs["personal-details"]}
+                  className={`pt-6 pb-3 ${isBlurActive ? "blur-effect" : ""}`}
+                >
+                  <StudentPersonalDetails setBlurActive={setBlurActive} />
+                </div>
 
-                {/* Sections can be added here later */}
+                <div
+                  style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
+                  ref={sectionRefs["previous-education"]}
+                  className={`pt-6 pb-3 ${isBlurActive ? "blur-effect" : ""}`}
+                >
+                  <StudentPreviousEducationDetails
+                    setBlurActive={setBlurActive}
+                  />
+                </div>
+
+                <div
+                  style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
+                  ref={sectionRefs["current-education"]}
+                  className={`pt-6 pb-3 ${isBlurActive ? "blur-effect" : ""}`}
+                >
+                  <StudentCurrentEducationDetails
+                    setBlurActive={setBlurActive}
+                  />
+                </div>
+
+                <div
+                  style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
+                  ref={sectionRefs["society-details"]}
+                  className={`pt-6 pb-3 ${isBlurActive ? "blur-effect" : ""}`}
+                >
+                  <StudentSocietyDetails setBlurActive={setBlurActive} />
+                </div>
+
+                <div
+                  style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
+                  ref={sectionRefs["previous-placements"]}
+                  className={`pt-6 pb-3 ${isBlurActive ? "blur-effect" : ""}`}
+                >
+                  <StudentPreviousPlacements setBlurActive={setBlurActive} />
+                </div>
+
+                <div
+                  style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
+                  ref={sectionRefs["current-placements"]}
+                  className={`pt-6 pb-3 ${isBlurActive ? "blur-effect" : ""}`}
+                >
+                  <StudentPlacementDetails setBlurActive={setBlurActive} />
+                </div>
+                <div
+                  style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
+                  ref={sectionRefs["higher-education"]}
+                  className={`pt-6 pb-3 ${isBlurActive ? "blur-effect" : ""}`}
+                >
+                  <StudentPublicationDetails setBlurActive={setBlurActive} />
+                </div>
+                <div
+                  style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
+                  ref={sectionRefs["higher-education"]}
+                  className={`pt-6 pb-3 ${isBlurActive ? "blur-effect" : ""}`}
+                >
+                  <HigherEducationDetails setBlurActive={setBlurActive} />
+                </div>
+                <div
+                  style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
+                  ref={sectionRefs["entrepreneurship-details"]}
+                  className={`pt-6 pb-3 ${isBlurActive ? "blur-effect" : ""}`}
+                >
+                  <EntrepreneurshipDetails setBlurActive={setBlurActive} />
+                </div>
+
+                <div
+                  style={{ color: darkMode ? "#F8F9FA" : "#1F252E" }}
+                  ref={sectionRefs["extracurricular"]}
+                  className={`pt-6 pb-3 ${isBlurActive ? "blur-effect" : ""}`}
+                >
+                  <StudentExtracurricularActivities
+                    setBlurActive={setBlurActive}
+                  />
+                </div>
 
                 <Toaster
                   toastOptions={{

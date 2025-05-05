@@ -9,7 +9,6 @@ import { useSelector } from "react-redux";
 import API from "../../../utils/API";
 import PatentPopUp from "../PopUp/PatentPopUp";
 import CustomTable from "../../DynamicComponents/CustomTable";
-import { dialogTitleClasses } from "@mui/material";
 
 const PatentRecords = ({ setBlurActive }) => {
   const [patentDetails, setPatentDetails] = useState([]);
@@ -20,29 +19,33 @@ const PatentRecords = ({ setBlurActive }) => {
   const user = useSelector((state) => state.auth.user) || {};
   const { faculty_id } = user;
   const facultyId = faculty_id;
+
   const formatDateForInput = (isoDate) => {
     if (!isoDate) return ""; // Handle null/undefined cases
     const date = new Date(isoDate);
     return date.toLocaleDateString("en-GB"); // "dd/mm/yyyy" format
   };
+
   // Fetch patent records
   const fetchPatentRecords = async () => {
     try {
-      const response = await API.get(`/ece/faculty/patent/${facultyId}`, {
-        params: {
-          faculty_id: facultyId, // Add facultyId as a query parameter
-        },
+      const response = await API.get(`/ece/faculty/patent`, {
+        params: { faculty_id: facultyId },
       });
+
       if (response.data.length === 0) {
         setPatentDetails([]);
       } else {
         setPatentDetails(
           response.data?.data?.map((patent) => ({
             patent_id: patent.patent_id,
+            patent_number: patent.patent_number,
             patent_name: patent.patent_name,
             patent_publish: formatDateForInput(patent.patent_publish),
             inventors_name: patent.inventors_name,
             patent_award_date: formatDateForInput(patent.patent_award_date),
+            patent_awarding_agency: patent.patent_awarding_agency,
+            document: patent.document,
           }))
         );
       }
@@ -59,21 +62,31 @@ const PatentRecords = ({ setBlurActive }) => {
 
   // Handle add/update patent
   const handleAddPatent = async (newPatent) => {
-    const patentData = {
-      patent_name: newPatent.patentName,
-      faculty_id: facultyId,
-      inventors_name: newPatent.inventorsName,
-      patent_publish: newPatent.patentPublish,
-      patent_award_date: newPatent.patentAwardDate || null,
-    };
+    const formData = new FormData();
+    formData.append("patent_name", newPatent.patentName);
+    formData.append("patent_number", newPatent.patentNumber);
+    formData.append("faculty_id", facultyId);
+    formData.append("inventors_name", newPatent.inventorsName);
+    formData.append("patent_publish", newPatent.patentPublish);
+    formData.append("patent_award_date", newPatent.patentAwardDate || null);
+    formData.append("patent_awarding_agency", newPatent.patentAwardingAgency);
+
+    if (newPatent.document) {
+      formData.append("document", newPatent.document);
+    }
 
     try {
       if (isAddPatent) {
-        await API.post("ece/faculty/patent", patentData);
+        await API.post("ece/faculty/patent", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
       } else {
         await API.put(
           `ece/faculty/patent/${selectedPatent.patent_id}`,
-          patentData
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
         );
       }
       fetchPatentRecords();
@@ -86,7 +99,9 @@ const PatentRecords = ({ setBlurActive }) => {
   // Handle delete patent
   const handleDeletePatent = async (patentId) => {
     try {
-      await API.delete(`ece/faculty/patent/${patentId}`);
+      await API.delete(`ece/faculty/patent/${patentId}`, {
+        params: { faculty_id: facultyId },
+      });
       setPatentDetails(
         patentDetails.filter((patent) => patent.patent_id !== patentId)
       );
@@ -107,32 +122,28 @@ const PatentRecords = ({ setBlurActive }) => {
     setBlurActive(false);
   };
 
-  const TABLE_HEAD = [
-    "Patent Name",
-    "Inventors/Co-inventors",
-    "Published Date",
-    "Award Date",
-    "Actions",
-  ];
-
   const formatDateForInputPopup = (date) => {
+    if (!date) return "";
     const [day, month, year] = date?.split("/");
     return `${year}-${month}-${day}`; // yyyy-MM-dd
   };
+
   return (
     <>
-      {/* Reusable Custom Table Component for Patent Records */}
       <CustomTable
         title="Patent Records"
         subtitle="(Details of patent records)"
         columns={[
+          { key: "patent_number", label: "Patent Number" },
           { key: "patent_name", label: "Patent Name" },
           { key: "inventors_name", label: "Inventors/Co-inventors" },
           { key: "patent_publish", label: "Published Date" },
           { key: "patent_award_date", label: "Award Date" },
+          { key: "patent_awarding_agency", label: "Awarding Agency" },
+          { key: "document", label: "Document" },
           { key: "actions", label: "Actions" },
         ]}
-        data={patentDetails} // Patent data array
+        data={patentDetails}
         actions={{
           edit: (patent) => {
             setIsAddPatent(false);
@@ -140,12 +151,15 @@ const PatentRecords = ({ setBlurActive }) => {
             setBlurActive(true);
             setSelectedPatent({
               patentName: patent.patent_name,
+              patentNumber: patent.patent_number,
               patentPublish: formatDateForInputPopup(patent.patent_publish),
               inventorsName: patent.inventors_name,
               patentAwardDate: formatDateForInputPopup(
                 patent.patent_award_date
               ),
-              patent_id: patent.patent_id, // Ensures ID is available for updates
+              patentAwardingAgency: patent.patent_awarding_agency,
+              document: patent.document,
+              patent_id: patent.patent_id,
             });
           },
           delete: (patent) => {
@@ -180,9 +194,12 @@ const PatentRecords = ({ setBlurActive }) => {
             selectedPatent && (
               <PatentPopUp
                 patentName={selectedPatent.patentName}
+                patentNumber={selectedPatent.patentNumber}
                 patentPublish={selectedPatent.patentPublish}
                 inventorsName={selectedPatent.inventorsName}
                 patentAwardDate={selectedPatent.patentAwardDate}
+                patentAwardingAgency={selectedPatent.patentAwardingAgency}
+                document={selectedPatent.document}
                 patent_id={selectedPatent.patent_id}
                 closeModal={closePopup}
                 handleAddPatent={handleAddPatent}

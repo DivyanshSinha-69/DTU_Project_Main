@@ -59,7 +59,7 @@ const ResetPassword = () => {
 
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/ece/facultyauth/resetpassword/${token}`,
+        `${process.env.REACT_APP_BACKEND_URL}/ece/faculty/resetpassword/${token}`,
         { newPassword }
       );
 

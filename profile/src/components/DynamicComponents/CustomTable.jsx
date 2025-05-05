@@ -50,7 +50,7 @@ const CustomTable = ({
   // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = data?.slice(indexOfFirstItem, indexOfLastItem);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -146,12 +146,12 @@ const CustomTable = ({
 
           {/* Table Body */}
           <tbody>
-            {currentItems.map((row, index) => {
+            {currentItems?.map((row, index) => {
               const isLast = index === currentItems.length - 1;
-              const isExpanded = expandedRow === (row.id || index);
+              const isExpanded = expandedRow === (row?.id || index);
 
               return (
-                <React.Fragment key={index || row.id}>
+                <React.Fragment key={row?.id || `row-${index}`}>
                   {/* Main Row */}
                   <tr
                     className="hover:bg-opacity-10 transition-all" // Subtle hover effect
@@ -180,15 +180,39 @@ const CustomTable = ({
 
                     {/* Table Data */}
                     {columns.map((col) => {
-                      let cellValue = row[col.key];
+                      if (!col || typeof col !== "object") return null;
+                      const { [col?.key]: cellValue } = row || {};
+
+                      if (col?.type === "link") {
+                        return (
+                          <td key={col.key} className="p-4">
+                            {cellValue ? (
+                              <a
+                                href={cellValue}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-500 hover:underline font-poppins font-medium"
+                              >
+                                View
+                              </a>
+                            ) : (
+                              <Typography
+                                variant="small"
+                                className="font-poppins font-medium"
+                              >
+                                -
+                              </Typography>
+                            )}
+                          </td>
+                        );
+                      }
                       if (
-                        col.key === "Document" ||
                         col.key === "order_path" ||
                         col.key === "circular_path" ||
                         col.key === "document"
                       ) {
                         return (
-                          <td key={col.key} className="p-4">
+                          <td key={col?.key} className="p-4">
                             {cellValue ? (
                               <a
                                 href={`${process.env.REACT_APP_BACKEND_URL}/${cellValue}`}
@@ -331,10 +355,10 @@ const CustomTable = ({
                   <AnimatePresence>
                     {isExpanded && (
                       <motion.tr
-                        initial={{ opacity: 0, y: -10 }}
+                        initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.4, ease: "easeInOut" }} // Smooth and subtle animation
+                        exit={{ opacity: 0, y: 10 }}
+                        transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }} // Custom cubic-bezier for smoothness
                       >
                         <td colSpan={columns.length + 1} className="p-4">
                           <div className="flex flex-col gap-2">
@@ -354,12 +378,30 @@ const CustomTable = ({
                                   >
                                     {col.label}
                                   </Typography>
-                                  {col.key === "Document" ||
-                                  col.key === "order_path" ||
-                                  col.key === "circular_path" ? (
+                                  {col.type === "link" ? (
                                     row[col.key] ? (
                                       <a
-                                        href={`${process.env.REACT_APP_BACKEND_URL}/public/${row[col.key]}`}
+                                        href={row[col.key]}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-500 hover:underline font-poppins font-medium"
+                                      >
+                                        {row[col.key]}
+                                      </a>
+                                    ) : (
+                                      <Typography
+                                        variant="small"
+                                        className="font-poppins font-medium"
+                                      >
+                                        -
+                                      </Typography>
+                                    )
+                                  ) : col.key === "document" ||
+                                    col.key === "order_path" ||
+                                    col.key === "circular_path" ? (
+                                    row[col.key] ? (
+                                      <a
+                                        href={`${process.env.REACT_APP_BACKEND_URL}/${row[col.key]}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="text-blue-500 hover:underline font-poppins font-medium"
@@ -377,21 +419,25 @@ const CustomTable = ({
                                   ) : col.key === "faculties" ? (
                                     // Display faculty names in expanded view
                                     <div className="flex flex-col gap-1">
-                                      {row[col.key]?.map((facultyId) => (
-                                        <Typography
-                                          key={facultyId}
-                                          variant="small"
-                                          className="font-poppins font-normal"
-                                          style={{
-                                            color: darkMode
-                                              ? "#C9CCD1"
-                                              : "#2D3A4A",
-                                          }}
-                                        >
-                                          {facultyMapping[facultyId] ||
-                                            "Unknown Faculty"}
-                                        </Typography>
-                                      ))}
+                                      // Replace the faculty mapping section
+                                      with:
+                                      {row[col.key]?.map(
+                                        (facultyId, facultyIndex) => (
+                                          <Typography
+                                            key={`faculty-${facultyId}-${facultyIndex}`} // Combined key
+                                            variant="small"
+                                            className="font-poppins font-normal"
+                                            style={{
+                                              color: darkMode
+                                                ? "#C9CCD1"
+                                                : "#2D3A4A",
+                                            }}
+                                          >
+                                            {facultyMapping[facultyId] ||
+                                              "Unknown Faculty"}
+                                          </Typography>
+                                        )
+                                      )}
                                     </div>
                                   ) : (
                                     <Typography
@@ -417,41 +463,44 @@ const CustomTable = ({
           </tbody>
         </table>
       </div>
-      <div className="flex justify-center mt-4">
+      {/* Pagination with consistent styling */}
+      <div className="flex justify-center mt-3">
         <nav className="flex items-center gap-2">
           {/* Previous Button */}
           <button
             onClick={() => paginate(currentPage - 1)}
             disabled={currentPage === 1}
             className={`px-3 py-1 rounded-md text-sm font-medium transition-all duration-300 ease-in-out
-        ${
-          currentPage === 1
-            ? "text-gray-400 cursor-not-allowed"
-            : darkMode
-              ? "text-white hover:bg-gray-600"
-              : "text-black hover:bg-gray-100"
-        }`}
+          ${
+            currentPage === 1
+              ? "text-gray-400 cursor-not-allowed"
+              : darkMode
+                ? "text-white hover:bg-gray-600"
+                : "text-black hover:bg-gray-100"
+          }`}
           >
             {"<"}
           </button>
 
           {/* Page Numbers */}
-          {Array.from(
-            { length: Math.ceil(data.length / itemsPerPage) },
+          {Array?.from(
+            {
+              length: Math.ceil(data?.length / itemsPerPage),
+            },
             (_, i) => (
               <button
-                key={i + 1}
+                key={`page-${i + 1}`}
                 onClick={() => paginate(i + 1)}
-                className={`px-4 py-1 rounded-md text-sm font-medium transition-all duration-300 ease-in-out
-          ${
-            currentPage === i + 1
-              ? darkMode
-                ? "bg-[#F0F0F0] text-black shadow-sm transform scale-100"
-                : "bg-[#333] text-white shadow-sm transform scale-100"
-              : darkMode
-                ? "bg-gray-700 text-white hover:bg-gray-600 hover:scale-100"
-                : "bg-white text-black hover:bg-gray-200 hover:scale-100"
-          }`}
+                className={`px-4 py-1 rounded-md text-xs font-medium transition-all duration-300 ease-in-out
+              ${
+                currentPage === i + 1
+                  ? darkMode
+                    ? "bg-gray-700 text-white shadow-sm transform scale-100"
+                    : "bg-[#F0F2F5] text-black shadow-sm transform scale-100"
+                  : darkMode
+                    ? "bg-[#161B22] text-white hover:bg-gray-600 hover:scale-100"
+                    : "bg-[#F0F2F5] text-black hover:bg-gray-200 hover:scale-100"
+              }`}
               >
                 {i + 1}
               </button>
@@ -461,20 +510,37 @@ const CustomTable = ({
           {/* Next Button */}
           <button
             onClick={() => paginate(currentPage + 1)}
-            disabled={currentPage === Math.ceil(data.length / itemsPerPage)}
+            disabled={currentPage === Math.ceil(data?.length / itemsPerPage)}
             className={`px-3 py-1 rounded-md text-sm font-medium transition-all duration-300 ease-in-out
-        ${
-          currentPage === Math.ceil(data.length / itemsPerPage)
-            ? "text-gray-400 cursor-not-allowed"
-            : darkMode
-              ? "text-white hover:bg-gray-600"
-              : "text-black hover:bg-gray-100"
-        }`}
+          ${
+            currentPage === Math.ceil(data?.length / itemsPerPage)
+              ? "text-gray-400 cursor-not-allowed"
+              : darkMode
+                ? "text-white hover:bg-gray-600"
+                : "text-black hover:bg-gray-100"
+          }`}
           >
             {">"}
           </button>
         </nav>
       </div>
+      {/* Custom scrollbar styles */}
+      <style jsx>{`
+        div::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+        }
+        div::-webkit-scrollbar-track {
+          background: ${darkMode ? "#0D1117" : "#F4F5F7"};
+        }
+        div::-webkit-scrollbar-thumb {
+          background: ${darkMode ? "#2A2F36" : "#D0D3D6"};
+          border-radius: 4px;
+        }
+        div::-webkit-scrollbar-thumb:hover {
+          background: ${darkMode ? "#3B4149" : "#B0B3B8"};
+        }
+      `}</style>
     </Card>
   );
 };
