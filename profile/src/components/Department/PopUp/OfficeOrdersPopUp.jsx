@@ -27,6 +27,23 @@ export default function DepartmentOfficeOrdersPopUp({
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === "start_date" || name === "end_date") {
+      const newFormData = {
+        ...formData,
+        [name]: value,
+      };
+
+      // Check if both dates are set and start_date is after end_date
+      if (
+        newFormData.start_date &&
+        newFormData.end_date &&
+        new Date(newFormData.start_date) > new Date(newFormData.end_date)
+      ) {
+        toast.error("Start date must be before end date");
+        return; // Don't update the state if validation fails
+      }
+    }
+
     setFormData((prevData) => ({
       ...prevData,
       [name]: value,
@@ -83,6 +100,10 @@ export default function DepartmentOfficeOrdersPopUp({
       !formData.end_date
     ) {
       toast.error("Please fill in all required fields.");
+      return;
+    }
+    if (new Date(formData.start_date) > new Date(formData.end_date)) {
+      toast.error("Start date must be before end date");
       return;
     }
 
@@ -272,6 +293,7 @@ export default function DepartmentOfficeOrdersPopUp({
               type="file"
               name="document"
               id="document"
+              accept=".pdf"
               className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               onChange={handleFileChange}
             />

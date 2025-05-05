@@ -99,7 +99,9 @@ const PatentRecords = ({ setBlurActive }) => {
   // Handle delete patent
   const handleDeletePatent = async (patentId) => {
     try {
-      await API.delete(`ece/faculty/patent/${patentId}`);
+      await API.delete(`ece/faculty/patent/${patentId}`, {
+        params: { faculty_id: facultyId },
+      });
       setPatentDetails(
         patentDetails.filter((patent) => patent.patent_id !== patentId)
       );
