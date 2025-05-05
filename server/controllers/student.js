@@ -4494,16 +4494,16 @@ export const deleteEventOrgDetail = async (req, res) => {
   }
 };
 
-async function getOrCreateResearchAreaId(area_name) {
-  if (!area_name) return null;
+async function getOrCreateResearchAreaId(area_of_research) {
+  if (!area_of_research) return null;
   const [rows] = await promisePool.query(
-    "SELECT id FROM research_areas WHERE area_name = ?",
-    [area_name]
+    "SELECT id FROM research_areas WHERE area_of_research = ?",
+    [area_of_research]
   );
   if (rows.length > 0) return rows[0].id;
   const [result] = await promisePool.query(
-    "INSERT INTO research_areas (area_name) VALUES (?)",
-    [area_name]
+    "INSERT INTO research_areas (area_of_research) VALUES (?)",
+    [area_of_research]
   );
   return result.insertId;
 }
@@ -4534,7 +4534,7 @@ export const getPublicationDetails = async (req, res) => {
   }
   try {
     const [rows] = await promisePool.query(
-      `SELECT spd.*, ra.area_of_research as area_name, rpt.type_name
+      `SELECT spd.*, ra.area_of_research as area_of_research, rpt.type_name
        FROM student_publication_details spd
        LEFT JOIN research_areas ra ON spd.area_of_research = ra.id
        LEFT JOIN research_paper_type rpt ON spd.paper_type = rpt.type_id
