@@ -434,14 +434,15 @@ router.delete(
 // Duty Orders Route
 router.get(
   "/duty-orders",
-  authorizeRoles("faculty"),
   authorizeByUserId,
+  facultyAccessMiddleware,
   getUserDutyOrders
 );
 
 router.get(
-  "/circulars",
+  "/circulars/:department_id",
   authorizeByUserId,
+  facultyAccessMiddleware,
   authorizeSameDepartment,
   getCirculars
 );

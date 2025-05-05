@@ -3284,6 +3284,7 @@ export const getUserDutyOrders = (req, res) => {
 };
 
 export const getCirculars = (req, res) => {
+  const {faculty_id} = req.query;
   const { department_id } = req.params;
   let query = "SELECT * FROM department_circular";
   let params = [];
