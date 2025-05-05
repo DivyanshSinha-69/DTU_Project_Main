@@ -90,7 +90,7 @@ const SponsoredResearch = ({ setBlurActive }) => {
     formData.append("amount_sponsored", newResearch.amount);
     formData.append("status", newResearch.stat); // Include status
     formData.append("start_date", newResearch.startDate);
-    formData.append("end_date", newResearch.endDate || null);
+    formData.append("end_date", newResearch.endDate);
 
     if (newResearch.document) {
       formData.append("document", newResearch.document);

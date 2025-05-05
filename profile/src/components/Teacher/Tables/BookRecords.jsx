@@ -9,7 +9,7 @@ import deleteImg from "../../../assets/delete.svg";
 import { useSelector } from "react-redux";
 import API from "../../../utils/API";
 import CustomTable from "../../DynamicComponents/CustomTable";
-
+import { toast } from "react-hot-toast";
 const BookRecordsPublished = ({ setBlurActive }) => {
   const [bookDetails, setBookDetails] = useState([]);
   const [isPopupOpen, setPopupOpen] = useState(false);
@@ -64,7 +64,6 @@ const BookRecordsPublished = ({ setBlurActive }) => {
   const handleAddBook = async (newBook) => {
     const bookData = {
       ISBN: newBook.isbn,
-      faculty_id: facultyId,
       book_title: newBook.book_title,
       chapter_title: newBook.chapter_title,
       publication_name: newBook.publication_name,
@@ -76,7 +75,9 @@ const BookRecordsPublished = ({ setBlurActive }) => {
 
     try {
       if (isAddBook) {
-        await API.post("ece/faculty/books", bookData);
+        await API.post("ece/faculty/books", bookData, {
+          params: { faculty_id: facultyId },
+        });
       } else {
         await API.put(`ece/faculty/books/${selectedBook.Book_id}`, bookData, {
           params: { faculty_id: facultyId },
@@ -86,12 +87,17 @@ const BookRecordsPublished = ({ setBlurActive }) => {
       closePopup();
     } catch (error) {
       console.error("Error handling book record:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to save book details"
+      );
     }
   };
 
   const handleDeleteBook = async (Book_id) => {
     try {
-      await API.delete(`/ece/faculty/books/${Book_id}`);
+      await API.delete(`/ece/faculty/books/${Book_id}`, {
+        params: { faculty_id: facultyId },
+      });
       setBookDetails(bookDetails.filter((book) => book.Book_id !== Book_id));
     } catch (error) {
       console.error("Error deleting book record:", error);

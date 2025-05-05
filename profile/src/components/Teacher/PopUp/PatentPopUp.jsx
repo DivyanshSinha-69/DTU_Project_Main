@@ -202,6 +202,7 @@ export default function PatentPopUp({
                 required
                 className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 onChange={handleFileChange}
+                accept=".pdf"
               />
             </div>
 
