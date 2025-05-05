@@ -4534,7 +4534,7 @@ export const getPublicationDetails = async (req, res) => {
   }
   try {
     const [rows] = await promisePool.query(
-      `SELECT spd.*, ra.area_name, rpt.type_name
+      `SELECT spd.*, ra.area_of_research as area_name, rpt.type_name
        FROM student_publication_details spd
        LEFT JOIN research_areas ra ON spd.area_of_research = ra.id
        LEFT JOIN research_paper_type rpt ON spd.paper_type = rpt.type_id
@@ -4547,12 +4547,13 @@ export const getPublicationDetails = async (req, res) => {
       roll_no,
       count: rows.length,
     });
-    res.status(200).json(rows);
+    res.status(200).json(rows); // returns empty array if no rows
   } catch (error) {
     logError("Get publication details", error, { roll_no });
     res.status(500).json({ error: "Failed to fetch publication details" });
   }
 };
+
 
 export const addPublicationDetail = async (req, res) => {
   const { roll_no } = req.query;
