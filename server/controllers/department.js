@@ -304,7 +304,7 @@ export const getOrders = (req, res) => {
       const order_number = order.order_number;
 
       const facultyQuery = `SELECT DISTINCT faculty_id FROM mapping_duty_orders_faculty WHERE order_number = ?`;
-      const studentQuery = `SELECT DISTINCT RollNo FROM mapping_duty_orders_students WHERE order_number = ?`;
+      const studentQuery = `SELECT DISTINCT roll_no FROM mapping_duty_orders_students WHERE order_number = ?`;
       const notificationQuery = `SELECT created_at FROM department_duty_notifications WHERE order_number = ? ORDER BY created_at DESC LIMIT 1`;
 
       pool.query(facultyQuery, [order_number], (err, facultyResult) => {
@@ -328,7 +328,7 @@ export const getOrders = (req, res) => {
             ordersWithMappings.push({
               ...order,
               faculty_ids: facultyResult.map((row) => row.faculty_id),
-              student_ids: studentResult.map((row) => row.RollNo),
+              student_ids: studentResult.map((row) => row.roll_no),
               created_at: notificationResult.length > 0 ? notificationResult[0].created_at : null,
             });
 
@@ -403,7 +403,7 @@ export const addOrder = (req, res) => {
     }
 
     if (student_ids.length > 0) {
-      const studentQuery = "INSERT INTO mapping_duty_orders_students (RollNo, order_number) VALUES ?";
+      const studentQuery = "INSERT INTO mapping_duty_orders_students (roll_no, order_number) VALUES ?";
       pool.query(studentQuery, [student_ids.map((id) => [id, order_number])], (studentErr) => {
         if (studentErr) console.error("❌ Error linking students:", studentErr);
       });
@@ -430,7 +430,7 @@ if (faculty_ids.length > 0) {
 }
 if (student_ids.length > 0) {
   getEmailsQuery.push(
-    `SELECT email FROM student_auth WHERE RollNo IN (${student_ids.map(() => "?").join(",")})`
+    `SELECT email FROM student_auth WHERE roll_no IN (${student_ids.map(() => "?").join(",")})`
   );
 }
 
@@ -647,7 +647,7 @@ export const updateOrder = (req, res) => {
 
         if (student_ids.length > 0) {
           const studentQuery =
-            "INSERT INTO mapping_duty_orders_students (RollNo, order_number) VALUES ?";
+            "INSERT INTO mapping_duty_orders_students (roll_no, order_number) VALUES ?";
           pool.query(studentQuery, [
             student_ids.map((id) => [id, order_number]),
           ]);
@@ -690,13 +690,13 @@ export const updateOrder = (req, res) => {
           getEmailsQuery = `
             SELECT email_id AS email FROM faculty_details WHERE faculty_id IN (?) 
             UNION 
-            SELECT email FROM student_auth WHERE RollNo IN (?)`;
+            SELECT email FROM student_auth WHERE roll_no IN (?)`;
           emailQueryParams = [faculty_ids, student_ids];
         } else if (faculty_ids.length > 0) {
           getEmailsQuery = `SELECT email_id AS email FROM faculty_details WHERE faculty_id IN (?)`;
           emailQueryParams = [faculty_ids];
         } else if (student_ids.length > 0) {
-          getEmailsQuery = `SELECT email FROM student_auth WHERE RollNo IN (?)`;
+          getEmailsQuery = `SELECT email FROM student_auth WHERE roll_no IN (?)`;
           emailQueryParams = [student_ids];
         }
 
@@ -814,7 +814,7 @@ export const deleteOrder = (req, res) => {
       const { order_number, order_name, order_date, subject, order_path } = results[0];
 
       const facultyQuery = `SELECT DISTINCT faculty_id FROM mapping_duty_orders_faculty WHERE order_number = ?;`;
-      const studentQuery = `SELECT DISTINCT RollNo FROM mapping_duty_orders_students WHERE order_number = ?;`;
+      const studentQuery = `SELECT DISTINCT roll_no FROM mapping_duty_orders_students WHERE order_number = ?;`;
 
       // Fetch Faculty IDs
       pool.query(facultyQuery, [order_number], (facultyErr, facultyResult) => {
@@ -854,7 +854,7 @@ export const deleteOrder = (req, res) => {
           if (studentErr) {
             console.error("Error fetching student mappings:", studentErr);
           } else {
-            const studentRollNos = studentResult.map((row) => row.RollNo).filter(Boolean);
+            const studentRollNos = studentResult.map((row) => row.roll_no).filter(Boolean);
             if (studentRollNos.length > 0) {
               console.log("Affected students:", studentRollNos);
             }
@@ -1072,13 +1072,13 @@ export const deleteFacultyMapping = (req, res) => {
 
 // 1️⃣ Get all student mappings or by RollNo
 export const getStudentMappings = (req, res) => {
-  const { RollNo } = req.query;
+  const { roll_no } = req.query;
   let query = "SELECT * FROM mapping_duty_orders_students";
   let values = [];
 
-  if (RollNo) {
-    query += " WHERE RollNo = ?";
-    values.push(RollNo);
+  if (roll_no) {
+    query += " WHERE roll_no = ?";
+    values.push(roll_no);
   }
 
   pool.query(query, values, (err, result) => {
@@ -1092,11 +1092,11 @@ export const getStudentMappings = (req, res) => {
 
 // 2️⃣ Add a new student mapping
 export const addStudentMapping = (req, res) => {
-  const { RollNo, order_number } = req.body;
+  const { roll_no, order_number } = req.body;
 
   pool.query(
-    "INSERT INTO mapping_duty_orders_students (RollNo, order_number) VALUES (?, ?)",
-    [RollNo, order_number],
+    "INSERT INTO mapping_duty_orders_students (roll_no, order_number) VALUES (?, ?)",
+    [roll_no, order_number],
     (err, result) => {
       if (err) {
         console.error("Error adding student mapping:", err);
@@ -1114,11 +1114,11 @@ export const addStudentMapping = (req, res) => {
 // 3️⃣ Update a student mapping
 export const updateStudentMapping = (req, res) => {
   const { id } = req.params;
-  const { RollNo, order_number } = req.body;
+  const { roll_no, order_number } = req.body;
 
   pool.query(
-    "UPDATE mapping_duty_orders_students SET RollNo = ?, order_number = ? WHERE id = ?",
-    [RollNo, order_number, id],
+    "UPDATE mapping_duty_orders_students SET roll_no = ?, order_number = ? WHERE id = ?",
+    [roll_no, order_number, id],
     (err, result) => {
       if (err) {
         console.error("Error updating student mapping:", err);
@@ -1168,7 +1168,7 @@ export const getMappingsByOrderNumber = (req, res) => {
   `;
 
   const studentQuery = `
-      SELECT DISTINCT RollNo 
+      SELECT DISTINCT roll_no 
       FROM mapping_duty_orders_students
       WHERE order_number = ?;
   `;
@@ -1191,7 +1191,7 @@ export const getMappingsByOrderNumber = (req, res) => {
 
       res.json({
         faculty_ids: facultyResult.map((row) => row.faculty_id),
-        roll_numbers: studentResult.map((row) => row.RollNo),
+        roll_numbers: studentResult.map((row) => row.roll_no),
       });
     });
   });
