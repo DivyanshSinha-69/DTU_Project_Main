@@ -89,6 +89,7 @@ import {
   facultyRefresh,
   facultyLogout,
   facultyVerifyAuth,
+  getFacultyResearchByMonth 
 } from "../controllers/faculty.js";
 
 import { parseMultipartFields } from "../middlewares/parseMultipartFields.js";
@@ -111,6 +112,10 @@ router.get(
   authorizeRoles("faculty"),
   getFacultyAssociations
 );
+
+router.get("/faculty-research-digest", authorizeByUserId, getFacultyResearchByMonth);
+
+
 router.get(
   "/facultyassociation/:faculty_id",
   authorizeRoles("faculty"),
