@@ -14,6 +14,9 @@ import nodemailer from "nodemailer";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import multer from "multer";
+import calendar from "calendar"; // Or use JS's built-in Date methods
+import { DateTime } from "luxon"; // Or use date-fns, moment, etc.
+
 
 const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
@@ -907,7 +910,7 @@ export const addFacultyInteraction = (req, res) => {
   if (!monthNumber) {
     return res.status(400).json({ message: "Invalid month name" });
   }
-
+  
   const checkQuery = `SELECT interaction_id FROM faculty_interaction_types WHERE interaction_type = ?`;
 
   pool.query(checkQuery, [interaction_type], (err, result) => {
@@ -3960,5 +3963,46 @@ export const facultyVerifyAuth = async (req, res) => {
       message: "Server error!",
       error: process.env.NODE_ENV === "development" ? err.message : undefined,
     });
+  }
+};
+
+
+export const getFacultyResearchByMonth = async (req, res) => {
+  let { months_ago, user_id } = req.query;
+  months_ago = parseInt(months_ago, 10);
+
+  if (!months_ago || months_ago < 1 || months_ago > 6) {
+    return res.status(400).json({ error: "months_ago query parameter must be between 1 and 6" });
+  }
+
+  const now = new Date();
+  const target = new Date(now.getFullYear(), now.getMonth() - months_ago, 1);
+  const targetYear = target.getFullYear();
+  const targetMonthNumber = target.getMonth() + 1; // 1-based month
+  const targetMonthName = target.toLocaleString('en-US', { month: 'long' });
+
+  try {
+    const [rows] = await promisePool.query(
+      `SELECT faculty_id, paper_type, title_of_paper, area_of_research, published_year, month, authors, name_of_publication, ISSN_number
+       FROM faculty_research_paper
+       WHERE published_year = ? AND month = ?
+       ORDER BY published_year DESC, month DESC`,
+      [targetYear, targetMonthNumber]
+    );
+    userActionLogger.info(
+      `User ${user_id} accessed ${targetMonthName} ${targetYear} faculty research papers successfully.`,
+      {
+        action: "READ",
+        user_id,
+        month: targetMonthName,
+        year: targetYear,
+        count: rows.length,
+        table: "faculty_research_paper"
+      }
+    );
+    res.status(200).json(rows);
+  } catch (error) {
+    logError("Fetch faculty research papers by month", error, { months_ago, targetYear, targetMonthNumber, user_id });
+    res.status(500).json({ error: "Failed to fetch faculty research papers" });
   }
 };

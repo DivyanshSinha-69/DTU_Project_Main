@@ -96,6 +96,8 @@ import {
   deletePublicationDetail,
 } from "../controllers/student.js";
 
+import { getFacultyResearchByMonth } from "../controllers/faculty.js";
+
 import {
   authenticateToken,
   authorizeRoles,
@@ -137,6 +139,7 @@ router.post("/details/", authenticateToken, authorizeByUserId, studentAccessMidd
 router.put("/details/:roll_no", authenticateToken, authorizeByUserId, studentAccessMiddleware, updateStudentDetails);
 router.delete("/details/:roll_no", authenticateToken, authorizeByUserId, studentAccessMiddleware, deleteStudentDetails);
 
+router.get("/faculty-research-digest", authenticateToken, authorizeByUserId, getFacultyResearchByMonth);
 
 router.get("/placement/all", authenticateToken, studentAccessMiddleware, getPlacements);
 router.get("/placement", authenticateToken, authorizeByUserId, studentAccessMiddleware, getPlacementByRollNo);
