@@ -9,6 +9,7 @@ import { logout } from "../../redux/reducers/AuthSlice";
 import { setRole } from "../../redux/reducers/UserSlice";
 
 import { LogOut } from "lucide-react";
+import API from "../../utils/API.js";
 
 const DepartmentHeader = () => {
   const { darkMode, setDarkMode } = useThemeContext();
@@ -17,7 +18,9 @@ const DepartmentHeader = () => {
   const { role } = useSelector((state) => state.auth);
   const { department_id } = useSelector((state) => state.auth.user);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
+  const handleToggle = () => {
+    setDarkMode(!darkMode);
+  };
   // Navigation links
   const navLinks = [
     {
@@ -38,7 +41,7 @@ const DepartmentHeader = () => {
       const logoutUrl = `${process.env.REACT_APP_BACKEND_URL}/ece/department/logout`;
       const logoutData = { department_id }; // Include department_id in the request body
 
-      const response = await axios.post(logoutUrl, logoutData, {
+      const response = await API.post(logoutUrl, logoutData, {
         withCredentials: true,
       });
 
@@ -87,17 +90,20 @@ const DepartmentHeader = () => {
             whileTap={{ scale: 0.95 }}
           >
             <div
-              className={`relative flex w-14 h-8 rounded-full p-1 cursor-pointer transition-colors duration-500 ${
+              className={`relative flex w-14 h-8 rounded-full p-1 cursor-pointer transition-colors duration-700 ${
                 darkMode ? "bg-gray-700" : "bg-gray-300"
               }`}
-              onClick={() => setDarkMode(!darkMode)}
+              onClick={handleToggle}
             >
               <motion.div
-                className={`absolute w-6 h-6 bg-white rounded-full shadow-md flex items-center justify-center transition-all duration-500 ${
-                  darkMode ? "translate-x-6" : "translate-x-0"
-                }`}
-                layout
-                transition={{ type: "spring", stiffness: 700, damping: 20 }}
+                className="absolute w-6 h-6 bg-white rounded-full shadow-md flex items-center justify-center"
+                animate={{ x: darkMode ? 24 : 0 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 200,
+                  damping: 20,
+                  mass: 1.2,
+                }}
               >
                 {darkMode ? (
                   <FaMoon className="text-gray-800" />
