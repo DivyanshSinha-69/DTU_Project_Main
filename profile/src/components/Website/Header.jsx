@@ -12,13 +12,10 @@ import { useDispatch, useSelector } from "react-redux";
 import img1 from "../../assets/teacher.png";
 import img2 from "../../assets/student.png";
 import img3 from "../../assets/admin.png";
-import img4 from "../../assets/parent.svg";
-import img5 from "../../assets/alumini.svg";
 import img6 from "../../assets/alumni.png";
 import img7 from "../../assets/department.png";
 
 import dtulogo from "../../assets/dtuSVG.svg";
-import homeimg from "../../assets/homepage.svg";
 import portalimg from "../../assets/portal.svg";
 
 import "../../styles/header.css";

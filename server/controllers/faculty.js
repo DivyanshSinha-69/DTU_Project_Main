@@ -17,7 +17,6 @@ import multer from "multer";
 import calendar from "calendar"; // Or use JS's built-in Date methods
 import { DateTime } from "luxon"; // Or use date-fns, moment, etc.
 
-
 const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -360,11 +359,9 @@ export const addResearchPaper = async (req, res) => {
     );
     if (facultyRows.length === 0) {
       userActionLogger.warn(`Faculty ID ${faculty_id} does not exist`);
-      return res
-        .status(400)
-        .json({
-          message: "Faculty ID does not exist in faculty_details table",
-        });
+      return res.status(400).json({
+        message: "Faculty ID does not exist in faculty_details table",
+      });
     }
 
     // 2. Get or insert paper_type
@@ -422,12 +419,10 @@ export const addResearchPaper = async (req, res) => {
     userActionLogger.info(
       `Added research paper ID: ${result.insertId} by faculty_id: ${faculty_id}`
     );
-    res
-      .status(201)
-      .json({
-        message: "Research paper added successfully",
-        insertId: result.insertId,
-      });
+    res.status(201).json({
+      message: "Research paper added successfully",
+      insertId: result.insertId,
+    });
   } catch (err) {
     if (pdf_path && fs.existsSync(pdf_path)) fs.unlinkSync(pdf_path);
     errorLogger.error(`Error adding research paper: ${err.message}`);
@@ -548,11 +543,9 @@ export const updateResearchPaper = async (req, res) => {
       userActionLogger.warn(
         `No research paper found with research_id: ${research_id} for update`
       );
-      return res
-        .status(404)
-        .json({
-          message: "No research paper found with the given research_id",
-        });
+      return res.status(404).json({
+        message: "No research paper found with the given research_id",
+      });
     }
 
     // Delete old PDF if new uploaded
@@ -592,11 +585,9 @@ export const deleteResearchPaper = async (req, res) => {
       userActionLogger.warn(
         `No research paper found with research_id: ${research_id} for deletion`
       );
-      return res
-        .status(404)
-        .json({
-          message: "No research paper found with the given research_id",
-        });
+      return res.status(404).json({
+        message: "No research paper found with the given research_id",
+      });
     }
     const pdfPath = rows[0].pdf_path;
 
@@ -608,11 +599,9 @@ export const deleteResearchPaper = async (req, res) => {
       userActionLogger.warn(
         `Failed to delete research paper with research_id: ${research_id}`
       );
-      return res
-        .status(404)
-        .json({
-          message: "Failed to delete the research paper from the database",
-        });
+      return res.status(404).json({
+        message: "Failed to delete the research paper from the database",
+      });
     }
 
     // Delete associated PDF file if it exists
@@ -626,12 +615,10 @@ export const deleteResearchPaper = async (req, res) => {
         errorLogger.error(
           `Error deleting PDF file for research paper ${research_id}: ${unlinkErr.message}`
         );
-        return res
-          .status(500)
-          .json({
-            message: "Error deleting the PDF file",
-            error: unlinkErr.message,
-          });
+        return res.status(500).json({
+          message: "Error deleting the PDF file",
+          error: unlinkErr.message,
+        });
       }
     }
 
@@ -910,7 +897,7 @@ export const addFacultyInteraction = (req, res) => {
   if (!monthNumber) {
     return res.status(400).json({ message: "Invalid month name" });
   }
-  
+
   const checkQuery = `SELECT interaction_id FROM faculty_interaction_types WHERE interaction_type = ?`;
 
   pool.query(checkQuery, [interaction_type], (err, result) => {
@@ -1420,11 +1407,9 @@ export const deleteBookRecord = async (req, res) => {
     userActionLogger.warn(
       `Attempt to delete book record with missing Book_id or faculty_id`
     );
-    return res
-      .status(400)
-      .json({
-        message: "Both Book_id (route) and faculty_id (query) are required",
-      });
+    return res.status(400).json({
+      message: "Both Book_id (route) and faculty_id (query) are required",
+    });
   }
 
   try {
@@ -1436,11 +1421,9 @@ export const deleteBookRecord = async (req, res) => {
       userActionLogger.warn(
         `No book record found with Book_id: ${Book_id} and faculty_id: ${faculty_id} for deletion`
       );
-      return res
-        .status(404)
-        .json({
-          message: "No book record found with the given Book_id and faculty_id",
-        });
+      return res.status(404).json({
+        message: "No book record found with the given Book_id and faculty_id",
+      });
     }
     userActionLogger.info(
       `Deleted book record ID: ${Book_id} (faculty_id: ${faculty_id})`
@@ -1669,12 +1652,10 @@ export const deleteFacultyGuidanceRecord = (req, res) => {
         [Guidance_id],
         (err, result) => {
           if (err) {
-            return res
-              .status(500)
-              .json({
-                message: "Error deleting faculty guidance record",
-                error: err,
-              });
+            return res.status(500).json({
+              message: "Error deleting faculty guidance record",
+              error: err,
+            });
           }
           res
             .status(200)
@@ -1833,12 +1814,10 @@ export const updateSponsoredResearch = (req, res) => {
     // 3️⃣ Update the record in the database
     pool.query(updateQuery, queryParams, (updateErr, result) => {
       if (updateErr) {
-        return res
-          .status(500)
-          .json({
-            message: "Error updating sponsored research",
-            error: updateErr,
-          });
+        return res.status(500).json({
+          message: "Error updating sponsored research",
+          error: updateErr,
+        });
       }
 
       if (result.affectedRows === 0) {
@@ -1886,12 +1865,10 @@ export const deleteSponsoredResearch = (req, res) => {
     const deleteQuery = `DELETE FROM faculty_sponsored_research WHERE sponsorship_id = ?`;
     pool.query(deleteQuery, [sponsorship_id], (deleteErr, result) => {
       if (deleteErr) {
-        return res
-          .status(500)
-          .json({
-            message: "Error deleting sponsored research",
-            error: deleteErr,
-          });
+        return res.status(500).json({
+          message: "Error deleting sponsored research",
+          error: deleteErr,
+        });
       }
 
       if (result.affectedRows === 0) {
@@ -2072,12 +2049,10 @@ export const updateConsultancy = (req, res) => {
     // 3️⃣ Update the record in the database
     pool.query(updateQuery, queryParams, (updateErr, result) => {
       if (updateErr) {
-        return res
-          .status(500)
-          .json({
-            message: "Error updating consultancy record",
-            error: updateErr,
-          });
+        return res.status(500).json({
+          message: "Error updating consultancy record",
+          error: updateErr,
+        });
       }
 
       if (result.affectedRows === 0) {
@@ -2125,12 +2100,10 @@ export const deleteConsultancy = (req, res) => {
     const deleteQuery = `DELETE FROM faculty_consultancy WHERE consultancy_id = ?`;
     pool.query(deleteQuery, [consultancy_id], (deleteErr, result) => {
       if (deleteErr) {
-        return res
-          .status(500)
-          .json({
-            message: "Error deleting consultancy record",
-            error: deleteErr,
-          });
+        return res.status(500).json({
+          message: "Error deleting consultancy record",
+          error: deleteErr,
+        });
       }
 
       if (result.affectedRows === 0) {
@@ -2328,12 +2301,10 @@ export const addSpecialization = (req, res) => {
               [specialization_name],
               (err, insertResult) => {
                 if (err)
-                  return res
-                    .status(500)
-                    .json({
-                      message: "Error inserting specialization",
-                      error: err,
-                    });
+                  return res.status(500).json({
+                    message: "Error inserting specialization",
+                    error: err,
+                  });
 
                 insertFacultySpecialization(insertResult.insertId);
               }
@@ -2351,19 +2322,15 @@ export const addSpecialization = (req, res) => {
       [faculty_id, specializationId],
       (err, result) => {
         if (err)
-          return res
-            .status(500)
-            .json({
-              message: "Error adding faculty specialization",
-              error: err,
-            });
-
-        res
-          .status(201)
-          .json({
-            message: "Faculty specialization added successfully",
-            data: result,
+          return res.status(500).json({
+            message: "Error adding faculty specialization",
+            error: err,
           });
+
+        res.status(201).json({
+          message: "Faculty specialization added successfully",
+          data: result,
+        });
       }
     );
   }
@@ -2426,12 +2393,10 @@ export const updateSpecialization = (req, res) => {
           [specialization_name],
           (err, insertResult) => {
             if (err)
-              return res
-                .status(500)
-                .json({
-                  message: "Error inserting specialization",
-                  error: err,
-                });
+              return res.status(500).json({
+                message: "Error inserting specialization",
+                error: err,
+              });
 
             updateSpecialization(insertResult.insertId);
           }
@@ -2447,19 +2412,15 @@ export const updateSpecialization = (req, res) => {
       [specializationId, specialization_id],
       (err, result) => {
         if (err)
-          return res
-            .status(500)
-            .json({
-              message: "Error updating faculty specialization",
-              error: err,
-            });
-
-        res
-          .status(200)
-          .json({
-            message: "Faculty specialization updated successfully",
-            data: result,
+          return res.status(500).json({
+            message: "Error updating faculty specialization",
+            error: err,
           });
+
+        res.status(200).json({
+          message: "Faculty specialization updated successfully",
+          data: result,
+        });
       }
     );
   }
@@ -2852,8 +2813,8 @@ export const updateFacultyPatent = async (req, res) => {
 // Delete patent
 export const deleteFacultyPatent = async (req, res) => {
   const { faculty_id } = req.query;
-  const { patent_id} = req.params;
-  
+  const { patent_id } = req.params;
+
   try {
     // First get the document path if it exists
     const [patent] = await promisePool.query(
@@ -3283,7 +3244,7 @@ export const getUserDutyOrders = (req, res) => {
 };
 
 export const getCirculars = (req, res) => {
-  const {faculty_id} = req.query;
+  const { faculty_id } = req.query;
   const { department_id } = req.params;
   let query = "SELECT * FROM department_circular";
   let params = [];
@@ -3966,20 +3927,138 @@ export const facultyVerifyAuth = async (req, res) => {
   }
 };
 
-
+const dummyResearchData = {
+  1: [
+    // Last month's data
+    {
+      faculty_id: "F1001",
+      paper_type: "Journal Article",
+      title_of_paper: "Advancements in Quantum Machine Learning",
+      area_of_research: "Quantum Computing, Machine Learning",
+      published_year: 2023,
+      month: 11, // November
+      authors: "Dr. Smith, Dr. Johnson, Dr. Lee",
+      name_of_publication: "Journal of Quantum Computing",
+      ISSN_number: "1234-5678",
+    },
+    {
+      faculty_id: "F1002",
+      paper_type: "Conference Paper",
+      title_of_paper: "Neural Networks for Climate Prediction",
+      area_of_research: "Artificial Intelligence, Climate Science",
+      published_year: 2023,
+      month: 11,
+      authors: "Dr. Brown, Dr. Davis, Dr. Miller",
+      name_of_publication: "International AI Conference Proceedings",
+      ISSN_number: "2345-6789",
+    },
+  ],
+  2: [
+    // Two months ago
+    {
+      faculty_id: "F1003",
+      paper_type: "Review Article",
+      title_of_paper: "Recent Developments in Nanomedicine",
+      area_of_research: "Nanotechnology, Medicine",
+      published_year: 2023,
+      month: 10,
+      authors: "Dr. Wilson, Dr. Taylor",
+      name_of_publication: "Nanotechnology Reviews",
+      ISSN_number: "3456-7890",
+    },
+  ],
+  3: [
+    // Three months ago
+    {
+      faculty_id: "F1004",
+      paper_type: "Journal Article",
+      title_of_paper: "Blockchain Applications in Healthcare",
+      area_of_research: "Blockchain, Healthcare IT",
+      published_year: 2023,
+      month: 9,
+      authors: "Dr. Anderson, Dr. Thomas, Dr. Jackson",
+      name_of_publication: "Healthcare Technology Journal",
+      ISSN_number: "4567-8901",
+    },
+    {
+      faculty_id: "F1005",
+      paper_type: "Conference Paper",
+      title_of_paper: "Sustainable Urban Development Models",
+      area_of_research: "Urban Planning, Sustainability",
+      published_year: 2023,
+      month: 9,
+      authors: "Dr. White, Dr. Harris",
+      name_of_publication: "International Urban Development Conference",
+      ISSN_number: "5678-9012",
+    },
+  ],
+  4: [], // Four months ago - empty array for testing "no research" case
+  5: [
+    // Five months ago
+    {
+      faculty_id: "F1006",
+      paper_type: "Journal Article",
+      title_of_paper: "Advances in CRISPR Gene Editing",
+      area_of_research: "Genetics, Biotechnology",
+      published_year: 2023,
+      month: 7,
+      authors: "Dr. Martin, Dr. Garcia, Dr. Rodriguez",
+      name_of_publication: "Journal of Genetic Engineering",
+      ISSN_number: "6789-0123",
+    },
+  ],
+  6: [
+    // Six months ago
+    {
+      faculty_id: "F1007",
+      paper_type: "Book Chapter",
+      title_of_paper: "The Future of Renewable Energy",
+      area_of_research: "Energy, Sustainability",
+      published_year: 2023,
+      month: 6,
+      authors: "Dr. Martinez, Dr. Robinson",
+      name_of_publication: "Advances in Sustainable Technologies",
+      ISSN_number: "7890-1234",
+    },
+    {
+      faculty_id: "F1008",
+      paper_type: "Journal Article",
+      title_of_paper: "Machine Learning in Financial Fraud Detection",
+      area_of_research: "Finance, Machine Learning",
+      published_year: 2023,
+      month: 6,
+      authors: "Dr. Clark, Dr. Lewis, Dr. Walker",
+      name_of_publication: "Journal of Financial Technology",
+      ISSN_number: "8901-2345",
+    },
+    {
+      faculty_id: "F1009",
+      paper_type: "Conference Paper",
+      title_of_paper: "Virtual Reality in Education",
+      area_of_research: "Education Technology, VR",
+      published_year: 2023,
+      month: 6,
+      authors: "Dr. Hall, Dr. Allen",
+      name_of_publication: "EdTech International Conference",
+      ISSN_number: "9012-3456",
+    },
+  ],
+};
 export const getFacultyResearchByMonth = async (req, res) => {
   let { months_ago, user_id } = req.query;
   months_ago = parseInt(months_ago, 10);
 
   if (!months_ago || months_ago < 1 || months_ago > 6) {
-    return res.status(400).json({ error: "months_ago query parameter must be between 1 and 6" });
+    return res
+      .status(400)
+      .json({ error: "months_ago query parameter must be between 1 and 6" });
   }
 
   const now = new Date();
   const target = new Date(now.getFullYear(), now.getMonth() - months_ago, 1);
   const targetYear = target.getFullYear();
   const targetMonthNumber = target.getMonth() + 1; // 1-based month
-  const targetMonthName = target.toLocaleString('en-US', { month: 'long' });
+  const targetMonthName = target.toLocaleString("en-US", { month: "long" });
 
   try {
     const [rows] = await promisePool.query(
@@ -3997,12 +4076,17 @@ export const getFacultyResearchByMonth = async (req, res) => {
         month: targetMonthName,
         year: targetYear,
         count: rows.length,
-        table: "faculty_research_paper"
+        table: "faculty_research_paper",
       }
     );
     res.status(200).json(rows);
   } catch (error) {
-    logError("Fetch faculty research papers by month", error, { months_ago, targetYear, targetMonthNumber, user_id });
+    logError("Fetch faculty research papers by month", error, {
+      months_ago,
+      targetYear,
+      targetMonthNumber,
+      user_id,
+    });
     res.status(500).json({ error: "Failed to fetch faculty research papers" });
   }
 };

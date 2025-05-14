@@ -8,7 +8,6 @@ import {
 } from "react-router-dom";
 import StickyNavbar from "./components/Website/Header";
 import Footer from "./components/Website/Footer";
-import Home from "./components/Homepage/Home";
 import Login from "./components/Login";
 import Forgot from "./components/Forgot";
 import Faculty from "./components/Teacher/Faculty";
@@ -40,6 +39,8 @@ import FacultyCircular from "./components/Teacher/CircularNotices";
 import DepartmentCirculars from "./components/Department/Pages/CircularsNotices";
 import { useLocation } from "react-router-dom";
 import API from "./utils/API";
+import Home from "./components/Home/Home";
+import ResearchDigestPage from "./Pages/ResearchDigestPage";
 
 const CURRENT_VERSION = "2.4"; // Change this on every deployment
 if (localStorage.getItem("appVersion") !== CURRENT_VERSION) {
@@ -60,6 +61,7 @@ const PUBLIC_ROUTES = [
   "/forgot",
   "/reset-password/:token",
   "/unauthorized",
+  "/research-digest",
 ];
 
 function App() {
@@ -125,12 +127,13 @@ function App() {
         }}
       />
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/login/admin" element={<AdminLogin />} />
         <Route path="/forgot" element={<Forgot />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
+        <Route path="/research-digest" element={<ResearchDigestPage />} />
 
         {/* Protected routes */}
         {isAuthenticated && (

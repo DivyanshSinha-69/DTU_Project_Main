@@ -74,10 +74,10 @@ export default function Footer() {
           </Typography>
           <div className="flex flex-wrap justify-center gap-5">
             {[
-              "Sumit Kumar Khandelwal",
               "Divyansh Bansal",
               "Divyansh Sinha",
               "Divyanshu Sinha",
+              "Sumit Kumar Khandelwal",
             ].map((name, index) => (
               <Typography
                 key={index}
