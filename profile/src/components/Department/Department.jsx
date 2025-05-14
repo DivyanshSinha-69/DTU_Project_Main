@@ -162,7 +162,7 @@ const Department = () => {
     try {
       const formData = new FormData();
 
-      // Append all fields to formData
+      // Append all fields to formData except end_date if it's empty
       Object.keys(orderData).forEach((key) => {
         if (key === "faculty_ids") {
           // Append each faculty ID individually
@@ -172,11 +172,12 @@ const Department = () => {
         } else if (key === "document" && orderData[key]) {
           // Append the file if it exists
           formData.append("order_file", orderData[key]);
-        } else {
-          // Append other fields
+        } else if (key !== "end_date" || orderData[key]) {
+          // Skip end_date if it's empty, otherwise append it
           formData.append(key, orderData[key]);
         }
       });
+
       console.log("formData", formData);
       let response;
       if (selectedOrder) {
@@ -186,7 +187,7 @@ const Department = () => {
           formData,
           {
             headers: {
-              "Content-Type": "multipart/form-data", // Required for file uploads
+              "Content-Type": "multipart/form-data",
             },
           }
         );
@@ -195,7 +196,7 @@ const Department = () => {
         // Add new order
         response = await API.post("ece/department/orders", formData, {
           headers: {
-            "Content-Type": "multipart/form-data", // Required for file uploads
+            "Content-Type": "multipart/form-data",
           },
         });
         toast.success("Order added successfully!");
@@ -204,7 +205,7 @@ const Department = () => {
       fetchOrders(); // Refresh the orders list
     } catch (error) {
       console.error("Error adding/updating order:", error);
-      toast.error(error, " Please try again.");
+      toast.error(error?.response?.data?.message || "Please try again.");
     }
   };
 

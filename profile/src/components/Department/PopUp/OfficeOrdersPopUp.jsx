@@ -21,7 +21,7 @@ export default function DepartmentOfficeOrdersPopUp({
     undersigned: order?.undersigned || "",
     order_date: order?.order_date?.split("T")[0] || "",
     start_date: order?.start_date?.split("T")[0] || "",
-    end_date: order?.end_date?.split("T")[0] || "",
+    end_date: order?.end_date?.split("T")[0],
     document: order?.document || null,
   });
 
@@ -36,8 +36,8 @@ export default function DepartmentOfficeOrdersPopUp({
       // Check if both dates are set and start_date is after end_date
       if (
         newFormData.start_date &&
-        newFormData.end_date &&
-        new Date(newFormData.start_date) > new Date(newFormData.end_date)
+        newFormData?.end_date &&
+        new Date(newFormData.start_date) > new Date(newFormData?.end_date)
       ) {
         toast.error("Start date must be before end date");
         return; // Don't update the state if validation fails
@@ -96,23 +96,35 @@ export default function DepartmentOfficeOrdersPopUp({
       !formData.subject ||
       !formData.undersigned ||
       !formData.order_date ||
-      !formData.start_date ||
-      !formData.end_date
+      !formData.start_date
     ) {
       toast.error("Please fill in all required fields.");
       return;
     }
-    if (new Date(formData.start_date) > new Date(formData.end_date)) {
+
+    // Check if end_date exists and if start_date is before end_date
+    if (
+      formData.end_date &&
+      new Date(formData.start_date) > new Date(formData.end_date)
+    ) {
       toast.error("Start date must be before end date");
       return;
     }
 
+    // Prepare the data to be sent
+    const dataToSend = {
+      ...formData,
+      faculty_ids: formData.faculties,
+    };
+
+    // Remove end_date if it's empty
+    if (!formData.end_date) {
+      delete dataToSend.end_date;
+    }
+
     if (handleAddOrUpdateOrder) {
-      handleAddOrUpdateOrder({
-        ...formData,
-        faculty_ids: formData.faculties, // Ensure faculty_ids is sent as an array
-      });
-      console.log("form data", formData);
+      handleAddOrUpdateOrder(dataToSend);
+      console.log("form data", dataToSend);
     }
 
     closeModal();
@@ -279,7 +291,6 @@ export default function DepartmentOfficeOrdersPopUp({
                 className="block py-3 px-4 w-full text-sm bg-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 onChange={handleChange}
                 value={formData.end_date}
-                required
               />
             </div>
           </div>
