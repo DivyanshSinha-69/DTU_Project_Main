@@ -5248,3 +5248,94 @@ export const deletePublicationDetail = async (req, res) => {
     res.status(500).json({ error: "Failed to delete publication detail" });
   }
 };
+
+export const createPost = async (req, res) => {
+  try {
+    const { title, body, tag_ids } = req.body;
+    const { user_id, user_type } = req.user || {};
+    const document = req.file ? req.file.path : null;
+
+    // Validate input
+    if (!title || !body || !Array.isArray(tag_ids) || tag_ids.length === 0) {
+      errorLogger.warn('❌ Missing required fields for creating post');
+      return res.status(400).json({ message: 'Title, body, and at least one tag are required.' });
+    }
+    if (!user_id || !user_type) {
+      errorLogger.warn('❌ User information missing in request');
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    // Insert the new post
+    const [result] = await promisePool.query(
+      'INSERT INTO discussion_posts (user_id, user_type, title, body, document) VALUES (?, ?, ?, ?, ?)',
+      [user_id, user_type, title, body, document]
+    );
+    const postId = result.insertId;
+
+    // Insert tags for the post
+    const tagValues = tag_ids.map(tagId => [postId, tagId]);
+    await promisePool.query(
+      'INSERT INTO discussion_post_tags (post_id, tag_id) VALUES ?',
+      [tagValues]
+    );
+
+    userActionLogger.info(`✅ Post created by user ${user_id} with post ID ${postId}`, {
+      user_id,
+      postId,
+      document,
+      tags: tag_ids
+    });
+
+    res.status(201).json({ message: 'Post created successfully', post_id: postId });
+  } catch (err) {
+    errorLogger.error(`❌ Error creating post: ${err.message}`, { error: err });
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const getPosts = async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = 15;
+  const offset = (page - 1) * limit;
+  const requestUserId = req.query.user_id;
+
+  try {
+    // Optional: Fetch the user's display name for better logging
+    let requesterName = '';
+    if (requestUserId) {
+      const [userRows] = await promisePool.query(
+        'SELECT display_name FROM users WHERE user_id = ?',
+        [requestUserId]
+      );
+      requesterName = userRows.length > 0 ? userRows[0].display_name : '';
+    }
+
+    const [posts] = await promisePool.query(
+      `SELECT
+        p.post_id,
+        u.display_name AS name,
+        u.user_type AS role,
+        ue.email_id,
+        p.title,
+        p.body,
+        p.document,
+        p.upvotes,
+        p.created_at
+      FROM discussion_posts p
+      JOIN users u ON p.user_id = u.user_id
+      LEFT JOIN user_emails ue ON u.user_id = ue.user_id AND u.user_type = ue.user_type
+      ORDER BY p.created_at DESC
+      LIMIT ? OFFSET ?`,
+      [limit, offset]
+    );
+
+    userActionLogger.info(
+      `📄 User ${requestUserId || "unknown"}${requesterName ? " (" + requesterName + ")" : ""} fetched page ${page} of bulletin board posts.`
+    );
+
+    res.json({ posts, page });
+  } catch (err) {
+    errorLogger.error(`❌ Error fetching posts: ${err.message}`);
+    res.status(500).json({ message: 'Server error' });
+  }
+};

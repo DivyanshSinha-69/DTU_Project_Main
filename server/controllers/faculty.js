@@ -3968,7 +3968,7 @@ export const facultyVerifyAuth = async (req, res) => {
 
 
 export const getFacultyResearchByMonth = async (req, res) => {
-  let { months_ago, user_id } = req.query;
+  let { months_ago } = req.query;
   months_ago = parseInt(months_ago, 10);
 
   if (!months_ago || months_ago < 1 || months_ago > 6) {
@@ -3989,20 +3989,10 @@ export const getFacultyResearchByMonth = async (req, res) => {
        ORDER BY published_year DESC, month DESC`,
       [targetYear, targetMonthNumber]
     );
-    userActionLogger.info(
-      `User ${user_id} accessed ${targetMonthName} ${targetYear} faculty research papers successfully.`,
-      {
-        action: "READ",
-        user_id,
-        month: targetMonthName,
-        year: targetYear,
-        count: rows.length,
-        table: "faculty_research_paper"
-      }
-    );
+    
     res.status(200).json(rows);
   } catch (error) {
-    logError("Fetch faculty research papers by month", error, { months_ago, targetYear, targetMonthNumber, user_id });
+    logError("Fetch faculty research papers by month", error, { months_ago, targetYear, targetMonthNumber });
     res.status(500).json({ error: "Failed to fetch faculty research papers" });
   }
 };

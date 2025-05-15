@@ -104,6 +104,9 @@ router.get("/verify", facultyVerifyAuth);
 router.post("/forgotpassword", forgotPassword);
 router.post("/resetpassword/:token", resetPassword);
 
+
+router.get("/faculty-research-digest", getFacultyResearchByMonth);
+
 router.use(authenticateToken);
 
 // Association Routes
@@ -112,9 +115,6 @@ router.get(
   authorizeRoles("faculty"),
   getFacultyAssociations
 );
-
-router.get("/faculty-research-digest", authorizeByUserId, getFacultyResearchByMonth);
-
 
 router.get(
   "/facultyassociation/:faculty_id",

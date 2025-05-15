@@ -94,6 +94,9 @@ import {
   addPublicationDetail,
   updatePublicationDetail,
   deletePublicationDetail,
+  createPost,
+  getPosts,
+
 } from "../controllers/student.js";
 
 import { getFacultyResearchByMonth } from "../controllers/faculty.js";
@@ -104,9 +107,10 @@ import {
   authorizeByRoleCombo,
   authorizeByUserId,
   authorizeSameDepartment,
-  
 } from "../middlewares/auth.js";
+
 import { studentAccessMiddleware } from "../middlewares/sharedRoleCombos.js";
+
 import { 
   compressUploadedFile,
   checkFileReceived,
@@ -117,7 +121,8 @@ import {
   uploadExtracurricularDoc,
   uploadSocietyDoc,
   uploadEventOrgDoc,
-  uploadPublicationDoc } from "../config/studentMulterConfig.js";
+  uploadPublicationDoc,
+  uploadPostDocument  } from "../config/studentMulterConfig.js";
 
 import { parseMultipartFields } from "../middlewares/parseMultipartFields.js";
 
@@ -207,6 +212,10 @@ router.get("/publication", authenticateToken, authorizeByUserId, studentAccessMi
 router.post("/publication", authenticateToken, authorizeByUserId, studentAccessMiddleware, uploadPublicationDoc, compressUploadedFile, addPublicationDetail);
 router.put("/publication/:research_id", authenticateToken, authorizeByUserId, studentAccessMiddleware, uploadPublicationDoc, compressUploadedFile, updatePublicationDetail);
 router.delete("/publication/:research_id", authenticateToken, authorizeByUserId, studentAccessMiddleware, deletePublicationDetail);
+
+router.get('/posts', authenticateToken, authorizeByUserId, getPosts);
+router.post('/posts', authenticateToken, authorizeByUserId, uploadPostDocument, createPost);
+
 
 router.get("/getall", getall);
 router.post("/profskills", getProfessionalSkills);

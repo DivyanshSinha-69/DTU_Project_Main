@@ -262,6 +262,30 @@ const publicationDocStorage = multer.diskStorage({
   },
 });
 
+// Storage for Bulletin Board Post Documents
+const postDocStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    // Get user_id and user_type from authenticated user (req.user)
+    const user_id = req.user?.user_id || req.body.user_id || req.query.user_id;
+    const user_type = req.user?.user_type || req.body.user_type || req.query.user_type || "General";
+
+    if (!user_id) return cb(new Error("User ID is required for file upload"), null);
+
+    // Directory: public/{user_type}/{user_id}/BulletinBoard/
+    const safeUserId = user_id.replace(/[\/\\]/g, "_");
+    const uploadPath = path.join("public", "bulletinboard", user_type, safeUserId);
+    fs.mkdirSync(uploadPath, { recursive: true });
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const timestamp = Date.now();
+    const ext = path.extname(file.originalname);
+    const baseName = path.basename(file.originalname, ext).replace(/\s+/g, "_");
+    const uniqueFilename = `${baseName}_${timestamp}${ext}`;
+    cb(null, uniqueFilename);
+  },
+});
+
 
 // File filter (accept only PDF, JPG, PNG)
 const fileFilter = (req, file, cb) => {
@@ -280,6 +304,12 @@ const studentImageFilter = (req, file, cb) => {
     cb(new Error("Only JPG, JPEG or PNG files are allowed"), false);
   }
 };
+
+export const uploadPostDocument = multer({
+  storage: postDocStorage,
+  fileFilter: fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 10 MB
+}).single("document");
 
 export const uploadPublicationDoc = multer({
   storage: publicationDocStorage,
