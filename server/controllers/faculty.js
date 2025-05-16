@@ -94,6 +94,17 @@ const generateRefreshToken = (id, position, role_assigned, department_id) => {
   );
 };
 
+// Utility function to log errors consistently
+const logError = (operation, error, additionalInfo = {}) => {
+  const errorInfo = {
+    operation,
+    error: error.message,
+    stack: error.stack,
+    ...additionalInfo,
+  };
+  errorLogger.error(JSON.stringify(errorInfo));
+};
+
 // Fetch all faculty associations
 // 1. Get All Faculty Associations
 export const getFacultyAssociations = (req, res) => {
